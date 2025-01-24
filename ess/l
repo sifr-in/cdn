@@ -1,0 +1,30 @@
+<div id="dv_login_modal" class="modal">
+  <div class="modal-content login-dialog">
+    <span id="sp_login_close_modal" class="close">&times;</span>
+    <h2>Login</h2>
+    <label for="in_mo_2lgi">Phone Number:</label>
+    <input type="number" id="in_mo_2lgi" placeholder="Enter Phone Number">
+    <label for="otp">Password:</label>
+    <input type="password" id="in_pw_psw2lgi" placeholder="Enter Password">
+    <button id="bt_lgi">Login</button>
+    <a id="bt_sho_reg_modal">New Register</a>
+  </div>
+</div>
+
+<div id="dv_register_modal" class="modal">
+  <div class="modal-content login-dialog">
+    <span class="close" id="sp_register_close_modal">&times;</span>
+    <h2>Register</h2>
+    <label for="in_nu_mo_no">Mobile Number:</label>
+    <input type="number" id="in_nu_mo_no" placeholder="Enter Mobile Number">
+    <input type="checkbox" id="tc">accept terms and conditions
+    <input type="text" id="in_tx_otp" placeholder="Enter OTP">
+    <input type="password" id="in_pw_psw" placeholder="Enter Password">
+    <input type="password" id="in_pw_cnfrm_psw" placeholder="Confirm Password">
+    <input type="text" id="in_tx_en_nm" placeholder="Name in English">
+    <input type="text" id="in_tx_lo_nm" placeholder="Name in Local">
+    <button id="bt_snd_otp">send OTP</button>
+    <button id="bt_vrfy_otp">verify OTP</button>
+    <button id="bt_set_psw">set password</button>
+  </div>
+</div>
