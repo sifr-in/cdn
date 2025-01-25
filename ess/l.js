@@ -51,6 +51,10 @@ b_t_lgi.addEventListener('click', function () {
   }
 });
 
+s_p_login_close_modal.addEventListener('click', function () {
+  d_v_login_modal.style.display = 'none';
+});
+
 b_t_sho_reg_modal.addEventListener('click', function () {
   i_n_nu_mo_no.value = '';
   i_n_tx_en_nm.value = '';
