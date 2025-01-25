@@ -49,6 +49,7 @@ if (str_my1uzr != null && str_my1uzr.length > 5) {
   if (my1uzr != null) {
     if (my1uzr.mk != null) {
       payload0.mk = my1uzr.mk;
+      if(l_b_logger_nm!=null)
       l_b_logger_nm.innerHTML = my1uzr.mn + "<br>" + my1uzr.mu;
       showLogOutDv();
       checkExpiry();
