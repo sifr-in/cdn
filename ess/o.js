@@ -19,7 +19,7 @@ b_t_get_otp.addEventListener('click', function () {
   } else {
 
     var t87 = { "yo": i_n_mo_2lgi.value.trim(), "yc": 91 }
-    var tTxt = postCall_Json("https://my1.in/1/o.php", t87, 0, false);
+    var tTxt = postCall_Json("https://my1.in/5z/o.php", t87, 0, false);
     var response = JSON.parse(tTxt);
     if (response.su == 1) {
       i_n_mo_2lgi.readOnly = true;
@@ -40,7 +40,7 @@ b_t_lgi.addEventListener('click', function () {
   if (data.yo != null && data.yo.length == 10) {
     if (validateMobileNumber(data.yo)) {
       if (data.mp != null && data.mp.length > 5) {
-        var tTxt = postCall_Json("https://my1.in/1/k.php", data, 0, false);
+        var tTxt = postCall_Json("https://my1.in/5z/k.php", data, 0, false);
         var response = JSON.parse(tTxt);
         if (response.su == 1) {
           if (response.uzr.mk.length > 10) {
