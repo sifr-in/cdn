@@ -38,6 +38,7 @@ function postCall_Json(rURL, jsonData, tkrq, syncOrNo) {
       loader.style.display = 'none';
     }
   };
+  if(loader!=null)
   loader.style.display = 'flex';
   xhr.send(JSON.stringify(jsonData));
   return retTxt;
