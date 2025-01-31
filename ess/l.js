@@ -144,7 +144,7 @@ b_t_set_psw.addEventListener('click', function () {
       i_n_pw_cnfrm_psw.style.display = 'none';
       b_t_set_psw.style.display = 'none';
       d_v_register_close_modal.style.display = 'none';
-      hiddenForm.style.display = 'none';
+      //hiddenForm.style.display = 'none';
       //function2runAfterPasswordSettedSuccessfully();
     }
     alert(response.ms);
