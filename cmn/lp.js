@@ -58,7 +58,7 @@ function createLoginModal() {
     
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
+    document.body.style.width = '90%';
     
     const modalBackdrop = document.createElement('div');
     modalBackdrop.className = 'l3-modal-backdrop';
