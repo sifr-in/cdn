@@ -18,7 +18,6 @@ function isLoggedIn() {
 }
 
 function showLogoutOption() {
-    // Create modal with isolated styles
     const modal = document.createElement('div');
     modal.className = 'l3-modal-backdrop';
     modal.innerHTML = `
@@ -33,32 +32,34 @@ function showLogoutOption() {
     `;
     
     document.body.appendChild(modal);
-    
-    // Add modal styles
     addModalStyles();
     
-    document.getElementById('logoutCancel').addEventListener('click', () => {
-        document.body.removeChild(modal);
-        restoreBodyStyles();
-    });
+    const cancelBtn = document.getElementById('logoutCancel');
+    const confirmBtn = document.getElementById('logoutConfirm');
     
-    document.getElementById('logoutConfirm').addEventListener('click', () => {
-        my1uzr = null;
-        localStorage.setItem('my1uzr', null);
-        location.reload();
-    });
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            document.body.removeChild(modal);
+            restoreBodyStyles();
+        });
+    }
+    
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', () => {
+            my1uzr = null;
+            localStorage.setItem('my1uzr', null);
+            location.reload();
+        });
+    }
 }
 
 function createLoginModal() {
-    // Save current body styles before modifying
     saveBodyStyles();
     
-    // Apply modal-specific body styles
     document.body.style.overflow = 'hidden';
     document.body.style.position = 'fixed';
     document.body.style.width = '100%';
     
-    // Create modal with isolated class names
     const modalBackdrop = document.createElement('div');
     modalBackdrop.className = 'l3-modal-backdrop';
     modalBackdrop.id = 'loginModalBackdrop';
@@ -158,26 +159,26 @@ function createLoginModal() {
     
     modalBackdrop.appendChild(modalContent);
     document.body.appendChild(modalBackdrop);
-    
-    // Add all modal styles
     addModalStyles();
     
-    // Load country codes
-    loadCountryCodes('loginCountryCode');
-    loadCountryCodes('registerCountryCode');
+    // Load country codes with null checks
+    const loginCountryCode = document.getElementById('loginCountryCode');
+    const registerCountryCode = document.getElementById('registerCountryCode');
     
-    // Set default country code to +91 (India)
+    if (loginCountryCode) loadCountryCodes('loginCountryCode');
+    if (registerCountryCode) loadCountryCodes('registerCountryCode');
+    
+    // Set default country code with null checks
     setTimeout(() => {
-        document.getElementById('loginCountryCode').value = '+91';
-        document.getElementById('registerCountryCode').value = '+91';
+        if (loginCountryCode) loginCountryCode.value = '+91';
+        if (registerCountryCode) registerCountryCode.value = '+91';
         updateMobileLengthInfo('loginCountryCode', 'loginMobileLength');
         updateMobileLengthInfo('registerCountryCode', 'registerMobileLength');
     }, 100);
     
-    // Tab switching
+    // Setup event listeners with null checks
     setupTabSwitching();
     
-    // Close modal when clicking outside
     modalBackdrop.addEventListener('click', (e) => {
         if (e.target === modalBackdrop) {
             document.body.removeChild(modalBackdrop);
@@ -185,10 +186,7 @@ function createLoginModal() {
         }
     });
     
-    setTimeout(() => {
-        // Setup all event listeners
-        setupEventListeners();
-    }, 1000);
+    setupEventListeners();
 }
 
 // Helper functions
@@ -450,95 +448,128 @@ function setupTabSwitching() {
 }
 
 function setupEventListeners() {
-    // Mobile number validation
-    document.getElementById('loginMobile').addEventListener('input', function() {
-        this.value = this.value.replace(/[^0-9]/g, '');
-    });
+    // Login form elements
+    const loginMobile = document.getElementById('loginMobile');
+    const loginCountryCode = document.getElementById('loginCountryCode');
+    const loginSubmit = document.getElementById('loginSubmit');
     
-    document.getElementById('registerMobile').addEventListener('input', function() {
-        this.value = this.value.replace(/[^0-9]/g, '');
-    });
+    // Register form elements
+    const registerMobile = document.getElementById('registerMobile');
+    const registerCountryCode = document.getElementById('registerCountryCode');
+    const acceptTerms = document.getElementById('acceptTerms');
+    const sendOtpBtn = document.getElementById('sendOtpBtn');
+    const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+    const resendOtp = document.getElementById('resendOtp');
+    const englishName = document.getElementById('englishName');
+    const localName = document.getElementById('localName');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const completeRegistration = document.getElementById('completeRegistration');
     
-    // Country code change handlers
-    document.getElementById('loginCountryCode').addEventListener('change', function() {
-        updateMobileLengthInfo('loginCountryCode', 'loginMobileLength');
-    });
+    // Add event listeners only if elements exist
+    if (loginMobile) {
+        loginMobile.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    }
     
-    document.getElementById('registerCountryCode').addEventListener('change', function() {
-        updateMobileLengthInfo('registerCountryCode', 'registerMobileLength');
-    });
+    if (registerMobile) {
+        registerMobile.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    }
     
-    // Terms checkbox handler
-    document.getElementById('acceptTerms').addEventListener('change', function() {
-        const sendOtpBtn = document.getElementById('sendOtpBtn');
-        if (this.checked) {
-            sendOtpBtn.disabled = false;
-            sendOtpBtn.classList.remove('l3-button-disabled');
-            sendOtpBtn.classList.add('l3-button-primary');
-        } else {
-            sendOtpBtn.disabled = true;
-            sendOtpBtn.classList.add('l3-button-disabled');
-            sendOtpBtn.classList.remove('l3-button-primary');
-        }
-    });
+    if (loginCountryCode) {
+        loginCountryCode.addEventListener('change', function() {
+            updateMobileLengthInfo('loginCountryCode', 'loginMobileLength');
+        });
+    }
     
-    // Send OTP button handler
-    document.getElementById('sendOtpBtn').addEventListener('click', function() {
-        if (getOTP()) {
-            document.getElementById('otpSection').classList.remove('l3-hidden');
-            document.getElementById('sendOtpBtn').classList.add('l3-hidden');
-        }
-    });
+    if (registerCountryCode) {
+        registerCountryCode.addEventListener('change', function() {
+            updateMobileLengthInfo('registerCountryCode', 'registerMobileLength');
+        });
+    }
     
-    // Verify OTP button handler
-    document.getElementById('verifyOtpBtn').addEventListener('click', function() {
-        const otp = document.getElementById('otpInput').value;
-        
-        if (otp.length !== 6) {
-            alert('Please enter a 6-digit OTP');
-            return;
-        }
-        
-        if (verifyOTP(otp)) {
-            document.getElementById('otpSection').classList.add('l3-hidden');
-            document.getElementById('registrationForm').classList.remove('l3-hidden');
-        } else {
-            alert('Invalid OTP. Please try again.');
-        }
-    });
+    if (acceptTerms && sendOtpBtn) {
+        acceptTerms.addEventListener('change', function() {
+            sendOtpBtn.disabled = !this.checked;
+            sendOtpBtn.classList.toggle('l3-button-disabled', !this.checked);
+            sendOtpBtn.classList.toggle('l3-button-primary', this.checked);
+        });
+    }
     
-    // Resend OTP handler
-    document.getElementById('resendOtp').addEventListener('click', function() {
-        if (getOTP()) {
-            alert('OTP resent successfully');
-        }
-    });
+    if (sendOtpBtn) {
+        sendOtpBtn.addEventListener('click', function() {
+            if (getOTP()) {
+                document.getElementById('otpSection')?.classList.remove('l3-hidden');
+                this.classList.add('l3-hidden');
+            }
+        });
+    }
     
-    // Name validation
-    document.getElementById('englishName').addEventListener('blur', function() {
-        const errorElement = document.getElementById('englishNameError');
-        errorElement.classList.toggle('l3-hidden', !/[^A-Za-z\s]/.test(this.value));
-    });
+    if (verifyOtpBtn) {
+        verifyOtpBtn.addEventListener('click', function() {
+            const otp = document.getElementById('otpInput')?.value;
+            
+            if (!otp || otp.length !== 6) {
+                alert('Please enter a 6-digit OTP');
+                return;
+            }
+            
+            if (verifyOTP(otp)) {
+                document.getElementById('otpSection')?.classList.add('l3-hidden');
+                document.getElementById('registrationForm')?.classList.remove('l3-hidden');
+            } else {
+                alert('Invalid OTP. Please try again.');
+            }
+        });
+    }
     
-    document.getElementById('localName').addEventListener('blur', function() {
-        const errorElement = document.getElementById('localNameError');
-        errorElement.classList.toggle('l3-hidden', !(/[A-Za-z]/.test(this.value) || /[0-9]/.test(this.value)));
-    });
+    if (resendOtp) {
+        resendOtp.addEventListener('click', function() {
+            if (getOTP()) {
+                alert('OTP resent successfully');
+            }
+        });
+    }
     
-    // Password confirmation validation
-    document.getElementById('confirmPassword').addEventListener('input', function() {
-        const password = document.getElementById('regPassword').value;
-        const errorElement = document.getElementById('passwordError');
-        errorElement.classList.toggle('l3-hidden', 
-            password === this.value || this.value.length === 0
-        );
-    });
+    if (englishName) {
+        englishName.addEventListener('blur', function() {
+            const errorElement = document.getElementById('englishNameError');
+            if (errorElement) {
+                errorElement.classList.toggle('l3-hidden', !/[^A-Za-z\s]/.test(this.value));
+            }
+        });
+    }
     
-    // Complete registration handler
-    document.getElementById('completeRegistration').addEventListener('click', completeRegistration);
+    if (localName) {
+        localName.addEventListener('blur', function() {
+            const errorElement = document.getElementById('localNameError');
+            if (errorElement) {
+                errorElement.classList.toggle('l3-hidden', !(/[A-Za-z]/.test(this.value) || /[0-9]/.test(this.value)));
+            }
+        });
+    }
     
-    // Login form submission
-    document.getElementById('loginSubmit').addEventListener('click', loginSubmit);
+    if (confirmPassword) {
+        confirmPassword.addEventListener('input', function() {
+            const password = document.getElementById('regPassword')?.value;
+            const errorElement = document.getElementById('passwordError');
+            if (errorElement) {
+                errorElement.classList.toggle('l3-hidden', 
+                    password === this.value || this.value.length === 0
+                );
+            }
+        });
+    }
+    
+    if (completeRegistration) {
+        completeRegistration.addEventListener('click', completeRegistration);
+    }
+    
+    if (loginSubmit) {
+        loginSubmit.addEventListener('click', loginSubmit);
+    }
 }
 
 function loadCountryCodes(selectId) {
