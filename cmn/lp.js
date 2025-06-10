@@ -185,8 +185,10 @@ function createLoginModal() {
         }
     });
     
-    // Setup all event listeners
-    setupEventListeners();
+    setTimeout(() => {
+        // Setup all event listeners
+        setupEventListeners();
+    }, 1000);
 }
 
 // Helper functions
