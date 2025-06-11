@@ -40,7 +40,7 @@ function showLogoutOption() {
     if (cancelBtn) {
         cancelBtn.addEventListener('click', () => {
             document.body.removeChild(modal);
-            restoreBodyStyles();
+            restoreL3BodyStyles();
         });
     }
     
@@ -182,11 +182,11 @@ function createLoginModal() {
     modalBackdrop.addEventListener('click', (e) => {
         if (e.target === modalBackdrop) {
             document.body.removeChild(modalBackdrop);
-            restoreBodyStyles();
+            restoreL3BodyStyles();
         }
     });
     
-    setupEventListeners();
+    setupL3EventListeners();
 }
 
 // Helper functions
@@ -200,7 +200,7 @@ function saveBodyStyles() {
     };
 }
 
-function restoreBodyStyles() {
+function restoreL3BodyStyles() {
     document.body.style.overflow = originalBodyStyles.overflow || '';
     document.body.style.position = originalBodyStyles.position || '';
     document.body.style.width = originalBodyStyles.width || '';
@@ -447,7 +447,7 @@ function setupTabSwitching() {
     });
 }
 
-function setupEventListeners() {
+function setupL3EventListeners() {
     // Login form elements
     const loginMobile = document.getElementById('loginMobile');
     const loginCountryCode = document.getElementById('loginCountryCode');
