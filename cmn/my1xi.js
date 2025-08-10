@@ -86,7 +86,7 @@ class DexieDBManager {
         if (db.isOpen()) await db.close();
 
         // 1. Get all existing schemas from localStorage
-        const allSchemas = JSON.parse(localStorage.getItem("my1.in_indexedDBs") || "[]");
+        const allSchemas = JSON.parse(localStorage.getItem("my1_in_indexedDBs") || "[]");
         const mergedSchema = {};
 
         // 2. First, load ALL existing tables (to prevent deletion)
@@ -214,7 +214,7 @@ if (typeof document !== 'undefined') {
   }
  }
  async createTables(dbName, tableNames) {
-  const localStorageKey = "my1.in_indexedDBs";
+  const localStorageKey = "my1_in_indexedDBs";
   const storedSchemas = JSON.parse(localStorage.getItem(localStorageKey)) || [];
   const results = [];
   let successCount = 0;
@@ -284,7 +284,7 @@ if (typeof document !== 'undefined') {
 
   // 2. Fetch from remote if not found locally
   try {
-   const response = await fetch("https://my1.in/my1xi.da");
+   const response = await fetch("https://cdn.jsdelivr.net/gh/sifr-in/cdn/cmn/my1xi.da");
    if (response.ok) {
     const remoteSchemas = await response.json();
     schema = Array.isArray(remoteSchemas)
@@ -294,7 +294,7 @@ if (typeof document !== 'undefined') {
     if (schema) {
      // Update local storage
      storedSchemas.push(schema);
-     localStorage.setItem("my1.in_indexedDBs", JSON.stringify(storedSchemas));
+     localStorage.setItem("my1_in_indexedDBs", JSON.stringify(storedSchemas));
     }
     return schema;
    }

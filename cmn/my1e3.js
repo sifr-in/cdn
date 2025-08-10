@@ -648,8 +648,8 @@ function loadLoginSystem(shoLoginByOas2orByPas1, fnNmToCreateLoginModal) {
    return;
   }
 
-  let lognScrptUrl = "https://my1.in/my1lp.js";
-  if (shoLoginByOas2orByPas1 == 2) lognScrptUrl = "https://my1.in/my1lo.js";
+  let lognScrptUrl = "https://cdn.jsdelivr.net/gh/sifr-in/cdn/cmn/my1lp.js";
+  if (shoLoginByOas2orByPas1 == 2) lognScrptUrl = "https://cdn.jsdelivr.net/gh/sifr-in/cdn/cmn/my1lo.js";
 
   loadScript(lognScrptUrl, () => {
    if (typeof window[fnNmToCreateLoginModal] === 'function' && typeof setupL3EventListeners === 'function') {
@@ -798,7 +798,7 @@ function showLoginInfo(shoLogOut, showLoginModalDirectly, shoLoginByOas2orByPas1
 
 function chkMyControlExists() {
  if (typeof showMyControls !== 'function') {
-  loadScript("https://my1.in/my1ctr.js", () => {
+  loadScript("https://cdn.jsdelivr.net/gh/sifr-in/cdn/cmn/my1ctr.js", () => {
    if (typeof showMyControls === 'function') {
     showMyControls();
    } else {
