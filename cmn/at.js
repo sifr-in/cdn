@@ -40,15 +40,20 @@ const e_lements = {
   itemTable: document.getElementById(i_d_item_table),
 };
 
-  // Load AdSense script only once (if not already loaded)
-  if (!window.adsbygoogle) {
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5594579046538353';
-    script.crossOrigin = 'anonymous';
-    document.head.appendChild(script);
-  }
 
+
+  // Get saved students from localStorage
+  const savedStudents = JSON.parse(localStorage.getItem("studentInfo")) || [];
+  if (savedStudents.length > 0) {
+    // Load AdSense script only once (if not already loaded)
+    if (!window.adsbygoogle) {
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5594579046538353';
+      script.crossOrigin = 'anonymous';
+      document.head.appendChild(script);
+    }
+  }
 async function shoAppInit(data) {
   // Set initial volume
   if (e_lements.volumeControl) {
@@ -816,9 +821,6 @@ function loadRollStatus(classInfo) {
 async function displayClassCards() {
   const container = document.getElementById("at_class_cards_container");
   container.innerHTML = "";
-
-  // Get saved students from localStorage
-  const savedStudents = JSON.parse(localStorage.getItem("studentInfo")) || [];
 
   if (savedStudents.length === 0) {
     container.innerHTML = `<div class="at_no_students">No students found. Click the + icon to add a student.</div>`;
