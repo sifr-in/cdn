@@ -22,6 +22,30 @@ function loadPromiseScript(url) {
  });
 }
 
+async function loadAndExeFn(functionName, params = [], idOfLoader, scriptUrl) {
+  const loader = document.getElementById(idOfLoader);
+  if (loader) loader.style.display = 'block'; // Show loader
+
+  try {
+    // Check if function exists
+    if (typeof window[functionName] === 'function') {
+      window[functionName](...params); // Spread params correctly
+    } else {
+      await loadPromiseScript(scriptUrl); // Assume this loads the script
+      if (typeof window[functionName] === 'function') {
+        window[functionName](...params); // Spread params
+      } else {
+        throw new Error(`Function "${functionName}" not found after loading script.`);
+      }
+    }
+  } catch (e) {
+    console.error('Error:', e.message);
+    alert(`Error: ${e.message}. Please retry or contact support.`);
+  } finally {
+    if (loader) loader.style.display = 'none'; // Hide loader
+  }
+}
+
 function loadScript(url, callback) {
  var script = document.createElement("script")
  script.type = "text/javascript";
