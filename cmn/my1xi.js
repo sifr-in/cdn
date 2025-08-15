@@ -284,7 +284,7 @@ if (typeof document !== 'undefined') {
 
   // 2. Fetch from remote if not found locally
   try {
-   const response = await fetch("https://cdn.jsdelivr.net/gh/sifr-in/cdn/cmn/my1xi.da");
+   const response = await fetch("https://cdn.jsdelivr.net/gh/sifr-in/cdn@49e1093/cmn/my1xi.da");
    if (response.ok) {
     const remoteSchemas = await response.json();
     schema = Array.isArray(remoteSchemas)
