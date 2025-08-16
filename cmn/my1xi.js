@@ -471,7 +471,7 @@ if (typeof document !== 'undefined') {
       }
     });
   }
- async function getRcrdsByCompound(dbName, tableName, indxNm, searchConditions) {
+ async getRcrdsByCompound(dbName, tableName, indxNm, searchConditions) {
   return dbDexieManager.queueOperation(dbName, async () => {
     const db = dbDexieManager.dbCache.get(dbName);
     if (!db) throw new Error("Database not initialized");
@@ -508,4 +508,5 @@ if (typeof document !== 'undefined') {
 
 
 const dbDexieManager = new DexieDBManager();
+
 
