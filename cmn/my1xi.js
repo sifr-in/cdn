@@ -479,75 +479,67 @@ async getRcrdsByCompound(
   debug = false
 ) {
   return dbDexieManager.queueOperation(dbName, async () => {
-    // 1. Get or create database instance
+    // 1. Get database instance
     let db = dbDexieManager.dbCache.get(dbName);
     if (!db) {
       db = new Dexie(dbName);
-      await db.open().catch(() => {});
+      await db.open();
       dbDexieManager.dbCache.set(dbName, db);
     }
 
-    // 2. Verify table exists using Dexie's proper API
     const cleanTableName = dbDexieManager.getActualTableName(tableName);
-    if (!db.tables.some(t => t.name === cleanTableName)) {
-      throw new Error(`Table ${cleanTableName} not found. Available tables: ${db.tables.map(t => t.name).join(', ')}`);
-    }
-
     const table = db.table(cleanTableName);
 
-    // 3. Debug output
     if (debug) {
-      console.log('Available tables:', db.tables.map(t => t.name));
       console.log('Table schema:', table.schema);
-      console.log('Index parts:', indxNm.replace(/[\[\]&]/g, '').split('+'));
       console.log('Search conditions:', searchConditions);
     }
 
-    // 4. Build query bounds
+    // 2. For compound index query
     const indexParts = indxNm.replace(/[\[\]&]/g, '').split('+');
-    const bound = indexParts.map(part => 
-      searchConditions[part] !== undefined ? searchConditions[part] : Dexie.minKey
+    const searchField = Object.keys(searchConditions)[0]; // Get first search field
+    const fieldPos = indexParts.indexOf(searchField);
+
+    if (fieldPos === -1) {
+      throw new Error(`Search field ${searchField} not found in index ${indxNm}`);
+    }
+
+    // 3. Create precise bounds
+    const lowerBound = indexParts.map((_, i) => 
+      i === fieldPos ? searchConditions[searchField] : Dexie.minKey
+    );
+    const upperBound = indexParts.map((_, i) => 
+      i === fieldPos ? searchConditions[searchField] : Dexie.maxKey
     );
 
-    // 5. Execute query with proper error handling
-    try {
-      const records = await table
-        .where(indxNm)
-        .between(
-          bound,
-          indexParts.map((part, i) => 
-            bound[i] === Dexie.minKey ? Dexie.maxKey : bound[i]
-          ),
-          true,
-          true
-        )
-        .toArray();
-
-      if (debug) {
-        console.log('Query results:', records);
-        if (records.length === 0) {
-          const allWithG = await table.where('g').equals(searchConditions.g).toArray();
-          console.log('Alternative query results (by g only):', allWithG);
-        }
-      }
-
-      return records;
-    } catch (error) {
-      if (debug) {
-        console.error('Index query failed, falling back to filter:', error);
-        const allRecords = await table.toArray();
-        return allRecords.filter(r => 
-          Object.entries(searchConditions).every(([k, v]) => r[k] === v)
-        );
-      }
-      throw error;
+    if (debug) {
+      console.log('Lower bound:', lowerBound);
+      console.log('Upper bound:', upperBound);
     }
+
+    // 4. Execute query
+    const records = await table
+      .where(indxNm)
+      .between(lowerBound, upperBound, true, true)
+      .toArray();
+
+    if (debug && records.length === 0) {
+      console.log('No records found via index. Checking with filter...');
+      const allRecords = await table.toArray();
+      const filtered = allRecords.filter(r => 
+        Object.entries(searchConditions).every(([k, v]) => r[k] === v)
+      );
+      console.log('Filtered records:', filtered);
+    }
+
+    return records;
   });
 }
 }
 
 
 const dbDexieManager = new DexieDBManager();
+
 
 
 
