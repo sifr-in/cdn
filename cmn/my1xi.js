@@ -479,57 +479,49 @@ async getRcrdsByCompound(
   debug = false
 ) {
   return dbDexieManager.queueOperation(dbName, async () => {
-    // 1. Get database instance
-    let db = dbDexieManager.dbCache.get(dbName);
-    if (!db) {
-      db = new Dexie(dbName);
-      await db.open();
-      dbDexieManager.dbCache.set(dbName, db);
-    }
+    const db = dbDexieManager.dbCache.get(dbName);
+    if (!db) throw new Error("Database not initialized");
 
     const cleanTableName = dbDexieManager.getActualTableName(tableName);
     const table = db.table(cleanTableName);
-
+    
     if (debug) {
       console.log('Table schema:', table.schema);
       console.log('Search conditions:', searchConditions);
     }
 
-    // 2. For compound index query
+    // Parse compound index parts
     const indexParts = indxNm.replace(/[\[\]&]/g, '').split('+');
-    const searchField = Object.keys(searchConditions)[0]; // Get first search field
+    const searchField = Object.keys(searchConditions)[0];
     const fieldPos = indexParts.indexOf(searchField);
 
     if (fieldPos === -1) {
-      throw new Error(`Search field ${searchField} not found in index ${indxNm}`);
+      throw new Error(`Search field ${searchField} not found in index`);
     }
 
-    // 3. Create precise bounds
-    const lowerBound = indexParts.map((_, i) => 
-      i === fieldPos ? searchConditions[searchField] : Dexie.minKey
-    );
-    const upperBound = indexParts.map((_, i) => 
-      i === fieldPos ? searchConditions[searchField] : Dexie.maxKey
-    );
+    // CORRECTED: Build proper bounds array
+    const lowerBound = Array(indexParts.length).fill(Dexie.minKey);
+    const upperBound = Array(indexParts.length).fill(Dexie.maxKey);
+    lowerBound[fieldPos] = searchConditions[searchField];
+    upperBound[fieldPos] = searchConditions[searchField];
 
     if (debug) {
-      console.log('Lower bound:', lowerBound);
-      console.log('Upper bound:', upperBound);
+      console.log('Correct bounds:', { lowerBound, upperBound });
+      console.log('Index parts:', indexParts);
     }
 
-    // 4. Execute query
+    // Execute query
     const records = await table
       .where(indxNm)
       .between(lowerBound, upperBound, true, true)
       .toArray();
 
-    if (debug && records.length === 0) {
-      console.log('No records found via index. Checking with filter...');
-      const allRecords = await table.toArray();
-      const filtered = allRecords.filter(r => 
-        Object.entries(searchConditions).every(([k, v]) => r[k] === v)
-      );
-      console.log('Filtered records:', filtered);
+    if (debug) {
+      console.log('Found records:', records);
+      if (records.length === 0) {
+        const allWithG = await table.where('g').equals(searchConditions.g).toArray();
+        console.log('Records with matching g:', allWithG);
+      }
     }
 
     return records;
@@ -539,6 +531,7 @@ async getRcrdsByCompound(
 
 
 const dbDexieManager = new DexieDBManager();
+
 
 
 
