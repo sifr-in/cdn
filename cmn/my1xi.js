@@ -487,47 +487,63 @@ async getRcrdsByCompound(
     
     if (debug) {
       console.log('Table schema:', table.schema);
+      console.log('Available indexes:', table.schema.indexes);
       console.log('Search conditions:', searchConditions);
     }
 
-    // Parse compound index parts
-    const indexParts = indxNm.replace(/[\[\]]/g, '').split('+');
+    // Clean the index name by removing special characters but keep the structure
+    const cleanIndexName = indxNm.replace(/[&\[\]]/g, '');
+    const indexParts = cleanIndexName.split('+');
+    
     const searchField = Object.keys(searchConditions)[0];
     const fieldPos = indexParts.indexOf(searchField);
 
     if (fieldPos === -1) {
-      throw new Error(`Search field ${searchField} not found in index`);
+      throw new Error(`Search field ${searchField} not found in index ${indxNm}`);
     }
 
-    // Build bounds that match the compound index structure
-    const lowerBound = [];
-    const upperBound = [];
-    
-    for (let i = 0; i < indexParts.length; i++) {
-      if (i === fieldPos) {
-        // For the search field, use exact value
-        lowerBound.push(searchConditions[searchField]);
-        upperBound.push(searchConditions[searchField]);
-      } else {
-        // For other fields, use min/max keys to match any value
-        lowerBound.push(Dexie.minKey);
-        upperBound.push(Dexie.maxKey);
+    // Build bounds - different approach for compound vs single field
+    let records;
+    if (indexParts.length > 1) {
+      // Compound index query
+      const lowerBound = indexParts.map((part, i) => 
+        i === fieldPos ? searchConditions[searchField] : Dexie.minKey
+      );
+      const upperBound = indexParts.map((part, i) => 
+        i === fieldPos ? searchConditions[searchField] : Dexie.maxKey
+      );
+
+      if (debug) {
+        console.log('Compound index bounds:', { lowerBound, upperBound });
       }
-    }
 
-    if (debug) {
-      console.log('Correct bounds:', { lowerBound, upperBound });
-      console.log('Index parts:', indexParts);
+      // Try both with and without the & prefix
+      try {
+        records = await table
+          .where(`&[${cleanIndexName}]`)
+          .between(lowerBound, upperBound, true, true)
+          .toArray();
+      } catch (e) {
+        records = await table
+          .where(`[${cleanIndexName}]`)
+          .between(lowerBound, upperBound, true, true)
+          .toArray();
+      }
+    } else {
+      // Simple index query
+      records = await table
+        .where(cleanIndexName)
+        .equals(searchConditions[searchField])
+        .toArray();
     }
-
-    // Execute query
-    const records = await table
-      .where(indxNm)
-      .between(lowerBound, upperBound, true, true)
-      .toArray();
 
     if (debug) {
       console.log('Found records:', records);
+      if (records.length === 0) {
+        console.log('No records found - trying alternative query...');
+        const allRecords = await table.toArray();
+        console.log('All records in table:', allRecords);
+      }
     }
 
     return records;
@@ -537,6 +553,7 @@ async getRcrdsByCompound(
 
 
 const dbDexieManager = new DexieDBManager();
+
 
 
 
