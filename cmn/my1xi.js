@@ -476,66 +476,65 @@ async getRcrdsByCompound(
   tableName, 
   indxNm, 
   searchConditions,
-  debug = false // Add debug mode
+  debug = false
 ) {
   return dbDexieManager.queueOperation(dbName, async () => {
-    const db = dbDexieManager.dbCache.get(dbName);
-    if (!db) throw new Error("Database not initialized");
+    // 1. Get or create database instance
+    let db = dbDexieManager.dbCache.get(dbName);
+    if (!db) {
+      db = new Dexie(dbName);
+      await db.open().catch(() => {});
+      dbDexieManager.dbCache.set(dbName, db);
+    }
 
+    // 2. Verify table exists using Dexie's proper API
     const cleanTableName = dbDexieManager.getActualTableName(tableName);
-    const table = db.table(cleanTableName);
-    if (!table) throw new Error(`Table ${cleanTableName} not found`);
+    if (!db.tables.some(t => t.name === cleanTableName)) {
+      throw new Error(`Table ${cleanTableName} not found. Available tables: ${db.tables.map(t => t.name).join(', ')}`);
+    }
 
-    // Parse compound index parts
-    const indexParts = indxNm.replace(/[\[\]&]/g, '').split('+');
-    
+    const table = db.table(cleanTableName);
+
+    // 3. Debug output
     if (debug) {
-      console.log('Index parts:', indexParts);
+      console.log('Available tables:', db.tables.map(t => t.name));
+      console.log('Table schema:', table.schema);
+      console.log('Index parts:', indxNm.replace(/[\[\]&]/g, '').split('+'));
       console.log('Search conditions:', searchConditions);
     }
 
-    // Build the query bound
+    // 4. Build query bounds
+    const indexParts = indxNm.replace(/[\[\]&]/g, '').split('+');
     const bound = indexParts.map(part => 
-      searchConditions[part] !== undefined ? 
-        searchConditions[part] : 
-        Dexie.minKey
+      searchConditions[part] !== undefined ? searchConditions[part] : Dexie.minKey
     );
 
-    if (debug) {
-      console.log('Query bound:', bound);
-      
-      // Verify the index exists
-      const schema = db._dbSchema[db._dbSchema.length - 1];
-      console.log('Table schema:', schema[cleanTableName]);
-      
-      // Count total records for reference
-      const count = await table.count();
-      console.log(`Total records in table: ${count}`);
-    }
-
+    // 5. Execute query with proper error handling
     try {
       const records = await table
         .where(indxNm)
-        .between(bound, [...bound].fill(Dexie.maxKey, bound.findIndex(v => v === Dexie.minKey)))
+        .between(
+          bound,
+          indexParts.map((part, i) => 
+            bound[i] === Dexie.minKey ? Dexie.maxKey : bound[i]
+          ),
+          true,
+          true
+        )
         .toArray();
 
       if (debug) {
-        console.log('Found records:', records);
+        console.log('Query results:', records);
         if (records.length === 0) {
-          // Try a full table scan to verify existence
-          const allRecords = await table.toArray();
-          const expectedRecords = allRecords.filter(r => 
-            Object.entries(searchConditions).every(([k, v]) => r[k] === v)
-          );
-          console.log('Records that should match (full scan):', expectedRecords);
+          const allWithG = await table.where('g').equals(searchConditions.g).toArray();
+          console.log('Alternative query results (by g only):', allWithG);
         }
       }
 
       return records;
     } catch (error) {
       if (debug) {
-        console.error('Query error:', error);
-        // Fallback to manual filtering if index query fails
+        console.error('Index query failed, falling back to filter:', error);
         const allRecords = await table.toArray();
         return allRecords.filter(r => 
           Object.entries(searchConditions).every(([k, v]) => r[k] === v)
@@ -549,6 +548,7 @@ async getRcrdsByCompound(
 
 
 const dbDexieManager = new DexieDBManager();
+
 
 
 
