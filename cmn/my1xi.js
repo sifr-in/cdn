@@ -471,7 +471,13 @@ if (typeof document !== 'undefined') {
       }
     });
   }
- async getRcrdsByCompound(dbName, tableName, indxNm, searchConditions) {
+async getRcrdsByCompound(
+  dbName, 
+  tableName, 
+  indxNm, 
+  searchConditions,
+  debug = false // Add debug mode
+) {
   return dbDexieManager.queueOperation(dbName, async () => {
     const db = dbDexieManager.dbCache.get(dbName);
     if (!db) throw new Error("Database not initialized");
@@ -480,33 +486,69 @@ if (typeof document !== 'undefined') {
     const table = db.table(cleanTableName);
     if (!table) throw new Error(`Table ${cleanTableName} not found`);
 
-    // Parse compound index parts (e.g., '[e+g]' → ['e', 'g'])
+    // Parse compound index parts
     const indexParts = indxNm.replace(/[\[\]&]/g, '').split('+');
     
-    // Validate all search fields exist in the index
-    const searchFields = Object.keys(searchConditions);
-    searchFields.forEach(field => {
-      if (!indexParts.includes(field)) {
-        throw new Error(`Field ${field} not found in index ${indxNm}`);
-      }
-    });
+    if (debug) {
+      console.log('Index parts:', indexParts);
+      console.log('Search conditions:', searchConditions);
+    }
 
-    // Build exact match bounds
-    const exactMatchBound = indexParts.map(part => 
+    // Build the query bound
+    const bound = indexParts.map(part => 
       searchConditions[part] !== undefined ? 
         searchConditions[part] : 
         Dexie.minKey
     );
 
-    return await table
-      .where(indxNm)
-      .equals(exactMatchBound)
-      .toArray();
+    if (debug) {
+      console.log('Query bound:', bound);
+      
+      // Verify the index exists
+      const schema = db._dbSchema[db._dbSchema.length - 1];
+      console.log('Table schema:', schema[cleanTableName]);
+      
+      // Count total records for reference
+      const count = await table.count();
+      console.log(`Total records in table: ${count}`);
+    }
+
+    try {
+      const records = await table
+        .where(indxNm)
+        .between(bound, [...bound].fill(Dexie.maxKey, bound.findIndex(v => v === Dexie.minKey)))
+        .toArray();
+
+      if (debug) {
+        console.log('Found records:', records);
+        if (records.length === 0) {
+          // Try a full table scan to verify existence
+          const allRecords = await table.toArray();
+          const expectedRecords = allRecords.filter(r => 
+            Object.entries(searchConditions).every(([k, v]) => r[k] === v)
+          );
+          console.log('Records that should match (full scan):', expectedRecords);
+        }
+      }
+
+      return records;
+    } catch (error) {
+      if (debug) {
+        console.error('Query error:', error);
+        // Fallback to manual filtering if index query fails
+        const allRecords = await table.toArray();
+        return allRecords.filter(r => 
+          Object.entries(searchConditions).every(([k, v]) => r[k] === v)
+        );
+      }
+      throw error;
+    }
   });
 }
 }
 
 
 const dbDexieManager = new DexieDBManager();
+
 
 
