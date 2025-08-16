@@ -478,11 +478,11 @@ async getRcrdsByCompound(
   searchConditions,
   debug = false
 ) {
-  return dbDexieManager.queueOperation(dbName, async () => {
-    const db = dbDexieManager.dbCache.get(dbName);
+  return this.queueOperation(dbName, async () => {
+    const db = this.dbCache.get(dbName);
     if (!db) throw new Error("Database not initialized");
 
-    const cleanTableName = dbDexieManager.getActualTableName(tableName);
+    const cleanTableName = this.getActualTableName(tableName);
     const table = db.table(cleanTableName);
     
     if (debug) {
@@ -491,7 +491,7 @@ async getRcrdsByCompound(
     }
 
     // Parse compound index parts
-    const indexParts = indxNm.replace(/[\[\]&]/g, '').split('+');
+    const indexParts = indxNm.replace(/[\[\]]/g, '').split('+');
     const searchField = Object.keys(searchConditions)[0];
     const fieldPos = indexParts.indexOf(searchField);
 
@@ -499,11 +499,21 @@ async getRcrdsByCompound(
       throw new Error(`Search field ${searchField} not found in index`);
     }
 
-    // CORRECTED: Build proper bounds array
-    const lowerBound = Array(indexParts.length).fill(Dexie.minKey);
-    const upperBound = Array(indexParts.length).fill(Dexie.maxKey);
-    lowerBound[fieldPos] = searchConditions[searchField];
-    upperBound[fieldPos] = searchConditions[searchField];
+    // Build bounds that match the compound index structure
+    const lowerBound = [];
+    const upperBound = [];
+    
+    for (let i = 0; i < indexParts.length; i++) {
+      if (i === fieldPos) {
+        // For the search field, use exact value
+        lowerBound.push(searchConditions[searchField]);
+        upperBound.push(searchConditions[searchField]);
+      } else {
+        // For other fields, use min/max keys to match any value
+        lowerBound.push(Dexie.minKey);
+        upperBound.push(Dexie.maxKey);
+      }
+    }
 
     if (debug) {
       console.log('Correct bounds:', { lowerBound, upperBound });
@@ -518,10 +528,6 @@ async getRcrdsByCompound(
 
     if (debug) {
       console.log('Found records:', records);
-      if (records.length === 0) {
-        const allWithG = await table.where('g').equals(searchConditions.g).toArray();
-        console.log('Records with matching g:', allWithG);
-      }
     }
 
     return records;
@@ -531,6 +537,7 @@ async getRcrdsByCompound(
 
 
 const dbDexieManager = new DexieDBManager();
+
 
 
 
