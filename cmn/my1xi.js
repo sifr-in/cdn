@@ -471,6 +471,44 @@ if (typeof document !== 'undefined') {
       }
     });
   }
+ async function getRcrdsByCompound(
+  dbName, 
+  tableName, 
+  indxNm, 
+  searchConditions // Object: { e: 9, g: "xyz" }
+) {
+  return dbDexieManager.queueOperation(dbName, async () => {
+    const db = dbDexieManager.dbCache.get(dbName);
+    if (!db) throw new Error("Database not initialized");
+
+    const cleanTableName = dbDexieManager.getActualTableName(tableName);
+    const table = db.table(cleanTableName);
+    if (!table) throw new Error(`Table ${cleanTableName} not found`);
+
+    // Parse compound index parts (e.g., '[e+g]' → ['e', 'g'])
+    const indexParts = indxNm.replace(/[\[\]&]/g, '').split('+');
+    
+    // Validate all search fields exist in the index
+    const searchFields = Object.keys(searchConditions);
+    searchFields.forEach(field => {
+      if (!indexParts.includes(field)) {
+        throw new Error(`Field ${field} not found in index ${indxNm}`);
+      }
+    });
+
+    // Build exact match bounds
+    const exactMatchBound = indexParts.map(part => 
+      searchConditions[part] !== undefined ? 
+        searchConditions[part] : 
+        Dexie.minKey
+    );
+
+    return await table
+      .where(indxNm)
+      .equals(exactMatchBound)
+      .toArray();
+  });
+}
 }
 
 
