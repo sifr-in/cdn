@@ -9,6 +9,26 @@ function getNumArrayFromObjArr(jsonArray, key) {
   .filter(num => num !== null); // remove null values
 }
 
+function createDynamicLoader() {
+  const loader = document.createElement('div');
+  loader.style.position = 'fixed';
+  loader.style.top = '0';
+  loader.style.left = '0';
+  loader.style.width = '100%';
+  loader.style.height = '100%';
+  loader.style.backgroundColor = 'rgba(0,0,0,0.5)';
+  loader.style.display = 'flex';
+  loader.style.justifyContent = 'center';
+  loader.style.alignItems = 'center';
+  loader.style.zIndex = '9999';
+  loader.innerHTML = `
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  `;
+  return loader;
+}
+
 function loadPromiseScript(url) {
  return new Promise((resolve, reject) => {
   var script = document.createElement("script");
@@ -928,4 +948,5 @@ function filterRecordsByDate(records, dateColumn, minDate, maxDate) {
         return false;
       }
     });
+
   }
