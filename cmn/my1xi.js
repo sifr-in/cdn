@@ -471,5 +471,86 @@ if (typeof document !== 'undefined') {
       }
     });
   }
+// // 1. Delete ALL records in a table
+// await dbDexieManager.deleteRecords('myDB', 'users', null);
+// // 2. Delete SINGLE record by primary key (assuming 'a' is auto-increment key)
+// await dbDexieManager.deleteRecords('myDB', 'users', 123);
+// // 3. Delete MULTIPLE records by simple condition
+// await dbDexieManager.deleteRecords('myDB', 'users', { status: 'inactive' });
+// // 4. Delete using COMPOUND INDEX (array fields format)
+// await dbDexieManager.deleteRecords('myDB', 'users', { department: 'IT', role: 'contractor' }, ['department', 'role']);
+// // 5. Delete using COMPOUND INDEX (comma-separated string format)
+// await dbDexieManager.deleteRecords('myDB', 'users', { department: 'HR', role: 'intern' }, 'department,role');
+// // 6. Batch delete after QUERYING records first
+// (await dbDexieManager.getAllRecords('myDB', 'orders')).filter(o => o.status === 'cancelled').forEach(o => dbDexieManager.deleteRecords('myDB', 'orders', o.a));
+ async deleteRecords(dbName, tableName, whereCondition = null, compoundIndexFields = null) {
+  return this.queueOperation(dbName, async () => {
+    try {
+      const db = this.dbCache.get(dbName);
+      if (!db) throw new Error("Database not initialized");
+
+      const cleanTableName = this.getActualTableName(tableName);
+      const table = db.table(cleanTableName);
+      if (!table) throw new Error(`Table ${cleanTableName} not found`);
+
+      if (whereCondition === null) {
+        // Delete all records in the table
+        await table.clear();
+        return { success: true, count: -1, message: "All records deleted" };
+      }
+
+      if (compoundIndexFields) {
+        // Handle compound index deletion
+        const keyFields = Array.isArray(compoundIndexFields) ? 
+          compoundIndexFields : 
+          compoundIndexFields.split(',');
+        
+        // Verify all compound key fields are present in the where condition
+        const missingFields = keyFields.filter(f => !(f in whereCondition));
+        if (missingFields.length > 0) {
+          throw new Error(`Missing compound index fields: ${missingFields.join(', ')}`);
+        }
+
+        // Build the where clause for compound index
+        const whereClause = {};
+        keyFields.forEach(field => {
+          whereClause[field] = whereCondition[field];
+        });
+
+        // Delete records matching the compound index
+        const keys = await table.where(whereClause).primaryKeys();
+        await table.bulkDelete(keys);
+        return { success: true, count: keys.length };
+      }
+
+      // Handle simple where condition
+      if (typeof whereCondition === 'object') {
+        // For object conditions, we need to find matching records first
+        const records = await table.where(whereCondition).toArray();
+        const keys = records.map(r => r.a); // Assuming 'a' is the primary key
+        await table.bulkDelete(keys);
+        return { success: true, count: keys.length };
+      }
+
+      // Handle primary key deletion
+      await table.delete(whereCondition);
+      return { success: true, count: 1 };
+
+    } catch (error) {
+      console.error(`Error deleting records from ${tableName}:`, error);
+      return { 
+        success: false, 
+        error: error.message,
+        details: {
+          dbName,
+          tableName,
+          whereCondition,
+          compoundIndexFields
+        }
+      };
+    }
+  });
+}
 }
 const dbDexieManager = new DexieDBManager();
+
