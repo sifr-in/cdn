@@ -850,7 +850,7 @@ addLongPressListener(modalTitle, function() {
 
 function chkMyControlExists() {
  if (typeof showMyControls !== 'function') {
-  loadScript("https://cdn.jsdelivr.net/gh/sifr-in/cdn@166f447/cmn/my1ctr.js", () => {
+  loadScript("https://cdn.jsdelivr.net/gh/sifr-in/cdn@59666ce/cmn/my1ctr.js", () => {
    if (typeof showMyControls === 'function') {
     showMyControls();
    } else {
