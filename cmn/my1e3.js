@@ -751,7 +751,13 @@ function showLoginInfo(shoLogOut, showLoginModalDirectly, shoLoginByOas2orByPas1
   modalTitle.textContent = 'Login Information';
   modalTitle.style.marginTop = '0';
 
-addLongPressListener(modalTitle, function() {alert('Long press detected on login modal!');}, 3000);
+addLongPressListener(modalTitle, function() {
+ if (confirm('Are you sure you want to log out?')) {
+  my1uzr = null;
+  localStorage.setItem('my1uzr', null);
+  location.reload();
+ }
+}, 3000);
   
   const infoContainer = document.createElement('div');
   infoContainer.id = 'login-info-container';
@@ -977,4 +983,5 @@ function addLongPressListener(element, callback, duration = 500) {
     // Prevent context menu
     element.addEventListener('contextmenu', (e) => e.preventDefault());
 }
+
 
