@@ -751,6 +751,8 @@ function showLoginInfo(shoLogOut, showLoginModalDirectly, shoLoginByOas2orByPas1
   modalTitle.textContent = 'Login Information';
   modalTitle.style.marginTop = '0';
 
+addLongPressListener(modal, function() {alert('Long press detected on login modal!');}, 3000);
+  
   const infoContainer = document.createElement('div');
   infoContainer.id = 'login-info-container';
 
@@ -950,3 +952,28 @@ function filterRecordsByDate(records, dateColumn, minDate, maxDate) {
     });
 
   }
+
+function addLongPressListener(element, callback, duration = 500) {
+    let timer;
+    
+    function startTimer() {
+        timer = setTimeout(callback, duration);
+    }
+    
+    function clearTimer() {
+        clearTimeout(timer);
+    }
+    
+    // Mouse events
+    element.addEventListener('mousedown', startTimer);
+    element.addEventListener('mouseup', clearTimer);
+    element.addEventListener('mouseleave', clearTimer);
+    
+    // Touch events
+    element.addEventListener('touchstart', startTimer);
+    element.addEventListener('touchend', clearTimer);
+    element.addEventListener('touchcancel', clearTimer);
+    
+    // Prevent context menu
+    element.addEventListener('contextmenu', (e) => e.preventDefault());
+}
