@@ -55,7 +55,8 @@ buttonsContainer.style.gap = '10px';
 
 // Create buttons for items where vn.length > 0
 my1uzr.fnf.forEach(item => {
-if (my1uzr.mo.toString() === item.e.toString() && my1uzr.mc.toString() === item.f.toString() && item.vn && item.vn.length > 0) {
+const idVw = id_of_view || 1;
+if (my1uzr.mo.toString() === item.e.toString() && my1uzr.mc.toString() === item.f.toString() && item.va === idVw && item.vn && item.vn.length > 0) {
   const button = document.createElement('button');
   button.textContent = item.vn;
   button.style.padding = '8px 12px';
