@@ -20,7 +20,7 @@ async function open_ata(...args) {
 async function fn_ata_generateAttendanceReport() {
  playClickSound();
 
-  payload0.vw = 1;
+  payload0.vw = 2;
   payload0.fn = 41;
   payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{"tb":`at${curYr}`,"col":'b',"cl":"b"}]);
   const response = await fnj3("https://my1.in/2/a.php", payload0, 1, true, "loader", 20000, 0, 1, 1);
