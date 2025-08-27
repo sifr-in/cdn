@@ -45,6 +45,53 @@ function showMyControls() {
   title.style.marginTop = '0';
   title.style.color = '#333';
 
+
+// Create a new container for buttons above the table
+const buttonsContainer = document.createElement('div');
+buttonsContainer.style.marginBottom = '15px';
+buttonsContainer.style.display = 'flex';
+buttonsContainer.style.flexWrap = 'wrap';
+buttonsContainer.style.gap = '10px';
+
+// Create buttons for items where vn.length > 0
+my1uzr.fnf.forEach(item => {
+if (item.vn && item.vn.length > 0) {
+  const button = document.createElement('button');
+  button.textContent = item.vn;
+  button.style.padding = '8px 12px';
+  button.style.backgroundColor = '#4CAF50';
+  button.style.color = 'white';
+  button.style.border = 'none';
+  button.style.borderRadius = '4px';
+  button.style.cursor = 'pointer';
+  
+  button.onclick = async function() {
+    try {
+      // Parse the JSON string from item.ve
+      const veData = JSON.parse(item.ve);
+      
+      // Extract function name, parameters, and file URL
+      const functionName = veData.f;
+      const parameters = JSON.parse(veData.p.replace(/'/g, '"')); // Convert single quotes to double quotes for valid JSON
+      const fileUrl = "https://"+veData.l;
+      
+      // Call the function similar to your test2 example
+      await loadAndExeFn(functionName, parameters, 'loader', fileUrl);
+    } catch (error) {
+      console.error('Error executing function:', error);
+      alert('Error executing function: ' + error.message);
+    }
+  };
+  
+  buttonsContainer.appendChild(button);
+}
+});
+
+// Only add the buttons container if there are buttons to show
+if (buttonsContainer.children.length > 0) {
+modalContent.appendChild(buttonsContainer);
+}
+
   const tableOuterContainer = document.createElement('div');
   tableOuterContainer.style.width = '100%';
   tableOuterContainer.style.height = 'calc(80vh - 100px)';
