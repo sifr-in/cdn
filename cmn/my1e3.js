@@ -254,6 +254,17 @@ function convertDateFormatToIndia(date) {//ddmmyy
  ].join('-');
 }
 
+function convertToIndianDateTime(dateStr) {
+ let d258ate = new Date(dateStr);
+ const year = d258ate.getFullYear();
+ const month = String(d258ate.getMonth() + 1).padStart(2, '0');
+ const day = String(d258ate.getDate()).padStart(2, '0');
+ const hours = String(d258ate.getHours()).padStart(2, '0');
+ const minutes = String(d258ate.getMinutes()).padStart(2, '0');
+
+ return `${day}-${month}-${year} ${hours}:${minutes}`;
+}
+
 function convertDateFormatToComputer(date) {//yymmdd
  return [
   date.getFullYear(),
@@ -983,6 +994,7 @@ function addLongPressListener(element, callback, duration = 500) {
     // Prevent context menu
     element.addEventListener('contextmenu', (e) => e.preventDefault());
 }
+
 
 
 
