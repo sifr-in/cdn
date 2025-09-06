@@ -772,6 +772,7 @@ function showLoginInfo(shoLogOut, showLoginModalDirectly, shoLoginByOas2orByPas1
   modalTitle.className = 'modal-title';
   modalTitle.textContent = 'Login Information';
   modalTitle.style.marginTop = '0';
+  modalTitle.appendChild(span_lgot);
 
 /*addLongPressListener(modalTitle, function() {
  if (confirm('Are you sure you want to log out?')) {
@@ -1005,6 +1006,7 @@ function addLongPressListener(element, callback, duration = 500) {
     // Prevent context menu
     element.addEventListener('contextmenu', (e) => e.preventDefault());
 }
+
 
 
 
