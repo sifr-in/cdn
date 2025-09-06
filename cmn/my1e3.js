@@ -757,18 +757,29 @@ function showLoginInfo(shoLogOut, showLoginModalDirectly, shoLoginByOas2orByPas1
    loginInfoModal.style.display = 'none';
   });
 
+  const span_lgot = document.createElement('span');
+  span_lgot.style.cursor = 'pointer';
+  span_lgot.textContent = ' _';
+  span_lgot.addEventListener('click', () => {
+   if (confirm('Are you sure you want to log out?')) {
+    my1uzr = null;
+    localStorage.setItem('my1uzr', null);
+    location.reload();
+   }
+  });
+  
   const modalTitle = document.createElement('h2');
   modalTitle.className = 'modal-title';
   modalTitle.textContent = 'Login Information';
   modalTitle.style.marginTop = '0';
 
-addLongPressListener(modalTitle, function() {
+/*addLongPressListener(modalTitle, function() {
  if (confirm('Are you sure you want to log out?')) {
   my1uzr = null;
   localStorage.setItem('my1uzr', null);
   location.reload();
  }
-}, 3000);
+}, 3000);*/
   
   const infoContainer = document.createElement('div');
   infoContainer.id = 'login-info-container';
@@ -994,6 +1005,7 @@ function addLongPressListener(element, callback, duration = 500) {
     // Prevent context menu
     element.addEventListener('contextmenu', (e) => e.preventDefault());
 }
+
 
 
 
