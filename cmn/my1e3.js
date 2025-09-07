@@ -265,6 +265,19 @@ function convertToIndianDateTime(dateStr) {
  return `${day}-${month}-${year} ${hours}:${minutes}`;
 }
 
+function convertToDateTimeWithT(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+const maxDateString = formatDateTime(itemExpiryDate);
+dateInput.max = maxDateString;
+
 function convertDateFormatToComputer(date) {//yymmdd
  return [
   date.getFullYear(),
@@ -1006,6 +1019,7 @@ function addLongPressListener(element, callback, duration = 500) {
     // Prevent context menu
     element.addEventListener('contextmenu', (e) => e.preventDefault());
 }
+
 
 
 
