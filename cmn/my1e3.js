@@ -275,9 +275,6 @@ function convertToDateTimeWithT(date) {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
-const maxDateString = formatDateTime(itemExpiryDate);
-dateInput.max = maxDateString;
-
 function convertDateFormatToComputer(date) {//yymmdd
  return [
   date.getFullYear(),
@@ -1019,6 +1016,7 @@ function addLongPressListener(element, callback, duration = 500) {
     // Prevent context menu
     element.addEventListener('contextmenu', (e) => e.preventDefault());
 }
+
 
 
 
