@@ -883,7 +883,7 @@ function showLoginInfo(shoLogOut, showLoginModalDirectly, shoLoginByOas2orByPas1
 
 function chkMyControlExists() {
  if (typeof showMyControls !== 'function') {
-  loadScript("https://cdn.jsdelivr.net/gh/sifr-in/cdn@59666ce/cmn/my1ctr.js", () => {
+  loadScript("https://cdn.jsdelivr.net/gh/sifr-in/cdn@df5010e/cmn/my1ctr.js", () => {
    if (typeof showMyControls === 'function') {
     showMyControls();
    } else {
