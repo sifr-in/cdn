@@ -1017,11 +1017,27 @@ function addLongPressListener(element, callback, duration = 500) {
     element.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
-
-
-
-
-
-
-
-
+function createAdContainer() {
+  const adContainer = document.createElement('div');
+  
+  // Create the ins element
+  const insElement = document.createElement('ins');
+  insElement.className = 'adsbygoogle';
+  insElement.style.display = 'inline-block';
+  insElement.style.width = '320px';
+  insElement.style.height = '50px';
+  insElement.dataset.adClient = 'ca-pub-5594579046538353';
+  insElement.dataset.adSlot = '1287000278';
+  
+  adContainer.appendChild(insElement);
+  
+  // Create and append the script if needed
+  if (!window.adsbygoogle) {
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+    adContainer.appendChild(script);
+  }
+  
+  return adContainer;
+}
