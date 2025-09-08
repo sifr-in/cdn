@@ -249,7 +249,7 @@ function showMyProxyModal() {
     'showGivePermissionsModal',
     ['loader', 1, 'no-div-gvn-to-set-contnts', 'no-commonFnToRunAfter_do_ViewCall', 1],
     'loader',
-    'https://my1.in/0.0000000000/0my1prm.js'
+    'https://cdn.jsdelivr.net/gh/sifr-in/cdn@5552964/cmn/my1prm.js'
    );
   });
 
@@ -705,3 +705,4 @@ function shoProxyMonoModal(item) {
  });
 }
 window.showMyProxyModal = showMyProxyModal;
+
