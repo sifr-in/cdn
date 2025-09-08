@@ -882,16 +882,16 @@ function showLoginInfo(shoLogOut, showLoginModalDirectly, shoLoginByOas2orByPas1
 }
 
 function chkMyControlExists() {
- if (typeof showMyControls !== 'function') {
+ if (typeof showMyProxyModal !== 'function') {
   loadScript("https://cdn.jsdelivr.net/gh/sifr-in/cdn@df5010e/cmn/my1ctr.js", () => {
-   if (typeof showMyControls === 'function') {
-    showMyControls();
+   if (typeof showMyProxyModal === 'function') {
+    showMyProxyModal();
    } else {
     reject(new Error("Login system loaded but required functions not found"));
    }
   });
  } else {
-  showMyControls();
+  showMyProxyModal();
  }
 }
 
@@ -1041,3 +1041,4 @@ function createAdContainer() {
   
   return adContainer;
 }
+
