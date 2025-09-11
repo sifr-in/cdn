@@ -1025,17 +1025,16 @@ try {
     
 //   a_ttendance_lst = a_ttendance_lst.sort((a, b) => a.j > b.j ? -1 : a.j < b.j ? 1 : 0);
 a_ttendance_lst = a_ttendance_lst.sort((a, b) => {
-  // First, separate records with j > 7 and j <= 7
-  const aIsGreaterThanGvnDay = a.j > 213;//1st Aug 2025
-  const bIsGreaterThanGvnDay = b.j > 213;//1st Aug 2025
+  const aIsLessThan7 = a.j < 213;//1st Aug 2025
+  const bIsLessThan7 = b.j < 213;//1st Aug 2025
   
-  // If both have j <= 7 or both have j > 7, maintain the original sort order
-  if (aIsGreaterThanGvnDay === bIsGreaterThanGvnDay) {
+  // If both have j >= 7 or both have j < 7, maintain the original sort order
+  if (aIsLessThan7 === bIsLessThan7) {
     return a.j > b.j ? -1 : a.j < b.j ? 1 : 0;
   }
   
-  // Put records with j > 7 at the end
-  return aIsGreaterThanGvnDay ? 1 : -1;
+  // Put records with j < 7 at the end
+  return aIsLessThan7 ? 1 : -1;
 });
 } catch (queryError) {
   console.error("Query error:", queryError);
@@ -1377,3 +1376,4 @@ function getDayOfYear(date) {
 if (typeof initApp === "function") {
   initApp();
 }
+
