@@ -350,6 +350,52 @@ function setupClassModal() {
       }
     });
 
+  document
+    .getElementById("pull_attendance")
+    ?.addEventListener("click", async (e) => {
+      e.preventDefault();
+      playClickSound();
+
+      payload0.vw = 1;
+      payload0.fn = 49;
+      payload0.x0 = curYr;
+
+      try {
+        const response = await fnj3(
+          "https://my1.in/2/3a.php",
+          payload0,
+          1,
+          true,
+          "loader",
+          20000,
+          0,
+          2,
+          1
+        );
+
+        if (response) {
+          if (response.su && response.su == 1) {
+              if(response.fn49 && response.fn49.l && response.fn49.l.length>0 ){
+                let t378mp = convertData(response.fn49.l);
+                const t379mp = await dbDexieManager.insertToDexie(dbnm, "fn44", t378mp, true, ["e","f","g","h","i","j"]);
+                e_lements.configModal.style.display = "none";
+                alert("check your attendance");
+              }else{
+                alert("you got empty result;");
+              }
+          } else {
+              alert(response.ms);
+          }
+        }
+      } catch (error) {
+        if (error.message.includes("timed out")) {
+          alert("Error: timed out - " + error.message);
+        } else {
+          alert("Error: " + error.message);
+        }
+      }
+    });
+
   // Helper function to show validation errors
   function showValidationError(inputElement, message) {
     const formGroup = inputElement.closest(".at_form_group");
@@ -977,7 +1023,20 @@ try {
     )
     .toArray();
     
-  a_ttendance_lst = a_ttendance_lst.sort((a, b) => a.j > b.j ? -1 : a.j < b.j ? 1 : 0);
+//   a_ttendance_lst = a_ttendance_lst.sort((a, b) => a.j > b.j ? -1 : a.j < b.j ? 1 : 0);
+a_ttendance_lst = a_ttendance_lst.sort((a, b) => {
+  // First, separate records with j > 7 and j <= 7
+  const aIsGreaterThanGvnDay = a.j > 213;//1st Aug 2025
+  const bIsGreaterThanGvnDay = b.j > 213;//1st Aug 2025
+  
+  // If both have j <= 7 or both have j > 7, maintain the original sort order
+  if (aIsGreaterThanGvnDay === bIsGreaterThanGvnDay) {
+    return a.j > b.j ? -1 : a.j < b.j ? 1 : 0;
+  }
+  
+  // Put records with j > 7 at the end
+  return aIsGreaterThanGvnDay ? 1 : -1;
+});
 } catch (queryError) {
   console.error("Query error:", queryError);
   showToast("Error querying attendance data");
@@ -1270,6 +1329,35 @@ function addGlowEffect(element) {
   setTimeout(() => {
     element.classList.remove(c_lass_glow_effect);
   }, 1000);
+}
+
+function convertData(input) {
+  const result = [];
+  
+  input.forEach(item => {
+    // Extract common properties that remain the same for all days
+    // const { e: curYr, f, g, h, i } = input;
+    // const commonProps = { e: curYr, f, g, h, i };
+    const { f, g, h, i } = item;
+    const commonProps = { e: curYr, f, g, h, i }; // Using 25 as default for e
+    
+    // Find all d* properties (d1 to d366)
+    const dayProperties = Object.keys(item)
+      .filter(key => key.startsWith('d') && !isNaN(parseInt(key.substring(1))))
+      .sort((a, b) => parseInt(a.substring(1)) - parseInt(b.substring(1)));
+    
+    // Create an entry for each day
+    dayProperties.forEach(dayProp => {
+      const dayNumber = parseInt(dayProp.substring(1));
+      result.push({
+        ...commonProps,
+        j: dayNumber,
+        k: item[dayProp]
+      });
+    });
+  });
+  
+  return result;
 }
 
 // Update notification badges
