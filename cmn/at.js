@@ -1089,7 +1089,7 @@ a_ttendance_lst = a_ttendance_lst.sort((a, b) => {
     
     attendanceHTML += `
       <tr>
-        <td>${convertDateFormatToIndia(date)}</td>
+        <td>${convertDateForAttendance(date)}</td>
         <td>${subjectName}</td>
         <td><span class="at_status_badge ${statusClass}">${statusText}</span></td>
       </tr>
