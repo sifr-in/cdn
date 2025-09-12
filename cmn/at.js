@@ -335,8 +335,9 @@ function setupClassModal() {
                 JSON.stringify(savedStudents)
               );
 
-              document.getElementById(i_d_class_modal).style.display = "none";
-              await displayClassCards();
+              // document.getElementById(i_d_class_modal).style.display = "none";
+              // await displayClassCards();
+            location.reload();
           } else {
               alert(response.ms);
           }
@@ -1373,5 +1374,6 @@ function getDayOfYear(date) {
 if (typeof initApp === "function") {
   initApp();
 }
+
 
 
