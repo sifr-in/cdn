@@ -1,3 +1,6 @@
+const monthFullNms = ['January', 'February', 'March', 'April', 'May', 'June','July', 'August', 'September', 'October', 'November', 'December'];
+const monthShortNms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun','Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 function getNumArrayFromObjArr(jsonArray, key) {
  return jsonArray
   .map(obj => {
@@ -1041,4 +1044,3 @@ function createAdContainer() {
   
   return adContainer;
 }
-
