@@ -1370,11 +1370,13 @@ function getDayOfYear(date) {
   return Math.floor(diff / oneDay);
 }
 
+function convertDateForAttendance(date) {
+ return [
+  padTo2Digits(date.getDate()),monthShortNms[date.getMonth()]
+ ].join('-');
+}
+
 // Initialize when scripts are loaded
 if (typeof initApp === "function") {
   initApp();
 }
-
-
-
-
