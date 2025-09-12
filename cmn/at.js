@@ -1076,10 +1076,10 @@ a_ttendance_lst = a_ttendance_lst.sort((a, b) => {
     // Get status text
     let statusText = "un-Marked";
     let statusClass = "grey";
-    if (record.k === "1") {
+    if (record.k.toString() === "1") {
       statusText = "Present";
       statusClass = "green";
-    } else if (record.k === "2") {
+    } else if (record.k.toString() === "2") {
       statusText = "Absent";
       statusClass = "orange";
     }
@@ -1374,6 +1374,7 @@ function getDayOfYear(date) {
 if (typeof initApp === "function") {
   initApp();
 }
+
 
 
 
