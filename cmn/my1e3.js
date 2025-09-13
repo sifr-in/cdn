@@ -545,6 +545,9 @@ function chkIfLoggedIn() {
     resolve({ su: 1, ms: "Session expired" });
    }
   } else {
+   if( dontShoLoginConfirmation !== null && dontShoLoginConfirmation == 1){
+    resolve({ su: 1, ms: "u must be logged in" });
+   }else{
    const dialog = document.createElement('div');
    dialog.style.position = 'fixed';
    dialog.style.top = '50%';
@@ -578,6 +581,7 @@ function chkIfLoggedIn() {
     dialog.remove();
     resolve({ su: 2, ms: "u must be logged in" });
    });
+  }
   }
  });
 }
@@ -1044,3 +1048,4 @@ function createAdContainer() {
   
   return adContainer;
 }
+
