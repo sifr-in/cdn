@@ -539,7 +539,12 @@ function chkIfLoggedIn() {
  return new Promise((resolve) => {
   if (my1uzr != null && localStorage.getItem(my1uzr.worknOnPg)) {
    if (!my1uzr.mk || my1uzr.mk.length < 1) {
-    resolve({ su: 0, ms: "Login again." });
+    if( dontShoLoginConfirmation !== null && dontShoLoginConfirmation == 1){
+     localStorage.setItem(my1uzr.worknOnPg, 'true');
+     resolve({ su: 1, ms: "u must be logged in" });
+    }else{
+     resolve({ su: 0, ms: "Login again." });
+    }
    } else {
     const longNumber = parseInt(my1uzr.mk.slice(-10), 10);
     resolve({ su: 1, ms: "Session expired" });
@@ -1049,5 +1054,6 @@ function createAdContainer() {
   
   return adContainer;
 }
+
 
 
