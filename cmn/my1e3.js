@@ -546,6 +546,7 @@ function chkIfLoggedIn() {
    }
   } else {
    if( dontShoLoginConfirmation !== null && dontShoLoginConfirmation == 1){
+    localStorage.setItem(my1uzr.worknOnPg, 'true');
     resolve({ su: 1, ms: "u must be logged in" });
    }else{
    const dialog = document.createElement('div');
@@ -1048,4 +1049,5 @@ function createAdContainer() {
   
   return adContainer;
 }
+
 
