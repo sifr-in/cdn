@@ -541,7 +541,7 @@ function chkIfLoggedIn() {
    if (!my1uzr.mk || my1uzr.mk.length < 1) {
     if( dontShoLoginConfirmation !== null && dontShoLoginConfirmation == 1){
      localStorage.setItem(my1uzr.worknOnPg, 'true');
-     resolve({ su: 1, ms: "u must be logged in" });
+     resolve({ su: 0, ms: "u must be logged in" });
     }else{
      resolve({ su: 0, ms: "Login again." });
     }
@@ -552,7 +552,7 @@ function chkIfLoggedIn() {
   } else {
    if( dontShoLoginConfirmation !== null && dontShoLoginConfirmation == 1){
     localStorage.setItem(my1uzr.worknOnPg, 'true');
-    resolve({ su: 1, ms: "u must be logged in" });
+    resolve({ su: 0, ms: "u must be logged in" });
    }else{
    const dialog = document.createElement('div');
    dialog.style.position = 'fixed';
@@ -1054,6 +1054,7 @@ function createAdContainer() {
   
   return adContainer;
 }
+
 
 
 
