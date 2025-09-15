@@ -249,7 +249,7 @@ return;
 }
 
 function sendCacheUpgradeMessage() {
-if (appData !==null && appData.shoCachInProgressModal){
+if (appData != null && appData.shoCachInProgressModal){
   if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
 if(appData.cach){
     navigator.serviceWorker.controller.postMessage({
