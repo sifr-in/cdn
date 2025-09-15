@@ -43,7 +43,7 @@ function initPWA() {
     console.log('beforeinstallprompt event fired');
     e.preventDefault();
     deferredPrompt = e;
-    if(appData.shoInstallAppModal){
+    if(appData != null && appData.shoInstallAppModal){
     if (appData.shoInstallAppModal === 1) {
         console.log('Showing install modal');
         f_n_sho_install_modal();
@@ -701,7 +701,7 @@ function showToast(message) {
 
 function chkWhetherNotiAllowed(showAlert) {
   if (Notification.permission !== 'granted') {
-    if (showAlert === 1 && appData.msgWhenNotiNotAllowed) {
+    if (showAlert === 1 && appData != null && appData.msgWhenNotiNotAllowed) {
       showToast(appData.msgWhenNotiNotAllowed);
     }
     return false;
@@ -770,7 +770,7 @@ function checkAndSubscribe(registration) {
             localStorage.setItem('my1uzr_fc_tk', token);
             let objTk = {"old":c68nst, "nw":token}
             if (typeof handleFCMtokenChange === 'function') {handleFCMtokenChange(objTk);}
-          } else if (appData.shoAlertIfFCMSubscribeTopicFails === 1) {
+          } else if (appData != null && appData.shoAlertIfFCMSubscribeTopicFails === 1) {
             showToast(JSON.stringify(r67esponse));
           }
         })
@@ -801,7 +801,7 @@ function checkAndSubscribe(registration) {
 window.f_n_sho_install_modal = function(showBoxForcefully=0){
   if(showBoxForcefully===0){
   const dontShowAgain = localStorage.getItem(`${my1uzr.worknOnPg}dont_show_install`);
-  if (dontShowAgain === 'true' && appData.shoDontShoInstallPWAAgain !== 0) {
+  if (dontShowAgain === 'true' && appData != null && appData.shoDontShoInstallPWAAgain !== 0) {
     return;
   }
   }
@@ -817,7 +817,7 @@ window.f_n_sho_install_modal = function(showBoxForcefully=0){
   modalContent.className = c_lass_of_modal_content;
   
   const title = document.createElement('h3');
-  title.textContent = appData.msgToShoOnTtlInstallApp || 'Install this app for better experience';
+  title.textContent = (appData && appData.msgToShoOnTtlInstallApp) || 'Install this app for better experience';
   title.style.color = "black";
   
   const installBtn = document.createElement('button');
@@ -861,7 +861,7 @@ window.f_n_sho_install_modal = function(showBoxForcefully=0){
     dontShowContainer.appendChild(label);
     modalContent.appendChild(dontShowContainer);
   
-  if (appData.shoChkBoxDontPromptToInstlPWAAgain !== 1) {
+  if (appData != null && appData.shoChkBoxDontPromptToInstlPWAAgain !== 1) {
       dontShowCheckbox.style.display = 'none';
   }
   
