@@ -249,7 +249,7 @@ return;
 }
 
 function sendCacheUpgradeMessage() {
-if (appData.shoCachInProgressModal){
+if (appData !==null && appData.shoCachInProgressModal){
   if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
 if(appData.cach){
     navigator.serviceWorker.controller.postMessage({
@@ -279,7 +279,7 @@ if(appData.cach){
 }
   }
 }else{
-    console.log('"shoCachInProgressModal" is not defined.');
+    console.log('"appData.shoCachInProgressModal" is not defined.');
 }
 }
 
