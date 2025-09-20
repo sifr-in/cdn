@@ -1054,7 +1054,4 @@ function createAdContainer() {
   
   return adContainer;
 }
-
-
-
-
+document.getElementById('currentYear').textContent = new Date().getFullYear();
