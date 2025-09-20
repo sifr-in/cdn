@@ -284,7 +284,7 @@ if (typeof document !== 'undefined') {
 
   // 2. Fetch from remote if not found locally
   try {
-   const response = await fetch("https://cdn.jsdelivr.net/gh/sifr-in/cdn@5dcb5c1/cmn/my1xi.da");
+   const response = await fetch("https://cdn.jsdelivr.net/gh/sifr-in/cdn@f030965/cmn/my1xi.da");
    if (response.ok) {
     const remoteSchemas = await response.json();
     schema = Array.isArray(remoteSchemas)
@@ -553,5 +553,6 @@ if (typeof document !== 'undefined') {
 }
 }
 const dbDexieManager = new DexieDBManager();
+
 
 
