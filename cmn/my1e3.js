@@ -1054,4 +1054,7 @@ function createAdContainer() {
   
   return adContainer;
 }
-document.getElementById('currentYear').textContent = new Date().getFullYear();
+const currentYearElement = document.getElementById('currentYear');
+if (currentYearElement) {
+    currentYearElement.textContent = new Date().getFullYear();
+}
