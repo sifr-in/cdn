@@ -539,7 +539,7 @@ function chkIfLoggedIn() {
  return new Promise((resolve) => {
   if (my1uzr != null && localStorage.getItem(my1uzr.worknOnPg)) {
    if (!my1uzr.mk || my1uzr.mk.length < 1) {
-    if( dontShoLoginConfirmation !== null && dontShoLoginConfirmation == 1){
+    if (typeof dontShoLoginConfirmation !== 'undefined' && null !== dontShoLoginConfirmation && 1 == dontShoLoginConfirmation){
      localStorage.setItem(my1uzr.worknOnPg, 'true');
      resolve({ su: 0, ms: "u must be logged in" });
     }else{
@@ -550,7 +550,7 @@ function chkIfLoggedIn() {
     resolve({ su: 1, ms: "Session expired" });
    }
   } else {
-   if( dontShoLoginConfirmation !== null && dontShoLoginConfirmation == 1){
+   if (typeof dontShoLoginConfirmation !== 'undefined' && null !== dontShoLoginConfirmation && 1 == dontShoLoginConfirmation){
     localStorage.setItem(my1uzr.worknOnPg, 'true');
     resolve({ su: 0, ms: "u must be logged in" });
    }else{
@@ -1058,3 +1058,4 @@ const currentYearElement = document.getElementById('currentYear');
 if (currentYearElement) {
     currentYearElement.textContent = new Date().getFullYear();
 }
+
