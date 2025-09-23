@@ -147,7 +147,7 @@ function createLoginByOModal() {
                     <p id="nameError" class="l3-error l3-hidden">Name must be at least 2 characters</p>
                 </div>
 
-                <div class="l3-form-group">
+                <div class="l3-form-group" style="display:none;">
                     <input type="text" id="localName" class="l3-input" placeholder="name in local language">
                     <p id="localNameError" class="l3-error l3-hidden">Name must be 2 characters local language, not eng.</p>
                 </div>
@@ -707,4 +707,5 @@ function initLoginSystem() {
             }
         });
     }
+
 }
