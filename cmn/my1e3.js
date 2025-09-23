@@ -727,7 +727,7 @@ function loadLoginSystem(shoLoginByOas2orByPas1, fnNmToCreateLoginModal) {
   }
 
   let lognScrptUrl = "https://cdn.jsdelivr.net/gh/sifr-in/cdn/cmn/my1lp.js";
-  if (shoLoginByOas2orByPas1 == 2) lognScrptUrl = "https://cdn.jsdelivr.net/gh/sifr-in/cdn/cmn/my1lo.js";
+  if (shoLoginByOas2orByPas1 == 2) lognScrptUrl = "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7c51d7f/cmn/my1lo.js";
 
   loadScript(lognScrptUrl, () => {
    if (typeof window[fnNmToCreateLoginModal] === 'function' && typeof setupL3EventListeners === 'function') {
@@ -1058,4 +1058,5 @@ const currentYearElement = document.getElementById('currentYear');
 if (currentYearElement) {
     currentYearElement.textContent = new Date().getFullYear();
 }
+
 
