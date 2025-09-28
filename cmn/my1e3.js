@@ -33,16 +33,63 @@ function createDynamicLoader() {
 }
 
 function loadPromiseScript(url) {
- return new Promise((resolve, reject) => {
-  var script = document.createElement("script");
-  script.type = "text/javascript";
+    return new Promise((resolve, reject) => {
+        // Optional: Check for duplicates (from my version)
+        const existingScript = document.querySelector(`script[src="${url}"]`);
+        if (existingScript) {
+            resolve();
+            return;
+        }
 
-  script.onload = resolve;
-  script.onerror = reject;
+        // Your clean implementation
+        const script = document.createElement("script");
+        script.onload = resolve;
+        script.onerror = reject;
+        script.src = url;
+        document.head.appendChild(script);
+    });
+}
 
-  script.src = url;
-  document.head.appendChild(script);
- });
+async function loadAllScriptsSequentially(scriptsToLoad) {
+ let loadedCount = 0;
+ const totalScripts = scriptsToLoad.reduce((count, scriptInfo) => {
+  return count + (scriptInfo.fls ? scriptInfo.fls.length : 1);
+ }, 0);
+
+ for (const scriptInfo of scriptsToLoad) {
+  try {
+   if (scriptInfo.fls) {
+    for (const fileInfo of scriptInfo.fls) {
+     const scriptUrl = scriptInfo.url
+      .replace('__', fileInfo.h)
+      .replace('__', fileInfo.f);
+
+     await loadPromiseScript(scriptUrl);
+     loadedCount++;
+     console.log(`Loaded: ${scriptUrl} (${loadedCount}/${totalScripts})`);
+    }
+   } else {
+    await loadPromiseScript(scriptInfo.url);
+    loadedCount++;
+    console.log(`Loaded: ${scriptInfo.url} (${loadedCount}/${totalScripts})`);
+   }
+  } catch (error) {
+   console.error('Failed to load script:', error);
+   return {
+    success: false,
+    error: error,
+    loadedCount: loadedCount,
+    totalScripts: totalScripts
+   };
+  }
+ }
+
+ return {
+  success: true,
+  loadedCount: loadedCount,
+  totalScripts: totalScripts,
+  message: `All ${loadedCount} scripts loaded successfully`
+ };
 }
 
 async function loadAndExeFn(functionName, params = [], idOfLoader, scriptUrl) {
@@ -1058,5 +1105,6 @@ const currentYearElement = document.getElementById('currentYear');
 if (currentYearElement) {
     currentYearElement.textContent = new Date().getFullYear();
 }
+
 
 
