@@ -1106,5 +1106,42 @@ if (currentYearElement) {
     currentYearElement.textContent = new Date().getFullYear();
 }
 
-
-
+function playAud(audioUrl) {
+  // Convert Google Drive share link to direct download link if needed
+  let finalUrl = audioUrl;
+  
+  // Handle Google Drive share links
+  if (audioUrl.includes('drive.google.com/file/d/')) {
+    const match = audioUrl.match(/\/d\/([^\/]+)/);
+    if (match && match[1]) {
+      finalUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
+    }
+  }
+  
+  // Handle Google Drive view links
+  if (audioUrl.includes('drive.google.com/uc?')) {
+    finalUrl = audioUrl; // Already in correct format
+  }
+  
+  const audio = new Audio(finalUrl);
+  
+  // Handle different audio formats and autoplay restrictions
+  audio.preload = 'metadata';
+  
+  const playPromise = audio.play();
+  
+  if (playPromise !== undefined) {
+    playPromise.catch(error => {
+      console.log('Auto-play prevented:', error);
+      // Fallback: Create a one-time click handler to play audio
+      const playOnClick = () => {
+        audio.play().then(() => {
+          document.removeEventListener('click', playOnClick);
+        }).catch(e => console.log('Play failed:', e));
+      };
+      document.addEventListener('click', playOnClick, { once: true });
+    });
+  }
+  
+  return audio;
+}
