@@ -1107,39 +1107,48 @@ if (currentYearElement) {
 }
 
 function playAud(audioUrl) {
-  // Convert Google Drive share link to direct download link if needed
   let finalUrl = audioUrl;
   
-  // Handle Google Drive share links
+  // Handle Google Drive share links - use embeddable format
   if (audioUrl.includes('drive.google.com/file/d/')) {
     const match = audioUrl.match(/\/d\/([^\/]+)/);
     if (match && match[1]) {
-      finalUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
+      finalUrl = `https://docs.google.com/uc?export=download&id=${match[1]}`;
     }
   }
   
-  // Handle Google Drive view links
+  // Handle Google Drive uc links
   if (audioUrl.includes('drive.google.com/uc?')) {
-    finalUrl = audioUrl; // Already in correct format
+    finalUrl = audioUrl;
   }
   
-  const audio = new Audio(finalUrl);
+  console.log('Attempting to play audio from:', finalUrl);
   
-  // Handle different audio formats and autoplay restrictions
-  audio.preload = 'metadata';
+  const audio = new Audio();
+  
+  // Add error handling
+  audio.addEventListener('error', function(e) {
+    console.error('Audio loading error:', e);
+    console.log('Audio error details:', audio.error);
+    
+    // Try alternative method for Google Drive
+    if (finalUrl.includes('drive.google.com')) {
+      const fileId = finalUrl.match(/id=([^&]+)/)[1];
+      const alternativeUrl = `https://drive.usercontent.google.com/download?id=${fileId}&export=download&authuser=0&confirm=t`;
+      console.log('Trying alternative URL:', alternativeUrl);
+      
+      const altAudio = new Audio(alternativeUrl);
+      altAudio.play().catch(e => console.error('Alternative also failed:', e));
+    }
+  });
+  
+  audio.src = finalUrl;
   
   const playPromise = audio.play();
   
   if (playPromise !== undefined) {
     playPromise.catch(error => {
-      console.log('Auto-play prevented:', error);
-      // Fallback: Create a one-time click handler to play audio
-      const playOnClick = () => {
-        audio.play().then(() => {
-          document.removeEventListener('click', playOnClick);
-        }).catch(e => console.log('Play failed:', e));
-      };
-      document.addEventListener('click', playOnClick, { once: true });
+      console.log('Auto-play prevented, user interaction required:', error);
     });
   }
   
