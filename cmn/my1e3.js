@@ -1106,34 +1106,69 @@ if (currentYearElement) {
     currentYearElement.textContent = new Date().getFullYear();
 }
 
-async function playAud(audioUrl) {
+function playAud(audioUrl,hiddenAudioPlayer="hiddenIframeToPlayDriveAud") {
     try {
-        // Convert Google Drive share link
-        let finalUrl = audioUrl;
-        if (audioUrl.includes('drive.google.com/file/d/')) {
-            const fileId = audioUrl.match(/\/d\/([^\/]+)/)[1];
-            finalUrl = `https://drive.google.com/uc?export=download&id=${fileId}&confirm=t`;
-        }
-
-        console.log('Fetching audio from:', finalUrl);
-
-        // Fetch and get blob directly (browser will handle MIME type)
-        const response = await fetch(finalUrl);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-
-        const audio = new Audio(blobUrl);
+        // Extract file ID from various Google Drive URL formats
+        const fileId = extractGoogleDriveFileId(audioUrl);
         
-        // Auto cleanup
-        audio.addEventListener('ended', () => URL.revokeObjectURL(blobUrl));
-        audio.addEventListener('error', () => URL.revokeObjectURL(blobUrl));
-
-        await audio.play();
-        return audio;
+        if (!fileId) {
+            // Fallback for non-Google Drive URLs
+            const audio = new Audio(audioUrl);
+            return audio.play().then(() => audio);
+        }
+        
+        // Create or reuse hidden iframe
+        let iframe = document.getElementById(hiddenAudioPlayer);
+        if (!iframe) {
+            iframe = createHiddenIframe();
+        }
+        
+        // Use Google Drive's embed preview with autoplay
+        const embedUrl = `https://drive.google.com/file/d/${fileId}/preview?autoplay=1`;
+        iframe.src = embedUrl;
+        
+        console.log('Playing audio via hidden iframe:', embedUrl);
+        return Promise.resolve(iframe);
         
     } catch (error) {
         console.error('Error playing audio:', error);
+        return Promise.reject(error);
     }
+}
+
+function extractGoogleDriveFileId(url) {
+    // Multiple patterns to extract file ID from different Google Drive URL formats
+    const patterns = [
+        /\/file\/d\/([^\/]+)/,           // Standard file URL
+        /\/d\/([^\/]+)/,                 // Shortened format
+        /id=([^&]+)/,                    // ID parameter format
+        /open\?id=([^&]+)/,              // Open format
+        /uc\?export=download&id=([^&]+)/ // Direct download format
+    ];
+    
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1]) {
+            return match[1];
+        }
+    }
+    return null;
+}
+
+function createHiddenIframe(hiddenAudioPlayer) {
+    const iframe = document.createElement('iframe');
+    iframe.id = hiddenAudioPlayer;
+    iframe.style.cssText = `
+        position: fixed;
+        top: -1000px;
+        left: -1000px;
+        width: 1px;
+        height: 1px;
+        border: none;
+        opacity: 0;
+        pointer-events: none;
+        visibility: hidden;
+    `;
+    document.body.appendChild(iframe);
+    return iframe;
 }
