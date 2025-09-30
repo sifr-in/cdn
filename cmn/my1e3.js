@@ -1106,51 +1106,34 @@ if (currentYearElement) {
     currentYearElement.textContent = new Date().getFullYear();
 }
 
-function playAud(audioUrl) {
-  let finalUrl = audioUrl;
-  
-  // Handle Google Drive share links - use embeddable format
-  if (audioUrl.includes('drive.google.com/file/d/')) {
-    const match = audioUrl.match(/\/d\/([^\/]+)/);
-    if (match && match[1]) {
-      finalUrl = `https://docs.google.com/uc?export=download&id=${match[1]}`;
+async function playAud(audioUrl) {
+    try {
+        // Convert Google Drive share link
+        let finalUrl = audioUrl;
+        if (audioUrl.includes('drive.google.com/file/d/')) {
+            const fileId = audioUrl.match(/\/d\/([^\/]+)/)[1];
+            finalUrl = `https://drive.google.com/uc?export=download&id=${fileId}&confirm=t`;
+        }
+
+        console.log('Fetching audio from:', finalUrl);
+
+        // Fetch and get blob directly (browser will handle MIME type)
+        const response = await fetch(finalUrl);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+
+        const audio = new Audio(blobUrl);
+        
+        // Auto cleanup
+        audio.addEventListener('ended', () => URL.revokeObjectURL(blobUrl));
+        audio.addEventListener('error', () => URL.revokeObjectURL(blobUrl));
+
+        await audio.play();
+        return audio;
+        
+    } catch (error) {
+        console.error('Error playing audio:', error);
     }
-  }
-  
-  // Handle Google Drive uc links
-  if (audioUrl.includes('drive.google.com/uc?')) {
-    finalUrl = audioUrl;
-  }
-  
-  console.log('Attempting to play audio from:', finalUrl);
-  
-  const audio = new Audio();
-  
-  // Add error handling
-  audio.addEventListener('error', function(e) {
-    console.error('Audio loading error:', e);
-    console.log('Audio error details:', audio.error);
-    
-    // Try alternative method for Google Drive
-    if (finalUrl.includes('drive.google.com')) {
-      const fileId = finalUrl.match(/id=([^&]+)/)[1];
-      const alternativeUrl = `https://drive.usercontent.google.com/download?id=${fileId}&export=download&authuser=0&confirm=t`;
-      console.log('Trying alternative URL:', alternativeUrl);
-      
-      const altAudio = new Audio(alternativeUrl);
-      altAudio.play().catch(e => console.error('Alternative also failed:', e));
-    }
-  });
-  
-  audio.src = finalUrl;
-  
-  const playPromise = audio.play();
-  
-  if (playPromise !== undefined) {
-    playPromise.catch(error => {
-      console.log('Auto-play prevented, user interaction required:', error);
-    });
-  }
-  
-  return audio;
 }
