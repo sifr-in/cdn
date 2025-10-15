@@ -116,6 +116,82 @@ async function loadAndExeFn(functionName, params = [], idOfLoader, scriptUrl) {
   }
 }
 
+async function loadExecFn(fnsToChk, fnsToRun, pFNarams = [], idOfLoader, scriptUrl, pSCRParams = []) {
+  const loader = document.getElementById(idOfLoader);
+  if (loader) loader.style.display = 'block'; // Show loader
+
+  try {
+    // Split comma-separated function names and trim whitespace
+    const functionsToCheck = fnsToChk.split(',').map(fn => fn.trim());
+    const missingFunctions = [];
+    
+    // Check if all functions exist
+    for (const fnName of functionsToCheck) {
+      if (typeof window[fnName] !== 'function') {
+        missingFunctions.push(fnName);
+      }
+    }
+
+    if (missingFunctions.length === 0) {
+      // All functions exist, execute fnsToRun if provided
+      if (fnsToRun && fnsToRun.trim() !== '') {
+        const functionsToRun = fnsToRun.split(',').map(fn => fn.trim());
+        
+        // Execute functions sequentially and wait for each to complete
+        for (const fnName of functionsToRun) {
+          if (typeof window[fnName] === 'function') {
+            const result = window[fnName](...pFNarams);
+            // If function returns a Promise, wait for it
+            if (result instanceof Promise) {
+              await result;
+            }
+          } else {
+            console.warn(`Function "${fnName}" not found for execution.`);
+          }
+        }
+      }
+    } else {
+      // Some functions are missing, load the script
+      await loadPromiseScript(scriptUrl);
+      
+      // Check again after loading the script
+      const stillMissing = [];
+      for (const fnName of functionsToCheck) {
+        if (typeof window[fnName] !== 'function') {
+          stillMissing.push(fnName);
+        }
+      }
+
+      if (stillMissing.length === 0) {
+        // All functions now exist, execute fnsToRun if provided
+        if (fnsToRun && fnsToRun.trim() !== '') {
+          const functionsToRun = fnsToRun.split(',').map(fn => fn.trim());
+          
+          // Execute functions sequentially and wait for each to complete
+          for (const fnName of functionsToRun) {
+            if (typeof window[fnName] === 'function') {
+              const result = window[fnName](...pFNarams);
+              // If function returns a Promise, wait for it
+              if (result instanceof Promise) {
+                await result;
+              }
+            } else {
+              console.warn(`Function "${fnName}" not found for execution.`);
+            }
+          }
+        }
+      } else {
+        throw new Error(`Functions "${stillMissing.join(', ')}" not found after loading script.`);
+      }
+    }
+  } catch (e) {
+    console.error('Error:', e.message);
+    alert(`Error: ${e.message}. Please retry or contact support.`);
+  } finally {
+    if (loader) loader.style.display = 'none'; // Hide loader
+  }
+}
+
 function loadScript(url, callback) {
  var script = document.createElement("script")
  script.type = "text/javascript";
@@ -1172,3 +1248,4 @@ function createHiddenIframe(hiddenAudioPlayer) {
     document.body.appendChild(iframe);
     return iframe;
 }
+
