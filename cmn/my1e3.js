@@ -1,5 +1,121 @@
-const monthFullNms = ['January', 'February', 'March', 'April', 'May', 'June','July', 'August', 'September', 'October', 'November', 'December'];
-const monthShortNms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun','Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const monthFullNms = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const monthShortNms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// Global state
+let modalStack = [];
+let backButtonPressedOnce = false;
+let toastTimeout = null;
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function () {
+ initializeBackButtonHandler();
+ attachModalListeners();
+});
+
+// Initialize back button handler
+function initializeBackButtonHandler() {
+ // Handle browser back button
+ window.addEventListener('popstate', function (event) {
+  handleBackButton();
+ });
+
+ // Add initial state to history
+ if (history.state === null) {
+  history.replaceState({ modalOpen: false }, '');
+ }
+}
+
+// Attach listeners to all modals
+function attachModalListeners() {
+ // Listen for Bootstrap modal show events
+ document.addEventListener('show.bs.modal', function (event) {
+  const modalId = event.target.id;
+  if (!modalStack.includes(modalId)) {
+   modalStack.push(modalId);
+   // Push state to history when modal opens
+   history.pushState({ modalOpen: true, modalId: modalId }, '');
+  }
+ });
+
+ // Listen for Bootstrap modal hide events
+ document.addEventListener('hide.bs.modal', function (event) {
+  const modalId = event.target.id;
+  const index = modalStack.indexOf(modalId);
+  if (index !== -1) {
+   modalStack.splice(index, 1);
+  }
+ });
+}
+
+// Main back button handler
+function handleBackButton() {
+ // Check if any modal is open
+ if (modalStack.length > 0) {
+  // Get the last opened modal
+  const lastModalId = modalStack[modalStack.length - 1];
+
+  // Close the modal
+  if (document.getElementById(lastModalId)) {
+   const modal = bootstrap.Modal.getInstance(document.getElementById(lastModalId));
+   if (modal) {
+    modal.hide();
+   }
+  }
+
+  // Remove from stack
+  modalStack.pop();
+
+  // Push new state to history
+  if (modalStack.length > 0) {
+   history.pushState({ modalOpen: true, modalId: modalStack[modalStack.length - 1] }, '');
+  } else {
+   history.pushState({ modalOpen: false }, '', '');
+  }
+ }
+ // Check if custom dialog is open
+ else if (isCustomDialogOpen(custoDlgID)) {
+  hideCustomDialog(custoDlgID);
+ }
+ // No modals open - show toast message
+ else {
+  if (!backButtonPressedOnce) {
+   showToast('Press back button again to exit');
+   backButtonPressedOnce = true;
+
+   // Reset after 2 seconds
+   setTimeout(() => {
+    backButtonPressedOnce = false;
+   }, 2000);
+
+   // Push state to prevent browser exit
+   history.pushState({ modalOpen: false }, '', '');
+  } else {
+   // Allow the browser to exit (do nothing)
+   backButtonPressedOnce = false;
+  }
+ }
+}
+
+// Custom dialog functions
+function showCustomDialog(custoDlgID) {
+ document.getElementById(custoDlgID).classList.remove('d-none');
+ modalStack.push(custoDlgID);
+ history.pushState({ modalOpen: true, modalId: custoDlgID }, '');
+}
+
+function hideCustomDialog(custoDlgID) {
+ document.getElementById(custoDlgID).classList.add('d-none');
+ const index = modalStack.indexOf(custoDlgID);
+ if (index !== -1) {
+  modalStack.splice(index, 1);
+ }
+ history.pushState({ modalOpen: modalStack.length > 0 }, '', '');
+}
+
+function isCustomDialogOpen(custoDlgID) {
+ return !document.getElementById(custoDlgID).classList.contains('d-none');
+}
+
 
 function getNumArrayFromObjArr(jsonArray, key) {
  return jsonArray
@@ -13,41 +129,41 @@ function getNumArrayFromObjArr(jsonArray, key) {
 }
 
 function createDynamicLoader() {
-  const loader = document.createElement('div');
-  loader.style.position = 'fixed';
-  loader.style.top = '0';
-  loader.style.left = '0';
-  loader.style.width = '100%';
-  loader.style.height = '100%';
-  loader.style.backgroundColor = 'rgba(0,0,0,0.5)';
-  loader.style.display = 'flex';
-  loader.style.justifyContent = 'center';
-  loader.style.alignItems = 'center';
-  loader.style.zIndex = '9999';
-  loader.innerHTML = `
+ const loader = document.createElement('div');
+ loader.style.position = 'fixed';
+ loader.style.top = '0';
+ loader.style.left = '0';
+ loader.style.width = '100%';
+ loader.style.height = '100%';
+ loader.style.backgroundColor = 'rgba(0,0,0,0.5)';
+ loader.style.display = 'flex';
+ loader.style.justifyContent = 'center';
+ loader.style.alignItems = 'center';
+ loader.style.zIndex = '9999';
+ loader.innerHTML = `
     <div class="spinner-border text-primary" role="status">
       <span class="visually-hidden">Loading...</span>
     </div>
   `;
-  return loader;
+ return loader;
 }
 
 function loadPromiseScript(url) {
-    return new Promise((resolve, reject) => {
-        // Optional: Check for duplicates (from my version)
-        const existingScript = document.querySelector(`script[src="${url}"]`);
-        if (existingScript) {
-            resolve();
-            return;
-        }
+ return new Promise((resolve, reject) => {
+  // Optional: Check for duplicates (from my version)
+  const existingScript = document.querySelector(`script[src="${url}"]`);
+  if (existingScript) {
+   resolve();
+   return;
+  }
 
-        // Your clean implementation
-        const script = document.createElement("script");
-        script.onload = resolve;
-        script.onerror = reject;
-        script.src = url;
-        document.head.appendChild(script);
-    });
+  // Your clean implementation
+  const script = document.createElement("script");
+  script.onload = resolve;
+  script.onerror = reject;
+  script.src = url;
+  document.head.appendChild(script);
+ });
 }
 
 async function loadAllScriptsSequentially(scriptsToLoad) {
@@ -93,103 +209,103 @@ async function loadAllScriptsSequentially(scriptsToLoad) {
 }
 
 async function loadAndExeFn(functionName, params = [], idOfLoader, scriptUrl) {
-  const loader = document.getElementById(idOfLoader);
-  if (loader) loader.style.display = 'block'; // Show loader
+ const loader = document.getElementById(idOfLoader);
+ if (loader) loader.style.display = 'block'; // Show loader
 
-  try {
-    // Check if function exists
-    if (typeof window[functionName] === 'function') {
-      window[functionName](...params); // Spread params correctly
-    } else {
-      await loadPromiseScript(scriptUrl); // Assume this loads the script
-      if (typeof window[functionName] === 'function') {
-        window[functionName](...params); // Spread params
-      } else {
-        throw new Error(`Function "${functionName}" not found after loading script.`);
-      }
-    }
-  } catch (e) {
-    console.error('Error:', e.message);
-    alert(`Error: ${e.message}. Please retry or contact support.`);
-  } finally {
-    if (loader) loader.style.display = 'none'; // Hide loader
+ try {
+  // Check if function exists
+  if (typeof window[functionName] === 'function') {
+   window[functionName](...params); // Spread params correctly
+  } else {
+   await loadPromiseScript(scriptUrl); // Assume this loads the script
+   if (typeof window[functionName] === 'function') {
+    window[functionName](...params); // Spread params
+   } else {
+    throw new Error(`Function "${functionName}" not found after loading script.`);
+   }
   }
+ } catch (e) {
+  console.error('Error:', e.message);
+  alert(`Error: ${e.message}. Please retry or contact support.`);
+ } finally {
+  if (loader) loader.style.display = 'none'; // Hide loader
+ }
 }
 
 async function loadExecFn(fnsToChk, fnsToRun, pFNarams = [], idOfLoader, scriptUrl, pSCRParams = []) {
-  const loader = document.getElementById(idOfLoader);
-  if (loader) loader.style.display = 'block'; // Show loader
+ const loader = document.getElementById(idOfLoader);
+ if (loader) loader.style.display = 'block'; // Show loader
 
-  try {
-    // Split comma-separated function names and trim whitespace
-    const functionsToCheck = fnsToChk.split(',').map(fn => fn.trim());
-    const missingFunctions = [];
-    
-    // Check if all functions exist
-    for (const fnName of functionsToCheck) {
-      if (typeof window[fnName] !== 'function') {
-        missingFunctions.push(fnName);
-      }
-    }
+ try {
+  // Split comma-separated function names and trim whitespace
+  const functionsToCheck = fnsToChk.split(',').map(fn => fn.trim());
+  const missingFunctions = [];
 
-    if (missingFunctions.length === 0) {
-      // All functions exist, execute fnsToRun if provided
-      if (fnsToRun && fnsToRun.trim() !== '') {
-        const functionsToRun = fnsToRun.split(',').map(fn => fn.trim());
-        
-        // Execute functions sequentially and wait for each to complete
-        for (const fnName of functionsToRun) {
-          if (typeof window[fnName] === 'function') {
-            const result = window[fnName](...pFNarams);
-            // If function returns a Promise, wait for it
-            if (result instanceof Promise) {
-              await result;
-            }
-          } else {
-            console.warn(`Function "${fnName}" not found for execution.`);
-          }
-        }
-      }
-    } else {
-      // Some functions are missing, load the script
-      await loadPromiseScript(scriptUrl);
-      
-      // Check again after loading the script
-      const stillMissing = [];
-      for (const fnName of functionsToCheck) {
-        if (typeof window[fnName] !== 'function') {
-          stillMissing.push(fnName);
-        }
-      }
-
-      if (stillMissing.length === 0) {
-        // All functions now exist, execute fnsToRun if provided
-        if (fnsToRun && fnsToRun.trim() !== '') {
-          const functionsToRun = fnsToRun.split(',').map(fn => fn.trim());
-          
-          // Execute functions sequentially and wait for each to complete
-          for (const fnName of functionsToRun) {
-            if (typeof window[fnName] === 'function') {
-              const result = window[fnName](...pFNarams);
-              // If function returns a Promise, wait for it
-              if (result instanceof Promise) {
-                await result;
-              }
-            } else {
-              console.warn(`Function "${fnName}" not found for execution.`);
-            }
-          }
-        }
-      } else {
-        throw new Error(`Functions "${stillMissing.join(', ')}" not found after loading script.`);
-      }
-    }
-  } catch (e) {
-    console.error('Error:', e.message);
-    alert(`Error: ${e.message}. Please retry or contact support.`);
-  } finally {
-    if (loader) loader.style.display = 'none'; // Hide loader
+  // Check if all functions exist
+  for (const fnName of functionsToCheck) {
+   if (typeof window[fnName] !== 'function') {
+    missingFunctions.push(fnName);
+   }
   }
+
+  if (missingFunctions.length === 0) {
+   // All functions exist, execute fnsToRun if provided
+   if (fnsToRun && fnsToRun.trim() !== '') {
+    const functionsToRun = fnsToRun.split(',').map(fn => fn.trim());
+
+    // Execute functions sequentially and wait for each to complete
+    for (const fnName of functionsToRun) {
+     if (typeof window[fnName] === 'function') {
+      const result = window[fnName](...pFNarams);
+      // If function returns a Promise, wait for it
+      if (result instanceof Promise) {
+       await result;
+      }
+     } else {
+      console.warn(`Function "${fnName}" not found for execution.`);
+     }
+    }
+   }
+  } else {
+   // Some functions are missing, load the script
+   await loadPromiseScript(scriptUrl);
+
+   // Check again after loading the script
+   const stillMissing = [];
+   for (const fnName of functionsToCheck) {
+    if (typeof window[fnName] !== 'function') {
+     stillMissing.push(fnName);
+    }
+   }
+
+   if (stillMissing.length === 0) {
+    // All functions now exist, execute fnsToRun if provided
+    if (fnsToRun && fnsToRun.trim() !== '') {
+     const functionsToRun = fnsToRun.split(',').map(fn => fn.trim());
+
+     // Execute functions sequentially and wait for each to complete
+     for (const fnName of functionsToRun) {
+      if (typeof window[fnName] === 'function') {
+       const result = window[fnName](...pFNarams);
+       // If function returns a Promise, wait for it
+       if (result instanceof Promise) {
+        await result;
+       }
+      } else {
+       console.warn(`Function "${fnName}" not found for execution.`);
+      }
+     }
+    }
+   } else {
+    throw new Error(`Functions "${stillMissing.join(', ')}" not found after loading script.`);
+   }
+  }
+ } catch (e) {
+  console.error('Error:', e.message);
+  alert(`Error: ${e.message}. Please retry or contact support.`);
+ } finally {
+  if (loader) loader.style.display = 'none'; // Hide loader
+ }
 }
 
 function loadScript(url, callback) {
@@ -392,13 +508,13 @@ function convertToIndianDateTime(dateStr) {
 }
 
 function convertToDateTimeWithT(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+ const year = date.getFullYear();
+ const month = String(date.getMonth() + 1).padStart(2, '0');
+ const day = String(date.getDate()).padStart(2, '0');
+ const hours = String(date.getHours()).padStart(2, '0');
+ const minutes = String(date.getMinutes()).padStart(2, '0');
+
+ return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 function convertDateFormatToComputer(date) {//yymmdd
@@ -662,10 +778,10 @@ function chkIfLoggedIn() {
  return new Promise((resolve) => {
   if (my1uzr != null && localStorage.getItem(my1uzr.worknOnPg)) {
    if (!my1uzr.mk || my1uzr.mk.length < 1) {
-    if (typeof dontShoLoginConfirmation !== 'undefined' && null !== dontShoLoginConfirmation && 1 == dontShoLoginConfirmation){
+    if (typeof dontShoLoginConfirmation !== 'undefined' && null !== dontShoLoginConfirmation && 1 == dontShoLoginConfirmation) {
      localStorage.setItem(my1uzr.worknOnPg, 'true');
      resolve({ su: 0, ms: "u must be logged in" });
-    }else{
+    } else {
      resolve({ su: 0, ms: "Login again." });
     }
    } else {
@@ -673,22 +789,22 @@ function chkIfLoggedIn() {
     resolve({ su: 1, ms: "Session expired" });
    }
   } else {
-   if (typeof dontShoLoginConfirmation !== 'undefined' && null !== dontShoLoginConfirmation && 1 == dontShoLoginConfirmation){
+   if (typeof dontShoLoginConfirmation !== 'undefined' && null !== dontShoLoginConfirmation && 1 == dontShoLoginConfirmation) {
     localStorage.setItem(my1uzr.worknOnPg, 'true');
     resolve({ su: 0, ms: "u must be logged in" });
-   }else{
-   const dialog = document.createElement('div');
-   dialog.style.position = 'fixed';
-   dialog.style.top = '50%';
-   dialog.style.left = '50%';
-   dialog.style.transform = 'translate(-50%, -50%)';
-   dialog.style.backgroundColor = 'white';
-   dialog.style.padding = '20px';
-   dialog.style.borderRadius = '5px';
-   dialog.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
-   dialog.style.zIndex = '1000';
+   } else {
+    const dialog = document.createElement('div');
+    dialog.style.position = 'fixed';
+    dialog.style.top = '50%';
+    dialog.style.left = '50%';
+    dialog.style.transform = 'translate(-50%, -50%)';
+    dialog.style.backgroundColor = 'white';
+    dialog.style.padding = '20px';
+    dialog.style.borderRadius = '5px';
+    dialog.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
+    dialog.style.zIndex = '1000';
 
-   dialog.innerHTML = `
+    dialog.innerHTML = `
                 <p style="color:black;">Do you want to login on this page?</p>
                 <div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
                     <button id="dialogYes">Yes</button>
@@ -696,21 +812,21 @@ function chkIfLoggedIn() {
                 </div>
             `;
 
-   document.body.appendChild(dialog);
+    document.body.appendChild(dialog);
 
-   document.getElementById('dialogYes').addEventListener('click', () => {
-    if (my1uzr) {
-     localStorage.setItem(my1uzr.worknOnPg, 'true');
-     resolve({ su: 1, ms: "u must be logged in" });
-    }
-    dialog.remove();
-   });
+    document.getElementById('dialogYes').addEventListener('click', () => {
+     if (my1uzr) {
+      localStorage.setItem(my1uzr.worknOnPg, 'true');
+      resolve({ su: 1, ms: "u must be logged in" });
+     }
+     dialog.remove();
+    });
 
-   document.getElementById('dialogNo').addEventListener('click', () => {
-    dialog.remove();
-    resolve({ su: 2, ms: "u must be logged in" });
-   });
-  }
+    document.getElementById('dialogNo').addEventListener('click', () => {
+     dialog.remove();
+     resolve({ su: 2, ms: "u must be logged in" });
+    });
+   }
   }
  });
 }
@@ -913,21 +1029,21 @@ function showLoginInfo(shoLogOut, showLoginModalDirectly, shoLoginByOas2orByPas1
     location.reload();
    }
   });
-  
+
   const modalTitle = document.createElement('h2');
   modalTitle.className = 'modal-title';
   modalTitle.textContent = 'Login Information';
   modalTitle.style.marginTop = '0';
   modalTitle.appendChild(span_lgot);
 
-/*addLongPressListener(modalTitle, function() {
- if (confirm('Are you sure you want to log out?')) {
-  my1uzr = null;
-  localStorage.setItem('my1uzr', null);
-  location.reload();
- }
-}, 3000);*/
-  
+  /*addLongPressListener(modalTitle, function() {
+   if (confirm('Are you sure you want to log out?')) {
+    my1uzr = null;
+    localStorage.setItem('my1uzr', null);
+    location.reload();
+   }
+  }, 3000);*/
+
   const infoContainer = document.createElement('div');
   infoContainer.id = 'login-info-container';
 
@@ -1096,156 +1212,155 @@ async function validateImageUrl(url) {
 }
 
 function filterRecordsByDate(records, dateColumn, minDate, maxDate) {
-    if (!records || !Array.isArray(records)) return [];
-    if (!dateColumn) return records;
+ if (!records || !Array.isArray(records)) return [];
+ if (!dateColumn) return records;
 
-    // Parse dates only once
-    const min = minDate ? new Date(minDate) : null;
-    const max = maxDate ? new Date(maxDate) : null;
+ // Parse dates only once
+ const min = minDate ? new Date(minDate) : null;
+ const max = maxDate ? new Date(maxDate) : null;
 
-    // Validate dates
-    if ((minDate && isNaN(min.getTime())) || (maxDate && isNaN(max.getTime()))) {
-      console.error('Invalid date parameters');
-      return [];
-    }
+ // Validate dates
+ if ((minDate && isNaN(min.getTime())) || (maxDate && isNaN(max.getTime()))) {
+  console.error('Invalid date parameters');
+  return [];
+ }
 
-    return records.filter(record => {
-      if (!record[dateColumn]) return false;
-      
-      try {
-        const recordDate = new Date(record[dateColumn]);
-        if (isNaN(recordDate.getTime())) return false;
+ return records.filter(record => {
+  if (!record[dateColumn]) return false;
 
-        // Check if record is within range
-        const afterMin = !min || recordDate >= min;
-        const beforeMax = !max || recordDate <= max;
-        
-        return afterMin && beforeMax;
-      } catch {
-        return false;
-      }
-    });
+  try {
+   const recordDate = new Date(record[dateColumn]);
+   if (isNaN(recordDate.getTime())) return false;
 
+   // Check if record is within range
+   const afterMin = !min || recordDate >= min;
+   const beforeMax = !max || recordDate <= max;
+
+   return afterMin && beforeMax;
+  } catch {
+   return false;
   }
+ });
+
+}
 
 function addLongPressListener(element, callback, duration = 500) {
-    let timer;
-    
-    function startTimer() {
-        timer = setTimeout(callback, duration);
-    }
-    
-    function clearTimer() {
-        clearTimeout(timer);
-    }
-    
-    // Mouse events
-    element.addEventListener('mousedown', startTimer);
-    element.addEventListener('mouseup', clearTimer);
-    element.addEventListener('mouseleave', clearTimer);
-    
-    // Touch events
-    element.addEventListener('touchstart', startTimer);
-    element.addEventListener('touchend', clearTimer);
-    element.addEventListener('touchcancel', clearTimer);
-    
-    // Prevent context menu
-    element.addEventListener('contextmenu', (e) => e.preventDefault());
+ let timer;
+
+ function startTimer() {
+  timer = setTimeout(callback, duration);
+ }
+
+ function clearTimer() {
+  clearTimeout(timer);
+ }
+
+ // Mouse events
+ element.addEventListener('mousedown', startTimer);
+ element.addEventListener('mouseup', clearTimer);
+ element.addEventListener('mouseleave', clearTimer);
+
+ // Touch events
+ element.addEventListener('touchstart', startTimer);
+ element.addEventListener('touchend', clearTimer);
+ element.addEventListener('touchcancel', clearTimer);
+
+ // Prevent context menu
+ element.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
 function createAdContainer() {
-  const adContainer = document.createElement('div');
-  
-  // Create the ins element
-  const insElement = document.createElement('ins');
-  insElement.className = 'adsbygoogle';
-  insElement.style.display = 'inline-block';
-  insElement.style.width = '320px';
-  insElement.style.height = '50px';
-  insElement.dataset.adClient = 'ca-pub-5594579046538353';
-  insElement.dataset.adSlot = '1287000278';
-  
-  adContainer.appendChild(insElement);
-  
-  // Create and append the script if needed
-  if (!window.adsbygoogle) {
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
-    adContainer.appendChild(script);
-  }
-  
-  return adContainer;
+ const adContainer = document.createElement('div');
+
+ // Create the ins element
+ const insElement = document.createElement('ins');
+ insElement.className = 'adsbygoogle';
+ insElement.style.display = 'inline-block';
+ insElement.style.width = '320px';
+ insElement.style.height = '50px';
+ insElement.dataset.adClient = 'ca-pub-5594579046538353';
+ insElement.dataset.adSlot = '1287000278';
+
+ adContainer.appendChild(insElement);
+
+ // Create and append the script if needed
+ if (!window.adsbygoogle) {
+  const script = document.createElement('script');
+  script.async = true;
+  script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+  adContainer.appendChild(script);
+ }
+
+ return adContainer;
 }
 const currentYearElement = document.getElementById('currentYear');
 if (currentYearElement) {
-    currentYearElement.textContent = new Date().getFullYear();
+ currentYearElement.textContent = new Date().getFullYear();
 }
 
-function playAud(audioUrl,hiddenAudioPlayer="hiddenIframeToPlayDriveAud") {
-    try {
-        // Extract file ID from various Google Drive URL formats
-        const fileId = extractGoogleDriveFileId(audioUrl);
-        
-        if (!fileId) {
-            // Fallback for non-Google Drive URLs
-            const audio = new Audio(audioUrl);
-            return audio.play().then(() => audio);
-        }
-        
-        // Create or reuse hidden iframe
-        let iframe = document.getElementById(hiddenAudioPlayer);
-        if (!iframe) {
-            iframe = createHiddenIframe();
-        }
-        
-        // Use Google Drive's embed preview with autoplay
-        const embedUrl = `https://drive.google.com/file/d/${fileId}/preview?autoplay=1`;
-        iframe.src = embedUrl;
-        
-        console.log('Playing audio via hidden iframe:', embedUrl);
-        return Promise.resolve(iframe);
-        
-    } catch (error) {
-        console.error('Error playing audio:', error);
-        return Promise.reject(error);
-    }
+function playAud(audioUrl, hiddenAudioPlayer = "hiddenIframeToPlayDriveAud") {
+ try {
+  // Extract file ID from various Google Drive URL formats
+  const fileId = extractGoogleDriveFileId(audioUrl);
+
+  if (!fileId) {
+   // Fallback for non-Google Drive URLs
+   const audio = new Audio(audioUrl);
+   return audio.play().then(() => audio);
+  }
+
+  // Create or reuse hidden iframe
+  let iframe = document.getElementById(hiddenAudioPlayer);
+  if (!iframe) {
+   iframe = createHiddenIframe();
+  }
+
+  // Use Google Drive's embed preview with autoplay
+  const embedUrl = `https://drive.google.com/file/d/${fileId}/preview?autoplay=1`;
+  iframe.src = embedUrl;
+
+  console.log('Playing audio via hidden iframe:', embedUrl);
+  return Promise.resolve(iframe);
+
+ } catch (error) {
+  console.error('Error playing audio:', error);
+  return Promise.reject(error);
+ }
 }
 
 function extractGoogleDriveFileId(url) {
-    // Multiple patterns to extract file ID from different Google Drive URL formats
-    const patterns = [
-        /\/file\/d\/([^\/]+)/,           // Standard file URL
-        /\/d\/([^\/]+)/,                 // Shortened format
-        /id=([^&]+)/,                    // ID parameter format
-        /open\?id=([^&]+)/,              // Open format
-        /uc\?export=download&id=([^&]+)/ // Direct download format
-    ];
-    
-    for (const pattern of patterns) {
-        const match = url.match(pattern);
-        if (match && match[1]) {
-            return match[1];
-        }
-    }
-    return null;
+ // Multiple patterns to extract file ID from different Google Drive URL formats
+ const patterns = [
+  /\/file\/d\/([^\/]+)/,           // Standard file URL
+  /\/d\/([^\/]+)/,                 // Shortened format
+  /id=([^&]+)/,                    // ID parameter format
+  /open\?id=([^&]+)/,              // Open format
+  /uc\?export=download&id=([^&]+)/ // Direct download format
+ ];
+
+ for (const pattern of patterns) {
+  const match = url.match(pattern);
+  if (match && match[1]) {
+   return match[1];
+  }
+ }
+ return null;
 }
 
 function createHiddenIframe(hiddenAudioPlayer) {
-    const iframe = document.createElement('iframe');
-    iframe.id = hiddenAudioPlayer;
-    iframe.style.cssText = `
-        position: fixed;
-        top: -1000px;
-        left: -1000px;
-        width: 1px;
-        height: 1px;
-        border: none;
-        opacity: 0;
-        pointer-events: none;
-        visibility: hidden;
-    `;
-    document.body.appendChild(iframe);
-    return iframe;
+ const iframe = document.createElement('iframe');
+ iframe.id = hiddenAudioPlayer;
+ iframe.style.cssText = `
+  position: fixed;
+  top: -1000px;
+  left: -1000px;
+  width: 1px;
+  height: 1px;
+  border: none;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+ `;
+ document.body.appendChild(iframe);
+ return iframe;
 }
-
