@@ -3,211 +3,35 @@ const monthShortNms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', '
 
 // Global state
 let modalStack = [];
-let backButtonPressedOnce = false;
-let toastTimeout = null;
-
-document.addEventListener('DOMContentLoaded', function () {
-    initializeBackButtonHandler();
-    attachModalListeners();
-    
-    // Additional PWA back button handling
-    window.addEventListener('beforeunload', function() {
-        // Clean up any pending states
-        if (modalStack.length > 0) {
-            history.replaceState({ modalOpen: false, modalStack: [] }, '');
-        }
-    });
-});
-
-function initializeBackButtonHandler() {
-    // Handle browser back button
-    window.addEventListener('popstate', function (event) {
-        handleBackButton();
-    });
-
-    // Add initial state to history
-    if (history.state === null) {
-        history.replaceState({ 
-            modalOpen: false,
-            modalStack: []
-        }, '');
-    }
-    
-    // Initialize modalStack from history state if available
-    if (history.state && history.state.modalStack) {
-        modalStack = history.state.modalStack;
-    }
-}
 
 function attachModalListeners() {
-    // Listen for Bootstrap modal show events
-    document.addEventListener('show.bs.modal', function (event) {
-        const modalId = event.target.id;
-        if (!modalStack.includes(modalId)) {
-            modalStack.push(modalId);
-            // Push state to history when modal opens
-            history.pushState({ 
-                modalOpen: true, 
-                modalId: modalId,
-                modalStack: [...modalStack]
-            }, '');
-        }
-    });
+ // Listen for Bootstrap modal show events
+ document.addEventListener('show.bs.modal', function (event) {
+  const modalId = event.target.id;
+  if (!modalStack.includes(modalId)) {
+   modalStack.push(modalId);
+   // Push state to history when modal opens
+   history.pushState({
+    modalOpen: true,
+    modalId: modalId,
+    modalStack: [...modalStack]
+   }, '');
+  }
+ });
 
-    // Listen for Bootstrap modal hide events
-    document.addEventListener('hide.bs.modal', function (event) {
-        const modalId = event.target.id;
-        const index = modalStack.indexOf(modalId);
-        if (index !== -1) {
-            modalStack.splice(index, 1);
-        }
-        // Update history state when modal closes
-        history.replaceState({ 
-            modalOpen: modalStack.length > 0,
-            modalStack: [...modalStack]
-        }, '');
-    });
-}
-
-function handleBackButton() {
-    // Check if any Bootstrap modal is open
-    const openBootstrapModals = document.querySelectorAll('.modal.show');
-    const hasOpenBootstrapModal = openBootstrapModals.length > 0;
-    
-    // Check if any custom dialog is open
-    let openCustomDialogId = null;
-    const customDialogs = document.querySelectorAll('[id*="dialog"], [id*="Dialog"], [class*="dialog"], [class*="Dialog"]');
-    customDialogs.forEach(dialog => {
-        if (!dialog.classList.contains('d-none') && dialog.style.display !== 'none' && dialog.offsetParent !== null) {
-            openCustomDialogId = dialog.id;
-        }
-    });
-
-    // Handle Bootstrap modals first
-    if (hasOpenBootstrapModal) {
-        const lastModal = openBootstrapModals[openBootstrapModals.length - 1];
-        const modalInstance = bootstrap.Modal.getInstance(lastModal);
-        if (modalInstance) {
-            modalInstance.hide();
-            // Remove from stack
-            const modalId = lastModal.id;
-            const index = modalStack.indexOf(modalId);
-            if (index !== -1) {
-                modalStack.splice(index, 1);
-            }
-        }
-        return;
-    }
-    
-    // Handle custom dialogs
-    if (openCustomDialogId) {
-        hideCustomDialog(openCustomDialogId);
-        return;
-    }
-
-    // Check modal stack as fallback
-    if (modalStack.length > 0) {
-        const lastModalId = modalStack[modalStack.length - 1];
-        
-        // Try to close as Bootstrap modal first
-        const modalElement = document.getElementById(lastModalId);
-        if (modalElement && modalElement.classList.contains('modal')) {
-            const modal = bootstrap.Modal.getInstance(modalElement);
-            if (modal) {
-                modal.hide();
-            }
-        }
-        
-        // Remove from stack
-        modalStack.pop();
-        
-        // Update history
-        if (modalStack.length > 0) {
-            history.pushState({ 
-                modalOpen: true, 
-                modalId: modalStack[modalStack.length - 1],
-                modalStack: [...modalStack]
-            }, '');
-        } else {
-            history.pushState({ 
-                modalOpen: false,
-                modalStack: []
-            }, '', '');
-        }
-        return;
-    }
-
-    // No modals open - show toast message for exit confirmation
-    if (!backButtonPressedOnce) {
-        showToast('Press back button again to exit');
-        backButtonPressedOnce = true;
-
-        // Reset after 2 seconds
-        setTimeout(() => {
-            backButtonPressedOnce = false;
-        }, 2000);
-
-        // Push state to prevent browser exit
-        history.pushState({ 
-            modalOpen: false,
-            modalStack: []
-        }, '', '');
-    } else {
-        // Allow the browser to exit (do nothing)
-        backButtonPressedOnce = false;
-        // Let the browser handle the exit naturally
-    }
-}
-
-function showCustomDialog(custoDlgID) {
-    document.getElementById(custoDlgID).classList.remove('d-none');
-    if (!modalStack.includes(custoDlgID)) {
-        modalStack.push(custoDlgID);
-    }
-    history.pushState({ 
-        modalOpen: true, 
-        modalId: custoDlgID,
-        modalStack: [...modalStack]
-    }, '');
-}
-
-function hideCustomDialog(custoDlgID) {
-    document.getElementById(custoDlgID).classList.add('d-none');
-    const index = modalStack.indexOf(custoDlgID);
-    if (index !== -1) {
-        modalStack.splice(index, 1);
-    }
-    history.replaceState({ 
-        modalOpen: modalStack.length > 0,
-        modalStack: [...modalStack]
-    }, '');
-}
-
-function getOpenModals() {
-    const openModals = {
-        bootstrap: [],
-        custom: []
-    };
-    
-    // Detect Bootstrap modals
-    const bootstrapModals = document.querySelectorAll('.modal.show');
-    bootstrapModals.forEach(modal => {
-        openModals.bootstrap.push(modal.id);
-    });
-    
-    // Detect custom dialogs
-    const customDialogs = document.querySelectorAll('[id*="dialog"], [id*="Dialog"]');
-    customDialogs.forEach(dialog => {
-        if (!dialog.classList.contains('d-none') && dialog.style.display !== 'none' && dialog.offsetParent !== null) {
-            openModals.custom.push(dialog.id);
-        }
-    });
-    
-    return openModals;
-}
-
-function isCustomDialogOpen(custoDlgID) {
- return !document.getElementById(custoDlgID).classList.contains('d-none');
+ // Listen for Bootstrap modal hide events
+ document.addEventListener('hide.bs.modal', function (event) {
+  const modalId = event.target.id;
+  const index = modalStack.indexOf(modalId);
+  if (index !== -1) {
+   modalStack.splice(index, 1);
+  }
+  // Update history state when modal closes
+  history.replaceState({
+   modalOpen: modalStack.length > 0,
+   modalStack: [...modalStack]
+  }, '');
+ });
 }
 
 
@@ -1458,3 +1282,288 @@ function createHiddenIframe(hiddenAudioPlayer) {
  document.body.appendChild(iframe);
  return iframe;
 }
+
+// ================= UNIVERSAL BACK BUTTON HANDLER =================
+// Place this entire section at the END of my1e3.min.js
+
+let backButtonPressedOnce = false;
+let backButtonHandlerInitialized = false;
+
+function initializeUniversalBackButtonHandler() {
+ if (backButtonHandlerInitialized) return;
+
+ console.log('Initializing Universal Back Button Handler...');
+
+ // Method 1: History API approach
+ initializeHistoryState();
+
+ // Method 2: Direct back button interception
+ window.addEventListener('popstate', function (event) {
+  console.log('Back button detected via popstate');
+  handleUniversalBackButton();
+ });
+
+ // Method 3: Fallback for PWA direct launch
+ window.addEventListener('pagehide', function (event) {
+  if (areAnyModalsOpen()) {
+   console.log('Page hide with modals open - intercepting');
+   event.preventDefault();
+   handleUniversalBackButton();
+
+   // Keep the page alive
+   setTimeout(() => {
+    window.history.pushState({ universalBackButton: true }, '');
+   }, 100);
+  }
+ });
+
+ // Method 4: Beforeunload as final safety net
+ window.addEventListener('beforeunload', function (event) {
+  if (areAnyModalsOpen() && !backButtonPressedOnce) {
+   event.preventDefault();
+   event.returnValue = 'You have open modals. Press back again to close them.';
+   handleUniversalBackButton();
+   return event.returnValue;
+  }
+ });
+
+ backButtonHandlerInitialized = true;
+}
+
+function initializeHistoryState() {
+ // Ensure we have a managed state
+ if (!history.state || !history.state.universalBackButton) {
+  history.replaceState({ universalBackButton: true, modalCount: 0 }, '');
+ }
+
+ // Add an entry to prevent immediate exit
+ history.pushState({ universalBackButton: true, preventExit: true }, '');
+}
+
+function handleUniversalBackButton() {
+ console.log('Universal back button handler triggered');
+
+ const modalsClosed = closeAllModalsUniversally();
+
+ if (modalsClosed > 0) {
+  showToast(`Closed ${modalsClosed} modal(s)`);
+  return true; // Modals were closed
+ } else {
+  // No modals open - handle exit confirmation
+  return handleUniversalExitConfirmation();
+ }
+}
+
+function closeAllModalsUniversally() {
+ console.log('Closing ALL modals universally...');
+ let closedCount = 0;
+
+ // Get ALL elements that could be modals
+ const allModals = document.querySelectorAll('*');
+ const modalElements = [];
+
+ // Phase 1: Collect all potential modal elements
+ allModals.forEach(element => {
+  if (isModalElement(element)) {
+   modalElements.push(element);
+  }
+ });
+
+ console.log(`Found ${modalElements.length} potential modal elements`);
+
+ // Phase 2: Close them in reverse order (most recent first)
+ modalElements.reverse().forEach(modal => {
+  if (closeModalElement(modal)) {
+   closedCount++;
+  }
+ });
+
+ // Phase 3: Cleanup any modal-related styles and backdrops
+ cleanupModalArtifacts();
+
+ console.log(`Successfully closed ${closedCount} modals`);
+ return closedCount;
+}
+
+function isModalElement(element) {
+ // Check if element is visible and modal-like
+ const style = window.getComputedStyle(element);
+ const isVisible = style.display !== 'none' &&
+  element.offsetParent !== null &&
+  style.visibility !== 'hidden';
+
+ if (!isVisible) return false;
+
+ // Check for modal characteristics
+ const hasModalClass = element.classList.contains('modal') ||
+  element.classList.contains('show') ||
+  element.getAttribute('role') === 'dialog' ||
+  element.style.zIndex > 1000 ||
+  element.style.position === 'fixed' ||
+  element.style.position === 'absolute';
+
+ const hasModalStyle = style.position === 'fixed' ||
+  style.position === 'absolute' ||
+  parseInt(style.zIndex) > 1000 ||
+  element.style.display === 'block' ||
+  element.style.display === 'flex';
+
+ const hasModalContent = element.textContent.includes('modal') ||
+  element.innerHTML.includes('modal') ||
+  element.id.includes('modal') ||
+  element.id.includes('dialog') ||
+  element.id.includes('Modal') ||
+  element.id.includes('Dialog');
+
+ const isOverlay = style.backgroundColor.includes('rgba') ||
+  style.backgroundColor === 'rgba(0, 0, 0, 0.5)' ||
+  style.background === 'rgba(0, 0, 0, 0.5)' ||
+  element.style.backgroundColor === 'rgba(0, 0, 0, 0.5)';
+
+ return hasModalClass || hasModalStyle || hasModalContent || isOverlay;
+}
+
+function closeModalElement(modal) {
+ try {
+  console.log('Attempting to close modal:', modal.id || 'anonymous', modal);
+
+  // Method 1: Try Bootstrap modal API
+  if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+   const bsModal = bootstrap.Modal.getInstance(modal);
+   if (bsModal) {
+    bsModal.hide();
+    console.log('Closed via Bootstrap API');
+    return true;
+   }
+  }
+
+  // Method 2: Try to find and close via Bootstrap if modal has show class
+  if (modal.classList.contains('show') && modal.classList.contains('modal')) {
+   modal.style.display = 'none';
+   modal.classList.remove('show');
+   console.log('Closed via class removal');
+   return true;
+  }
+
+  // Method 3: Direct style manipulation for fixed/absolute positioned overlays
+  if (modal.style.position === 'fixed' || modal.style.position === 'absolute') {
+   const style = window.getComputedStyle(modal);
+   if (style.position === 'fixed' || style.position === 'absolute') {
+    modal.style.display = 'none';
+    console.log('Closed via style manipulation');
+    return true;
+   }
+  }
+
+  // Method 4: High z-index elements (likely overlays/modals)
+  if (parseInt(modal.style.zIndex) > 1000 || parseInt(window.getComputedStyle(modal).zIndex) > 1000) {
+   modal.style.display = 'none';
+   console.log('Closed via z-index detection');
+   return true;
+  }
+
+  // Method 5: Elements with modal-like content or structure
+  if (modal.innerHTML.includes('modal-content') ||
+   modal.innerHTML.includes('modal-dialog') ||
+   modal.querySelector('.modal-content') ||
+   modal.querySelector('.modal-dialog')) {
+   modal.style.display = 'none';
+   console.log('Closed via content detection');
+   return true;
+  }
+
+  // Method 6: Any element that's blocking the view (large fixed/absolute elements)
+  const rect = modal.getBoundingClientRect();
+  const style = window.getComputedStyle(modal);
+  if ((style.position === 'fixed' || style.position === 'absolute') &&
+   rect.width > 100 && rect.height > 100) {
+   modal.style.display = 'none';
+   console.log('Closed via size/position detection');
+   return true;
+  }
+
+ } catch (error) {
+  console.error('Error closing modal:', error);
+  // Last resort: just hide it
+  modal.style.display = 'none';
+  return true;
+ }
+
+ return false;
+}
+
+function cleanupModalArtifacts() {
+ console.log('Cleaning up modal artifacts...');
+
+ // Remove modal backdrops
+ const backdrops = document.querySelectorAll('.modal-backdrop, .modal-backdrop.fade.show');
+ backdrops.forEach(backdrop => {
+  backdrop.remove();
+  console.log('Removed backdrop');
+ });
+
+ // Remove body modal classes
+ document.body.classList.remove('modal-open');
+
+ // Reset body styles
+ document.body.style.overflow = '';
+ document.body.style.paddingRight = '';
+
+ // Remove any inline styles that might be blocking scroll
+ document.body.style.removeProperty('overflow');
+ document.body.style.removeProperty('padding-right');
+
+ // Remove any custom overlay styles
+ const overlays = document.querySelectorAll('body > div[style*="position: fixed"]');
+ overlays.forEach(overlay => {
+  if (overlay.style.backgroundColor === 'rgba(0, 0, 0, 0.5)' ||
+   overlay.style.background === 'rgba(0, 0, 0, 0.5)') {
+   overlay.remove();
+   console.log('Removed overlay');
+  }
+ });
+}
+
+function areAnyModalsOpen() {
+ const allElements = document.querySelectorAll('*');
+ for (let element of allElements) {
+  if (isModalElement(element)) {
+   console.log('Found open modal:', element.id || 'anonymous');
+   return true;
+  }
+ }
+ return false;
+}
+
+function handleUniversalExitConfirmation() {
+ if (!backButtonPressedOnce) {
+  showToast('Press back again to exit');
+  backButtonPressedOnce = true;
+
+  // Reset after 3 seconds
+  setTimeout(() => {
+   backButtonPressedOnce = false;
+  }, 3000);
+
+  // Keep the page alive
+  history.pushState({ universalBackButton: true, preventExit: true }, '');
+  return true; // Handled the back button
+ } else {
+  // Second press - allow exit
+  backButtonPressedOnce = false;
+  return false; // Don't handle, let browser exit
+ }
+}
+
+// Replace the existing DOMContentLoaded handler
+document.addEventListener('DOMContentLoaded', function () {
+ console.log('Initializing Universal Back Button Handler');
+ initializeUniversalBackButtonHandler();
+
+ // Also initialize when dynamic content loads
+ setTimeout(initializeUniversalBackButtonHandler, 1000);
+});
+
+// Export for global access
+window.handleUniversalBackButton = handleUniversalBackButton;
+window.closeAllModalsUniversally = closeAllModalsUniversally;
