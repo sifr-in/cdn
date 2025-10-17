@@ -1,5 +1,61 @@
+
+
 const monthFullNms = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const monthShortNms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// Add these with your other global variables at the top
+let wakeLock = null;
+let isWakeLockSupported = 'wakeLock' in navigator;
+// Screen Wake Lock functions - Common utility for all scripts
+async function requestWakeLock() {
+    if (!isWakeLockSupported) {
+        console.log('Screen Wake Lock API not supported');
+        return;
+    }
+
+    try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        console.log('Screen Wake Lock acquired');
+        
+        wakeLock.addEventListener('release', () => {
+            console.log('Screen Wake Lock released');
+        });
+    } catch (err) {
+        console.error(`Error acquiring Wake Lock: ${err.message}`);
+    }
+}
+
+async function releaseWakeLock() {
+    if (wakeLock) {
+        try {
+            await wakeLock.release();
+            wakeLock = null;
+            console.log('Screen Wake Lock released');
+        } catch (err) {
+            console.error(`Error releasing Wake Lock: ${err.message}`);
+        }
+    }
+}
+
+// Handle visibility change to reacquire wake lock when page becomes visible again
+function setupWakeLockVisibilityHandler() {
+    if (!isWakeLockSupported) return;
+    
+    document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'hidden') {
+        // Don't release immediately, wait a bit in case user comes back
+        setTimeout(() => {
+            if (document.visibilityState === 'hidden' && typeof releaseWakeLock === 'function') {
+                console.log('Releasing wake lock after 30 seconds in background');
+                releaseWakeLock();
+            }
+        }, 30000); // Release after 30 seconds of being hidden
+    } else if (document.visibilityState === 'visible') {
+        await requestWakeLock();
+        console.log('Page visible - wake lock can be reacquired if needed');
+    }
+    });
+}
 
 // Global state
 let modalStack = [];
@@ -1319,6 +1375,9 @@ function initializeUniversalBackButtonHandler() {
 
  // Method 4: Beforeunload as final safety net
  window.addEventListener('beforeunload', function (event) {
+  if (typeof releaseWakeLock === 'function') {
+        releaseWakeLock();
+    }
   if (areAnyModalsOpen() && !backButtonPressedOnce) {
    event.preventDefault();
    event.returnValue = 'You have open modals. Press back again to close them.';
@@ -1559,6 +1618,7 @@ function handleUniversalExitConfirmation() {
 document.addEventListener('DOMContentLoaded', function () {
  console.log('Initializing Universal Back Button Handler');
  initializeUniversalBackButtonHandler();
+ setupWakeLockVisibilityHandler();
 
  // Also initialize when dynamic content loads
  setTimeout(initializeUniversalBackButtonHandler, 1000);
