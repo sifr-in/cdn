@@ -6,110 +6,204 @@ let modalStack = [];
 let backButtonPressedOnce = false;
 let toastTimeout = null;
 
-// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function () {
- initializeBackButtonHandler();
- attachModalListeners();
+    initializeBackButtonHandler();
+    attachModalListeners();
+    
+    // Additional PWA back button handling
+    window.addEventListener('beforeunload', function() {
+        // Clean up any pending states
+        if (modalStack.length > 0) {
+            history.replaceState({ modalOpen: false, modalStack: [] }, '');
+        }
+    });
 });
 
-// Initialize back button handler
 function initializeBackButtonHandler() {
- // Handle browser back button
- window.addEventListener('popstate', function (event) {
-  handleBackButton();
- });
+    // Handle browser back button
+    window.addEventListener('popstate', function (event) {
+        handleBackButton();
+    });
 
- // Add initial state to history
- if (history.state === null) {
-  history.replaceState({ modalOpen: false }, '');
- }
+    // Add initial state to history
+    if (history.state === null) {
+        history.replaceState({ 
+            modalOpen: false,
+            modalStack: []
+        }, '');
+    }
+    
+    // Initialize modalStack from history state if available
+    if (history.state && history.state.modalStack) {
+        modalStack = history.state.modalStack;
+    }
 }
 
-// Attach listeners to all modals
 function attachModalListeners() {
- // Listen for Bootstrap modal show events
- document.addEventListener('show.bs.modal', function (event) {
-  const modalId = event.target.id;
-  if (!modalStack.includes(modalId)) {
-   modalStack.push(modalId);
-   // Push state to history when modal opens
-   history.pushState({ modalOpen: true, modalId: modalId }, '');
-  }
- });
+    // Listen for Bootstrap modal show events
+    document.addEventListener('show.bs.modal', function (event) {
+        const modalId = event.target.id;
+        if (!modalStack.includes(modalId)) {
+            modalStack.push(modalId);
+            // Push state to history when modal opens
+            history.pushState({ 
+                modalOpen: true, 
+                modalId: modalId,
+                modalStack: [...modalStack]
+            }, '');
+        }
+    });
 
- // Listen for Bootstrap modal hide events
- document.addEventListener('hide.bs.modal', function (event) {
-  const modalId = event.target.id;
-  const index = modalStack.indexOf(modalId);
-  if (index !== -1) {
-   modalStack.splice(index, 1);
-  }
- });
+    // Listen for Bootstrap modal hide events
+    document.addEventListener('hide.bs.modal', function (event) {
+        const modalId = event.target.id;
+        const index = modalStack.indexOf(modalId);
+        if (index !== -1) {
+            modalStack.splice(index, 1);
+        }
+        // Update history state when modal closes
+        history.replaceState({ 
+            modalOpen: modalStack.length > 0,
+            modalStack: [...modalStack]
+        }, '');
+    });
 }
 
-// Main back button handler
 function handleBackButton() {
- // Check if any modal is open
- if (modalStack.length > 0) {
-  // Get the last opened modal
-  const lastModalId = modalStack[modalStack.length - 1];
+    // Check if any Bootstrap modal is open
+    const openBootstrapModals = document.querySelectorAll('.modal.show');
+    const hasOpenBootstrapModal = openBootstrapModals.length > 0;
+    
+    // Check if any custom dialog is open
+    let openCustomDialogId = null;
+    const customDialogs = document.querySelectorAll('[id*="dialog"], [id*="Dialog"], [class*="dialog"], [class*="Dialog"]');
+    customDialogs.forEach(dialog => {
+        if (!dialog.classList.contains('d-none') && dialog.style.display !== 'none' && dialog.offsetParent !== null) {
+            openCustomDialogId = dialog.id;
+        }
+    });
 
-  // Close the modal
-  if (document.getElementById(lastModalId)) {
-   const modal = bootstrap.Modal.getInstance(document.getElementById(lastModalId));
-   if (modal) {
-    modal.hide();
-   }
-  }
+    // Handle Bootstrap modals first
+    if (hasOpenBootstrapModal) {
+        const lastModal = openBootstrapModals[openBootstrapModals.length - 1];
+        const modalInstance = bootstrap.Modal.getInstance(lastModal);
+        if (modalInstance) {
+            modalInstance.hide();
+            // Remove from stack
+            const modalId = lastModal.id;
+            const index = modalStack.indexOf(modalId);
+            if (index !== -1) {
+                modalStack.splice(index, 1);
+            }
+        }
+        return;
+    }
+    
+    // Handle custom dialogs
+    if (openCustomDialogId) {
+        hideCustomDialog(openCustomDialogId);
+        return;
+    }
 
-  // Remove from stack
-  modalStack.pop();
+    // Check modal stack as fallback
+    if (modalStack.length > 0) {
+        const lastModalId = modalStack[modalStack.length - 1];
+        
+        // Try to close as Bootstrap modal first
+        const modalElement = document.getElementById(lastModalId);
+        if (modalElement && modalElement.classList.contains('modal')) {
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            }
+        }
+        
+        // Remove from stack
+        modalStack.pop();
+        
+        // Update history
+        if (modalStack.length > 0) {
+            history.pushState({ 
+                modalOpen: true, 
+                modalId: modalStack[modalStack.length - 1],
+                modalStack: [...modalStack]
+            }, '');
+        } else {
+            history.pushState({ 
+                modalOpen: false,
+                modalStack: []
+            }, '', '');
+        }
+        return;
+    }
 
-  // Push new state to history
-  if (modalStack.length > 0) {
-   history.pushState({ modalOpen: true, modalId: modalStack[modalStack.length - 1] }, '');
-  } else {
-   history.pushState({ modalOpen: false }, '', '');
-  }
- }
- // Check if custom dialog is open
- else if (isCustomDialogOpen(custoDlgID)) {
-  hideCustomDialog(custoDlgID);
- }
- // No modals open - show toast message
- else {
-  if (!backButtonPressedOnce) {
-   showToast('Press back button again to exit');
-   backButtonPressedOnce = true;
+    // No modals open - show toast message for exit confirmation
+    if (!backButtonPressedOnce) {
+        showToast('Press back button again to exit');
+        backButtonPressedOnce = true;
 
-   // Reset after 2 seconds
-   setTimeout(() => {
-    backButtonPressedOnce = false;
-   }, 2000);
+        // Reset after 2 seconds
+        setTimeout(() => {
+            backButtonPressedOnce = false;
+        }, 2000);
 
-   // Push state to prevent browser exit
-   history.pushState({ modalOpen: false }, '', '');
-  } else {
-   // Allow the browser to exit (do nothing)
-   backButtonPressedOnce = false;
-  }
- }
+        // Push state to prevent browser exit
+        history.pushState({ 
+            modalOpen: false,
+            modalStack: []
+        }, '', '');
+    } else {
+        // Allow the browser to exit (do nothing)
+        backButtonPressedOnce = false;
+        // Let the browser handle the exit naturally
+    }
 }
 
-// Custom dialog functions
 function showCustomDialog(custoDlgID) {
- document.getElementById(custoDlgID).classList.remove('d-none');
- modalStack.push(custoDlgID);
- history.pushState({ modalOpen: true, modalId: custoDlgID }, '');
+    document.getElementById(custoDlgID).classList.remove('d-none');
+    if (!modalStack.includes(custoDlgID)) {
+        modalStack.push(custoDlgID);
+    }
+    history.pushState({ 
+        modalOpen: true, 
+        modalId: custoDlgID,
+        modalStack: [...modalStack]
+    }, '');
 }
 
 function hideCustomDialog(custoDlgID) {
- document.getElementById(custoDlgID).classList.add('d-none');
- const index = modalStack.indexOf(custoDlgID);
- if (index !== -1) {
-  modalStack.splice(index, 1);
- }
- history.pushState({ modalOpen: modalStack.length > 0 }, '', '');
+    document.getElementById(custoDlgID).classList.add('d-none');
+    const index = modalStack.indexOf(custoDlgID);
+    if (index !== -1) {
+        modalStack.splice(index, 1);
+    }
+    history.replaceState({ 
+        modalOpen: modalStack.length > 0,
+        modalStack: [...modalStack]
+    }, '');
+}
+
+function getOpenModals() {
+    const openModals = {
+        bootstrap: [],
+        custom: []
+    };
+    
+    // Detect Bootstrap modals
+    const bootstrapModals = document.querySelectorAll('.modal.show');
+    bootstrapModals.forEach(modal => {
+        openModals.bootstrap.push(modal.id);
+    });
+    
+    // Detect custom dialogs
+    const customDialogs = document.querySelectorAll('[id*="dialog"], [id*="Dialog"]');
+    customDialogs.forEach(dialog => {
+        if (!dialog.classList.contains('d-none') && dialog.style.display !== 'none' && dialog.offsetParent !== null) {
+            openModals.custom.push(dialog.id);
+        }
+    });
+    
+    return openModals;
 }
 
 function isCustomDialogOpen(custoDlgID) {
