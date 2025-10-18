@@ -1,5 +1,3 @@
-
-
 const monthFullNms = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const monthShortNms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -8,53 +6,53 @@ let wakeLock = null;
 let isWakeLockSupported = 'wakeLock' in navigator;
 // Screen Wake Lock functions - Common utility for all scripts
 async function requestWakeLock() {
-    if (!isWakeLockSupported) {
-        console.log('Screen Wake Lock API not supported');
-        return;
-    }
+ if (!isWakeLockSupported) {
+  console.log('Screen Wake Lock API not supported');
+  return;
+ }
 
-    try {
-        wakeLock = await navigator.wakeLock.request('screen');
-        console.log('Screen Wake Lock acquired');
-        
-        wakeLock.addEventListener('release', () => {
-            console.log('Screen Wake Lock released');
-        });
-    } catch (err) {
-        console.error(`Error acquiring Wake Lock: ${err.message}`);
-    }
+ try {
+  wakeLock = await navigator.wakeLock.request('screen');
+  console.log('Screen Wake Lock acquired');
+
+  wakeLock.addEventListener('release', () => {
+   console.log('Screen Wake Lock released');
+  });
+ } catch (err) {
+  console.error(`Error acquiring Wake Lock: ${err.message}`);
+ }
 }
 
 async function releaseWakeLock() {
-    if (wakeLock) {
-        try {
-            await wakeLock.release();
-            wakeLock = null;
-            console.log('Screen Wake Lock released');
-        } catch (err) {
-            console.error(`Error releasing Wake Lock: ${err.message}`);
-        }
-    }
+ if (wakeLock) {
+  try {
+   await wakeLock.release();
+   wakeLock = null;
+   console.log('Screen Wake Lock released');
+  } catch (err) {
+   console.error(`Error releasing Wake Lock: ${err.message}`);
+  }
+ }
 }
 
 // Handle visibility change to reacquire wake lock when page becomes visible again
 function setupWakeLockVisibilityHandler() {
-    if (!isWakeLockSupported) return;
-    
-    document.addEventListener('visibilitychange', async () => {
-        if (document.visibilityState === 'hidden') {
-        // Don't release immediately, wait a bit in case user comes back
-        setTimeout(() => {
-            if (document.visibilityState === 'hidden' && typeof releaseWakeLock === 'function') {
-                console.log('Releasing wake lock after 30 seconds in background');
-                releaseWakeLock();
-            }
-        }, 30000); // Release after 30 seconds of being hidden
-    } else if (document.visibilityState === 'visible') {
-        await requestWakeLock();
-        console.log('Page visible - wake lock can be reacquired if needed');
+ if (!isWakeLockSupported) return;
+
+ document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'hidden') {
+   // Don't release immediately, wait a bit in case user comes back
+   setTimeout(() => {
+    if (document.visibilityState === 'hidden' && typeof releaseWakeLock === 'function') {
+     console.log('Releasing wake lock after 30 seconds in background');
+     releaseWakeLock();
     }
-    });
+   }, 30000); // Release after 30 seconds of being hidden
+  } else if (document.visibilityState === 'visible') {
+   await requestWakeLock();
+   console.log('Page visible - wake lock can be reacquired if needed');
+  }
+ });
 }
 
 // Global state
@@ -822,10 +820,22 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
 
   let xhr = null;
   let isAborted = false;
+  let dynamicLoaderId = null;
 
   const executeRequest = () => {
    return new Promise((resolve, reject) => {
-    if (loaderId) {
+    // Create loader if loaderId is null
+    if (loaderId === null) {
+     dynamicLoaderId = 'loader-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+     const loaderHtml = `
+      <div id="${dynamicLoaderId}" class="d-flex justify-content-center align-items-center" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;">
+       <div class="spinner-border text-light" role="status">
+        <span class="visually-hidden">Loading...</span>
+       </div>
+      </div>
+     `;
+     document.body.insertAdjacentHTML('beforeend', loaderHtml);
+    } else if (loaderId) {
      document.getElementById(loaderId).style.display = "flex";
     }
 
@@ -836,10 +846,7 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
 
     xhr.onload = function () {
      if (isAborted) return;
-
-     if (loaderId) {
-      document.getElementById(loaderId).style.display = "none";
-     }
+     cleanupLoader();
 
      try {
       if (xhr.status >= 200 && xhr.status < 300) {
@@ -885,36 +892,41 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
 
     xhr.onerror = function () {
      if (isAborted) return;
-     if (loaderId) {
-      document.getElementById(loaderId).style.display = "none";
-     }
+     cleanupLoader();
      reject(new Error("Network error - request failed to complete"));
     };
 
     xhr.ontimeout = function () {
      if (isAborted) return;
-     if (loaderId) {
-      document.getElementById(loaderId).style.display = "none";
-     }
+     cleanupLoader();
      reject(new Error("Request timed out"));
     };
 
     xhr.onabort = function () {
-     if (loaderId) {
-      document.getElementById(loaderId).style.display = "none";
-     }
+     cleanupLoader();
      reject(new Error("Request was aborted"));
     };
 
     try {
      xhr.send(JSON.stringify(jsonPayload));
     } catch (e) {
-     if (loaderId) {
-      document.getElementById(loaderId).style.display = "none";
-     }
+     cleanupLoader();
      reject(new Error(`Failed to send request: ${e.message}`));
     }
    });
+  };
+
+  // Helper function to cleanup loader
+  const cleanupLoader = () => {
+   if (dynamicLoaderId) {
+    const loaderElement = document.getElementById(dynamicLoaderId);
+    if (loaderElement) {
+     loaderElement.remove();
+    }
+    dynamicLoaderId = null;
+   } else if (loaderId) {
+    document.getElementById(loaderId).style.display = "none";
+   }
   };
 
   const cancel = () => {
@@ -922,6 +934,7 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
    if (xhr) {
     xhr.abort();
    }
+   cleanupLoader();
   };
 
   const requestPromise = executeRequest();
@@ -1376,8 +1389,8 @@ function initializeUniversalBackButtonHandler() {
  // Method 4: Beforeunload as final safety net
  window.addEventListener('beforeunload', function (event) {
   if (typeof releaseWakeLock === 'function') {
-        releaseWakeLock();
-    }
+   releaseWakeLock();
+  }
   if (areAnyModalsOpen() && !backButtonPressedOnce) {
    event.preventDefault();
    event.returnValue = 'You have open modals. Press back again to close them.';
