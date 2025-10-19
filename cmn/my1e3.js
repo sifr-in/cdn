@@ -1401,6 +1401,12 @@ function initializeUniversalBackButtonHandler() {
   if (typeof releaseWakeLock === 'function') {
    releaseWakeLock();
   }
+  //used in sho.html
+  if (typeof dontShowReloadConfirmation !== 'undefined' && dontShowReloadConfirmation === 1) {
+   console.log('Reload confirmation suppressed by dontShowReloadConfirmation flag');
+   return; // Exit without showing confirmation
+  }
+  
   if (areAnyModalsOpen() && !backButtonPressedOnce) {
    event.preventDefault();
    event.returnValue = 'You have open modals. Press back again to close them.';
@@ -1650,3 +1656,4 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
+
