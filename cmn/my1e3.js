@@ -1643,6 +1643,47 @@ function handleUniversalExitConfirmation() {
  }
 }
 
+// Function to create modal dynamically with given ID
+function create_modal_dynamically(modalId = 'dynamicModal') {
+ // Remove existing modal if present
+ const existingModal = document.getElementById(modalId);
+ if (existingModal) {
+  existingModal.remove();
+ }
+
+ // Create modal element
+ const modal = document.createElement('div');
+ modal.className = 'modal fade';
+ modal.id = modalId;
+ modal.setAttribute('tabindex', '-1');
+ modal.setAttribute('aria-labelledby', `${modalId}Label`);
+ modal.setAttribute('aria-hidden', 'true');
+
+ const modalContentId = `${modalId}_modal_content`;
+
+ modal.innerHTML = `
+    <div class="modal-dialog">
+      <div class="modal-content" id="${modalContentId}">
+        <!-- Modal content will be inserted here -->
+      </div>
+    </div>
+  `;
+
+ document.body.appendChild(modal);
+
+ // Set random border color for the modal
+ const modalContent = document.getElementById(modalContentId);
+ const randomColor = getRandomColor();
+ modalContent.style.border = `3px solid ${randomColor}`;
+
+ // Initialize Bootstrap modal
+ const modalInstance = new bootstrap.Modal(modal);
+ modalInstance.show();
+
+ // Return the modal content element for external use
+ return modalContent;
+}
+
 // Replace the existing DOMContentLoaded handler
 document.addEventListener('DOMContentLoaded', function () {
  console.log('Initializing Universal Back Button Handler');
