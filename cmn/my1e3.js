@@ -1135,6 +1135,16 @@ function chkMyControlExists() {
 }
 
 function chkLoadLoginExists(shoLoginByOas2orByPas1) {
+ const existingModal = document.getElementById('loginModalBackdrop');
+
+ if (existingModal && existingModal.style.display !== 'none') {
+  console.log('Login modal already open, skipping reload');
+  return Promise.resolve({
+   __loginRequired: true,
+   ms: "Login modal already open and visible"
+  });
+ }
+
  if (shoLoginByOas2orByPas1 === 2) {
   if (typeof createLoginByOModal !== 'function') {
    return loadLoginSystem(shoLoginByOas2orByPas1, "createLoginByOModal").then(() => {
