@@ -1681,7 +1681,10 @@ function create_modal_dynamically(modalId = 'dynamicModal') {
  modalInstance.show();
 
  // Return the modal content element for external use
- return modalContent;
+ return {
+        contentElement: modalContent,
+        modalInstance: modalInstance
+    };
 }
 // Function to generate random colors
 function getRandomColor() {
@@ -1707,5 +1710,6 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
+
 
 
