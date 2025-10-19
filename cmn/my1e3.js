@@ -1683,6 +1683,16 @@ function create_modal_dynamically(modalId = 'dynamicModal') {
  // Return the modal content element for external use
  return modalContent;
 }
+// Function to generate random colors
+function getRandomColor() {
+ const colors = [
+  '#0d6efd', '#6f42c1', '#198754', '#dc3545', '#fd7e14',
+  '#ffc107', '#20c997', '#0dcaf0', '#6610f2', '#d63384',
+  '#6c757d', '#0dcaf0', '#10b981', '#8b5cf6', '#ef4444',
+  '#f59e0b', '#84cc16', '#06b6d4', '#8b5cf6', '#ec4899'
+ ];
+ return colors[Math.floor(Math.random() * colors.length)];
+}
 
 // Replace the existing DOMContentLoaded handler
 document.addEventListener('DOMContentLoaded', function () {
@@ -1697,4 +1707,5 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
+
 
