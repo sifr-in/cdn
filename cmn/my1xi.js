@@ -396,12 +396,16 @@ if (typeof document !== 'undefined') {
 
         for (const query of queries) {
             try {
+                // Set default column values if not provided
+                const column = query.col || query.column || 'b';
+                const cl = query.cl || column; // Use the same value for both if cl not provided
+                
                 const cleanTableName = this.getActualTableName(query.tb);
                 const table = db.table(cleanTableName);
                 if (!table) {
                     results.push({
                         tb: cleanTableName,
-                        cl: query.cl || query.col,
+                        cl: cl,
                         la: "1970-01-01 00:00",
                         error: `Table ${cleanTableName} not found`
                     });
@@ -410,38 +414,41 @@ if (typeof document !== 'undefined') {
 
                 // Try to use index if available for better performance
                 let maxRecord;
-                if (table.schema.indexes.some(idx => idx.key === query.col)) {
+                if (table.schema.indexes.some(idx => idx.key === column)) {
                     // If the column is indexed, we can use the index directly
-                    maxRecord = await table.orderBy(query.col).last();
+                    maxRecord = await table.orderBy(column).last();
                 } else {
                     // If not indexed, we need to scan all records
                     const allRecords = await table.toArray();
                     if (allRecords.length > 0) {
                         maxRecord = allRecords.reduce((max, record) => 
-                            record[query.col] > max[query.col] ? record : max
+                            record[column] > max[column] ? record : max
                         );
                     }
                 }
 
-                if (maxRecord && maxRecord[query.col]) {
+                if (maxRecord && maxRecord[column]) {
                     results.push({
                         tb: cleanTableName.split('_').pop(), // Return just the table key
-                        cl: query.cl || query.col,
-                        la: maxRecord[query.col]
+                        cl: cl,
+                        la: maxRecord[column]
                     });
                 } else {
                     results.push({
                         tb: cleanTableName.split('_').pop(),
-                        cl: query.cl || query.col,
+                        cl: cl,
                         la: "1970-01-01 00:00",
                         error: 'No records found or no date value'
                     });
                 }
             } catch (error) {
                 const cleanTableName = this.getActualTableName(query.tb);
+                const column = query.col || query.column || 'b';
+                const cl = query.cl || column;
+                
                 results.push({
                     tb: cleanTableName.split('_').pop(),
-                    cl: query.cl || query.col,
+                    cl: cl,
                     la: "1970-01-01 00:00",
                     error: error.message
                 });
@@ -553,6 +560,7 @@ if (typeof document !== 'undefined') {
 }
 }
 const dbDexieManager = new DexieDBManager();
+
 
 
 
