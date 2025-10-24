@@ -1639,6 +1639,7 @@ function handleUniversalExitConfirmation() {
   return false; // Don't handle, let browser exit
  }
 }
+// Enhanced function to create modal dynamically with proper z-index handling
 function create_modal_dynamically(modalId = 'dynamicModal') {
  // Remove existing modal if present
  const existingModal = document.getElementById(modalId);
@@ -1655,18 +1656,18 @@ function create_modal_dynamically(modalId = 'dynamicModal') {
  modal.setAttribute('aria-labelledby', `${modalId}Label`);
  modal.setAttribute('aria-hidden', 'true');
 
- // Set z-index for proper stacking
- modal.style.zIndex = modalZIndexCounter++;
+ // ✅ FIX: Set z-index for proper stacking (Bootstrap backdrop is 1040-1050)
+ modal.style.zIndex = modalZIndexCounter + 10; // Ensure modal is above backdrop
 
  const modalContentId = `${modalId}_modal_content`;
 
  modal.innerHTML = `
-    <div class="modal-dialog">
-      <div class="modal-content" id="${modalContentId}">
-        <!-- Modal content will be inserted here -->
-      </div>
-    </div>
-  `;
+        <div class="modal-dialog">
+            <div class="modal-content" id="${modalContentId}">
+                <!-- Modal content will be inserted here -->
+            </div>
+        </div>
+    `;
 
  document.body.appendChild(modal);
 
@@ -1675,8 +1676,14 @@ function create_modal_dynamically(modalId = 'dynamicModal') {
  const randomColor = getRandomColor();
  modalContent.style.border = `3px solid ${randomColor}`;
 
- // Initialize Bootstrap modal and add to stack
- const modalInstance = new bootstrap.Modal(modal);
+ // Initialize Bootstrap modal
+ const modalInstance = new bootstrap.Modal(modal, {
+  backdrop: true,
+  keyboard: true
+ });
+
+ // ✅ FIX: Manually handle backdrop z-index
+ modalInstance._config.backdrop = true;
 
  // Manually add to stack since we're creating dynamically
  if (!modalStack.includes(modalId)) {
@@ -1693,11 +1700,18 @@ function create_modal_dynamically(modalId = 'dynamicModal') {
   if (!modalStack.includes(modalId)) {
    modalStack.push(modalId);
   }
+
+  // ✅ FIX: Ensure modal z-index is properly set when shown
+  modal.style.zIndex = modalZIndexCounter + 10;
  });
 
  // Add event listener for when modal is hidden
  modal.addEventListener('hidden.bs.modal', function () {
   removeModalFromStack(modalId);
+  // ✅ FIX: Reset z-index counter if this was the topmost modal
+  if (modalStack.length === 0) {
+   modalZIndexCounter = 1050;
+  }
  });
 
  // Return both content element and modal instance
