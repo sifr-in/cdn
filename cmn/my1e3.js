@@ -1,6 +1,9 @@
 const monthFullNms = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const monthShortNms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+let modalStack = [];
+let modalZIndexCounter = 1050;
+
 // Add these with your other global variables at the top
 let wakeLock = null;
 let isWakeLockSupported = 'wakeLock' in navigator;
@@ -55,15 +58,17 @@ function setupWakeLockVisibilityHandler() {
  });
 }
 
-// Global state
-let modalStack = [];
-
 function attachModalListeners() {
  // Listen for Bootstrap modal show events
  document.addEventListener('show.bs.modal', function (event) {
-  const modalId = event.target.id;
+  const modal = event.target;
+  const modalId = modal.id;
+
   if (!modalStack.includes(modalId)) {
+   // Set increasing z-index for proper stacking
+   modal.style.zIndex = modalZIndexCounter++;
    modalStack.push(modalId);
+
    // Push state to history when modal opens
    history.pushState({
     modalOpen: true,
@@ -76,18 +81,21 @@ function attachModalListeners() {
  // Listen for Bootstrap modal hide events
  document.addEventListener('hide.bs.modal', function (event) {
   const modalId = event.target.id;
-  const index = modalStack.indexOf(modalId);
-  if (index !== -1) {
-   modalStack.splice(index, 1);
-  }
+  removeModalFromStack(modalId);
+ });
+}
+function removeModalFromStack(modalId) {
+ const index = modalStack.indexOf(modalId);
+ if (index !== -1) {
+  modalStack.splice(index, 1);
+
   // Update history state when modal closes
   history.replaceState({
    modalOpen: modalStack.length > 0,
    modalStack: [...modalStack]
   }, '');
- });
+ }
 }
-
 
 function getNumArrayFromObjArr(jsonArray, key) {
  return jsonArray
@@ -1406,7 +1414,7 @@ function initializeUniversalBackButtonHandler() {
    console.log('Reload confirmation suppressed by dontShowReloadConfirmation flag');
    return; // Exit without showing confirmation
   }
-  
+
   if (areAnyModalsOpen() && !backButtonPressedOnce) {
    event.preventDefault();
    event.returnValue = 'You have open modals. Press back again to close them.';
@@ -1443,30 +1451,34 @@ function handleUniversalBackButton() {
 }
 
 function closeAllModalsUniversally() {
- console.log('Closing ALL modals universally...');
+ console.log('Closing ALL modals universally by z-index order...');
  let closedCount = 0;
 
- // Get ALL elements that could be modals
- const allModals = document.querySelectorAll('*');
- const modalElements = [];
+ // Get ALL modal elements sorted by z-index (highest first)
+ const allModals = Array.from(document.querySelectorAll('*'))
+  .filter(element => isModalElement(element))
+  .sort((a, b) => {
+   const aZIndex = parseInt(window.getComputedStyle(a).zIndex) || 0;
+   const bZIndex = parseInt(window.getComputedStyle(b).zIndex) || 0;
+   return bZIndex - aZIndex; // Descending order - close topmost first
+  });
 
- // Phase 1: Collect all potential modal elements
- allModals.forEach(element => {
-  if (isModalElement(element)) {
-   modalElements.push(element);
-  }
- });
+ console.log(`Found ${allModals.length} modal elements to close`);
 
- console.log(`Found ${modalElements.length} potential modal elements`);
-
- // Phase 2: Close them in reverse order (most recent first)
- modalElements.reverse().forEach(modal => {
+ // Close them in reverse z-index order (highest/topmost first)
+ allModals.forEach(modal => {
   if (closeModalElement(modal)) {
    closedCount++;
   }
  });
 
- // Phase 3: Cleanup any modal-related styles and backdrops
+ // Cleanup and reset counter if all modals are closed
+ if (closedCount === allModals.length) {
+  modalZIndexCounter = 1050;
+  modalStack = [];
+ }
+
+ // Cleanup any modal-related styles and backdrops
  cleanupModalArtifacts();
 
  console.log(`Successfully closed ${closedCount} modals`);
@@ -1474,7 +1486,7 @@ function closeAllModalsUniversally() {
 }
 
 function isModalElement(element) {
- // Check if element is visible and modal-like
+ // Skip if element is not visible
  const style = window.getComputedStyle(element);
  const isVisible = style.display !== 'none' &&
   element.offsetParent !== null &&
@@ -1482,98 +1494,83 @@ function isModalElement(element) {
 
  if (!isVisible) return false;
 
- // Check for modal characteristics
+ // Check for modal characteristics with z-index consideration
  const hasModalClass = element.classList.contains('modal') ||
   element.classList.contains('show') ||
-  element.getAttribute('role') === 'dialog' ||
-  element.style.zIndex > 1000 ||
-  element.style.position === 'fixed' ||
-  element.style.position === 'absolute';
+  element.getAttribute('role') === 'dialog';
 
  const hasModalStyle = style.position === 'fixed' ||
   style.position === 'absolute' ||
-  parseInt(style.zIndex) > 1000 ||
-  element.style.display === 'block' ||
-  element.style.display === 'flex';
+  parseInt(style.zIndex) >= 1000; // Lowered threshold to catch more modals
 
- const hasModalContent = element.textContent.includes('modal') ||
-  element.innerHTML.includes('modal') ||
-  element.id.includes('modal') ||
-  element.id.includes('dialog') ||
-  element.id.includes('Modal') ||
-  element.id.includes('Dialog');
+ const hasModalContent = element.textContent?.includes('modal') ||
+  element.innerHTML?.includes('modal') ||
+  element.id?.includes('modal') ||
+  element.id?.includes('Modal') ||
+  element.id?.includes('dialog') ||
+  element.id?.includes('Dialog');
 
- const isOverlay = style.backgroundColor.includes('rgba') ||
-  style.backgroundColor === 'rgba(0, 0, 0, 0.5)' ||
-  style.background === 'rgba(0, 0, 0, 0.5)' ||
-  element.style.backgroundColor === 'rgba(0, 0, 0, 0.5)';
+ const isOverlay = style.backgroundColor?.includes('rgba') ||
+  style.background?.includes('rgba') ||
+  element.style.backgroundColor === 'rgba(0, 0, 0, 0.5)' ||
+  element.style.background === 'rgba(0, 0, 0, 0.5)';
 
- return hasModalClass || hasModalStyle || hasModalContent || isOverlay;
+ // Also consider elements with high z-index that might be overlays
+ const hasHighZIndex = parseInt(style.zIndex) >= 1000;
+
+ return hasModalClass || hasModalStyle || hasModalContent || isOverlay || hasHighZIndex;
 }
 
 function closeModalElement(modal) {
  try {
-  console.log('Attempting to close modal:', modal.id || 'anonymous', modal);
+  const modalId = modal.id || 'anonymous';
+  const zIndex = parseInt(window.getComputedStyle(modal).zIndex) || 0;
+  console.log(`Attempting to close modal: ${modalId} with z-index: ${zIndex}`);
 
-  // Method 1: Try Bootstrap modal API
+  // Method 1: Try Bootstrap modal API first
   if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
    const bsModal = bootstrap.Modal.getInstance(modal);
    if (bsModal) {
     bsModal.hide();
-    console.log('Closed via Bootstrap API');
+    removeModalFromStack(modalId);
+    console.log(`Closed via Bootstrap API: ${modalId}`);
     return true;
    }
   }
 
-  // Method 2: Try to find and close via Bootstrap if modal has show class
+  // Method 2: Direct Bootstrap class manipulation
   if (modal.classList.contains('show') && modal.classList.contains('modal')) {
    modal.style.display = 'none';
    modal.classList.remove('show');
-   console.log('Closed via class removal');
+   removeModalFromStack(modalId);
+   console.log(`Closed via class removal: ${modalId}`);
    return true;
   }
 
-  // Method 3: Direct style manipulation for fixed/absolute positioned overlays
-  if (modal.style.position === 'fixed' || modal.style.position === 'absolute') {
-   const style = window.getComputedStyle(modal);
-   if (style.position === 'fixed' || style.position === 'absolute') {
-    modal.style.display = 'none';
-    console.log('Closed via style manipulation');
-    return true;
-   }
-  }
-
-  // Method 4: High z-index elements (likely overlays/modals)
-  if (parseInt(modal.style.zIndex) > 1000 || parseInt(window.getComputedStyle(modal).zIndex) > 1000) {
+  // Method 3: High z-index elements (likely overlays/modals)
+  if (zIndex >= 1000) {
    modal.style.display = 'none';
-   console.log('Closed via z-index detection');
+   removeModalFromStack(modalId);
+   console.log(`Closed via z-index detection: ${modalId} (z-index: ${zIndex})`);
    return true;
   }
 
-  // Method 5: Elements with modal-like content or structure
-  if (modal.innerHTML.includes('modal-content') ||
-   modal.innerHTML.includes('modal-dialog') ||
-   modal.querySelector('.modal-content') ||
-   modal.querySelector('.modal-dialog')) {
-   modal.style.display = 'none';
-   console.log('Closed via content detection');
-   return true;
-  }
-
-  // Method 6: Any element that's blocking the view (large fixed/absolute elements)
+  // Method 4: Any visible fixed/absolute positioned element that's likely a modal
   const rect = modal.getBoundingClientRect();
   const style = window.getComputedStyle(modal);
   if ((style.position === 'fixed' || style.position === 'absolute') &&
-   rect.width > 100 && rect.height > 100) {
+   rect.width >= 200 && rect.height >= 100) {
    modal.style.display = 'none';
-   console.log('Closed via size/position detection');
+   removeModalFromStack(modalId);
+   console.log(`Closed via size/position detection: ${modalId}`);
    return true;
   }
 
  } catch (error) {
   console.error('Error closing modal:', error);
-  // Last resort: just hide it
+  // Last resort: just hide it and remove from stack
   modal.style.display = 'none';
+  removeModalFromStack(modal.id);
   return true;
  }
 
@@ -1642,13 +1639,12 @@ function handleUniversalExitConfirmation() {
   return false; // Don't handle, let browser exit
  }
 }
-
-// Function to create modal dynamically with given ID
 function create_modal_dynamically(modalId = 'dynamicModal') {
  // Remove existing modal if present
  const existingModal = document.getElementById(modalId);
  if (existingModal) {
   existingModal.remove();
+  removeModalFromStack(modalId);
  }
 
  // Create modal element
@@ -1658,6 +1654,9 @@ function create_modal_dynamically(modalId = 'dynamicModal') {
  modal.setAttribute('tabindex', '-1');
  modal.setAttribute('aria-labelledby', `${modalId}Label`);
  modal.setAttribute('aria-hidden', 'true');
+
+ // Set z-index for proper stacking
+ modal.style.zIndex = modalZIndexCounter++;
 
  const modalContentId = `${modalId}_modal_content`;
 
@@ -1676,17 +1675,38 @@ function create_modal_dynamically(modalId = 'dynamicModal') {
  const randomColor = getRandomColor();
  modalContent.style.border = `3px solid ${randomColor}`;
 
- // Initialize Bootstrap modal
+ // Initialize Bootstrap modal and add to stack
  const modalInstance = new bootstrap.Modal(modal);
- modalInstance.show();
 
- // Return the modal content element for external use
+ // Manually add to stack since we're creating dynamically
+ if (!modalStack.includes(modalId)) {
+  modalStack.push(modalId);
+  history.pushState({
+   modalOpen: true,
+   modalId: modalId,
+   modalStack: [...modalStack]
+  }, '');
+ }
+
+ // Add event listener for when modal is actually shown
+ modal.addEventListener('show.bs.modal', function () {
+  if (!modalStack.includes(modalId)) {
+   modalStack.push(modalId);
+  }
+ });
+
+ // Add event listener for when modal is hidden
+ modal.addEventListener('hidden.bs.modal', function () {
+  removeModalFromStack(modalId);
+ });
+
+ // Return both content element and modal instance
  return {
-        contentElement: modalContent,
-        modalInstance: modalInstance
-    };
+  contentElement: modalContent,
+  modalInstance: modalInstance,
+  modalElement: modal
+ };
 }
-// Function to generate random colors
 function getRandomColor() {
  const colors = [
   '#0d6efd', '#6f42c1', '#198754', '#dc3545', '#fd7e14',
@@ -1710,6 +1730,3 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
-
-
-
