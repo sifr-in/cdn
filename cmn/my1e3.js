@@ -1,9 +1,16 @@
 const monthFullNms = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const monthShortNms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+let modalStack = [];
+let modalZIndexCounter = 1050;
+
 // Add these with your other global variables at the top
 let wakeLock = null;
 let isWakeLockSupported = 'wakeLock' in navigator;
+
+// Back button press counter
+let backButtonPressCount = 0;
+let backButtonTimeout = null;
 
 // Screen Wake Lock functions - Common utility for all scripts
 async function requestWakeLock() {
@@ -56,21 +63,17 @@ function setupWakeLockVisibilityHandler() {
  });
 }
 
-// Enhanced Global state for modal management
-let modalStack = [];
-let modalZIndexCounter = 1050; // Start above Bootstrap's default z-index
-
 function attachModalListeners() {
  // Listen for Bootstrap modal show events
  document.addEventListener('show.bs.modal', function (event) {
   const modal = event.target;
   const modalId = modal.id;
-  
+
   if (!modalStack.includes(modalId)) {
    // Set increasing z-index for proper stacking
    modal.style.zIndex = modalZIndexCounter++;
    modalStack.push(modalId);
-   
+
    // Push state to history when modal opens
    history.pushState({
     modalOpen: true,
@@ -87,12 +90,11 @@ function attachModalListeners() {
  });
 }
 
-// Enhanced function to remove modal from stack
 function removeModalFromStack(modalId) {
  const index = modalStack.indexOf(modalId);
  if (index !== -1) {
   modalStack.splice(index, 1);
-  
+
   // Update history state when modal closes
   history.replaceState({
    modalOpen: modalStack.length > 0,
@@ -1376,7 +1378,6 @@ function createHiddenIframe(hiddenAudioPlayer) {
 
 // ================= UNIVERSAL BACK BUTTON HANDLER =================
 
-let backButtonPressedOnce = false;
 let backButtonHandlerInitialized = false;
 
 function initializeUniversalBackButtonHandler() {
@@ -1417,13 +1418,6 @@ function initializeUniversalBackButtonHandler() {
    console.log('Reload confirmation suppressed by dontShowReloadConfirmation flag');
    return; // Exit without showing confirmation
   }
-  
-  if (areAnyModalsOpen() && !backButtonPressedOnce) {
-   event.preventDefault();
-   event.returnValue = 'You have open modals. Press back again to close them.';
-   handleUniversalBackButton();
-   return event.returnValue;
-  }
  });
 
  backButtonHandlerInitialized = true;
@@ -1439,108 +1433,151 @@ function initializeHistoryState() {
  history.pushState({ universalBackButton: true, preventExit: true }, '');
 }
 
-// Enhanced function to close modals one by one on back press
 function handleUniversalBackButton() {
  console.log('Universal back button handler triggered');
- console.log('Current modal stack:', modalStack);
+ 
+ // Clear existing timeout
+ if (backButtonTimeout) {
+  clearTimeout(backButtonTimeout);
+ }
+ 
+ // Increment press count
+ backButtonPressCount++;
+ 
+ console.log(`Back button pressed ${backButtonPressCount} time(s), Modal stack: ${modalStack.length}`);
+ 
+ // Set timeout to reset counter after 2 seconds
+ backButtonTimeout = setTimeout(() => {
+  console.log('Resetting back button counter');
+  backButtonPressCount = 0;
+ }, 500);
+ 
+ // Handle based on press count and modal stack
+ if (backButtonPressCount === 1) {
+  return handleFirstBackPress();
+ } else if (backButtonPressCount === 2) {
+  return handleSecondBackPress();
+ } else if (backButtonPressCount >= 3) {
+  return handleThirdBackPress();
+ }
+ 
+ return true;
+}
 
+function handleFirstBackPress() {
  if (modalStack.length > 0) {
-  // Get the topmost modal (last in stack)
-  const topModalId = modalStack[modalStack.length - 1];
-  const topModal = document.getElementById(topModalId);
+  // Close top modal
+  const modalClosed = closeTopModalFromStack();
   
-  if (topModal) {
-   console.log(`Closing top modal: ${topModalId}`);
+  if (modalClosed) {
+   const remainingModals = modalStack.length;
    
-   // Close just this one modal
-   const modalInstance = bootstrap.Modal.getInstance(topModal);
-   if (modalInstance) {
-    modalInstance.hide();
+   if (remainingModals > 0) {
+    // Still more modals open
+    if (remainingModals >= 2) {
+     showToast(`2-close all modals, 3-exit`);
+    } else {
+     showToast(`2-close last, 3-exit`);
+    }
    } else {
-    // Fallback: hide manually and remove from stack
-    topModal.style.display = 'none';
-    removeModalFromStack(topModalId);
+    // All modals closed
+    showToast(`2-exit`);
    }
-   
-   showToast(`Closed modal`);
-   return true; // Handled the back button
-  } else {
-   // Modal not found in DOM, remove from stack
-   removeModalFromStack(topModalId);
-   return handleUniversalBackButton(); // Try again
+   return true;
   }
  } else {
-  // No modals open - handle exit confirmation
-  return handleUniversalExitConfirmation();
+  // No modals open
+  showToast(`2-exit`);
+  return true;
+ }
+ 
+ return false;
+}
+
+function handleSecondBackPress() {
+ if (modalStack.length > 0) {
+  // Close all remaining modals
+  const modalsClosed = closeAllModalsUniversally();
+  
+  if (modalsClosed > 0) {
+   showToast(`Closed all modals. Press back 3 times to exit`);
+   backButtonPressCount = 2; // Set to 2 so next press will be third
+   return true;
+  }
+ } else {
+  // No modals, prepare for exit
+  showToast(`Press back 3 times to exit`);
+  backButtonPressCount = 2; // Set to 2 so next press will be third
+  return true;
+ }
+ 
+ return false;
+}
+
+function handleThirdBackPress() {
+ // Reset counter
+ backButtonPressCount = 0;
+ if (backButtonTimeout) {
+  clearTimeout(backButtonTimeout);
+  backButtonTimeout = null;
+ }
+ 
+ // Allow exit
+ console.log('Third back press - allowing exit');
+ return false; // Don't handle, let browser exit
+}
+
+function closeTopModalFromStack() {
+ if (modalStack.length === 0) {
+  console.log('No modals in stack to close');
+  return false;
+ }
+
+ // Get the topmost modal (last in the stack - highest z-index)
+ const topModalId = modalStack[modalStack.length - 1];
+ console.log(`Closing top modal from stack: ${topModalId}`);
+ 
+ const modalElement = document.getElementById(topModalId);
+ 
+ if (modalElement) {
+  return closeModalElement(modalElement);
+ } else {
+  // Modal element not found, remove from stack
+  console.warn(`Modal element with id ${topModalId} not found, removing from stack`);
+  modalStack.pop();
+  return false;
  }
 }
 
 function closeAllModalsUniversally() {
- console.log('Emergency: Closing ALL modals');
+ console.log('Closing ALL remaining modals');
  let closedCount = 0;
-
- // Close modals in reverse order (topmost first)
- const reversedStack = [...modalStack].reverse();
  
- reversedStack.forEach(modalId => {
-  const modal = document.getElementById(modalId);
-  if (modal) {
-   const modalInstance = bootstrap.Modal.getInstance(modal);
-   if (modalInstance) {
-    modalInstance.hide();
+ // Close from top of stack to bottom (reverse order)
+ const modalsToClose = [...modalStack].reverse();
+ 
+ for (const modalId of modalsToClose) {
+  const modalElement = document.getElementById(modalId);
+  if (modalElement) {
+   if (closeModalElement(modalElement)) {
     closedCount++;
    }
   }
- });
-
- // Clear the stack
- modalStack = [];
+ }
  
- console.log(`Emergency closed ${closedCount} modals`);
+ // Force cleanup
+ cleanupModalArtifacts();
+ modalStack = [];
+ modalZIndexCounter = 1050;
+ 
+ console.log(`Closed ${closedCount} modals`);
  return closedCount;
-}
-
-function isModalElement(element) {
- // Skip if element is not visible
- const style = window.getComputedStyle(element);
- const isVisible = style.display !== 'none' &&
-  element.offsetParent !== null &&
-  style.visibility !== 'hidden';
-
- if (!isVisible) return false;
-
- // Check for modal characteristics with z-index consideration
- const hasModalClass = element.classList.contains('modal') ||
-  element.classList.contains('show') ||
-  element.getAttribute('role') === 'dialog';
-
- const hasModalStyle = style.position === 'fixed' ||
-  style.position === 'absolute' ||
-  parseInt(style.zIndex) >= 1000; // Lowered threshold to catch more modals
-
- const hasModalContent = element.textContent?.includes('modal') ||
-  element.innerHTML?.includes('modal') ||
-  element.id?.includes('modal') ||
-  element.id?.includes('Modal') ||
-  element.id?.includes('dialog') ||
-  element.id?.includes('Dialog');
-
- const isOverlay = style.backgroundColor?.includes('rgba') ||
-  style.background?.includes('rgba') ||
-  element.style.backgroundColor === 'rgba(0, 0, 0, 0.5)' ||
-  element.style.background === 'rgba(0, 0, 0, 0.5)';
-
- // Also consider elements with high z-index that might be overlays
- const hasHighZIndex = parseInt(style.zIndex) >= 1000;
-
- return hasModalClass || hasModalStyle || hasModalContent || isOverlay || hasHighZIndex;
 }
 
 function closeModalElement(modal) {
  try {
   const modalId = modal.id || 'anonymous';
-  const zIndex = parseInt(window.getComputedStyle(modal).zIndex) || 0;
-  console.log(`Attempting to close modal: ${modalId} with z-index: ${zIndex}`);
+  console.log(`Attempting to close modal: ${modalId}`);
 
   // Method 1: Try Bootstrap modal API first
   if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
@@ -1553,33 +1590,36 @@ function closeModalElement(modal) {
    }
   }
 
-  // Method 2: Direct Bootstrap class manipulation
-  if (modal.classList.contains('show') && modal.classList.contains('modal')) {
+  // Method 2: Trigger hide event for Bootstrap
+  const hideEvent = new Event('hide.bs.modal');
+  modal.dispatchEvent(hideEvent);
+
+  // Method 3: Direct Bootstrap class manipulation
+  if (modal.classList.contains('show')) {
    modal.style.display = 'none';
    modal.classList.remove('show');
+   
+   // Remove backdrop if exists
+   const backdrops = document.querySelectorAll('.modal-backdrop');
+   if (backdrops.length > 0) {
+    backdrops[backdrops.length - 1].remove();
+   }
+   
+   // Reset body styles
+   document.body.classList.remove('modal-open');
+   document.body.style.overflow = '';
+   document.body.style.paddingRight = '';
+   
    removeModalFromStack(modalId);
    console.log(`Closed via class removal: ${modalId}`);
    return true;
   }
 
-  // Method 3: High z-index elements (likely overlays/modals)
-  if (zIndex >= 1000) {
-   modal.style.display = 'none';
-   removeModalFromStack(modalId);
-   console.log(`Closed via z-index detection: ${modalId} (z-index: ${zIndex})`);
-   return true;
-  }
-
-  // Method 4: Any visible fixed/absolute positioned element that's likely a modal
-  const rect = modal.getBoundingClientRect();
-  const style = window.getComputedStyle(modal);
-  if ((style.position === 'fixed' || style.position === 'absolute') &&
-   rect.width >= 200 && rect.height >= 100) {
-   modal.style.display = 'none';
-   removeModalFromStack(modalId);
-   console.log(`Closed via size/position detection: ${modalId}`);
-   return true;
-  }
+  // Method 4: Generic hide for any modal-like element
+  modal.style.display = 'none';
+  removeModalFromStack(modalId);
+  console.log(`Closed via display none: ${modalId}`);
+  return true;
 
  } catch (error) {
   console.error('Error closing modal:', error);
@@ -1588,8 +1628,6 @@ function closeModalElement(modal) {
   removeModalFromStack(modal.id);
   return true;
  }
-
- return false;
 }
 
 function cleanupModalArtifacts() {
@@ -1635,54 +1673,65 @@ function areAnyModalsOpen() {
  return false;
 }
 
-function handleUniversalExitConfirmation() {
- if (!backButtonPressedOnce) {
-  showToast('Press back again to exit');
-  backButtonPressedOnce = true;
+function isModalElement(element) {
+ // Skip if element is not visible
+ const style = window.getComputedStyle(element);
+ const isVisible = style.display !== 'none' &&
+  element.offsetParent !== null &&
+  style.visibility !== 'hidden';
 
-  // Reset after 3 seconds
-  setTimeout(() => {
-   backButtonPressedOnce = false;
-  }, 3000);
+ if (!isVisible) return false;
 
-  // Keep the page alive
-  history.pushState({ universalBackButton: true, preventExit: true }, '');
-  return true; // Handled the back button
- } else {
-  // Second press - allow exit
-  backButtonPressedOnce = false;
-  return false; // Don't handle, let browser exit
- }
+ // Check for modal characteristics with z-index consideration
+ const hasModalClass = element.classList.contains('modal') ||
+  element.classList.contains('show') ||
+  element.getAttribute('role') === 'dialog';
+
+ const hasModalStyle = style.position === 'fixed' ||
+  style.position === 'absolute' ||
+  parseInt(style.zIndex) >= 1000; // Lowered threshold to catch more modals
+
+ const hasModalContent = element.textContent?.includes('modal') ||
+  element.innerHTML?.includes('modal') ||
+  element.id?.includes('modal') ||
+  element.id?.includes('Modal') ||
+  element.id?.includes('dialog') ||
+  element.id?.includes('Dialog');
+
+ const isOverlay = style.backgroundColor?.includes('rgba') ||
+  style.background?.includes('rgba') ||
+  element.style.backgroundColor === 'rgba(0, 0, 0, 0.5)' ||
+  element.style.background === 'rgba(0, 0, 0, 0.5)';
+
+ // Also consider elements with high z-index that might be overlays
+ const hasHighZIndex = parseInt(style.zIndex) >= 1000;
+
+ return hasModalClass || hasModalStyle || hasModalContent || isOverlay || hasHighZIndex;
 }
 
-// CORRECTED function to create modal dynamically with proper stacking
+// Enhanced function to create modal dynamically with proper z-index handling
 function create_modal_dynamically(modalId = 'dynamicModal') {
-    // ✅ FIX: Don't remove existing modals - just create new one
-    const existingModal = document.getElementById(modalId);
-    if (existingModal) {
-        // If modal with same ID exists, just return it
-        const existingInstance = bootstrap.Modal.getInstance(existingModal);
-        return {
-            contentElement: document.getElementById(`${modalId}_modal_content`),
-            modalInstance: existingInstance,
-            modalElement: existingModal
-        };
-    }
+ // Remove existing modal if present
+ const existingModal = document.getElementById(modalId);
+ if (existingModal) {
+  existingModal.remove();
+  removeModalFromStack(modalId);
+ }
 
-    // Create modal element
-    const modal = document.createElement('div');
-    modal.className = 'modal fade';
-    modal.id = modalId;
-    modal.setAttribute('tabindex', '-1');
-    modal.setAttribute('aria-labelledby', `${modalId}Label`);
-    modal.setAttribute('aria-hidden', 'true');
-    
-    // ✅ FIX: Set proper z-index for stacking (increment for each new modal)
-    modal.style.zIndex = 1050 + (modalStack.length * 10);
+ // Create modal element
+ const modal = document.createElement('div');
+ modal.className = 'modal fade';
+ modal.id = modalId;
+ modal.setAttribute('tabindex', '-1');
+ modal.setAttribute('aria-labelledby', `${modalId}Label`);
+ modal.setAttribute('aria-hidden', 'true');
 
-    const modalContentId = `${modalId}_modal_content`;
+ // ✅ FIX: Set z-index for proper stacking (Bootstrap backdrop is 1040-1050)
+ modal.style.zIndex = modalZIndexCounter + 10; // Ensure modal is above backdrop
 
-    modal.innerHTML = `
+ const modalContentId = `${modalId}_modal_content`;
+
+ modal.innerHTML = `
         <div class="modal-dialog">
             <div class="modal-content" id="${modalContentId}">
                 <!-- Modal content will be inserted here -->
@@ -1690,50 +1739,66 @@ function create_modal_dynamically(modalId = 'dynamicModal') {
         </div>
     `;
 
-    document.body.appendChild(modal);
+ document.body.appendChild(modal);
 
-    // Set random border color for the modal
-    const modalContent = document.getElementById(modalContentId);
-    const randomColor = getRandomColor();
-    modalContent.style.border = `3px solid ${randomColor}`;
+ // Set random border color for the modal
+ const modalContent = document.getElementById(modalContentId);
+ const randomColor = getRandomColor();
+ modalContent.style.border = `3px solid ${randomColor}`;
 
-    // Initialize Bootstrap modal
-    const modalInstance = new bootstrap.Modal(modal, {
-        backdrop: 'static' // ✅ Important: Use static backdrop so underlying modal stays
-    });
-    
-    // ✅ FIX: Add to stack BEFORE showing
-    if (!modalStack.includes(modalId)) {
-        modalStack.push(modalId);
-        history.pushState({
-            modalOpen: true,
-            modalId: modalId,
-            modalStack: [...modalStack]
-        }, '');
-    }
+ // Initialize Bootstrap modal
+ const modalInstance = new bootstrap.Modal(modal, {
+  backdrop: true,
+  keyboard: true
+ });
 
-    // Event listeners
-    modal.addEventListener('show.bs.modal', function() {
-        console.log(`Modal ${modalId} shown, stack:`, modalStack);
-    });
+ // ✅ FIX: Manually handle backdrop z-index
+ modalInstance._config.backdrop = true;
 
-    modal.addEventListener('hidden.bs.modal', function() {
-        console.log(`Modal ${modalId} hidden`);
-        removeModalFromStack(modalId);
-        // ✅ Don't remove DOM element immediately, just hide it
-        // modal.remove(); // REMOVED THIS LINE
-    });
+ // Manually add to stack since we're creating dynamically
+ if (!modalStack.includes(modalId)) {
+  modalStack.push(modalId);
+  history.pushState({
+   modalOpen: true,
+   modalId: modalId,
+   modalStack: [...modalStack]
+  }, '');
+ }
 
-    return {
-        contentElement: modalContent,
-        modalInstance: modalInstance,
-        modalElement: modal
-    };
+ // Add event listener for when modal is actually shown
+ modal.addEventListener('show.bs.modal', function () {
+  if (!modalStack.includes(modalId)) {
+   modalStack.push(modalId);
+  }
+
+  // ✅ FIX: Ensure modal z-index is properly set when shown
+  modal.style.zIndex = modalZIndexCounter + 10;
+ });
+
+ // Add event listener for when modal is hidden
+ modal.addEventListener('hidden.bs.modal', function () {
+  removeModalFromStack(modalId);
+  // ✅ FIX: Reset z-index counter if this was the topmost modal
+  if (modalStack.length === 0) {
+   modalZIndexCounter = 1050;
+  }
+ });
+
+ // Return both content element and modal instance
+ return {
+  contentElement: modalContent,
+  modalInstance: modalInstance,
+  modalElement: modal
+ };
 }
 
-// Function to generate random colors
 function getRandomColor() {
- const colors = ["#0a4fb3","#5929a1","#11693e","#b02a37","#ca6510","#8d6600","#003b2c","#006a7a","#520dc2","#a31b5c","#4a5568","#0d9488","#5b21b6","#991b1b","#9f580a","#3f6212","#065f46","#0e7490","#701a75","#831843"];
+ const colors = [
+  '#0d6efd', '#6f42c1', '#198754', '#dc3545', '#fd7e14',
+  '#ffc107', '#20c997', '#0dcaf0', '#6610f2', '#d63384',
+  '#6c757d', '#0dcaf0', '#10b981', '#8b5cf6', '#ef4444',
+  '#f59e0b', '#84cc16', '#06b6d4', '#8b5cf6', '#ec4899'
+ ];
  return colors[Math.floor(Math.random() * colors.length)];
 }
 
@@ -1750,5 +1815,3 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
-window.create_modal_dynamically = create_modal_dynamically;
-window.removeModalFromStack = removeModalFromStack;
