@@ -1707,7 +1707,7 @@ function create_modal_dynamically(modalId = 'dynamicModal') {
 
  // Add event listener for when modal is hidden
  modal.addEventListener('hidden.bs.modal', function () {
-  removeModalFromStack(modalId);
+  // removeModalFromStack(modalId);
   // ✅ FIX: Reset z-index counter if this was the topmost modal
   if (modalStack.length === 0) {
    modalZIndexCounter = 1050;
@@ -1744,3 +1744,4 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
+
