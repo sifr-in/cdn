@@ -287,6 +287,7 @@ async function loadExecFn(fnsToChk, fnsToRun, pFNarams = [], idOfLoader, scriptU
    }
   }
  } catch (e) {
+  console.error('loadExecFn params:', {fnsToChk,fnsToRun,pFNarams,idOfLoader,scriptUrl,pSCRParams});
   console.error('Error:', e.message);
   alert(`Error: ${e.message}. Please retry or contact support.`);
  } finally {
@@ -1815,3 +1816,4 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
+
