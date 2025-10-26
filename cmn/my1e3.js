@@ -1909,6 +1909,182 @@ function getRandomColor() {
  return colors[Math.floor(Math.random() * colors.length)];
 }
 
+function makeDraggable(element) {
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    let isDragging = false;
+    
+    element.onmousedown = dragMouseDown;
+    element.ontouchstart = dragTouchStart;
+    
+    function dragMouseDown(e) {
+        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'I') {
+            return; // Don't drag if clicking on button or icon
+        }
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        isDragging = true;
+        
+        // Get the initial mouse cursor position
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        
+        // Change cursor to grabbing
+        element.style.cursor = 'grabbing';
+        
+        // Call functions whenever the cursor moves
+        document.onmouseup = closeDragElement;
+        document.onmousemove = elementDrag;
+        
+        // Prevent text selection while dragging
+        document.body.style.userSelect = 'none';
+    }
+    
+    function dragTouchStart(e) {
+        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'I') {
+            return; // Don't drag if touching on button or icon
+        }
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        isDragging = true;
+        
+        const touch = e.touches[0];
+        pos3 = touch.clientX;
+        pos4 = touch.clientY;
+        
+        element.style.cursor = 'grabbing';
+        
+        document.ontouchend = closeDragElement;
+        document.ontouchmove = elementTouchDrag;
+        
+        document.body.style.userSelect = 'none';
+    }
+    
+    function elementDrag(e) {
+        if (!isDragging) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Calculate the new cursor position
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        
+        updateElementPosition();
+    }
+    
+    function elementTouchDrag(e) {
+        if (!isDragging) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const touch = e.touches[0];
+        pos1 = pos3 - touch.clientX;
+        pos2 = pos4 - touch.clientY;
+        pos3 = touch.clientX;
+        pos4 = touch.clientY;
+        
+        updateElementPosition();
+    }
+    
+    function updateElementPosition() {
+        // Get current position
+        const currentTop = parseInt(element.style.top) || (window.innerHeight - element.offsetHeight - 20);
+        const currentLeft = parseInt(element.style.left) || (window.innerWidth - element.offsetWidth - 20);
+        
+        // Calculate new position
+        const newTop = currentTop - pos2;
+        const newLeft = currentLeft - pos1;
+        
+        // Keep within viewport bounds (accounting for scroll)
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        
+        const maxTop = scrollY + viewportHeight - element.offsetHeight - 5;
+        const minTop = scrollY + 5;
+        const maxLeft = scrollX + viewportWidth - element.offsetWidth - 5;
+        const minLeft = scrollX + 5;
+        
+        element.style.top = Math.max(minTop, Math.min(newTop, maxTop)) + 'px';
+        element.style.left = Math.max(minLeft, Math.min(newLeft, maxLeft)) + 'px';
+        element.style.bottom = 'auto';
+        element.style.right = 'auto';
+    }
+    
+    function closeDragElement() {
+        if (!isDragging) return;
+        
+        isDragging = false;
+        
+        // Stop moving when mouse button is released
+        document.onmouseup = null;
+        document.onmousemove = null;
+        document.ontouchend = null;
+        document.ontouchmove = null;
+        
+        element.style.cursor = 'grab';
+        
+        // Restore text selection
+        document.body.style.userSelect = '';
+    }
+    
+    // Handle window resize to keep element in viewport
+    window.addEventListener('resize', () => {
+        const rect = element.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Check if element is outside viewport after resize
+        if (rect.bottom > viewportHeight || rect.right > viewportWidth || rect.top < 0 || rect.left < 0) {
+            // Reposition to bottom right if out of bounds
+            element.style.top = 'auto';
+            element.style.left = 'auto';
+            element.style.bottom = '20px';
+            element.style.right = '20px';
+        }
+    });
+    
+    // Handle scroll to maintain position relative to viewport
+    let scrollTimeout;
+    window.addEventListener('scroll', () => {
+        if (!isDragging) {
+            // Debounce scroll events for performance
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                const rect = element.getBoundingClientRect();
+                const viewportHeight = window.innerHeight;
+                const viewportWidth = window.innerWidth;
+                
+                // If element is fixed positioned, adjust for scroll
+                if (element.style.position === 'fixed') {
+                    // For fixed elements, we don't need to adjust for scroll
+                    return;
+                }
+                
+                // Check if element needs repositioning due to scroll
+                if (rect.bottom > viewportHeight || rect.right > viewportWidth || rect.top < 0 || rect.left < 0) {
+                    // Calculate new position relative to current viewport
+                    const newTop = Math.max(5, Math.min(rect.top, viewportHeight - rect.height - 5));
+                    const newLeft = Math.max(5, Math.min(rect.left, viewportWidth - rect.width - 5));
+                    
+                    element.style.top = newTop + 'px';
+                    element.style.left = newLeft + 'px';
+                }
+            }, 50);
+        }
+    });
+}
+
 // Replace the existing DOMContentLoaded handler
 document.addEventListener('DOMContentLoaded', function () {
  console.log('Initializing Universal Back Button Handler');
@@ -1922,5 +2098,3 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
-
-
