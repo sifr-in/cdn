@@ -114,7 +114,10 @@ function getNumArrayFromObjArr(jsonArray, key) {
   .filter(num => num !== null); // remove null values
 }
 
-function createDynamicLoader() {
+function createDynamicLoader(message = 'Loading...', countdown = null) {
+//const loader = createDynamicLoader();const loader = createDynamicLoader('wait ...');const loader = createDynamicLoader('wait ...', 5);
+//loader.removeLoader();
+//loader.updateCountdown(10); // Changes countdown to 10 seconds
  const loader = document.createElement('div');
  loader.style.position = 'fixed';
  loader.style.top = '0';
@@ -126,11 +129,114 @@ function createDynamicLoader() {
  loader.style.justifyContent = 'center';
  loader.style.alignItems = 'center';
  loader.style.zIndex = '9999';
- loader.innerHTML = `
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
-  `;
+ loader.style.flexDirection = 'column';
+ 
+ // Create spinner container
+ const spinnerContainer = document.createElement('div');
+ spinnerContainer.style.position = 'relative';
+ spinnerContainer.style.display = 'flex';
+ spinnerContainer.style.justifyContent = 'center';
+ spinnerContainer.style.alignItems = 'center';
+ spinnerContainer.style.width = '4rem';
+ spinnerContainer.style.height = '4rem';
+ 
+ // Create spinner
+ const spinner = document.createElement('div');
+ spinner.style.width = '100%';
+ spinner.style.height = '100%';
+ spinner.style.border = '4px solid #f3f3f3';
+ spinner.style.borderTop = '4px solid #007bff';
+ spinner.style.borderRadius = '50%';
+ spinner.style.animation = 'spin 1s linear infinite';
+ 
+ // Add CSS for spinner animation
+ if (!document.querySelector('#loader-spin-style')) {
+   const style = document.createElement('style');
+   style.id = 'loader-spin-style';
+   style.textContent = `
+     @keyframes spin {
+       0% { transform: rotate(0deg); }
+       100% { transform: rotate(360deg); }
+     }
+   `;
+   document.head.appendChild(style);
+ }
+ 
+ spinnerContainer.appendChild(spinner);
+ 
+ // Create countdown element if countdown is provided
+ let countdownElement = null;
+ let countdownInterval = null;
+ 
+ if (countdown !== null) {
+   countdownElement = document.createElement('div');
+   countdownElement.style.position = 'absolute';
+   countdownElement.style.fontSize = '1.2rem';
+   countdownElement.style.fontWeight = 'bold';
+   countdownElement.style.color = '#007bff';
+   countdownElement.textContent = countdown;
+   spinnerContainer.appendChild(countdownElement);
+   
+   // Start countdown if it's a number
+   if (typeof countdown === 'number' && countdown > 0) {
+     let timeLeft = countdown;
+     countdownInterval = setInterval(() => {
+       timeLeft--;
+       countdownElement.textContent = timeLeft;
+       
+       if (timeLeft <= 0) {
+         clearInterval(countdownInterval);
+       }
+     }, 1000);
+   }
+ }
+ 
+ // Create message element
+ const messageElement = document.createElement('div');
+ messageElement.style.marginTop = '1rem';
+ messageElement.style.color = 'white';
+ messageElement.style.fontSize = '1.1rem';
+ messageElement.textContent = message;
+ 
+ // Create loader content container
+ const loaderContent = document.createElement('div');
+ loaderContent.style.display = 'flex';
+ loaderContent.style.flexDirection = 'column';
+ loaderContent.style.alignItems = 'center';
+ loaderContent.appendChild(spinnerContainer);
+ loaderContent.appendChild(messageElement);
+ 
+ loader.appendChild(loaderContent);
+ 
+ // Add method to remove loader and clean up interval
+ loader.removeLoader = function() {
+   if (countdownInterval) {
+     clearInterval(countdownInterval);
+   }
+   if (document.body.contains(this)) {
+     document.body.removeChild(this);
+   }
+ };
+ 
+ // Add method to update countdown
+ loader.updateCountdown = function(newCountdown) {
+   if (countdownElement && typeof newCountdown === 'number') {
+     clearInterval(countdownInterval);
+     let timeLeft = newCountdown;
+     countdownElement.textContent = timeLeft;
+     
+     countdownInterval = setInterval(() => {
+       timeLeft--;
+       countdownElement.textContent = timeLeft;
+       
+       if (timeLeft <= 0) {
+         clearInterval(countdownInterval);
+       }
+     }, 1000);
+   }
+ };
+ 
+ document.body.appendChild(loader);
  return loader;
 }
 
@@ -1816,4 +1922,5 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
+
 
