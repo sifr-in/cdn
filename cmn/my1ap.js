@@ -342,7 +342,8 @@ function initializePWAAfterFirebase() {
 
   const currentPermission = getNotificationPermissionStatus();
 
-  if (currentPermission === 'default') {
+  // MODIFIED: Show button for both 'default' AND 'denied' permissions
+  if (currentPermission === 'default' || currentPermission === 'denied') {
    // Create draggable notification prompt button
    const btnContainer = document.createElement('div');
    btnContainer.className = 'd-flex align-items-center shadow';
@@ -366,10 +367,12 @@ function initializePWAAfterFirebase() {
     console.error('makeDraggable function not found');
    }
 
-   // Notification button
+   // MODIFIED: Different button text and style based on permission status
    const permissionBtn = document.createElement('button');
-   permissionBtn.className = 'btn btn-outline-primary btn-sm';
-   permissionBtn.innerHTML = '<i class="fas fa-bell me-1"></i> Enable Notifications';
+   permissionBtn.className = currentPermission === 'denied' ? 'btn btn-outline-danger btn-sm' : 'btn btn-outline-primary btn-sm';
+   permissionBtn.innerHTML = currentPermission === 'denied'
+    ? '<i class="fas fa-bell-slash me-1"></i> Notifications Blocked'
+    : '<i class="fas fa-bell me-1"></i> Enable Notifications';
    permissionBtn.style.fontSize = '12px';
    permissionBtn.style.marginRight = '8px';
    permissionBtn.style.cursor = 'pointer';
@@ -387,13 +390,20 @@ function initializePWAAfterFirebase() {
 
    permissionBtn.addEventListener('click', (e) => {
     e.stopPropagation(); // Prevent drag event interference
-    console.log('Enable Notifications button clicked');
-    askNotificationPermission().then(result => {
-     console.log('Notification permission result:', result);
-     if (result === 'granted') {
-      btnContainer.remove();
-     }
-    });
+    console.log('Notification permission button clicked, current permission:', currentPermission);
+
+    if (currentPermission === 'denied') {
+     // For denied permission, show the browser permission guide
+     showBrowserPermissionGuide();
+    } else {
+     // For default permission, ask directly
+     askNotificationPermission().then(result => {
+      console.log('Notification permission result:', result);
+      if (result === 'granted') {
+       btnContainer.remove();
+      }
+     });
+    }
    });
 
    closeBtn.addEventListener('click', (e) => {
@@ -864,7 +874,7 @@ function initializePWAAfterFirebase() {
  function chkWhetherNotiAllowed(showAlert = 0) {
   if (!("Notification" in window)) {
    if (showAlert === 1) {
-    showToast('This browser does not support notifications', { type: 'warning' });
+    showToast('This browser does not support notifications', { type: 'error' });
    }
    return false;
   }
