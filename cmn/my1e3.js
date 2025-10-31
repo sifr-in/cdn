@@ -115,9 +115,9 @@ function getNumArrayFromObjArr(jsonArray, key) {
 }
 
 function createDynamicLoader(message = 'Loading...', countdown = null) {
-//const loader = createDynamicLoader();const loader = createDynamicLoader('wait ...');const loader = createDynamicLoader('wait ...', 5);
-//loader.removeLoader();
-//loader.updateCountdown(10); // Changes countdown to 10 seconds
+ //const loader = createDynamicLoader();const loader = createDynamicLoader('wait ...');const loader = createDynamicLoader('wait ...', 5);
+ //loader.removeLoader();
+ //loader.updateCountdown(10); // Changes countdown to 10 seconds
  const loader = document.createElement('div');
  loader.style.position = 'fixed';
  loader.style.top = '0';
@@ -130,7 +130,7 @@ function createDynamicLoader(message = 'Loading...', countdown = null) {
  loader.style.alignItems = 'center';
  loader.style.zIndex = '9999';
  loader.style.flexDirection = 'column';
- 
+
  // Create spinner container
  const spinnerContainer = document.createElement('div');
  spinnerContainer.style.position = 'relative';
@@ -139,7 +139,7 @@ function createDynamicLoader(message = 'Loading...', countdown = null) {
  spinnerContainer.style.alignItems = 'center';
  spinnerContainer.style.width = '4rem';
  spinnerContainer.style.height = '4rem';
- 
+
  // Create spinner
  const spinner = document.createElement('div');
  spinner.style.width = '100%';
@@ -148,56 +148,56 @@ function createDynamicLoader(message = 'Loading...', countdown = null) {
  spinner.style.borderTop = '4px solid #007bff';
  spinner.style.borderRadius = '50%';
  spinner.style.animation = 'spin 1s linear infinite';
- 
+
  // Add CSS for spinner animation
  if (!document.querySelector('#loader-spin-style')) {
-   const style = document.createElement('style');
-   style.id = 'loader-spin-style';
-   style.textContent = `
+  const style = document.createElement('style');
+  style.id = 'loader-spin-style';
+  style.textContent = `
      @keyframes spin {
        0% { transform: rotate(0deg); }
        100% { transform: rotate(360deg); }
      }
    `;
-   document.head.appendChild(style);
+  document.head.appendChild(style);
  }
- 
+
  spinnerContainer.appendChild(spinner);
- 
+
  // Create countdown element if countdown is provided
  let countdownElement = null;
  let countdownInterval = null;
- 
+
  if (countdown !== null) {
-   countdownElement = document.createElement('div');
-   countdownElement.style.position = 'absolute';
-   countdownElement.style.fontSize = '1.2rem';
-   countdownElement.style.fontWeight = 'bold';
-   countdownElement.style.color = '#007bff';
-   countdownElement.textContent = countdown;
-   spinnerContainer.appendChild(countdownElement);
-   
-   // Start countdown if it's a number
-   if (typeof countdown === 'number' && countdown > 0) {
-     let timeLeft = countdown;
-     countdownInterval = setInterval(() => {
-       timeLeft--;
-       countdownElement.textContent = timeLeft;
-       
-       if (timeLeft <= 0) {
-         clearInterval(countdownInterval);
-       }
-     }, 1000);
-   }
+  countdownElement = document.createElement('div');
+  countdownElement.style.position = 'absolute';
+  countdownElement.style.fontSize = '1.2rem';
+  countdownElement.style.fontWeight = 'bold';
+  countdownElement.style.color = '#007bff';
+  countdownElement.textContent = countdown;
+  spinnerContainer.appendChild(countdownElement);
+
+  // Start countdown if it's a number
+  if (typeof countdown === 'number' && countdown > 0) {
+   let timeLeft = countdown;
+   countdownInterval = setInterval(() => {
+    timeLeft--;
+    countdownElement.textContent = timeLeft;
+
+    if (timeLeft <= 0) {
+     clearInterval(countdownInterval);
+    }
+   }, 1000);
+  }
  }
- 
+
  // Create message element
  const messageElement = document.createElement('div');
  messageElement.style.marginTop = '1rem';
  messageElement.style.color = 'white';
  messageElement.style.fontSize = '1.1rem';
  messageElement.textContent = message;
- 
+
  // Create loader content container
  const loaderContent = document.createElement('div');
  loaderContent.style.display = 'flex';
@@ -205,37 +205,37 @@ function createDynamicLoader(message = 'Loading...', countdown = null) {
  loaderContent.style.alignItems = 'center';
  loaderContent.appendChild(spinnerContainer);
  loaderContent.appendChild(messageElement);
- 
+
  loader.appendChild(loaderContent);
- 
+
  // Add method to remove loader and clean up interval
- loader.removeLoader = function() {
-   if (countdownInterval) {
-     clearInterval(countdownInterval);
-   }
-   if (document.body.contains(this)) {
-     document.body.removeChild(this);
-   }
+ loader.removeLoader = function () {
+  if (countdownInterval) {
+   clearInterval(countdownInterval);
+  }
+  if (document.body.contains(this)) {
+   document.body.removeChild(this);
+  }
  };
- 
+
  // Add method to update countdown
- loader.updateCountdown = function(newCountdown) {
-   if (countdownElement && typeof newCountdown === 'number') {
+ loader.updateCountdown = function (newCountdown) {
+  if (countdownElement && typeof newCountdown === 'number') {
+   clearInterval(countdownInterval);
+   let timeLeft = newCountdown;
+   countdownElement.textContent = timeLeft;
+
+   countdownInterval = setInterval(() => {
+    timeLeft--;
+    countdownElement.textContent = timeLeft;
+
+    if (timeLeft <= 0) {
      clearInterval(countdownInterval);
-     let timeLeft = newCountdown;
-     countdownElement.textContent = timeLeft;
-     
-     countdownInterval = setInterval(() => {
-       timeLeft--;
-       countdownElement.textContent = timeLeft;
-       
-       if (timeLeft <= 0) {
-         clearInterval(countdownInterval);
-       }
-     }, 1000);
-   }
+    }
+   }, 1000);
+  }
  };
- 
+
  document.body.appendChild(loader);
  return loader;
 }
@@ -393,7 +393,7 @@ async function loadExecFn(fnsToChk, fnsToRun, pFNarams = [], idOfLoader, scriptU
    }
   }
  } catch (e) {
-  console.error('loadExecFn params:', {fnsToChk,fnsToRun,pFNarams,idOfLoader,scriptUrl,pSCRParams});
+  console.error('loadExecFn params:', { fnsToChk, fnsToRun, pFNarams, idOfLoader, scriptUrl, pSCRParams });
   console.error('Error:', e.message);
   alert(`Error: ${e.message}. Please retry or contact support.`);
  } finally {
@@ -873,7 +873,7 @@ function chkIfLoggedIn() {
    if (!my1uzr.mk || my1uzr.mk.length < 1) {
     if (typeof dontShoLoginConfirmation !== 'undefined' && null !== dontShoLoginConfirmation && 1 == dontShoLoginConfirmation) {
      localStorage.setItem(my1uzr.worknOnPg, 'true');
-     resolve({ su: 0, ms: "u must be logged in" });
+     resolve({ su: 1, ms: "u must be logged in" });
     } else {
      resolve({ su: 0, ms: "Login again." });
     }
@@ -884,7 +884,7 @@ function chkIfLoggedIn() {
   } else {
    if (typeof dontShoLoginConfirmation !== 'undefined' && null !== dontShoLoginConfirmation && 1 == dontShoLoginConfirmation) {
     localStorage.setItem(my1uzr.worknOnPg, 'true');
-    resolve({ su: 0, ms: "u must be logged in" });
+    resolve({ su: 1, ms: "u must be logged in" });
    } else {
     const dialog = document.createElement('div');
     dialog.style.position = 'fixed';
@@ -932,7 +932,11 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
    return Promise.reject(new Error("first accept login"));
   } else if (t343mp.su == 0) {
    if (shoLoginByOas2orByPas1 > 0) {
-    await chkLoadLoginExists(shoLoginByOas2orByPas1);
+    if (shoLoginByOas2orByPas1 == 2) {
+     await loadExecFn('open_shoLgnO', 'open_shoLgnO', ['dv_to_set_processed_dom', 0, 1, 2], 'loader', 'https://my1.in/0.0000000000/lo.js', []);
+    } else {
+     await chkLoadLoginExists(shoLoginByOas2orByPas1);
+    }
     return Promise.reject(new Error("Login required"));
    } else {
     return Promise.reject(new Error(JSON.stringify(t343mp)));
@@ -1542,23 +1546,23 @@ function initializeHistoryState() {
 
 function handleUniversalBackButton() {
  console.log('Universal back button handler triggered');
- 
+
  // Clear existing timeout
  if (backButtonTimeout) {
   clearTimeout(backButtonTimeout);
  }
- 
+
  // Increment press count
  backButtonPressCount++;
- 
+
  console.log(`Back button pressed ${backButtonPressCount} time(s), Modal stack: ${modalStack.length}`);
- 
+
  // Set timeout to reset counter after 2 seconds
  backButtonTimeout = setTimeout(() => {
   console.log('Resetting back button counter');
   backButtonPressCount = 0;
  }, 500);
- 
+
  // Handle based on press count and modal stack
  if (backButtonPressCount === 1) {
   return handleFirstBackPress();
@@ -1567,7 +1571,7 @@ function handleUniversalBackButton() {
  } else if (backButtonPressCount >= 3) {
   return handleThirdBackPress();
  }
- 
+
  return true;
 }
 
@@ -1575,10 +1579,10 @@ function handleFirstBackPress() {
  if (modalStack.length > 0) {
   // Close top modal
   const modalClosed = closeTopModalFromStack();
-  
+
   if (modalClosed) {
    const remainingModals = modalStack.length;
-   
+
    if (remainingModals > 0) {
     // Still more modals open
     if (remainingModals >= 2) {
@@ -1597,7 +1601,7 @@ function handleFirstBackPress() {
   showToast(`2-exit`);
   return true;
  }
- 
+
  return false;
 }
 
@@ -1605,7 +1609,7 @@ function handleSecondBackPress() {
  if (modalStack.length > 0) {
   // Close all remaining modals
   const modalsClosed = closeAllModalsUniversally();
-  
+
   if (modalsClosed > 0) {
    showToast(`Closed all modals. Press back 3 times to exit`);
    backButtonPressCount = 2; // Set to 2 so next press will be third
@@ -1617,7 +1621,7 @@ function handleSecondBackPress() {
   backButtonPressCount = 2; // Set to 2 so next press will be third
   return true;
  }
- 
+
  return false;
 }
 
@@ -1628,7 +1632,7 @@ function handleThirdBackPress() {
   clearTimeout(backButtonTimeout);
   backButtonTimeout = null;
  }
- 
+
  // Allow exit
  console.log('Third back press - allowing exit');
  return false; // Don't handle, let browser exit
@@ -1643,9 +1647,9 @@ function closeTopModalFromStack() {
  // Get the topmost modal (last in the stack - highest z-index)
  const topModalId = modalStack[modalStack.length - 1];
  console.log(`Closing top modal from stack: ${topModalId}`);
- 
+
  const modalElement = document.getElementById(topModalId);
- 
+
  if (modalElement) {
   return closeModalElement(modalElement);
  } else {
@@ -1659,10 +1663,10 @@ function closeTopModalFromStack() {
 function closeAllModalsUniversally() {
  console.log('Closing ALL remaining modals');
  let closedCount = 0;
- 
+
  // Close from top of stack to bottom (reverse order)
  const modalsToClose = [...modalStack].reverse();
- 
+
  for (const modalId of modalsToClose) {
   const modalElement = document.getElementById(modalId);
   if (modalElement) {
@@ -1671,12 +1675,12 @@ function closeAllModalsUniversally() {
    }
   }
  }
- 
+
  // Force cleanup
  cleanupModalArtifacts();
  modalStack = [];
  modalZIndexCounter = 1050;
- 
+
  console.log(`Closed ${closedCount} modals`);
  return closedCount;
 }
@@ -1705,18 +1709,18 @@ function closeModalElement(modal) {
   if (modal.classList.contains('show')) {
    modal.style.display = 'none';
    modal.classList.remove('show');
-   
+
    // Remove backdrop if exists
    const backdrops = document.querySelectorAll('.modal-backdrop');
    if (backdrops.length > 0) {
     backdrops[backdrops.length - 1].remove();
    }
-   
+
    // Reset body styles
    document.body.classList.remove('modal-open');
    document.body.style.overflow = '';
    document.body.style.paddingRight = '';
-   
+
    removeModalFromStack(modalId);
    console.log(`Closed via class removal: ${modalId}`);
    return true;
@@ -1910,179 +1914,179 @@ function getRandomColor() {
 }
 
 function makeDraggable(element) {
-    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-    let isDragging = false;
-    
-    element.onmousedown = dragMouseDown;
-    element.ontouchstart = dragTouchStart;
-    
-    function dragMouseDown(e) {
-        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'I') {
-            return; // Don't drag if clicking on button or icon
-        }
-        
-        e.preventDefault();
-        e.stopPropagation();
-        
-        isDragging = true;
-        
-        // Get the initial mouse cursor position
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        
-        // Change cursor to grabbing
-        element.style.cursor = 'grabbing';
-        
-        // Call functions whenever the cursor moves
-        document.onmouseup = closeDragElement;
-        document.onmousemove = elementDrag;
-        
-        // Prevent text selection while dragging
-        document.body.style.userSelect = 'none';
+ let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+ let isDragging = false;
+
+ element.onmousedown = dragMouseDown;
+ element.ontouchstart = dragTouchStart;
+
+ function dragMouseDown(e) {
+  if (e.target.tagName === 'BUTTON' || e.target.tagName === 'I') {
+   return; // Don't drag if clicking on button or icon
+  }
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  isDragging = true;
+
+  // Get the initial mouse cursor position
+  pos3 = e.clientX;
+  pos4 = e.clientY;
+
+  // Change cursor to grabbing
+  element.style.cursor = 'grabbing';
+
+  // Call functions whenever the cursor moves
+  document.onmouseup = closeDragElement;
+  document.onmousemove = elementDrag;
+
+  // Prevent text selection while dragging
+  document.body.style.userSelect = 'none';
+ }
+
+ function dragTouchStart(e) {
+  if (e.target.tagName === 'BUTTON' || e.target.tagName === 'I') {
+   return; // Don't drag if touching on button or icon
+  }
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  isDragging = true;
+
+  const touch = e.touches[0];
+  pos3 = touch.clientX;
+  pos4 = touch.clientY;
+
+  element.style.cursor = 'grabbing';
+
+  document.ontouchend = closeDragElement;
+  document.ontouchmove = elementTouchDrag;
+
+  document.body.style.userSelect = 'none';
+ }
+
+ function elementDrag(e) {
+  if (!isDragging) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  // Calculate the new cursor position
+  pos1 = pos3 - e.clientX;
+  pos2 = pos4 - e.clientY;
+  pos3 = e.clientX;
+  pos4 = e.clientY;
+
+  updateElementPosition();
+ }
+
+ function elementTouchDrag(e) {
+  if (!isDragging) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  const touch = e.touches[0];
+  pos1 = pos3 - touch.clientX;
+  pos2 = pos4 - touch.clientY;
+  pos3 = touch.clientX;
+  pos4 = touch.clientY;
+
+  updateElementPosition();
+ }
+
+ function updateElementPosition() {
+  // Get current position
+  const currentTop = parseInt(element.style.top) || (window.innerHeight - element.offsetHeight - 20);
+  const currentLeft = parseInt(element.style.left) || (window.innerWidth - element.offsetWidth - 20);
+
+  // Calculate new position
+  const newTop = currentTop - pos2;
+  const newLeft = currentLeft - pos1;
+
+  // Keep within viewport bounds (accounting for scroll)
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+  const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+
+  const maxTop = scrollY + viewportHeight - element.offsetHeight - 5;
+  const minTop = scrollY + 5;
+  const maxLeft = scrollX + viewportWidth - element.offsetWidth - 5;
+  const minLeft = scrollX + 5;
+
+  element.style.top = Math.max(minTop, Math.min(newTop, maxTop)) + 'px';
+  element.style.left = Math.max(minLeft, Math.min(newLeft, maxLeft)) + 'px';
+  element.style.bottom = 'auto';
+  element.style.right = 'auto';
+ }
+
+ function closeDragElement() {
+  if (!isDragging) return;
+
+  isDragging = false;
+
+  // Stop moving when mouse button is released
+  document.onmouseup = null;
+  document.onmousemove = null;
+  document.ontouchend = null;
+  document.ontouchmove = null;
+
+  element.style.cursor = 'grab';
+
+  // Restore text selection
+  document.body.style.userSelect = '';
+ }
+
+ // Handle window resize to keep element in viewport
+ window.addEventListener('resize', () => {
+  const rect = element.getBoundingClientRect();
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+  const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+
+  // Check if element is outside viewport after resize
+  if (rect.bottom > viewportHeight || rect.right > viewportWidth || rect.top < 0 || rect.left < 0) {
+   // Reposition to bottom right if out of bounds
+   element.style.top = 'auto';
+   element.style.left = 'auto';
+   element.style.bottom = '20px';
+   element.style.right = '20px';
+  }
+ });
+
+ // Handle scroll to maintain position relative to viewport
+ let scrollTimeout;
+ window.addEventListener('scroll', () => {
+  if (!isDragging) {
+   // Debounce scroll events for performance
+   clearTimeout(scrollTimeout);
+   scrollTimeout = setTimeout(() => {
+    const rect = element.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+
+    // If element is fixed positioned, adjust for scroll
+    if (element.style.position === 'fixed') {
+     // For fixed elements, we don't need to adjust for scroll
+     return;
     }
-    
-    function dragTouchStart(e) {
-        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'I') {
-            return; // Don't drag if touching on button or icon
-        }
-        
-        e.preventDefault();
-        e.stopPropagation();
-        
-        isDragging = true;
-        
-        const touch = e.touches[0];
-        pos3 = touch.clientX;
-        pos4 = touch.clientY;
-        
-        element.style.cursor = 'grabbing';
-        
-        document.ontouchend = closeDragElement;
-        document.ontouchmove = elementTouchDrag;
-        
-        document.body.style.userSelect = 'none';
+
+    // Check if element needs repositioning due to scroll
+    if (rect.bottom > viewportHeight || rect.right > viewportWidth || rect.top < 0 || rect.left < 0) {
+     // Calculate new position relative to current viewport
+     const newTop = Math.max(5, Math.min(rect.top, viewportHeight - rect.height - 5));
+     const newLeft = Math.max(5, Math.min(rect.left, viewportWidth - rect.width - 5));
+
+     element.style.top = newTop + 'px';
+     element.style.left = newLeft + 'px';
     }
-    
-    function elementDrag(e) {
-        if (!isDragging) return;
-        
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // Calculate the new cursor position
-        pos1 = pos3 - e.clientX;
-        pos2 = pos4 - e.clientY;
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        
-        updateElementPosition();
-    }
-    
-    function elementTouchDrag(e) {
-        if (!isDragging) return;
-        
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const touch = e.touches[0];
-        pos1 = pos3 - touch.clientX;
-        pos2 = pos4 - touch.clientY;
-        pos3 = touch.clientX;
-        pos4 = touch.clientY;
-        
-        updateElementPosition();
-    }
-    
-    function updateElementPosition() {
-        // Get current position
-        const currentTop = parseInt(element.style.top) || (window.innerHeight - element.offsetHeight - 20);
-        const currentLeft = parseInt(element.style.left) || (window.innerWidth - element.offsetWidth - 20);
-        
-        // Calculate new position
-        const newTop = currentTop - pos2;
-        const newLeft = currentLeft - pos1;
-        
-        // Keep within viewport bounds (accounting for scroll)
-        const viewportHeight = window.innerHeight;
-        const viewportWidth = window.innerWidth;
-        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
-        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-        
-        const maxTop = scrollY + viewportHeight - element.offsetHeight - 5;
-        const minTop = scrollY + 5;
-        const maxLeft = scrollX + viewportWidth - element.offsetWidth - 5;
-        const minLeft = scrollX + 5;
-        
-        element.style.top = Math.max(minTop, Math.min(newTop, maxTop)) + 'px';
-        element.style.left = Math.max(minLeft, Math.min(newLeft, maxLeft)) + 'px';
-        element.style.bottom = 'auto';
-        element.style.right = 'auto';
-    }
-    
-    function closeDragElement() {
-        if (!isDragging) return;
-        
-        isDragging = false;
-        
-        // Stop moving when mouse button is released
-        document.onmouseup = null;
-        document.onmousemove = null;
-        document.ontouchend = null;
-        document.ontouchmove = null;
-        
-        element.style.cursor = 'grab';
-        
-        // Restore text selection
-        document.body.style.userSelect = '';
-    }
-    
-    // Handle window resize to keep element in viewport
-    window.addEventListener('resize', () => {
-        const rect = element.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        const viewportWidth = window.innerWidth;
-        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
-        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-        
-        // Check if element is outside viewport after resize
-        if (rect.bottom > viewportHeight || rect.right > viewportWidth || rect.top < 0 || rect.left < 0) {
-            // Reposition to bottom right if out of bounds
-            element.style.top = 'auto';
-            element.style.left = 'auto';
-            element.style.bottom = '20px';
-            element.style.right = '20px';
-        }
-    });
-    
-    // Handle scroll to maintain position relative to viewport
-    let scrollTimeout;
-    window.addEventListener('scroll', () => {
-        if (!isDragging) {
-            // Debounce scroll events for performance
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(() => {
-                const rect = element.getBoundingClientRect();
-                const viewportHeight = window.innerHeight;
-                const viewportWidth = window.innerWidth;
-                
-                // If element is fixed positioned, adjust for scroll
-                if (element.style.position === 'fixed') {
-                    // For fixed elements, we don't need to adjust for scroll
-                    return;
-                }
-                
-                // Check if element needs repositioning due to scroll
-                if (rect.bottom > viewportHeight || rect.right > viewportWidth || rect.top < 0 || rect.left < 0) {
-                    // Calculate new position relative to current viewport
-                    const newTop = Math.max(5, Math.min(rect.top, viewportHeight - rect.height - 5));
-                    const newLeft = Math.max(5, Math.min(rect.left, viewportWidth - rect.width - 5));
-                    
-                    element.style.top = newTop + 'px';
-                    element.style.left = newLeft + 'px';
-                }
-            }, 50);
-        }
-    });
+   }, 50);
+  }
+ });
 }
 
 // Replace the existing DOMContentLoaded handler
