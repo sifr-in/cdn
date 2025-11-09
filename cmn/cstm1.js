@@ -1,5 +1,9 @@
 async function set_cstm1_innerHTML(...params) {
  const c_ontainer_blank_main = document.getElementById(params[0]);
+ 
+ // Check if we should show the ad
+ const showAd = typeof dontShowAdOn_cstm1_js === 'undefined' || dontShowAdOn_cstm1_js !== 1;
+ 
  c_ontainer_blank_main.innerHTML = `
     <div class="container-fluid p-0"> <!-- Changed from p-4 to p-0 -->
       <div class="row g-0"> <!-- Added g-0 to remove gutters -->
@@ -8,6 +12,23 @@ async function set_cstm1_innerHTML(...params) {
             <div class="card-header bg-primary text-white">
               <h4 class="mb-0"><i class="fas fa-file-excel me-2"></i>Excel to PDF Converter</h4>
             </div>
+            ${showAd ? `
+            <!-- Advertisement Section -->
+            <div class="text-center p-2 border-bottom">
+              <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5594579046538353"
+                   crossorigin="anonymous"></script>
+              <!-- vertical_saru_thorat -->
+              <ins class="adsbygoogle"
+                   style="display:block"
+                   data-ad-client="ca-pub-5594579046538353"
+                   data-ad-slot="2060311920"
+                   data-ad-format="auto"
+                   data-full-width-responsive="true"></ins>
+              <script>
+                   (adsbygoogle = window.adsbygoogle || []).push({});
+              </script>
+            </div>
+            ` : ''}
             <div>* col 1 = name (not Number); * col 2 must be mobile numbers (if multiple / divided by); * col 3 = adrs 1, col 4 = adrs 2, col 5 = city, * col 6 must be "6" digit pin code; col 7 payment type "COD"; col 8 = amt; col 9 = product name/s;</div>
             <div class="card-body p-3"> <!-- Reduced padding -->
               <!-- File Upload Section -->
