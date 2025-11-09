@@ -873,10 +873,8 @@ function chkIfLoggedIn() {
    if (!my1uzr.mk || my1uzr.mk.length < 1) {
     if (typeof dontShoLoginConfirmation !== 'undefined' && null !== dontShoLoginConfirmation && 1 == dontShoLoginConfirmation) {
      localStorage.setItem(my1uzr.worknOnPg, 'true');
-     resolve({ su: 1, ms: "u must be logged in" });
-    } else {
-     resolve({ su: 0, ms: "Login again." });
     }
+     resolve({ su: 0, ms: "Login again." });
    } else {
     const longNumber = parseInt(my1uzr.mk.slice(-10), 10);
     resolve({ su: 1, ms: "Session expired" });
@@ -2102,3 +2100,4 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
+
