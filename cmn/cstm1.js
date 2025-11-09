@@ -8,6 +8,7 @@ async function set_cstm1_innerHTML(...params) {
             <div class="card-header bg-primary text-white">
               <h4 class="mb-0"><i class="fas fa-file-excel me-2"></i>Excel to PDF Converter</h4>
             </div>
+            <div>* col 1 = name (not Number); * col 2 must be mobile numbers (if multiple / divided by); * col 3 = adrs 1, col 4 = adrs 2, col 5 = city, * col 6 must be "6" digit pin code; col 7 payment type "COD"; col 8 = amt; col 9 = product name/s;</div>
             <div class="card-body p-3"> <!-- Reduced padding -->
               <!-- File Upload Section -->
               <div class="row mb-4">
@@ -77,17 +78,17 @@ async function handleExcelFile(event) {
  try {
   const rawData = await readExcelFile(file);
   const { data, isValid, validationErrors } = validateAndCleanExcelData(rawData);
-  
+
   if (showTableView) {
    displayTableView(data, validationErrors);
   } else {
    displayCardsPreview(data, validationErrors);
   }
-  
+
   // Enable/disable buttons based on validation
   document.getElementById("generatePdfBtn").disabled = !isValid;
   document.getElementById("printCardsBtn").disabled = !isValid;
-  
+
   // Create payload0.pi only if data is valid
   if (isValid) {
    payload0.pi = createPiObjectFromExcelData(data[0], data.slice(1));
@@ -95,7 +96,7 @@ async function handleExcelFile(event) {
    payload0.pi = []; // Empty it if validation errors
    showValidationErrors(validationErrors);
   }
-  
+
  } catch (error) {
   console.error("Error reading Excel file:", error);
   showError("Error reading Excel file: " + error.message);
@@ -112,14 +113,17 @@ function validateAndCleanExcelData(data) {
 
  const headers = data[0];
  const rows = data.slice(1).filter((row) => row.length > 0);
- 
+
  let isValid = true;
  const validationErrors = [];
- 
+
+ // Track seen mobile + pincode combinations for duplicate detection
+ const seenCombinations = new Map();
+
  const validatedRows = rows.map((row, rowIndex) => {
   const cleanedRow = [...row];
   const rowErrors = [];
-  
+
   // 1. 1st column cannot be a number column
   if (cleanedRow[0] !== undefined && cleanedRow[0] !== null && cleanedRow[0] !== '') {
    const value = cleanedRow[0].toString().trim();
@@ -128,40 +132,67 @@ function validateAndCleanExcelData(data) {
     isValid = false;
    }
   }
-  
-  // 2. 2nd column must be a 10-digit mobile number
+
+  // 2. 2nd column must contain valid 10-digit mobile number(s)
+  let mobileNumbers = [];
   if (cleanedRow[1] !== undefined && cleanedRow[1] !== null && cleanedRow[1] !== '') {
-   let mobile = cleanedRow[1].toString().trim();
-   // Remove all non-digit characters
-   mobile = mobile.replace(/\D/g, '');
-   
-   // Remove leading zero if present
-   if (mobile.startsWith('0')) {
-    mobile = mobile.substring(1);
-   }
-   
-   // Validate it's exactly 10 digits
-   if (mobile.length !== 10 || !/^\d{10}$/.test(mobile)) {
-    rowErrors.push({ column: 1, message: "Must be a 10-digit mobile number" });
+   const rawMobile = cleanedRow[1].toString().trim();
+
+   // Split by slash and validate each number
+   const numbers = rawMobile.split('/')
+    .map(num => num.trim())
+    .filter(num => num.length > 0);
+
+   let hasValidNumber = false;
+
+   numbers.forEach((num, index) => {
+    let mobile = num;
+    // Remove all non-digit characters and spaces
+    mobile = mobile.replace(/[\s\-]/g, '').replace(/\D/g, '');
+
+    // Remove leading zero if present
+    if (mobile.startsWith('0')) {
+     mobile = mobile.substring(1);
+    }
+
+    // Validate it's exactly 10 digits
+    if (mobile.length === 10 && /^\d{10}$/.test(mobile)) {
+     hasValidNumber = true;
+     mobileNumbers.push(mobile);
+    } else if (num.trim().length > 0) {
+     rowErrors.push({
+      column: 1,
+      message: `Invalid mobile number format: "${num.trim()}"`
+     });
+     isValid = false;
+    }
+   });
+
+   if (numbers.length > 0 && !hasValidNumber) {
+    rowErrors.push({ column: 1, message: "No valid 10-digit mobile numbers found" });
     isValid = false;
    }
-   cleanedRow[1] = mobile;
+
+   // Store the original mobile data for display, first valid number for validation
+   cleanedRow[1] = rawMobile; // Keep original format for display
+   cleanedRow._mobileNumbers = mobileNumbers; // Store valid numbers for payload
   } else {
-   rowErrors.push({ column: 1, message: "Mobile number is required" });
+   rowErrors.push({ column: 1, message: "At least one mobile number is required" });
    isValid = false;
   }
-  
+
   // 3. 6th column must be a 6-digit pincode
+  let pincode = '';
   if (cleanedRow[5] !== undefined && cleanedRow[5] !== null && cleanedRow[5] !== '') {
-   let pincode = cleanedRow[5].toString().trim();
+   pincode = cleanedRow[5].toString().trim();
    // Remove all non-digit characters
    pincode = pincode.replace(/\D/g, '');
-   
+
    // Remove leading zero if present
    if (pincode.startsWith('0')) {
     pincode = pincode.substring(1);
    }
-   
+
    // Validate it's exactly 6 digits
    if (pincode.length !== 6 || !/^\d{6}$/.test(pincode)) {
     rowErrors.push({ column: 5, message: "Must be a 6-digit pincode" });
@@ -172,19 +203,19 @@ function validateAndCleanExcelData(data) {
    rowErrors.push({ column: 5, message: "Pincode is required" });
    isValid = false;
   }
-  
+
   // 4. 8th column must be a number (amount)
   if (cleanedRow[7] !== undefined && cleanedRow[7] !== null && cleanedRow[7] !== '') {
    let amount = cleanedRow[7].toString().trim();
    // Remove any currency symbols, commas, and spaces
    amount = amount.replace(/[₹$,]/g, '').replace(/\s/g, '');
-   
+
    // Handle cases where amount might have decimal points
    // Remove everything after decimal point for integer values
    if (amount.includes('.')) {
     amount = amount.split('.')[0];
    }
-   
+
    // Validate it's a valid number
    if (!/^\d+$/.test(amount)) {
     rowErrors.push({ column: 7, message: "Must be a valid number" });
@@ -195,33 +226,134 @@ function validateAndCleanExcelData(data) {
    rowErrors.push({ column: 7, message: "Amount is required" });
    isValid = false;
   }
-  
+
+  // Check for duplicates (mobile + pincode combination) for EACH mobile number
+  if (mobileNumbers.length > 0 && pincode) {
+   mobileNumbers.forEach(mobile => {
+    const combination = `${mobile}-${pincode}`;
+    if (seenCombinations.has(combination)) {
+     const duplicateRow = seenCombinations.get(combination);
+     rowErrors.push({
+      column: 1,
+      message: `Duplicate mobile+pincode combination (${mobile}) found (also in row ${duplicateRow + 2})`
+     });
+     isValid = false;
+    } else {
+     seenCombinations.set(combination, rowIndex);
+    }
+   });
+  }
+
   if (rowErrors.length > 0) {
    validationErrors.push({
     rowIndex: rowIndex + 2, // +2 because header is row 1 and Excel rows start from 1
     errors: rowErrors
    });
   }
-  
+
   return cleanedRow;
  });
- 
- return { 
-  data: [headers, ...validatedRows], 
+
+ return {
+  data: [headers, ...validatedRows],
   isValid,
   validationErrors
  };
+}
+
+// Updated function to create pi object from Excel data with multiple mobile number support
+function createPiObjectFromExcelData(headers, rows) {
+ const piArray = [];
+
+ rows.forEach((row) => {
+  // Process mobile numbers (2nd column) - handle multiple numbers separated by "/"
+  let mobileNumbers = [];
+  if (row._mobileNumbers && row._mobileNumbers.length > 0) {
+   mobileNumbers = row._mobileNumbers;
+  } else if (row[1]) {
+   // Fallback: clean and split mobile numbers from original data
+   const rawMobile = row[1].toString().trim();
+
+   // Split by slash and clean each number
+   mobileNumbers = rawMobile.split('/')
+    .map(num => num.trim())
+    .filter(num => num.length > 0)
+    .map(num => {
+     // Remove all non-digit characters and spaces
+     let cleanNum = num.replace(/[\s\-]/g, '').replace(/\D/g, '');
+
+     // Remove leading zero if present
+     if (cleanNum.startsWith('0')) {
+      cleanNum = cleanNum.substring(1);
+     }
+
+     // Only keep valid 10-digit numbers
+     return cleanNum.length === 10 && /^\d{10}$/.test(cleanNum) ? cleanNum : null;
+    })
+    .filter(num => num !== null);
+  }
+
+  // If no valid mobile numbers found, create one entry with empty mobile
+  if (mobileNumbers.length === 0) {
+   const piObject = createPiObject("", row);
+   piArray.push(piObject);
+  } else {
+   // Create separate payload entries for each mobile number
+   mobileNumbers.forEach(mobile => {
+    const piObject = createPiObject(mobile, row);
+    piArray.push(piObject);
+   });
+  }
+ });
+
+ return piArray;
+}
+
+// Helper function to create individual pi object
+function createPiObject(mobile, row) {
+ const piObject = {};
+
+ // Process mobile number with "91." prefix
+ if (mobile) {
+  piObject.e = `91.${mobile}`;
+ } else {
+  piObject.e = "";
+ }
+
+ // Process pincode (6th column)
+ if (row[5]) {
+  piObject.f = row[5].toString();
+ } else {
+  piObject.f = "";
+ }
+
+ // Process name (1st column)
+ if (row[0]) {
+  piObject.g = row[0].toString();
+ } else {
+  piObject.g = "";
+ }
+
+ // Process address (3rd + 4th + 5th columns)
+ const addressParts = [];
+ if (row[2]) addressParts.push(row[2].toString());
+ if (row[3]) addressParts.push(row[3].toString());
+ if (row[4]) addressParts.push(row[4].toString());
+
+ piObject.h = addressParts.join(", ");
+
+ return piObject;
 }
 
 // Function to show validation errors with orange highlighting
 function showValidationErrors(validationErrors) {
  // Remove any existing error display
  hideValidationErrors();
- 
+
  const errorDiv = document.createElement("div");
  errorDiv.id = "validation-errors";
  errorDiv.className = "alert alert-warning alert-dismissible fade show mt-3";
- 
+
  let errorHTML = `
     <strong><i class="fas fa-exclamation-triangle me-2"></i>Data Validation Issues Found:</strong>
     <p class="mb-2">Please fix the following issues in your Excel file:</p>
@@ -236,7 +368,7 @@ function showValidationErrors(validationErrors) {
         </thead>
         <tbody>
   `;
- 
+
  validationErrors.forEach(error => {
   error.errors.forEach(colError => {
    const columnName = getColumnName(colError.column);
@@ -249,7 +381,7 @@ function showValidationErrors(validationErrors) {
       `;
   });
  });
- 
+
  errorHTML += `
         </tbody>
       </table>
@@ -259,9 +391,9 @@ function showValidationErrors(validationErrors) {
     </div>
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
   `;
- 
+
  errorDiv.innerHTML = errorHTML;
- 
+
  // Insert after the file input section
  const cardBody = document.querySelector(".card-body");
  const fileSection = cardBody.querySelector(".row.mb-4");
@@ -277,52 +409,10 @@ function hideValidationErrors() {
 
 function getColumnName(columnIndex) {
  const columns = [
-  "1st (Name)", "2nd (Mobile)", "3rd", "4th", "5th", 
+  "1st (Name)", "2nd (Mobile)", "3rd", "4th", "5th",
   "6th (Pincode)", "7th", "8th (Amount)", "9th"
  ];
  return columns[columnIndex] || `Column ${columnIndex + 1}`;
-}
-
-// New function to create pi object from Excel data
-function createPiObjectFromExcelData(headers, rows) {
- const piArray = [];
- 
- rows.forEach((row) => {
-  const piObject = {};
-  
-  // Process mobile number (2nd column) with "91." prefix
-  if (row[1]) {
-   piObject.e = `91.${row[1]}`;
-  } else {
-   piObject.e = "";
-  }
-  
-  // Process pincode (6th column)
-  if (row[5]) {
-   piObject.f = row[5].toString();
-  } else {
-   piObject.f = "";
-  }
-  
-  // Process name (1st column)
-  if (row[0]) {
-   piObject.g = row[0].toString();
-  } else {
-   piObject.g = "";
-  }
-  
-  // Process address (3rd + 4th + 5th columns)
-  const addressParts = [];
-  if (row[2]) addressParts.push(row[2].toString());
-  if (row[3]) addressParts.push(row[3].toString());
-  if (row[4]) addressParts.push(row[4].toString());
-  
-  piObject.h = addressParts.join(", ");
-  
-  piArray.push(piObject);
- });
- 
- return piArray;
 }
 
 function displayTableView(data, validationErrors = []) {
@@ -404,7 +494,7 @@ function displayTableView(data, validationErrors = []) {
    td.textContent = rowData[colIndex] || "";
    td.style.wordWrap = "break-word";
    td.style.maxWidth = "200px";
-   
+
    // Check if this cell is invalid
    const cellKey = `${rowIndex}-${colIndex}`;
    if (invalidCells.has(cellKey)) {
@@ -412,7 +502,7 @@ function displayTableView(data, validationErrors = []) {
     td.style.borderColor = "#ffc107";
     td.title = invalidCells.get(cellKey);
    }
-   
+
    tr.appendChild(td);
   });
 
@@ -531,12 +621,12 @@ function createPreviewCardElement(headers, rowData, index, isInvalid = false) {
   topLeft.appendChild(line1);
  }
 
- // Add 2nd column data (Mobile) - Bigger font but not bold
+ // Add 2nd column data (Mobile) - Show original format with multiple numbers
  if (headers[1] && rowData[1]) {
   const line2 = document.createElement("div");
   line2.style.fontSize = "12px";
   line2.style.marginBottom = "3px";
-  line2.textContent = rowData[1];
+  line2.textContent = rowData[1]; // Show original format with slashes
   topLeft.appendChild(line2);
  }
 
@@ -656,14 +746,14 @@ function createPreviewCardElement(headers, rowData, index, isInvalid = false) {
  cardHeader.className = "card-header py-1 d-flex justify-content-between align-items-center";
  cardHeader.style.backgroundColor = isInvalid ? "#fff3cd" : "#f8f9fa";
  cardHeader.style.borderBottom = isInvalid ? "1px solid #ffc107" : "1px solid rgba(0,0,0,.125)";
- 
+
  const headerText = document.createElement("span");
  headerText.style.fontSize = "12px";
  headerText.style.fontWeight = "bold";
  headerText.textContent = `Card ${index}`;
- 
+
  cardHeader.appendChild(headerText);
- 
+
  if (isInvalid) {
   const warningIcon = document.createElement("i");
   warningIcon.className = "fas fa-exclamation-triangle text-warning";
@@ -1128,11 +1218,11 @@ function createPrintCardElement(headers, rowData, index, config) {
   topLeft.appendChild(line1);
  }
 
- // Add 2nd column data (Mobile) - Bigger font but not bold
+ // Add 2nd column data (Mobile) - Show original format with multiple numbers
  if (headers[1] && rowData[1]) {
   const line2 = document.createElement("div");
   line2.style.cssText = `font-size: ${(config.ltfo || 7) + 1}pt; margin-bottom: 0.5mm;`;
-  line2.textContent = rowData[1];
+  line2.textContent = rowData[1]; // Show original format with slashes
   topLeft.appendChild(line2);
  }
 
@@ -1314,7 +1404,7 @@ async function generatePDF() {
  try {
   payload0.fn = 54;
   payload0.vw = 1;
-  
+
   // payload0.pi is already prepared from handleExcelFile with only required fields
   console.log("Sending payload0.pi:", payload0.pi); // For debugging
 
@@ -1323,7 +1413,7 @@ async function generatePDF() {
    // Continue with PDF generation using html2canvas
    const data = await readExcelFile(fileInput.files[0]);
    const { data: validatedData } = validateAndCleanExcelData(data);
-   
+
    if (!validatedData || validatedData.length === 0) {
     showError("No data found in the Excel file");
     return;
@@ -1584,10 +1674,10 @@ function createPDFCardElement(headers, rowData, index, config) {
  line1.textContent = headers[0] && rowData[0] ? rowData[0] : " ";
  topLeft.appendChild(line1);
 
- // Add 2nd column data (Mobile) - Bigger font but not bold
+ // Add 2nd column data (Mobile) - Show original format with multiple numbers
  const line2 = document.createElement("div");
  line2.style.cssText = `font-size: ${config.ltfo + 1}pt; margin-bottom: 1mm; min-height: 1.2em;`;
- line2.textContent = headers[1] && rowData[1] ? rowData[1] : " ";
+ line2.textContent = headers[1] && rowData[1] ? rowData[1] : " "; // Show original format with slashes
  topLeft.appendChild(line2);
 
  // Concatenate columns 3, 4, 5 with ", "
