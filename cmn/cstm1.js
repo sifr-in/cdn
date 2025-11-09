@@ -117,8 +117,8 @@ function validateAndCleanExcelData(data) {
  let isValid = true;
  const validationErrors = [];
 
- // Track seen mobile + pincode combinations for duplicate detection
- const seenCombinations = new Map();
+ // Track seen mobile numbers for duplicate detection
+ const seenMobileNumbers = new Map();
 
  const validatedRows = rows.map((row, rowIndex) => {
   const cleanedRow = [...row];
@@ -227,19 +227,18 @@ function validateAndCleanExcelData(data) {
    isValid = false;
   }
 
-  // Check for duplicates (mobile + pincode combination) for EACH mobile number
-  if (mobileNumbers.length > 0 && pincode) {
+  // Check for duplicates (mobile number only) for EACH mobile number
+  if (mobileNumbers.length > 0) {
    mobileNumbers.forEach(mobile => {
-    const combination = `${mobile}-${pincode}`;
-    if (seenCombinations.has(combination)) {
-     const duplicateRow = seenCombinations.get(combination);
+    if (seenMobileNumbers.has(mobile)) {
+     const duplicateRow = seenMobileNumbers.get(mobile);
      rowErrors.push({
       column: 1,
-      message: `Duplicate mobile+pincode combination (${mobile}) found (also in row ${duplicateRow + 2})`
+      message: `Duplicate mobile number (${mobile}) found (also in row ${duplicateRow + 2})`
      });
      isValid = false;
     } else {
-     seenCombinations.set(combination, rowIndex);
+     seenMobileNumbers.set(mobile, rowIndex);
     }
    });
   }
