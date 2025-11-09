@@ -1075,7 +1075,7 @@ function loadLoginSystem(shoLoginByOas2orByPas1, fnNmToCreateLoginModal) {
    return;
   }
 
-  let lognScrptUrl = "https://cdn.jsdelivr.net/gh/sifr-in/cdn/cmn/my1lp.js";
+  let lognScrptUrl = "https://cdn.jsdelivr.net/gh/sifr-in/cdn@59ed0c0/cmn/my1lp.js";
   if (shoLoginByOas2orByPas1 == 2) lognScrptUrl = "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7c51d7f/cmn/my1lo.js";
 
   loadScript(lognScrptUrl, () => {
@@ -2100,4 +2100,5 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
+
 
