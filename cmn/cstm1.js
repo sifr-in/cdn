@@ -1,9 +1,5 @@
 async function set_cstm1_innerHTML(...params) {
  const c_ontainer_blank_main = document.getElementById(params[0]);
- 
- // Check if we should show the ad
- const showAd = typeof dontShowAdOn_cstm1_js === 'undefined' || dontShowAdOn_cstm1_js !== 1;
- 
  c_ontainer_blank_main.innerHTML = `
     <div class="container-fluid p-0"> <!-- Changed from p-4 to p-0 -->
       <div class="row g-0"> <!-- Added g-0 to remove gutters -->
@@ -12,23 +8,6 @@ async function set_cstm1_innerHTML(...params) {
             <div class="card-header bg-primary text-white">
               <h4 class="mb-0"><i class="fas fa-file-excel me-2"></i>Excel to PDF Converter</h4>
             </div>
-            ${showAd ? `
-            <!-- Advertisement Section -->
-            <div class="text-center p-2 border-bottom">
-              <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5594579046538353"
-                   crossorigin="anonymous"></script>
-              <!-- vertical_saru_thorat -->
-              <ins class="adsbygoogle"
-                   style="display:block"
-                   data-ad-client="ca-pub-5594579046538353"
-                   data-ad-slot="2060311920"
-                   data-ad-format="auto"
-                   data-full-width-responsive="true"></ins>
-              <script>
-                   (adsbygoogle = window.adsbygoogle || []).push({});
-              </script>
-            </div>
-            ` : ''}
             <div>* col 1 = name (not Number); * col 2 must be mobile numbers (if multiple / divided by); * col 3 = adrs 1, col 4 = adrs 2, col 5 = city, * col 6 must be "6" digit pin code; col 7 payment type "COD"; col 8 = amt; col 9 = product name/s;</div>
             <div class="card-body p-3"> <!-- Reduced padding -->
               <!-- File Upload Section -->
@@ -84,6 +63,31 @@ async function set_cstm1_innerHTML(...params) {
  // Add event listener for file input
  const fileInput = document.getElementById("excelFileInput");
  fileInput.addEventListener("change", handleExcelFile);
+}
+
+function createAdContainer() {
+ const adContainer = document.createElement('div');
+
+ // Create the ins element
+ const insElement = document.createElement('ins');
+ insElement.className = 'adsbygoogle';
+ insElement.style.display = 'inline-block';
+ insElement.style.width = '320px';
+ insElement.style.height = '50px';
+ insElement.dataset.adClient = 'ca-pub-5594579046538353';
+ insElement.dataset.adSlot = '1287000278';
+
+ adContainer.appendChild(insElement);
+
+ // Create and append the script if needed
+ if (!window.adsbygoogle) {
+  const script = document.createElement('script');
+  script.async = true;
+  script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+  adContainer.appendChild(script);
+ }
+
+ return adContainer;
 }
 
 async function handleExcelFile(event) {
@@ -497,7 +501,7 @@ function displayTableView(data, validationErrors = []) {
  // Create table body
  const tbody = document.createElement("tbody");
 
- // Add rows
+ // Add rows with ads after every 2 rows
  rows.forEach((rowData, rowIndex) => {
   const tr = document.createElement("tr");
 
@@ -527,6 +531,25 @@ function displayTableView(data, validationErrors = []) {
   });
 
   tbody.appendChild(tr);
+
+  // Add ad after every 2 rows (after row 2, 4, 6, etc.)
+  if ((rowIndex + 1) % 2 === 0) {
+   const adRow = document.createElement("tr");
+   const adCell = document.createElement("td");
+   adCell.colSpan = headers.length + 1; // +1 for the index column
+   adCell.style.padding = "10px";
+   adCell.style.textAlign = "center";
+   adCell.style.backgroundColor = "#f8f9fa";
+
+   // Create and append ad container
+   const adContainer = createAdContainer();
+   adContainer.style.margin = "0 auto";
+   adContainer.style.display = "inline-block";
+
+   adCell.appendChild(adContainer);
+   adRow.appendChild(adCell);
+   tbody.appendChild(adRow);
+  }
  });
 
  table.appendChild(tbody);
@@ -539,6 +562,13 @@ function displayTableView(data, validationErrors = []) {
  const validRows = rows.length - new Set(validationErrors.map(e => e.rowIndex - 2)).size;
  summary.innerHTML = `<small>Showing ${rows.length} rows and ${headers.length} columns. ${validRows} valid rows, ${validationErrors.length} rows with issues.</small>`;
  previewDiv.appendChild(summary);
+
+ // Initialize ads after they are added to DOM
+ setTimeout(() => {
+  if (window.adsbygoogle) {
+   (adsbygoogle = window.adsbygoogle || []).push({});
+  }
+ }, 100);
 }
 
 function displayCardsPreview(data, validationErrors = []) {
@@ -566,11 +596,25 @@ function displayCardsPreview(data, validationErrors = []) {
  const gridContainer = document.createElement("div");
  gridContainer.className = "row g-3";
 
- // Add cards for each row
+ // Add cards for each row with ads below each card
  rows.forEach((rowData, index) => {
   const isInvalid = invalidRows.has(index);
   const card = createPreviewCardElement(headers, rowData, index + 1, isInvalid);
   gridContainer.appendChild(card);
+
+  // Add ad container below each card
+  const adCol = document.createElement("div");
+  adCol.className = "col-12 col-sm-6 col-lg-4";
+  adCol.style.marginTop = "10px";
+  adCol.style.marginBottom = "20px";
+
+  const adContainer = createAdContainer();
+  adContainer.style.margin = "0 auto";
+  adContainer.style.display = "block";
+  adContainer.style.textAlign = "center";
+
+  adCol.appendChild(adContainer);
+  gridContainer.appendChild(adCol);
  });
 
  previewDiv.appendChild(gridContainer);
@@ -581,6 +625,13 @@ function displayCardsPreview(data, validationErrors = []) {
  const validCards = rows.length - invalidRows.size;
  summary.innerHTML = `<small>Showing ${rows.length} cards. ${validCards} valid cards, ${invalidRows.size} cards with issues.</small>`;
  previewDiv.appendChild(summary);
+
+ // Initialize ads after they are added to DOM
+ setTimeout(() => {
+  if (window.adsbygoogle) {
+   (adsbygoogle = window.adsbygoogle || []).push({});
+  }
+ }, 100);
 }
 
 function createPreviewCardElement(headers, rowData, index, isInvalid = false) {
