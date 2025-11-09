@@ -931,9 +931,9 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
   } else if (t343mp.su == 0) {
    if (shoLoginByOas2orByPas1 > 0) {
     if (shoLoginByOas2orByPas1 == 2) {
-     await loadExecFn('open_shoLgnO', 'open_shoLgnO', ['dv_to_set_open_shoLgnO_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@9afe19f/cmn/my1lo.js', []);
+     await loadExecFn('open_shoLgnO', 'open_shoLgnO', ['dv_to_set_open_shoLgnO_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@90c6519/cmn/my1lo.js', []);
     } else {
-     await loadExecFn('open_shoLgnP', 'open_shoLgnP', ['dv_to_set_open_shoLgnP_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@59ed0c0/cmn/my1lp.js', []);
+     await loadExecFn('open_shoLgnP', 'open_shoLgnP', ['dv_to_set_open_shoLgnP_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@c68ab18/cmn/my1lp.js', []);
     }
     return Promise.reject(new Error("Login required"));
    } else {
@@ -2100,3 +2100,4 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
+
