@@ -326,8 +326,11 @@ function initializePWAAfterFirebase() {
   // Handle modal close
   modalInstance._element.addEventListener('hidden.bs.modal', () => {
    // If neither option was selected, set temporary dismissal
-   if (!dontShowWeekCheckbox.checked && !dontShowEverCheckbox.checked) {
+   if (dontShowWeekCheckbox.checked) {
     setInstallPromptDismissed();
+   }
+   if (dontShowEverCheckbox.checked) {
+    setInstallDontAskAgain();
    }
   });
 
