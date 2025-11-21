@@ -866,7 +866,18 @@ function showToast(message, options = {}) {
 
  return { dismiss };
 }
-
+async function checkInternetConnection() {
+    try {
+        const response = await fetch('https://www.google.com/favicon.ico', {
+            method: 'HEAD',
+            mode: 'no-cors',
+            cache: 'no-cache'
+        });
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
 function chkIfLoggedIn() {
  return new Promise((resolve) => {
   if (my1uzr != null && localStorage.getItem(my1uzr.worknOnPg)) {
@@ -924,6 +935,16 @@ function chkIfLoggedIn() {
 
 async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderId = null, timeout = 20000, maxRetries = 0, shoLoginByOas2orByPas1 = 0, registerAtOwnerIfNotRegistered = 1) {
  try {
+        // Check internet connection first
+        if (!navigator.onLine) {
+            return Promise.reject(new Error("Connect to network"));
+        }
+        // Optional: More robust check
+        const isConnected = await checkInternetConnection();
+        if (!isConnected) {
+            return Promise.reject(new Error("No stable internet connection"));
+        }
+  
   const t343mp = await chkIfLoggedIn();
 
   if (t343mp.su == 2) {
@@ -2100,5 +2121,6 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
+
 
 
