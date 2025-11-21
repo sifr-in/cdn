@@ -460,7 +460,8 @@ function initializePWAAfterFirebase() {
  function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
    const swUrl = 'https://my1.in/my1sw.js';
-   const scope = `${window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1)}`;
+   //const scope = `${window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1)}`;
+   const scope = `${window.location.pathname}`;
 
    // Show loader when service worker is being registered
    const loader = createDynamicLoader('Wait Restarting', 5);
