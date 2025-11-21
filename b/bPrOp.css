@@ -1,0 +1,106 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 9px;
+  size: A5;
+}
+
+.invoice-container {
+  margin: auto;
+  border: 1px solid #000;
+  padding: 5px;
+}
+
+.header {
+  text-align: center;
+  border-bottom: 2px solid #000;
+  margin-bottom: 10px;
+  display: flex;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  border: 1px solid black;
+  padding: 5px;
+}
+
+.header h1,
+h2 {
+  margin: 0;
+}
+
+.header p {
+  margin: 2px 0;
+}
+
+.details {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  margin-top: 5px;
+}
+
+.table-container {
+  width: 100%;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#table-div-right {
+  table-layout: fixed;
+}
+
+#table-div-left {
+  table-layout: fixed;
+}
+
+table,
+th,
+td {
+  border: 1px solid #cdcdcd;
+}
+
+th {
+  text-align: center;
+  padding: 3px;
+}
+
+td {
+  text-align: center;
+  padding: 2px;
+  font-size: 85%;
+}
+
+#table-div-right td {
+  width: 20%;
+}
+
+#table-div-left td {
+  width: 20%;
+}
+
+.footer {
+  display: flex;
+  margin-top: 10px;
+}
+
+#tables {
+  display: flex;
+  flex-direction: row;
+}
+
+#table-div-left {
+  width: 100%;
+}
+
+#table-div-right {
+  width: 100%;
+}
+
+.clnt_box {
+  margin: 3px;
+  font-size: 90%;
+}
+#bodyToPrint {
+  margin: 2px;
+}
