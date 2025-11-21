@@ -329,7 +329,7 @@ async function set_bill_innerHTML(...params) {
                   </button>
                 </div>
                 <div class="col-4">
-                  <button class="btn btn-info w-100" id="printBtn" disabled onclick='window.open("bPrOp.html?b=" + billTableRowId)'>
+                  <button class="btn btn-info w-100" id="printBtn" disabled onclick='printBill(billTableRowId)'>
                     <i class="fas fa-print me-2"></i>Print
                   </button>
                 </div>
@@ -413,6 +413,61 @@ enableSaveBtn();
 if (typeof billingRequisit_be === 'function') {
     billingRequisit_be();
 }
+}
+function printBill(billTableRowId) {
+ if (!billTableRowId || billTableRowId === 0) {
+  showToast('Please save the bill first before printing');
+  return;
+ }
+
+ const modal = create_modal_dynamically('bill_print_modal');
+ const modalContent = modal.contentElement;
+ const modalInstance = modal.modalInstance;
+
+ modalContent.innerHTML = `
+     <div class="modal-header">
+         <h5 class="modal-title">Print Bill #${billTableRowId}</h5>
+         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+     </div>
+     <div class="modal-body p-0">
+         <div class="d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
+             <button class="btn btn-primary btn-sm" onclick="printIframeContent('billPrintIframe')">
+                 <i class="fas fa-print me-2"></i>Print
+             </button>
+             <button class="btn btn-outline-secondary btn-sm" onclick="reloadIframe('billPrintIframe')">
+                 <i class="fas fa-redo me-2"></i>Reload
+             </button>
+         </div>
+         <iframe 
+             id="billPrintIframe" 
+             src="https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4906b1/b/bPrOp.html?b=${billTableRowId}" 
+             style="width: 100%; height: 70vh; border: none;"
+             onload="onBillIframeLoad(this)"
+         ></iframe>
+     </div>
+     <div class="modal-footer">
+         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+     </div>
+ `;
+ modalInstance.show();
+}
+function printIframeContent(iframeId) {
+ const iframe = document.getElementById(iframeId);
+ if (iframe && iframe.contentWindow) {
+  iframe.contentWindow.print();
+ } else {
+  showToast('Cannot access print content');
+ }
+}
+function reloadIframe(iframeId) {
+ const iframe = document.getElementById(iframeId);
+ if (iframe) {
+  iframe.src = iframe.src; // Reload by resetting src
+  showToast('Bill reloaded');
+ }
+}
+function onBillIframeLoad(iframe) {
+ console.log('Bill print iframe loaded successfully');
 }
 
 async function showBillCards() {
@@ -3133,4 +3188,5 @@ document.addEventListener('click', function(e) {
 function temporaryAlertFunction(billId) {
     // Implement temporary alert functionality
     console.log('Temporary alert for bill:', billId);
+
 }
