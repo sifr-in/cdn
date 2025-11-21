@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=1024">
+ <link rel="icon" href="https://i.postimg.cc/c4p2XhDW/my1.jpg" type="image/jpg" />
+ <script src="https://cdn.jsdelivr.net/gh/sifr-in/cdn@39ef3cc/cmn/my1e3.min.js"></script>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+  integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+  crossorigin="anonymous" referrerpolicy="no-referrer" />
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sifr-in/cdn@a30ac23/cmn/bPrOp.min.js" />
+ <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+ <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+ <title>Invoice</title>
+ <script src="my1.js"></script>
+ <!--<script src="https://my1.in/5y/opti_prnt.js"></script>-->
+ <!--<script src="https://my1.in/5z/e.js"></script>-->
+ <script>
+  const clientConfig = {
+   optiInvoice: "Invoice:",
+   optiCompNm: "Rashtriya Optician",
+   optiShoSrNo: 0,
+   printMo: "<b>Mo:</b><br>+91 8888444056",
+   printInvoice: "Sales Invoice",
+   printCompNm: "Rashtriya Optician",
+   printAdrs: "2119, C ward, Near Shaniwar post office, Kolhapur",
+   printSubjectTo: "Mo: 8888444056\u2003\u2003\u2003\u2003\u2003\u2003Subject to Kolhapur jurisdiction",
+   printPartyTtl: "Name:",
+   printPavtiTtl: "Invoice no.:",
+   printMobTtl: "Mo.No.:",
+   printBilDtTtl: "Date:",
+   printAdrsTtl: "Address:",
+   printDeliveryDtTtl: "Delivery:",
+   printTxAmtTtl: "Total:",
+   printAdvAmtTtl: "Received:",
+   printForTtl: "For<br><br>Rashtriya Optician",
+   printRefByTtl: "Referred by:\u2003"
+  }
+
+  let appData;
+  let tblFailureCount = 1;
+  let dbInitialized = false;
+
+  // Main initialization function
+  (async () => {
+   try {
+    // Load required scripts
+    await loadPromiseScript("https://cdn.jsdelivr.net/gh/sifr-in/cdn@a30ac23/cmn/be.min.js");
+    await loadPromiseScript("https://cdn.jsdelivr.net/gh/sifr-in/cdn@880d404/cmn/my1xi.min.js");
+
+    // Initialize database
+    const createResult = await dbDexieManager.handleNwTables("loader", dbnm, ["fn44"]);
+    tblFailureCount = createResult.failureCount;
+
+    dbInitialized = true;
+
+    if (document.readyState === 'loading') {
+     document.addEventListener('DOMContentLoaded', loadContents);
+    } else {
+     loadContents();
+    }
+
+   } catch (error) {
+    console.error("Initialization failed:", error);
+    alert("Initialization error - please refresh");
+   }
+  })();
+ </script>
+</head>
+
+<body>
+ <button id="dnld_A4">Verti 1/2 on A4</button>
+ <button id="dnld_A4_A5">Print A5 Horiz on A4</button>
+ <button id="dnld_A5">Verti on A5</button>
+ <button id="dnld_jpg">Download image</button>
+ <input id="in_font_size" type="text" style="width:55px;" autocomplete="off" /><button id="bt_font_size">check font size
+  in percentage</button>
+ <a id="wa_floating_lnk" href="https://sifr.in" target="_blank">
+  <i style="font-size: 2rem;text-shadow: #2e302d 1px 0 10px;color: green;" class="fa-brands fa-whatsapp"></i>
+ </a>
+
+ <div id="bodyToPrint" class="invoice-container">
+  <div class="header">
+   <div style="text-align: center;width:100%;">
+    <p id="printNm" style="font-size:75%;"></p>
+    <h2 id="companyNm"></h2>
+    <p id="companyAddr" style="font-size:80%;"></p>
+    <p id="compContact" style="margin: 1%;"></p>
+    <p id="subjectTo" style="font-size:75%;"></p>
+   </div>
+   <div style="text-align: right;display:none;">
+    <p id="reffered-by"></p>
+   </div>
+  </div>
+
+  <div id="inRow" class="details">
+   <div style="width:70%;">
+    <p id="inName" class="clnt_box"></p>
+    <p id="inMob" class="clnt_box"></p>
+    <p id="inAddr" class="clnt_box"></p>
+   </div>
+   <div>
+    <p id="inNum" class="clnt_box"></p>
+    <p id="inDate1" class="clnt_box"></p>
+    <p id="inDate2" class="clnt_box" style="font-size:80%"></p>
+   </div>
+  </div>
+
+  <div id="tables">
+   <div id="table-div-right" style="border-right-style: 1px solid #000;">
+    <table>
+     <thead>
+      <tr>
+       <th style="background:lightgray;"><i class="fa-solid fa-r"></i></th>
+       <td style="text-align: center;">SPH</td>
+       <td style="text-align: center;">CYL</td>
+       <td style="text-align: center;">AXIS</td>
+       <td style="text-align: center;">V/N</td>
+      </tr>
+     </thead>
+     <tbody>
+      <tr>
+       <td>DV</td>
+       <td id="rDvSph" style="text-align: center;"></td>
+       <td id="rDvCyl" style="text-align: center;"></td>
+       <td id="rDvAxis" style="text-align: center;"></td>
+       <td id="rDvV/n" style="text-align: center;"></td>
+      </tr>
+      <tr>
+       <td>NV</td>
+       <td id="rNvSph" style="text-align: center;"></td>
+       <td id="rNvCyl" style="text-align: center;"></td>
+       <td id="rNvAxis" style="text-align: center;"></td>
+       <td id="rNvV/n" style="text-align: center;"></td>
+      </tr>
+     </tbody>
+     <tfoot>
+      <tr>
+       <td>ADD</td>
+       <td id="rAdd" colspan="4"></td>
+      </tr>
+      <tr>
+       <td>PD</td>
+       <td id="rPd" colspan="4"></td>
+      </tr>
+     </tfoot>
+    </table>
+   </div>
+
+   <div id="table-div-left" style="border-left-style: 1px solid #000;">
+    <table>
+     <thead>
+      <tr>
+       <th style="background:lightgray;"><i class="fa-solid fa-l"></i></th>
+       <td style="text-align: center;">SPH</td>
+       <td style="text-align: center;">CYL</td>
+       <td style="text-align: center;">AXIS</td>
+       <td style="text-align: center;">V/N</td>
+      </tr>
+     </thead>
+     <tbody>
+      <tr>
+       <td>DV</td>
+       <td id="lDvSph" style="text-align: center;"></td>
+       <td id="lDvCyl" style="text-align: center;"></td>
+       <td id="lDvAxis" style="text-align: center;"></td>
+       <td id="lDvV/n" style="text-align: center;"></td>
+      </tr>
+      <tr>
+       <td>NV</td>
+       <td id="lNvSph" style="text-align: center;"></td>
+       <td id="lNvCyl" style="text-align: center;"></td>
+       <td id="lNvAxis" style="text-align: center;"></td>
+       <td id="lNvV/n" style="text-align: center;"></td>
+      </tr>
+     </tbody>
+     <tfoot>
+      <tr>
+       <td>ADD</td>
+       <td id="lAdd" colspan="4"></td>
+      </tr>
+      <tr>
+       <td>PD</td>
+       <td id="lPd" colspan="4"></td>
+      </tr>
+     </tfoot>
+    </table>
+   </div>
+  </div>
+
+  <p id="ref_by_ttl" style="font-size:75%;"></p>
+
+  <div class="table-container">
+   <table>
+    <thead>
+     <tr>
+      <th>Sn.</th>
+      <th>Details</th>
+      <th style="text-align: right;">Qty</th>
+      <th style="text-align: right;">Price</th>
+      <th style="text-align: right;">Amt</th>
+     </tr>
+    </thead>
+    <tbody id="items">
+    </tbody>
+    <tfoot>
+     <tr>
+      <td colspan="4" style="text-align: right;"><span id="amtInWrd"></span>&emsp;&emsp;&emsp;<b id="totalTtl"></b>
+      </td>
+      <td id="taxable" style="border:2px solid black;text-align: right;"></td>
+     </tr>
+     <tr id="discountRow" style="display: none;">
+      <td colspan="4" style="text-align: right;"><b>Discount</b></td>
+      <td id="discount_amt" style="border:2px solid black;text-align: right;"></td>
+     </tr>
+     <tr>
+      <td colspan="4" style="text-align: right;"><b id="advTtl"></b></td>
+      <td id="advance_amt" style="border:2px solid black;text-align: right;"></td>
+     </tr>
+     <tr>
+      <td></td>
+      <td style="text-align: center;"></td>
+      <td id="quan-total" style="text-align: right;"></td>
+      <td style="text-align: right;"><b>Due Amt:</b></td>
+      <td id="totals" style="border:2px solid black;text-align: right;"></td>
+     </tr>
+    </tfoot>
+   </table>
+  </div>
+
+  <div class="footer">
+   <div id="remark" style="width:75%;">
+   </div>
+   <p id="lTSelect"></p>
+   <p id="for" style="width:24%;margin:0;"></p>
+  </div>
+ </div>
+ <script>
+  let flnm = "www.sifr.in.pdf";
+
+  function increaseFontSize(percent) {
+   const allElements = document.querySelectorAll('*');
+   allElements.forEach(element => {
+    const currentFontSize = window.getComputedStyle(element, null).getPropertyValue('font-size');
+    const currentFontSizeNumber = parseFloat(currentFontSize);
+    const newFontSize = currentFontSizeNumber * (1 + percent / 100);
+    element.style.fontSize = newFontSize + 'px';
+   });
+  }
+
+  const i_n_font_size = document.getElementById('in_font_size');
+  const b_t_font_size = document.getElementById('bt_font_size');
+  b_t_font_size.addEventListener('click', function (e) {
+   e.preventDefault();
+   increaseFontSize(i_n_font_size.value);
+  });
+
+  function loadContents() {
+   (async () => {
+    try {
+     if (!dbInitialized) {
+      console.error("Database not initialized");
+      alert("Database not available. Please refresh the page.");
+      return;
+     }
+
+     let whatsAppLnkTxt = "";
+
+     const p = Object.fromEntries(new URLSearchParams(location.search));
+     if (p != null && p.b != null) {
+      const stored_bill = await dbDexieManager.getAllRecords(dbnm, "b") || [];
+      if (stored_bill != null && stored_bill.length > 0) {
+       const curr_bill_info = stored_bill.find(c => c.a == p.b);
+       if (curr_bill_info != null) {
+        if (curr_bill_info.g != null) {
+         const clientReferrerArray = await dbDexieManager.getAllRecords(dbnm, "c") || [];
+         const info = clientReferrerArray.find(i => i.a == curr_bill_info.e);
+         name_client = info ? info.h + " " + info.i : null;
+         mob_client = info ? info.e : null;
+         addr_client = info ? info.m : null;
+
+         const items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
+
+         const stored_eye_msrmnt = await dbDexieManager.getAllRecords(dbnm, "be") || [];
+         const eye_selected_msrmnt = stored_eye_msrmnt.find(item => item.ea == p.b);
+         let name_referrer = "";
+         if (eye_selected_msrmnt) {
+          setEyeMeasurement(eye_selected_msrmnt);
+          const objReferrer = clientReferrerArray.find(i => i.a == eye_selected_msrmnt.ef);
+          name_referrer = objReferrer ? objReferrer.h + " " + objReferrer.i : "";
+         }
+         const stored_bill_items = await dbDexieManager.getAllRecords(dbnm, "i") || [];
+         const sCurrItems = stored_bill_items.filter(item => item.e == p.b);
+
+         const stored_bill_cash_info = await dbDexieManager.getAllRecords(dbnm, "r") || [];
+         const sCurrCashInfo = stored_bill_cash_info.filter(item => item.td == p.b && item.tb == 7);
+
+         document.getElementById("printNm").innerText = clientConfig.printInvoice;
+         document.getElementById("companyNm").innerText = clientConfig.printCompNm;
+         document.getElementById("companyAddr").innerText = clientConfig.printAdrs;
+         document.getElementById("subjectTo").innerText = clientConfig.printSubjectTo;
+         document.getElementById("compContact").innerHTML = clientConfig.printMo;
+
+         document.getElementById("inNum").innerHTML = "" + clientConfig.printPavtiTtl + "&ensp;" + curr_bill_info.g;
+         document.getElementById("inName").innerHTML = "" + clientConfig.printPartyTtl + "&ensp;" + name_client;
+         document.getElementById("inMob").innerHTML = "" + clientConfig.printMobTtl + "&ensp;" + mob_client;
+
+         whatsAppLnkTxt = mob_client.replace(".", "") + "&text=" + "Hello, \n*" + name_client.trim() + "*\n" + "Thank you for choosing us.\n";
+         whatsAppLnkTxt = whatsAppLnkTxt + "Here are details of your voucher no." + curr_bill_info.g + "\n";
+
+         document.getElementById("inAddr").innerHTML = "" + clientConfig.printAdrsTtl + "&ensp;" + addr_client;
+         document.getElementById("inDate1").innerHTML = "" + clientConfig.printBilDtTtl + "" + convertDateFormatToIndia(new Date(curr_bill_info.f.slice(0, 10)));
+
+         flnm = name_client.trim() + "_" + curr_bill_info.g + "_" + document.getElementById("inDate1").innerHTML;
+
+         var t1682 = null;
+         var t1682 = null;
+         if (curr_bill_info.i != null) {
+          try {
+           let jsonString = curr_bill_info.i;
+
+           // Remove extra escaping and quotes
+           // Handle cases like: "\"{\\\"rmrk\\\":\\\"\\\",\\\"dldt\\\":\\\"2025-10-20 09:20\\\"}\""
+           jsonString = jsonString.replace(/^"+|"+$/g, ''); // Remove surrounding quotes
+           jsonString = jsonString.replace(/\\"/g, '"'); // Replace escaped quotes with regular quotes
+           jsonString = jsonString.replace(/\\\\/g, '\\'); // Replace double backslashes with single
+
+           // Try to parse as JSON first
+           try {
+            t1682 = JSON.parse(jsonString);
+
+            if (t1682.dldt) {
+             document.getElementById("inDate2").innerHTML = "" + clientConfig.printDeliveryDtTtl + "" + convertDateFormatToIndia(new Date(t1682.dldt.slice(0, 10)));
+            }
+           } catch (jsonError) {
+            // If JSON parsing fails, treat it as plain text for remarks only
+            console.log("Not a JSON object, treating as plain text for remarks");
+            t1682 = { rmrk: jsonString };
+           }
+
+          } catch (e) {
+           console.error("Error processing remark field:", e);
+           // Try fallback approaches
+           try {
+            // Check if it's a date string first
+            const dateMatch = curr_bill_info.i.match(/\d{4}-\d{2}-\d{2}/);
+            if (dateMatch) {
+             document.getElementById("inDate2").innerHTML = "" + clientConfig.printDeliveryDtTtl + "" + convertDateFormatToIndia(new Date(dateMatch[0]));
+             // The rest might be remarks
+             const remainingText = curr_bill_info.i.replace(/\d{4}-\d{2}-\d{2}.*?(\s|$)/, '').trim();
+             if (remainingText) {
+              t1682 = { rmrk: remainingText };
+             }
+            } else {
+             // If no date found, treat entire content as remarks
+             let plainText = curr_bill_info.i.replace(/^"+|"+$/g, '').replace(/\\"/g, '"');
+             t1682 = { rmrk: plainText };
+            }
+           } catch (e2) {
+            console.error("Fallback processing also failed:", e2);
+           }
+          }
+         }
+
+         let quanTotal = 0;
+         let taxable = 0;
+         const advanceAmt = getTotalAmtRcvd(sCurrCashInfo);
+         var serial = 1;
+         for (i in sCurrItems) {
+          const quantity = sCurrItems[i].h;
+          const price = sCurrItems[i].g / quantity;
+          const tprice = price;
+          quanTotal += parseInt(quantity);
+          taxable += parseFloat(sCurrItems[i].g);
+          const newRow = document.createElement("tr");
+
+          const serialTd = document.createElement("td");
+          serialTd.textContent = serial; serial = serial + 1;
+          newRow.appendChild(serialTd);
+
+          const foundITM = items.find(c => c.a == sCurrItems[i].f);
+
+          const itemNameTd = document.createElement("td");
+          let txt = "";
+          if (foundITM.gn != null && foundITM.gn != ".") {
+           txt = foundITM.gn;
+          }
+          if (sCurrItems[i].i != null && sCurrItems[i].i.length > 0) {
+           if (txt.length > 0)
+            txt = txt + "<br>" + sCurrItems[i].i;
+           else
+            txt = sCurrItems[i].i;
+          }
+          itemNameTd.innerHTML = txt;
+          itemNameTd.style.textAlign = 'left';
+          newRow.appendChild(itemNameTd);
+
+          const quantityTd = document.createElement("td");
+          quantityTd.textContent = sCurrItems[i].h;
+          quantityTd.style.textAlign = 'right';
+          newRow.appendChild(quantityTd);
+
+          const totalPriceTd = document.createElement("td");
+          totalPriceTd.textContent = parseFloat(tprice).toFixed(2);
+          totalPriceTd.style.textAlign = 'right';
+          newRow.appendChild(totalPriceTd);
+
+          const priceTd = document.createElement("td");
+          priceTd.textContent = parseFloat(sCurrItems[i].g).toFixed(2);
+          priceTd.style.textAlign = 'right';
+          newRow.appendChild(priceTd);
+
+          document.getElementById("items").appendChild(newRow);
+         }
+
+         document.getElementById("totalTtl").innerText = clientConfig.printTxAmtTtl;
+         document.getElementById("advTtl").innerText = clientConfig.printAdvAmtTtl;
+         document.getElementById("taxable").textContent = taxable.toFixed(2);
+         document.getElementById("advance_amt").textContent = advanceAmt.toFixed(2);
+
+         document.getElementById("quan-total").textContent = quanTotal;
+         const tmp1343 = (taxable - advanceAmt).toFixed(2);
+         const tmp2003 = (taxable).toFixed(0);
+         document.getElementById("amtInWrd").innerText = price_in_words(tmp2003);
+         document.getElementById("totals").textContent = tmp1343;
+
+         document.getElementById("ref_by_ttl").innerText = clientConfig.printRefByTtl + name_referrer;
+         if (t1682 != null) {
+          if (t1682.rmrk != null && t1682.rmrk.length > 0) {
+           let remarkText = t1682.rmrk;
+
+           // Clean up the text if it still has escaped characters
+           remarkText = remarkText.replace(/^"+|"+$/g, '').replace(/\\"/g, '"');
+
+           // Remove any remaining JSON structure if it failed to parse properly
+           if (remarkText.includes('{') || remarkText.includes('}') || remarkText.includes('rmrk') || remarkText.includes('dldt')) {
+            // Try to extract just the text content
+            const textMatch = remarkText.match(/"rmrk"\s*:\s*"([^"]*)"/);
+            if (textMatch && textMatch[1]) {
+             remarkText = textMatch[1];
+            }
+           }
+
+           document.getElementById("remark").innerHTML = "<b>Note: </b>" + remarkText;
+          }
+         }
+         document.getElementById("for").innerHTML = clientConfig.printForTtl;
+
+         let formattedArray;
+         if (curr_bill_info.k != null && parseFloat(curr_bill_info.k) > 0) {
+          const discountAmt = parseFloat(curr_bill_info.k);
+          const dueAfterDiscount = taxable - discountAmt - advanceAmt;
+          formattedArray = formatNumbers([taxable.toFixed(2), discountAmt.toFixed(2), advanceAmt.toFixed(2), dueAfterDiscount.toFixed(2)]);
+         } else {
+          formattedArray = formatNumbers([taxable.toFixed(2), advanceAmt.toFixed(2), (taxable - advanceAmt).toFixed(2)]);
+         }
+
+         // Check if discount exists and add discount row
+         if (curr_bill_info.k != null && parseFloat(curr_bill_info.k) > 0) {
+          const discountAmt = parseFloat(curr_bill_info.k);
+          document.getElementById("discountRow").style.display = "table-row";
+          document.getElementById("discount_amt").textContent = discountAmt.toFixed(2);
+
+          // Update the due amount calculation to include discount
+          const tmp1343 = (taxable - discountAmt - advanceAmt).toFixed(2);
+          document.getElementById("totals").textContent = tmp1343;
+
+          // Update WhatsApp message to include discount
+          whatsAppLnkTxt = whatsAppLnkTxt + "`" + formattedArray[0] + "` total\n";
+          whatsAppLnkTxt = whatsAppLnkTxt + "`" + discountAmt.toFixed(2) + "` discount\n";
+          whatsAppLnkTxt = whatsAppLnkTxt + "`" + formattedArray[1] + "` received\n";
+          whatsAppLnkTxt = whatsAppLnkTxt + "`" + tmp1343 + "` balance\n*" + clientConfig.printCompNm + "*";
+         } else {
+          // Original calculation without discount
+          const tmp1343 = (taxable - advanceAmt).toFixed(2);
+          document.getElementById("totals").textContent = tmp1343;
+
+          // Original WhatsApp message
+          whatsAppLnkTxt = whatsAppLnkTxt + "`" + formattedArray[0] + "` total\n";
+          whatsAppLnkTxt = whatsAppLnkTxt + "`" + formattedArray[1] + "` received\n";
+          whatsAppLnkTxt = whatsAppLnkTxt + "`" + formattedArray[2] + "` balance\n*" + clientConfig.printCompNm + "*";
+         }
+
+         const w_a_floating_lnk = document.getElementById("wa_floating_lnk");
+         w_a_floating_lnk.href = "https://api.whatsapp.com/send?phone=" + encodeURI(whatsAppLnkTxt);
+
+        } else {
+         alert("Bill information incomplete");
+        }
+       } else {
+        alert("Bill info not found");
+       }
+      } else {
+       alert("No bills data available");
+      }
+     } else {
+      alert("Bill ID required to print");
+     }
+    } catch (error) {
+     console.error("Error loading contents:", error);
+     alert("Error loading invoice data");
+    }
+   })();
+  }
+
+  document.getElementById('dnld_A4').addEventListener('click', function (e) {
+   e.preventDefault();
+   let b_odyToPrint = document.getElementById('bodyToPrint');
+   html2pdf(b_odyToPrint, {
+    margin: 2,
+    filename: flnm + '_verti_half_on_A4.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+     scale: 1,
+     useCORS: true,
+     allowTaint: true
+    },
+    jsPDF: {
+     unit: 'mm',
+     format: 'A4',
+     orientation: 'portrait'
+    }
+   });
+  });
+
+  document.getElementById('dnld_A4_A5').addEventListener('click', function () {
+   const element = document.getElementById('bodyToPrint');
+
+   const opt = {
+    margin: 0,
+    filename: flnm + '_print_A5_horiz_on_A4.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+     scale: 2,
+     useCORS: true,
+     allowTaint: true
+    },
+    jsPDF: {
+     unit: 'mm',
+     format: 'a4',
+     orientation: 'landscape',
+    },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+   };
+
+   const wrapper = document.createElement("div");
+   wrapper.style.width = "210mm";
+   wrapper.style.height = "210mm";
+   wrapper.style.display = "flex";
+   wrapper.style.margin = "2%";
+
+   const clone = element.cloneNode(true);
+   clone.style.width = "148mm";
+   clone.style.height = "210mm";
+   clone.style.top = "0";
+   clone.style.transform = "scale(0.8)";
+   clone.style.transformOrigin = "top left";
+
+   wrapper.appendChild(clone);
+
+   html2pdf().set(opt).from(wrapper).save();
+  });
+
+  document.getElementById('dnld_A5').addEventListener('click', function (e) {
+   e.preventDefault();
+   let b_odyToPrint = document.getElementById('bodyToPrint');
+   html2pdf(b_odyToPrint, {
+    margin: 2,
+    filename: flnm + '_verti_on_A5.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+     scale: 2,
+     useCORS: true,
+     allowTaint: true
+    },
+    jsPDF: {
+     unit: 'mm',
+     format: 'a5',
+     orientation: 'portrait'
+    }
+   });
+  });
+
+  document.getElementById('dnld_jpg').addEventListener('click', function (e) {
+   e.preventDefault();
+   let element = document.getElementById('bodyToPrint');
+
+   html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    allowTaint: true
+   }).then(canvas => {
+    let link = document.createElement('a');
+    link.download = flnm + '.jpg';
+    link.href = canvas.toDataURL('image/jpeg', 0.98);
+    link.click();
+   });
+  });
+
+  function getTotalAmtRcvd(sCurrCashInfo) {
+   let tot442 = 0;
+   for (var k in sCurrCashInfo) {
+    tot442 += parseFloat(sCurrCashInfo[k].j);
+   }
+   return tot442;
+  }
+
+  function price_in_words(price) {
+   var sglDigit = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"],
+    dblDigit = ["Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"],
+    tensPlace = ["", "Ten", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"],
+    handle_tens = function (dgt, prevDgt) {
+     return 0 == dgt ? "" : " " + (1 == dgt ? dblDigit[prevDgt] : tensPlace[dgt])
+    },
+    handle_utlc = function (dgt, nxtDgt, denom) {
+     return (0 != dgt && 1 != nxtDgt ? " " + sglDigit[dgt] : "") + (0 != nxtDgt || dgt > 0 ? " " + denom : "")
+    };
+
+   var str = "",
+    digitIdx = 0,
+    digit = 0,
+    nxtDigit = 0,
+    words = [];
+   if (price += "", isNaN(parseInt(price))) str = "";
+   else if (parseInt(price) > 0 && price.length <= 10) {
+    for (digitIdx = price.length - 1; digitIdx >= 0; digitIdx--) switch (digit = price[digitIdx] - 0, nxtDigit = digitIdx > 0 ? price[digitIdx - 1] - 0 : 0, price.length - digitIdx - 1) {
+     case 0:
+      words.push(handle_utlc(digit, nxtDigit, ""));
+      break;
+     case 1:
+      words.push(handle_tens(digit, price[digitIdx + 1]));
+      break;
+     case 2:
+      words.push(0 != digit ? " " + sglDigit[digit] + " Hundred" + (0 != price[digitIdx + 1] && 0 != price[digitIdx + 2] ? " and" : "") : "");
+      break;
+     case 3:
+      words.push(handle_utlc(digit, nxtDigit, "Thousand"));
+      break;
+     case 4:
+      words.push(handle_tens(digit, price[digitIdx + 1]));
+      break;
+     case 5:
+      words.push(handle_utlc(digit, nxtDigit, "Lakh"));
+      break;
+     case 6:
+      words.push(handle_tens(digit, price[digitIdx + 1]));
+      break;
+     case 7:
+      words.push(handle_utlc(digit, nxtDigit, "Crore"));
+      break;
+     case 8:
+      words.push(handle_tens(digit, price[digitIdx + 1]));
+      break;
+     case 9:
+      words.push(0 != digit ? " " + sglDigit[digit] + " Hundred" + (0 != price[digitIdx + 1] || 0 != price[digitIdx + 2] ? " and" : " Crore") : "")
+    }
+    str = words.reverse().join("")
+   } else str = "";
+   return str
+  }
+
+  function formatNumbers(numbers) {
+   const strNumbers = numbers.map(num => num);
+   const maxLength = Math.max(...strNumbers.map(str => str.length));
+   return strNumbers.map(str => '_'.repeat(maxLength - str.length) + str);
+  }
+ </script>
+</body>
+
+</html>
