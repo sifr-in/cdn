@@ -882,7 +882,7 @@ function chkIfLoggedIn() {
   } else {
    if (typeof dontShoLoginConfirmation !== 'undefined' && null !== dontShoLoginConfirmation && 1 == dontShoLoginConfirmation) {
     localStorage.setItem(my1uzr.worknOnPg, 'true');
-    resolve({ su: 1, ms: "u must be logged in" });
+    resolve({ su: 0, ms: "u must be logged in" });
    } else {
     const dialog = document.createElement('div');
     dialog.style.position = 'fixed';
@@ -2100,4 +2100,5 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
+
 
