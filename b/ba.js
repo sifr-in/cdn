@@ -865,7 +865,7 @@ async function showItemNameDropdown(inputElement) {
                 
                 // Show item ID
                 document.getElementById('modalItemIdDisplay').style.display = 'block';
-                document.getElementById('modalItemIdValue').textContent = item.a;
+                document.getElementById('modalItemIdValue').textContent = item.g;
                 
                 // Track usage
                 mostUsed_ba_Items[item.a] = (mostUsed_ba_Items[item.a] || 0) + 1;
@@ -1104,4 +1104,5 @@ function applyStyles() {
     `;
 
     document.head.appendChild(style);
+
 }
