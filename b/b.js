@@ -2204,7 +2204,7 @@ async function handleAddNewItem(nwProdNm = '') {
   nwProdNm = document.getElementById('itemName').value.trim();
  }
  //0ni changeed to bn.js
- await loadExecFn("set_add_itm_nw_innerHTML", "set_add_itm_nw_innerHTML", [nwProdNm], "loader", "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4906b1/b/bn.min.js", []);
+ await loadExecFn("set_add_itm_nw_innerHTML", "set_add_itm_nw_innerHTML", [nwProdNm], "loader", "https://cdn.jsdelivr.net/gh/sifr-in/cdn@734983c/b/bn.min.js", []);
 }
 
 // Price Calculation
@@ -3214,4 +3214,5 @@ function temporaryAlertFunction(billId) {
  // Implement temporary alert functionality
  console.log('Temporary alert for bill:', billId);
 }
+
 
