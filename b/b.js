@@ -425,7 +425,7 @@ function printBill(billTableRowId) {
  const modalInstance = modal.modalInstance;
 
  // Use the URL with parameters directly in iframe src
- const printUrl = `https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4906b1/b/bPrOp.html?b=${billTableRowId}&t=${Date.now()}`;
+ const printUrl = `https://sifr-in.github.io/cdn/b/bPrOp.html?b=${billTableRowId}}`;
 
  modalContent.innerHTML = `
         <div class="modal-header">
@@ -477,7 +477,7 @@ function reloadBillIframe(billTableRowId) {
  const iframe = document.getElementById('billPrintIframe');
  if (iframe) {
   // Add timestamp to avoid caching
-  iframe.src = `https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4906b1/b/bPrOp.html?b=${billTableRowId}&t=${Date.now()}`;
+  iframe.src = `https://sifr-in.github.io/cdn/b/bPrOp.html?b=${billTableRowId}}`;
   showToast('Bill reloaded');
  }
 }
@@ -750,7 +750,7 @@ async function handleBillAction(m_odalInstance, action, b346illID) {
    }
    break;
   case 'print':
-   let page = window.open("bPrOp.html?b=" + b346illID);
+   printBill(b346illID);
    break;
  }
 }
