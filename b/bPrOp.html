@@ -15,10 +15,15 @@
  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
  <title>Invoice</title>
- <script src="my1.js"></script>
- <!--<script src="https://my1.in/5y/opti_prnt.js"></script>-->
- <!--<script src="https://my1.in/5z/e.js"></script>-->
  <script>
+  (function() {
+   const urlParams = new URLSearchParams(window.location.search);
+   const flPath = urlParams.get('flPath');
+   const scriptSrc = flPath ? `https://my1.in${flPath}my1.js` : 'my1.js';
+   const script = document.createElement('script');
+   script.src = scriptSrc;
+   document.head.appendChild(script);
+  })();
   const clientConfig = {
    optiInvoice: "Invoice:",
    optiCompNm: "Rashtriya Optician",
