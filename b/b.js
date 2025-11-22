@@ -425,7 +425,7 @@ function printBill(billTableRowId) {
  const modalInstance = modal.modalInstance;
 
  // Use the URL with parameters directly in iframe src
- const printUrl = `https://sifr-in.github.io/cdn/b/bPrOp.html?b=${billTableRowId}&flPath=/${appOwner.eo}/b/`;
+ const printUrl = `https://sifr-in.github.io/cdn/b/bPrOp.html?b=${billTableRowId}&flPath=/${appOwner.eo}/b/&dbName=my1_in_${appOwner.tn}`;
 
  modalContent.innerHTML = `
         <div class="modal-header">
@@ -477,7 +477,7 @@ function reloadBillIframe(billTableRowId) {
  const iframe = document.getElementById('billPrintIframe');
  if (iframe) {
   // Add timestamp to avoid caching
-  iframe.src = `https://sifr-in.github.io/cdn/b/bPrOp.html?b=${billTableRowId}&flPath=/${appOwner.eo}/b/`;
+  iframe.src = `https://sifr-in.github.io/cdn/b/bPrOp.html?b=${billTableRowId}&flPath=/${appOwner.eo}/b/&dbName=my1_in_${appOwner.tn}`;
   showToast('Bill reloaded');
  }
 }
