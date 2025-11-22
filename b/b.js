@@ -329,7 +329,8 @@ style="font-weight: bold;">
 </button>
 </div>
 <div class="col-4">
-<button class="btn btn-info w-100" id="printBtn" disabled onclick='printBill(billTableRowId)'>
+<!-- <button class="btn btn-info w-100" id="printBtn" disabled onclick='printBill(billTableRowId)'></button> -->
+<button class="btn btn-info w-100" id="printBtn" disabled onclick='window.open("bPrOp.html?b=" + billTableRowId)'>
 <i class="fas fa-print me-2"></i>Print
 </button>
 </div>
@@ -750,7 +751,7 @@ async function handleBillAction(m_odalInstance, action, b346illID) {
    }
    break;
   case 'print':
-   printBill(b346illID);
+   window.open("bPrOp.html?b=" + billTableRowId);
    break;
  }
 }
