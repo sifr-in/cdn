@@ -102,7 +102,7 @@ function addItemsWithStock(){
       modalInstance.hide();
     }
   }*/
-(async () => { await loadExecFn('open_bil_inward','open_bil_inward',['loader',1,'not_existing_container','handl_op_rspons',0],'loader','https://cdn.jsdelivr.net/gh/sifr-in/cdn@fc84f58/b/ba.min.js',[]); })()
+(async () => { await loadExecFn('open_bil_inward','open_bil_inward',['loader',1,'not_existing_container','handl_op_rspons',0],'loader','https://cdn.jsdelivr.net/gh/sifr-in/cdn@9cd8935/b/ba.min.js',[]); })()
 }
 
 function setupKeyboardNavigation() {
@@ -187,4 +187,5 @@ async function addItemToAPI() {
  } else {
   alert(response.ms);
  }
+
 }
