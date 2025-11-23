@@ -3029,6 +3029,7 @@ function handl_op_rspons(response, reload = 0) {
  (async () => {
   try {
    if (response.su == 1) {
+    let t3032mp = null;
     if (response.be != null) {
      if (response.be.l != null) {
       const t3776mp = await dbDexieManager.insertToDexie(dbnm, "be", response.be.l, true, ["ea"]);
@@ -3043,6 +3044,7 @@ function handl_op_rspons(response, reload = 0) {
     if (response.i != null) {
      if (response.i.l != null) {
       const t3782mp = await dbDexieManager.insertToDexie(dbnm, "i", response.i.l, true, ["a"]);
+      t3032mp = JSON.parse(JSON.stringify(response.i.l));
       // ritem_info = JSON.parse(JSON.stringify(response.i.l)); // Deep clone
      }
     }
@@ -3103,12 +3105,10 @@ function handl_op_rspons(response, reload = 0) {
       const t3793mp = await dbDexieManager.insertToDexie(dbnm, "s", t3667mp, true, ["a"]);
      }
     }
-    if (response.i != null) {
-     if (response.i.l != null) {
+    if (t3032mp != null) {
       if (window[`da_b_${my1uzr.worknFor}`].calcStock == 1) {
        await update_qty_sold(response);
       }
-     }
     }
     alert("stored successfully");
     if (reload == 1) {
@@ -3214,6 +3214,7 @@ function temporaryAlertFunction(billId) {
  // Implement temporary alert functionality
  console.log('Temporary alert for bill:', billId);
 }
+
 
 
 
