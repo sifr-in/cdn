@@ -2047,7 +2047,7 @@ function showItemDropdown(inputElement) {
    if (!item || !item.gn) return false;
 
    // Apply stock filtering based on config - CHANGED: Check item.d != 111 instead of itemsToIgnoreInStockCount
-   if (window[`da_b_${my1uzr.worknFor}`].canSaleIfStock == 1 && item.d != 111) {
+   if (window[`da_b_${my1uzr.worknFor}`].confg.canSaleIfStock == 1 && item.d != 111) {
     // Only show items with available stock > 0
     if (!item.qAvlb || item.qAvlb <= 0) {
      return false;
@@ -2082,7 +2082,7 @@ function showItemDropdown(inputElement) {
    if (!item || !item.gn) return false;
 
    // Apply stock filtering based on config - CHANGED: Check item.d != 111 instead of itemsToIgnoreInStockCount
-   if (window[`da_b_${my1uzr.worknFor}`].canSaleIfStock == 1 && item.d != 111) {
+   if (window[`da_b_${my1uzr.worknFor}`].confg.canSaleIfStock == 1 && item.d != 111) {
     // Only show items with available stock > 0
     return item.qAvlb && item.qAvlb > 0;
    }
@@ -2145,7 +2145,7 @@ function showItemDropdown(inputElement) {
             `;
 
    // Add disabled styling for out-of-stock items - CHANGED: Check item.d != 111 instead of itemsToIgnoreInStockCount
-   if (window[`da_b_${my1uzr.worknFor}`].canSaleIfStock == 1 &&
+   if (window[`da_b_${my1uzr.worknFor}`].confg.canSaleIfStock == 1 &&
     item.d != 111 &&
     (!item.qAvlb || item.qAvlb <= 0)) {
     itemElement.style.opacity = '0.6';
@@ -3045,7 +3045,7 @@ function handl_op_rspons(response, reload = 0) {
      if (response.i.l != null) {
       const t3782mp = await dbDexieManager.insertToDexie(dbnm, "i", response.i.l, true, ["a"]);
       t3032mp = JSON.parse(JSON.stringify(response.i.l));
-      // ritem_info = JSON.parse(JSON.stringify(response.i.l)); // Deep clone
+      ritem_info = JSON.parse(JSON.stringify(response.i.l)); // Deep clone
      }
     }
     if (response.r != null) {
@@ -3106,7 +3106,7 @@ function handl_op_rspons(response, reload = 0) {
      }
     }
     if (t3032mp != null) {
-      if (window[`da_b_${my1uzr.worknFor}`].calcStock == 1) {
+      if (window[`da_b_${my1uzr.worknFor}`].confg.calcStock == 1) {
        await update_qty_sold(response);
       }
     }
@@ -3214,6 +3214,7 @@ function temporaryAlertFunction(billId) {
  // Implement temporary alert functionality
  console.log('Temporary alert for bill:', billId);
 }
+
 
 
 
