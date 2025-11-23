@@ -1,0 +1,28 @@
+{
+"cach" : [
+"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css",
+"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js",
+
+"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css",
+"https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js",
+"https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js",
+
+"https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js",
+"https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js",
+"https://code.jquery.com/jquery-3.6.0.min.js",
+
+"https://cdn.jsdelivr.net/gh/sifr-in/cdn@8a8956b/b/b.min.js",
+"https://cdn.jsdelivr.net/gh/sifr-in/cdn@9cd8935/b/ba.min.js",
+"https://cdn.jsdelivr.net/gh/sifr-in/cdn@734983c/b/bn.min.js",
+"https://cdn.jsdelivr.net/gh/sifr-in/cdn@fc84f58/b/bp.min.js",
+"https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4906b1/b/bPrOp.min.css",
+
+"https://cdn.jsdelivr.net/gh/sifr-in/cdn@7262bc9/cmn/ei.min.js",
+"https://cdn.jsdelivr.net/gh/sifr-in/cdn@c68ab18/cmn/my1lp.min.js",
+"https://cdn.jsdelivr.net/gh/sifr-in/cdn@07c0c99/cmn/my1ap.min.js",
+"https://cdn.jsdelivr.net/gh/sifr-in/cdn@880d404/cmn/my1xi.min.js",
+"https://cdn.jsdelivr.net/gh/sifr-in/cdn@d669e52/cmn/my1drv.min.js",
+"https://cdn.jsdelivr.net/gh/sifr-in/cdn@39ef3cc/cmn/my1e3.min.js"
+],
+"shoCachInProgressModal" : true
+}
