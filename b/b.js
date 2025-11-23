@@ -3043,7 +3043,7 @@ function handl_op_rspons(response, reload = 0) {
     if (response.i != null) {
      if (response.i.l != null) {
       const t3782mp = await dbDexieManager.insertToDexie(dbnm, "i", response.i.l, true, ["a"]);
-      ritem_info = response.i.l;
+      ritem_info = JSON.parse(JSON.stringify(response.i.l)); // Deep clone
      }
     }
     if (response.r != null) {
@@ -3214,5 +3214,6 @@ function temporaryAlertFunction(billId) {
  // Implement temporary alert functionality
  console.log('Temporary alert for bill:', billId);
 }
+
 
 
