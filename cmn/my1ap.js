@@ -462,7 +462,7 @@ function initializePWAAfterFirebase() {
    const swUrl = 'https://my1.in/my1sw.js';
    //const scope = `${window.location.pathname}`;
    const scope = `${window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1)}`;
-   
+
    // Show loader when service worker is being registered
    const loader = createDynamicLoader('Wait Restarting', 5);
    let registrationCompleted = false;
@@ -616,37 +616,54 @@ function initializePWAAfterFirebase() {
  }
 
  function sendCacheUpgradeMessage() {
-  if (appData != null && appData.shoCachInProgressModal) {
-   if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-    if (appData.cach) {
-     navigator.serviceWorker.controller.postMessage({
-      type: 'upgrade',
-      cacheStrategy: cacheStrategy,
-      cshPathNm: my1uzr.worknOnPg,
-      cacheUrls: appData.cach || []
-     });
+  // Collect cache URLs from multiple sources
+  let cacheUrls = [];
 
-     // Only show progress modal if there are URLs to cache
-     if (appData.shoCachInProgressModal === 1 && appData.cach && appData.cach.length > 0) {
-      // Listen for the initial response to see if everything is already cached
-      const listener = (event) => {
-       if (event.data.type === 'cacheComplete' && event.data.allAlreadyCached) {
-        navigator.serviceWorker.removeEventListener('message', listener);
-        // Don't show the modal since everything is cached
-       } else if (event.data.type === 'progress') {
-        navigator.serviceWorker.removeEventListener('message', listener);
-        f_n_sho_progress_modal(appData.cach.length);
-       }
-      };
+  // Add URLs from appData.cach if available
+  if (appData != null && appData.cach) {
+   cacheUrls = cacheUrls.concat(appData.cach);
+  }
 
-      navigator.serviceWorker.addEventListener('message', listener);
+  // Add URLs from window[my1uzr.worknOnPg].csh if available
+  if (my1uzr && my1uzr.worknOnPg && window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].csh && Array.isArray(window[my1uzr.worknOnPg].csh)) {
+   const cshUrls = window[my1uzr.worknOnPg].csh.map(item => item.u).filter(url => url);
+   cacheUrls = cacheUrls.concat(cshUrls);
+  }
+
+  // Remove duplicate URLs
+  cacheUrls = [...new Set(cacheUrls)];
+
+  // Proceed if we have any cache URLs and service worker is available
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller && cacheUrls.length > 0) {
+   // Get the path name safely
+   const cshPathNm = my1uzr && my1uzr.worknOnPg ? my1uzr.worknOnPg : '';
+
+   navigator.serviceWorker.controller.postMessage({
+    type: 'upgrade',
+    cacheStrategy: cacheStrategy,
+    cshPathNm: cshPathNm,
+    cacheUrls: cacheUrls
+   });
+
+   // Show progress modal if configured and there are URLs to cache
+   if (appData != null && appData.shoCachInProgressModal === 1 && cacheUrls.length > 0) {
+    // Listen for the initial response to see if everything is already cached
+    const listener = (event) => {
+     if (event.data.type === 'cacheComplete' && event.data.allAlreadyCached) {
+      navigator.serviceWorker.removeEventListener('message', listener);
+      // Don't show the modal since everything is cached
+     } else if (event.data.type === 'progress') {
+      navigator.serviceWorker.removeEventListener('message', listener);
+      f_n_sho_progress_modal(cacheUrls.length);
      }
-    } else {
-     showToast("Cache list not found.", { type: 'warning' });
-    }
+    };
+
+    navigator.serviceWorker.addEventListener('message', listener);
    }
+  } else if (cacheUrls.length === 0) {
+   showToast("Cache list not found.", { type: 'warning' });
   } else {
-   console.log('"appData.shoCachInProgressModal" is not defined.');
+   console.log('Service worker not available for caching.');
   }
  }
 
