@@ -18,8 +18,8 @@
   {"a":16,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@28cbb02/cmn/my1ap.min.js"},
   {"a":17,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@880d404/cmn/my1xi.min.js"},
   {"a":18,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@d669e52/cmn/my1drv.min.js"},
-  {"a":19,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@39ef3cc/cmn/my1e3.min.js"},
-  {"a":20,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@39ef3cc/cmn/my1e3.min.js", "c":"fileUploadTesting", "r":"fileUploadTesting"}
+  {"a":19,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@39ef3cc/cmn/my1e3.min.js", "c":"fileUploadTesting", "r":"fileUploadTesting"},
+  {"a":20,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@7262bc9/cmn/my1dra.min.js", "c":"upldAnyFile2drv", "r":"upldAnyFile2drv"}
 ],
 "shoCachInProgressModal" : true
 }

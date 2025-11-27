@@ -1,7 +1,7 @@
 async function set_add_itm_nw_innerHTML(...params) {
-const modal = create_modal_dynamically('modal_for_new_item');
-const modalContent = modal.contentElement;
-const modalInstance = modal.modalInstance;
+ const modal = create_modal_dynamically('modal_for_new_item');
+ const modalContent = modal.contentElement;
+ const modalInstance = modal.modalInstance;
 
  modalContent.innerHTML = `
     <div class="modal-header">
@@ -94,15 +94,18 @@ const modalInstance = modal.modalInstance;
  setFocusToPriceInput();
  modalInstance.show();
 }
-function addItemsWithStock(){
-/*const modal = document.getElementById('modal_for_new_item');
-  if (modal) {
-    const modalInstance = bootstrap.Modal.getInstance(modal);
-    if (modalInstance) {
-      modalInstance.hide();
-    }
-  }*/
-(async () => { await loadExecFn('open_bil_inward','open_bil_inward',['loader',1,'not_existing_container','handl_op_rspons',0],'loader','https://cdn.jsdelivr.net/gh/sifr-in/cdn@9cd8935/b/ba.min.js',[]); })()
+function addItemsWithStock() {
+ /*const modal = document.getElementById('modal_for_new_item');
+   if (modal) {
+     const modalInstance = bootstrap.Modal.getInstance(modal);
+     if (modalInstance) {
+       modalInstance.hide();
+     }
+   }*/
+ (async () => {
+  //await loadExecFn('open_bil_inward','open_bil_inward',['loader',1,'not_existing_container','handl_op_rspons',0],'loader','https://cdn.jsdelivr.net/gh/sifr-in/cdn@9cd8935/b/ba.min.js',[]);
+  await loadExe2Fn(10, ['loader', 1, 'not_existing_container', 'handl_op_rspons', 0], [1]);
+ })()
 }
 
 function setupKeyboardNavigation() {
@@ -151,38 +154,38 @@ async function addItemToAPI() {
  const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
  if (response.su == 1) {
   handl_op_rspons(response, 0);
-      const modal = document.getElementById('modal_for_new_item');
-    if (modal) {
-      const modalInstance = bootstrap.Modal.getInstance(modal);
-      if (modalInstance) {
-        modalInstance.hide();
-      }
+  const modal = document.getElementById('modal_for_new_item');
+  if (modal) {
+   const modalInstance = bootstrap.Modal.getInstance(modal);
+   if (modalInstance) {
+    modalInstance.hide();
+   }
+  }
+  // Wait a bit for the database to update and modal to close
+  setTimeout(async () => {
+   // Refresh items from database
+   items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
+
+   // Set the item name in the main form
+   const itemNameInput = document.getElementById('itemName');
+   if (itemNameInput) {
+    itemNameInput.value = itemName;
+
+    // Find the newly added item in the refreshed items array
+    const newItem = items.find(item => item.gn === itemName);
+    if (newItem) {
+     // Select the item programmatically (simulate dropdown selection)
+     selectItem(newItem);
+
+     // Optional: Show success message
+     showToast('Item added successfully and selected!');
+    } else {
+     // Fallback: just set the name and let user select manually
+     itemNameInput.focus();
+     showToast('Item added successfully! Please select it from dropdown.');
     }
-// Wait a bit for the database to update and modal to close
-    setTimeout(async () => {
-      // Refresh items from database
-      items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
-      
-      // Set the item name in the main form
-      const itemNameInput = document.getElementById('itemName');
-      if (itemNameInput) {
-        itemNameInput.value = itemName;
-        
-        // Find the newly added item in the refreshed items array
-        const newItem = items.find(item => item.gn === itemName);
-        if (newItem) {
-          // Select the item programmatically (simulate dropdown selection)
-          selectItem(newItem);
-          
-          // Optional: Show success message
-          showToast('Item added successfully and selected!');
-        } else {
-          // Fallback: just set the name and let user select manually
-          itemNameInput.focus();
-          showToast('Item added successfully! Please select it from dropdown.');
-        }
-      }
-    }, 1000);
+   }
+  }, 1000);
 
  } else {
   alert(response.ms);
