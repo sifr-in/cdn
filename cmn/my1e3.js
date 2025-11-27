@@ -257,7 +257,49 @@ function loadPromiseScript(url) {
   document.head.appendChild(script);
  });
 }
+async function loadCshScriptsSequentially(...scriptIds) {
+ // Get the cache array
+ const csheArray = window[my1uzr.worknOnPg]?.csh || [];
+ 
+ // Filter scripts by the provided "a" values
+ const scriptsToLoad = csheArray.filter(script => scriptIds.includes(script.a));
+ 
+ if (scriptsToLoad.length === 0) {
+  console.warn('No scripts found with the provided IDs:', scriptIds);
+  return {
+   success: false,
+   error: 'No scripts found with provided IDs',
+   loadedCount: 0,
+   totalScripts: 0
+  };
+ }
 
+ let loadedCount = 0;
+ const totalScripts = scriptsToLoad.length;
+
+ for (const scriptInfo of scriptsToLoad) {
+  try {
+   await loadPromiseScript(scriptInfo.u);
+   loadedCount++;
+   console.log(`Loaded: ${scriptInfo.u} (${loadedCount}/${totalScripts})`);
+  } catch (error) {
+   console.error('Failed to load script:', error);
+   return {
+    success: false,
+    error: error,
+    loadedCount: loadedCount,
+    totalScripts: totalScripts
+   };
+  }
+ }
+
+ return {
+  success: true,
+  loadedCount: loadedCount,
+  totalScripts: totalScripts,
+  message: `All ${loadedCount} scripts loaded successfully`
+ };
+}
 async function loadAllScriptsSequentially(scriptsToLoad) {
  let loadedCount = 0;
  const totalScripts = scriptsToLoad.reduce((count, scriptInfo) => {
@@ -2283,4 +2325,5 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
+
 
