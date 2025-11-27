@@ -2048,7 +2048,7 @@ function showItemDropdown(inputElement) {
    if (!item || !item.gn) return false;
 
    // Apply stock filtering based on config - CHANGED: Check item.d != 111 instead of itemsToIgnoreInStockCount
-   if (window[`da_b_${my1uzr.worknFor}`].confg.canSaleIfStock == 1 && item.d != 111) {
+   if (window[my1uzr.worknOnPg].confg.canSaleIfStock == 1 && item.d != 111) {
     // Only show items with available stock > 0
     if (!item.qAvlb || item.qAvlb <= 0) {
      return false;
@@ -2083,7 +2083,7 @@ function showItemDropdown(inputElement) {
    if (!item || !item.gn) return false;
 
    // Apply stock filtering based on config - CHANGED: Check item.d != 111 instead of itemsToIgnoreInStockCount
-   if (window[`da_b_${my1uzr.worknFor}`].confg.canSaleIfStock == 1 && item.d != 111) {
+   if (window[my1uzr.worknOnPg].confg.canSaleIfStock == 1 && item.d != 111) {
     // Only show items with available stock > 0
     return item.qAvlb && item.qAvlb > 0;
    }
@@ -2146,7 +2146,7 @@ function showItemDropdown(inputElement) {
             `;
 
    // Add disabled styling for out-of-stock items - CHANGED: Check item.d != 111 instead of itemsToIgnoreInStockCount
-   if (window[`da_b_${my1uzr.worknFor}`].confg.canSaleIfStock == 1 &&
+   if (window[my1uzr.worknOnPg].confg.canSaleIfStock == 1 &&
     item.d != 111 &&
     (!item.qAvlb || item.qAvlb <= 0)) {
     itemElement.style.opacity = '0.6';
@@ -3108,7 +3108,7 @@ function handl_op_rspons(response, reload = 0) {
      }
     }
     if (t3032mp != null) {
-     if (window[`da_b_${my1uzr.worknFor}`].confg.calcStock == 1) {
+     if (window[my1uzr.worknOnPg].confg.calcStock == 1) {
       await update_qty_sold(response);
      }
     }
