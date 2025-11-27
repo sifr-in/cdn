@@ -858,6 +858,7 @@ function showAlreadyReceivedAmts(b346illID, s594CurrItems, c594ashInfo) {
 
  // Store temporary payments array for this modal
  window.tempReceivedAmounts = [];
+ modalInstance.show();
 }
 async function submitAllPayments(billId) {
  if (window.tempReceivedAmounts.length === 0) {
@@ -3216,3 +3217,4 @@ function temporaryAlertFunction(billId) {
  // Implement temporary alert functionality
  console.log('Temporary alert for bill:', billId);
 }
+
