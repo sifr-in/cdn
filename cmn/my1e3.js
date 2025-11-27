@@ -401,6 +401,161 @@ async function loadExecFn(fnsToChk, fnsToRun, pFNarams = [], idOfLoader, scriptU
  }
 }
 
+async function loadExe2Fn(id_as_a, pFNarams = [], pSCRParams = []) {
+ let loader = null;
+
+ try {
+  // Validate required global objects
+  if (typeof my1uzr === 'undefined') {
+   throw new Error('my1uzr object not found');
+  }
+
+  if (!my1uzr.worknOnPg) {
+   throw new Error('my1uzr.worknOnPg not defined');
+  }
+
+  if (!window[my1uzr.worknOnPg]) {
+   throw new Error(`window["${my1uzr.worknOnPg}"] not found`);
+  }
+
+  if (!window[my1uzr.worknOnPg].csh || !Array.isArray(window[my1uzr.worknOnPg].csh)) {
+   throw new Error(`window["${my1uzr.worknOnPg}"].csh array not found`);
+  }
+
+  // Find the configuration by id
+  const config = window[my1uzr.worknOnPg].csh.find(item => item.a === id_as_a);
+  if (!config) {
+   throw new Error(`Configuration with id ${id_as_a} not found in csh array.`);
+  }
+
+  // Validate config properties
+  if (!config.u) {
+   throw new Error(`Script URL (u) not found in configuration with id ${id_as_a}`);
+  }
+
+  if (!config.c) {
+   throw new Error(`Functions to check (c) not found in configuration with id ${id_as_a}`);
+  }
+
+  if (!config.r) {
+   throw new Error(`Functions to run (r) not found in configuration with id ${id_as_a}`);
+  }
+
+  const { u: scriptUrl, c: fnsToChk, r: fnsToRun } = config;
+
+  // Validate pSCRParams for loader handling
+  if (!Array.isArray(pSCRParams)) {
+   throw new Error('pSCRParams must be an array');
+  }
+
+  // Handle loader based on pSCRParams
+  if (pSCRParams[0] === 1) {
+   // Create new dynamic loader
+   if (typeof createDynamicLoader !== 'function') {
+    throw new Error('createDynamicLoader function not found');
+   }
+   loader = createDynamicLoader('Loading...', null);
+  } else if (pSCRParams[0] === 0) {
+   if (!pSCRParams[1]) {
+    throw new Error('Loader ID required when pSCRParams[0] is 0');
+   }
+   // Use existing loader by ID
+   loader = document.getElementById(pSCRParams[1]);
+   if (!loader) {
+    console.warn(`Loader with ID "${pSCRParams[1]}" not found`);
+   } else {
+    loader.style.display = 'block';
+   }
+  }
+
+  // Validate loadPromiseScript function exists
+  if (typeof loadPromiseScript !== 'function') {
+   throw new Error('loadPromiseScript function not found');
+  }
+
+  // Split comma-separated function names and trim whitespace
+  const functionsToCheck = fnsToChk.split(',').map(fn => fn.trim());
+  const missingFunctions = [];
+
+  // Check if all functions exist
+  for (const fnName of functionsToCheck) {
+   if (typeof window[fnName] !== 'function') {
+    missingFunctions.push(fnName);
+   }
+  }
+
+  if (missingFunctions.length === 0) {
+   // All functions exist, execute fnsToRun if provided
+   if (fnsToRun && fnsToRun.trim() !== '') {
+    const functionsToRun = fnsToRun.split(',').map(fn => fn.trim());
+
+    // Execute functions sequentially and wait for each to complete
+    for (const fnName of functionsToRun) {
+     if (typeof window[fnName] === 'function') {
+      const result = window[fnName](...pFNarams);
+      // If function returns a Promise, wait for it
+      if (result instanceof Promise) {
+       await result;
+      }
+     } else {
+      console.warn(`Function "${fnName}" not found for execution.`);
+     }
+    }
+   }
+  } else {
+   // Some functions are missing, load the script
+   await loadPromiseScript(scriptUrl);
+
+   // Check again after loading the script
+   const stillMissing = [];
+   for (const fnName of functionsToCheck) {
+    if (typeof window[fnName] !== 'function') {
+     stillMissing.push(fnName);
+    }
+   }
+
+   if (stillMissing.length === 0) {
+    // All functions now exist, execute fnsToRun if provided
+    if (fnsToRun && fnsToRun.trim() !== '') {
+     const functionsToRun = fnsToRun.split(',').map(fn => fn.trim());
+
+     // Execute functions sequentially and wait for each to complete
+     for (const fnName of functionsToRun) {
+      if (typeof window[fnName] === 'function') {
+       const result = window[fnName](...pFNarams);
+       // If function returns a Promise, wait for it
+       if (result instanceof Promise) {
+        await result;
+       }
+      } else {
+       console.warn(`Function "${fnName}" not found for execution.`);
+      }
+     }
+    }
+   } else {
+    throw new Error(`Functions "${stillMissing.join(', ')}" not found after loading script.`);
+   }
+  }
+ } catch (e) {
+  console.error('loadExe2Fn params:', { id_as_a, pFNarams, pSCRParams });
+  console.error('Error:', e.message);
+  alert(`Error: ${e.message}. Please retry or contact support.`);
+ } finally {
+  // Hide loader
+  if (pSCRParams[0] === 1 && loader) {
+   // Remove dynamic loader
+   if (typeof loader.removeLoader === 'function') {
+    loader.removeLoader();
+   } else {
+    console.warn('Loader does not have removeLoader method');
+   }
+  } else if (pSCRParams[0] === 0 && loader) {
+   // Hide existing loader
+   loader.style.display = 'none';
+  }
+ }
+}
+
 function loadScript(url, callback) {
  var script = document.createElement("script")
  script.type = "text/javascript";
@@ -2121,6 +2276,3 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
-
-
-
