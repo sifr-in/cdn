@@ -763,12 +763,21 @@ function showAlreadyReceivedAmts(b346illID, s594CurrItems, c594ashInfo) {
  // Calculate bill total from items
  const billTotal = s594CurrItems.reduce((sum, item) => sum + parseFloat(item.g || 0), 0);
 
+ // Find the bill to get discount information
+ const currentBill = stored_bill.find(bill => bill.a == b346illID);
+ const discountAmount = parseFloat(currentBill?.k || 0);
+
+ // Calculate final amount after discount
+ const finalAmount = billTotal - discountAmount;
+
  // Calculate totals from existing payments
  const totalReceived = c594ashInfo.reduce((sum, payment) => sum + parseFloat(payment.j || 0), 0);
- const balance = billTotal - totalReceived;
+ const balance = finalAmount - totalReceived;
 
- // Store bill total globally for this modal
+ // Store bill total and discount info globally for this modal
  window.modalBillTotal = billTotal;
+ window.modalFinalAmount = finalAmount;
+ window.modalDiscountAmount = discountAmount;
  window.modalExistingPaymentsTotal = totalReceived;
 
  // Set modal title and content
@@ -778,40 +787,68 @@ function showAlreadyReceivedAmts(b346illID, s594CurrItems, c594ashInfo) {
  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
+ <!-- Bill Summary Section -->
+ <div class="card mb-3">
+  <div class="card-header bg-light">
+   <h6 class="mb-0">Bill Summary</h6>
+  </div>
+  <div class="card-body">
+   <div class="row text-center">
+    <div class="col-4">
+     <small class="text-muted">Items Total</small>
+     <div class="fw-bold">₹${billTotal.toFixed(2)}</div>
+    </div>
+    <div class="col-4">
+     <small class="text-muted">Discount</small>
+     <div class="fw-bold text-danger">-₹${discountAmount.toFixed(2)}</div>
+    </div>
+    <div class="col-4">
+     <small class="text-muted">Final Amount</small>
+     <div class="fw-bold text-primary">₹${finalAmount.toFixed(2)}</div>
+    </div>
+   </div>
+  </div>
+ </div>
+
  <!-- Add Received Amount Card -->
  <div class="card mb-3" id="addReceivedAmountCard">
-  <div class="row align-items-end g-2">
-   <!-- Date & Time - col-4 -->
-   <div class="col-4">
-    <label class="form-label small text-muted mb-1">Date</label>
-    <input type="text" class="form-control form-control-sm" id="receivedDateTimeModal" placeholder="Select Date & Time">
-   </div>
+  <div class="card-header bg-light">
+   <h6 class="mb-0">Add New Payment</h6>
+  </div>
+  <div class="card-body">
+   <div class="row align-items-end g-2">
+    <!-- Date & Time - col-4 -->
+    <div class="col-4">
+     <label class="form-label small text-muted mb-1">Date</label>
+     <input type="text" class="form-control form-control-sm" id="receivedDateTimeModal" placeholder="Select Date & Time">
+    </div>
 
-   <!-- Amount - col-4 -->
-   <div class="col-4">
-    <label class="form-label small text-muted mb-1">Rcvd Amt.</label>
-    <input type="number" class="form-control form-control-sm" placeholder="Amount" id="receivedAmountModal" min="0"
-     step="1">
-   </div>
+    <!-- Amount - col-4 -->
+    <div class="col-4">
+     <label class="form-label small text-muted mb-1">Rcvd Amt.</label>
+     <input type="number" class="form-control form-control-sm" placeholder="Amount" id="receivedAmountModal" min="0"
+      step="1">
+    </div>
 
-   <!-- Payment Type - col-2 -->
-   <div class="col-2">
-    <label class="form-label small text-muted mb-1">Type</label>
-    <select class="form-control form-control-sm" id="paymentTypeModal">
-     <option value="0">Select</option>
-     <option value="1">Cash</option>
-     <option value="2">Cheque</option>
-     <option value="3">Card</option>
-     <option value="4">UPI</option>
-     <option value="5">Bank Transfer</option>
-    </select>
-   </div>
+    <!-- Payment Type - col-2 -->
+    <div class="col-2">
+     <label class="form-label small text-muted mb-1">Type</label>
+     <select class="form-control form-control-sm" id="paymentTypeModal">
+      <option value="0">Select</option>
+      <option value="1">Cash</option>
+      <option value="2">Cheque</option>
+      <option value="3">Card</option>
+      <option value="4">UPI</option>
+      <option value="5">Bank Transfer</option>
+     </select>
+    </div>
 
-   <!-- Add Button - col-2 -->
-   <div class="col-2">
-    <button class="btn btn-primary btn-sm" onclick="addTempReceivedAmount(${b346illID})">
-     <i class="fas fa-plus"></i>
-    </button>
+    <!-- Add Button - col-2 -->
+    <div class="col-2">
+     <button class="btn btn-primary btn-sm" onclick="addTempReceivedAmount(${b346illID})">
+      <i class="fas fa-plus"></i>
+     </button>
+    </div>
    </div>
   </div>
  </div>
@@ -826,8 +863,8 @@ function showAlreadyReceivedAmts(b346illID, s594CurrItems, c594ashInfo) {
     <div class="card-body bg-light">
      <div class="row text-center">
       <div class="col-4">
-       <h6>Total</h6>
-       <h4 class="text-primary">₹<span id="modalGrandBillTotal">${billTotal.toFixed(2)}</span></h4>
+       <h6>Final Amount</h6>
+       <h4 class="text-primary">₹<span id="modalGrandBillTotal">${finalAmount.toFixed(2)}</span></h4>
       </div>
       <div class="col-4">
        <h6>Rcvd</h6>
@@ -854,6 +891,30 @@ function showAlreadyReceivedAmts(b346illID, s594CurrItems, c594ashInfo) {
  <button type="button" class="btn btn-success" onclick="submitAllPayments(${b346illID})">Submit new Payments</button>
 </div>
 `;
+
+ // Also update the updateModalTotals function to use final amount
+ window.updateModalTotals = function () {
+  // Get existing payments total and final amount from stored values
+  const existingPaymentsTotal = window.modalExistingPaymentsTotal || 0;
+  const tempPaymentsTotal = window.tempReceivedAmounts.reduce((sum, payment) => sum + payment.amount, 0);
+  const totalReceived = existingPaymentsTotal + tempPaymentsTotal;
+  const finalAmount = window.modalFinalAmount || 0;
+  const balance = finalAmount - totalReceived;
+
+  document.getElementById('modalGrandTotalReceived').textContent = totalReceived.toFixed(2);
+  document.getElementById('modalGrandBalance').textContent = balance.toFixed(2);
+
+  // Update balance color based on amount
+  const balanceElement = document.getElementById('modalGrandBalance');
+  if (balance === 0) {
+   balanceElement.className = 'text-success';
+  } else if (balance > 0) {
+   balanceElement.className = 'text-warning';
+  } else {
+   balanceElement.className = 'text-danger';
+  }
+ };
+
  initializeModalFlatpickr();
 
  // Store temporary payments array for this modal
@@ -2698,315 +2759,315 @@ function showToast(message) {
 }
 
 function addDropdownStyles() {
- const style = document.createElement('style');
- style.textContent = `
-    .item-dropdown {
-      position: absolute;
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      z-index: 1000;
-      max-height: 300px;
-      overflow-y: auto;
-      width: 96%;
-      left: 2%;
-    }
-    
-    .item-dropdown-item {
-      display: flex;
-      align-items: center;
-      padding: 8px 12px;
-      border-bottom: 1px solid #f0f0f0;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    
-    .item-dropdown-item:last-child {
-      border-bottom: none;
-    }
-    
-    .item-dropdown-item:hover {
-      background-color: #f8f9fa;
-    }
-    
-    .item-dropdown-item img {
-      width: 40px;
-      height: 40px;
-      object-fit: cover;
-      border-radius: 4px;
-      margin-right: 12px;
-    }
-    
-    .item-dropdown-item .item-name {
-      flex: 1;
-      font-weight: 500;
-      line-height: 1.2;
-    }
-    
-    .item-dropdown-item .item-price {
-      text-align: right;
-      color: #28a745;
-      font-weight: 500;
-      line-height: 1.2;
-    }
-    
-    .row.g-0 > [class*="col-"] {
-      padding-left: 5px;
-      padding-right: 5px;
-    }
-    
-    .row.g-0 .input-group {
-      margin-bottom: 0;
-    }
-    
-    .added-item-card {
-      border-left: 4px solid #28a745 !important;
-    }
-    
-    .added-item-image {
-      max-width: 80px;
-      max-height: 80px;
-      object-fit: cover;
-      border-radius: 4px;
-    }
-    
-    .action-dropdown {
-      position: relative;
-      display: inline-block;
-    }
-    
-    .action-menu {
-      display: none;
-      position: absolute;
-      right: 0;
-      top: 100%;
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      z-index: 1000;
-      min-width: 120px;
-    }
-    
-    .action-menu.show {
-      display: block;
-    }
-    
-    .action-menu-item {
-      padding: 8px 12px;
-      cursor: pointer;
-      border-bottom: 1px solid #f0f0f0;
-      transition: background-color 0.2s;
-    }
-    
-    .action-menu-item:last-child {
-      border-bottom: none;
-    }
-    
-    .action-menu-item:hover {
-      background-color: #f8f9fa;
-    }
-    
-    .action-menu-item.edit {
-      color: #007bff;
-    }
-    
-    .action-menu-item.delete {
-      color: #dc3545;
-    }
-    
-    .ellipsis-btn {
-      background: none;
-      border: none;
-      font-size: 1.2rem;
-      color: #6c757d;
-      cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 4px;
-      transition: all 0.2s;
-    }
-    
-    .ellipsis-btn:hover {
-      background-color: #f8f9fa;
-      color: #495057;
-    }
-    
-    .qr-scanner-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.8);
-      z-index: 2000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    
-    .qr-scanner-content {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      max-width: 90%;
-      max-height: 90%;
-    }
-    
+const style = document.createElement('style');
+style.textContent = `
+.item-dropdown {
+position: absolute;
+background: white;
+border: 1px solid #ddd;
+border-radius: 4px;
+box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+z-index: 1000;
+max-height: 300px;
+overflow-y: auto;
+width: 96%;
+left: 2%;
+}
+
+.item-dropdown-item {
+display: flex;
+align-items: center;
+padding: 8px 12px;
+border-bottom: 1px solid #f0f0f0;
+cursor: pointer;
+transition: background-color 0.2s;
+}
+
+.item-dropdown-item:last-child {
+border-bottom: none;
+}
+
+.item-dropdown-item:hover {
+background-color: #f8f9fa;
+}
+
+.item-dropdown-item img {
+width: 40px;
+height: 40px;
+object-fit: cover;
+border-radius: 4px;
+margin-right: 12px;
+}
+
+.item-dropdown-item .item-name {
+flex: 1;
+font-weight: 500;
+line-height: 1.2;
+}
+
+.item-dropdown-item .item-price {
+text-align: right;
+color: #28a745;
+font-weight: 500;
+line-height: 1.2;
+}
+
+.row.g-0 > [class*="col-"] {
+padding-left: 5px;
+padding-right: 5px;
+}
+
+.row.g-0 .input-group {
+margin-bottom: 0;
+}
+
+.added-item-card {
+border-left: 4px solid #28a745 !important;
+}
+
+.added-item-image {
+max-width: 80px;
+max-height: 80px;
+object-fit: cover;
+border-radius: 4px;
+}
+
+.action-dropdown {
+position: relative;
+display: inline-block;
+}
+
+.action-menu {
+display: none;
+position: absolute;
+right: 0;
+top: 100%;
+background: white;
+border: 1px solid #ddd;
+border-radius: 4px;
+box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+z-index: 1000;
+min-width: 120px;
+}
+
+.action-menu.show {
+display: block;
+}
+
+.action-menu-item {
+padding: 8px 12px;
+cursor: pointer;
+border-bottom: 1px solid #f0f0f0;
+transition: background-color 0.2s;
+}
+
+.action-menu-item:last-child {
+border-bottom: none;
+}
+
+.action-menu-item:hover {
+background-color: #f8f9fa;
+}
+
+.action-menu-item.edit {
+color: #007bff;
+}
+
+.action-menu-item.delete {
+color: #dc3545;
+}
+
+.ellipsis-btn {
+background: none;
+border: none;
+font-size: 1.2rem;
+color: #6c757d;
+cursor: pointer;
+padding: 4px 8px;
+border-radius: 4px;
+transition: all 0.2s;
+}
+
+.ellipsis-btn:hover {
+background-color: #f8f9fa;
+color: #495057;
+}
+
+.qr-scanner-modal {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0,0,0,0.8);
+z-index: 2000;
+display: flex;
+justify-content: center;
+align-items: center;
+}
+
+.qr-scanner-content {
+background: white;
+padding: 20px;
+border-radius: 8px;
+text-align: center;
+max-width: 90%;
+max-height: 90%;
+}
+
 #qr-reader.scanner-container {
-  position: fixed !important;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-    
-    .received-amount-card {
-      border-left: 4px solid #007bff !important;
-      transition: all 0.3s ease;
-    }
-    
-    .received-amount-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    
-    .badge.bg-secondary {
-      font-size: 0.75rem;
-      padding: 4px 8px;
-    }
-    
-    .card.border-success {
-      border-width: 2px !important;
-    }
-    
-    .bg-light {
-      background-color: #f8f9fa !important;
-    }
-    
-    /* Flatpickr customization */
-    .flatpickr-input {
-      background-color: white !important;
-    }
-    
-    /* Action Buttons Styles */
-    .btn-success, .btn-warning, .btn-info {
-      font-weight: 600;
-      padding: 10px 16px;
-    }
-    
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-    
-    .btn-secondary:disabled {
-      background-color: #6c757d !important;
-      border-color: #6c757d !important;
-    }
-    
-    .btn:disabled:hover {
-      transform: none !important;
-      box-shadow: none !important;
-    }
-    
-    /* Responsive discount line */
-    .input-group-sm {
-      margin-bottom: 0.5rem;
-    }
-    
-    .input-group-sm .form-control {
-      font-size: 0.875rem;
-    }
-    
-    .input-group-sm .input-group-text {
-      font-size: 0.875rem;
-      padding: 0.25rem 0.5rem;
-    }
-    
-    /* Add New Item Button Styles */
-    .btn-success.btn-sm {
-      padding: 0.25rem 0.5rem;
-      font-size: 0.75rem;
-      height: 38px; /* Match input field height */
-    }
-    
-    @media (max-width: 576px) {
-      .row.g-2 > [class*="col-"] {
-        margin-bottom: 0.5rem;
-      }
-      
-      .input-group-sm {
-        margin-bottom: 0.25rem;
-      }
-      
-      .btn-success, .btn-warning, .btn-info {
-        padding: 8px 12px;
-        font-size: 0.9rem;
-      }
-      
-      .btn-success.btn-sm {
-        height: 36px; /* Slightly smaller on mobile */
-      }
-    }
-    
-    @media (min-width: 576px) {
-      .row.g-2.align-items-end {
-        align-items: end !important;
-      }
-      
-      .input-group-sm {
-        margin-bottom: 0;
-      }
-    }
-
-.dropdown-menu {
-  z-index: 9999 !important;
-}
-
-.received-amount-card, .card, .modal-body {
-  position: static !important;
-}
-
-#received_amount_modal .modal-dialog {
-    max-width: 600px;
-}
-
-#addedReceivedAmountsContainerModal {
-    max-height: 400px;
-    overflow-y: auto;
+position: fixed !important;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
 }
 
 .received-amount-card {
-    border-left: 4px solid #007bff !important;
+border-left: 4px solid #007bff !important;
+transition: all 0.3s ease;
 }
 
- .badge {
-        font-size: 0.6rem;
-        padding: 2px 4px;
-    }
-    
-    .bg-warning {
-        background-color: #ffc107 !important;
-        color: #000 !important;
-    }
-    
-    .bg-danger {
-        background-color: #dc3545 !important;
-        color: #fff !important;
-    }
-    
-    .item-dropdown-item.disabled {
-        opacity: 0.6;
-        cursor: not-allowed !important;
-    }
-    
-    .item-dropdown-item.disabled:hover {
-        background-color: transparent !important;
-    }
-  `;
- document.head.appendChild(style);
+.received-amount-card:hover {
+transform: translateY(-2px);
+box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.badge.bg-secondary {
+font-size: 0.75rem;
+padding: 4px 8px;
+}
+
+.card.border-success {
+border-width: 2px !important;
+}
+
+.bg-light {
+background-color: #f8f9fa !important;
+}
+
+/* Flatpickr customization */
+.flatpickr-input {
+background-color: white !important;
+}
+
+/* Action Buttons Styles */
+.btn-success, .btn-warning, .btn-info {
+font-weight: 600;
+padding: 10px 16px;
+}
+
+.btn:disabled {
+opacity: 0.6;
+cursor: not-allowed;
+transform: none !important;
+}
+
+.btn-secondary:disabled {
+background-color: #6c757d !important;
+border-color: #6c757d !important;
+}
+
+.btn:disabled:hover {
+transform: none !important;
+box-shadow: none !important;
+}
+
+/* Responsive discount line */
+.input-group-sm {
+margin-bottom: 0.5rem;
+}
+
+.input-group-sm .form-control {
+font-size: 0.875rem;
+}
+
+.input-group-sm .input-group-text {
+font-size: 0.875rem;
+padding: 0.25rem 0.5rem;
+}
+
+/* Add New Item Button Styles */
+.btn-success.btn-sm {
+padding: 0.25rem 0.5rem;
+font-size: 0.75rem;
+height: 38px; /* Match input field height */
+}
+
+@media (max-width: 576px) {
+.row.g-2 > [class*="col-"] {
+margin-bottom: 0.5rem;
+}
+
+.input-group-sm {
+margin-bottom: 0.25rem;
+}
+
+.btn-success, .btn-warning, .btn-info {
+padding: 8px 12px;
+font-size: 0.9rem;
+}
+
+.btn-success.btn-sm {
+height: 36px; /* Slightly smaller on mobile */
+}
+}
+
+@media (min-width: 576px) {
+.row.g-2.align-items-end {
+align-items: end !important;
+}
+
+.input-group-sm {
+margin-bottom: 0;
+}
+}
+
+.dropdown-menu {
+z-index: 9999 !important;
+}
+
+.received-amount-card, .card, .modal-body {
+position: static !important;
+}
+
+#received_amount_modal .modal-dialog {
+max-width: 600px;
+}
+
+#addedReceivedAmountsContainerModal {
+max-height: 400px;
+overflow-y: auto;
+}
+
+.received-amount-card {
+border-left: 4px solid #007bff !important;
+}
+
+.badge {
+font-size: 0.6rem;
+padding: 2px 4px;
+}
+
+.bg-warning {
+background-color: #ffc107 !important;
+color: #000 !important;
+}
+
+.bg-danger {
+background-color: #dc3545 !important;
+color: #fff !important;
+}
+
+.item-dropdown-item.disabled {
+opacity: 0.6;
+cursor: not-allowed !important;
+}
+
+.item-dropdown-item.disabled:hover {
+background-color: transparent !important;
+}
+`;
+document.head.appendChild(style);
 }
 
 function commonFnToRunAfter_op_ViewCall(obj, swtch) {
@@ -3117,6 +3178,13 @@ function handl_op_rspons(response, reload = 0) {
     if (reload == 1) {
      location.reload();
     }
+    items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
+    prods = await dbDexieManager.getAllRecords(dbnm, "p") || [];
+    stored_bill = await dbDexieManager.getAllRecords(dbnm, "b") || [];
+    stored_eye_msrmnt = await dbDexieManager.getAllRecords(dbnm, "be") || [];
+    stored_bill_items = await dbDexieManager.getAllRecords(dbnm, "i") || [];
+    stored_bill_cash_info = await dbDexieManager.getAllRecords(dbnm, "r") || [];
+    clientReferrerArray = await dbDexieManager.getAllRecords(dbnm, "c") || [];
    } else {
     if (response.ms != null) { alert(response.ms); }
     if (response.fn3 != null) {
@@ -3217,4 +3285,3 @@ function temporaryAlertFunction(billId) {
  // Implement temporary alert functionality
  console.log('Temporary alert for bill:', billId);
 }
-
