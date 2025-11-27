@@ -400,7 +400,14 @@ async function loadExecFn(fnsToChk, fnsToRun, pFNarams = [], idOfLoader, scriptU
   if (loader) loader.style.display = 'none'; // Hide loader
  }
 }
-
+function getNextCshId() {
+    if (!window[my1uzr.worknOnPg].cach || window[my1uzr.worknOnPg].cach.length === 0) {
+        return 1;
+    }
+    // Get the highest 'a' value and increment
+    const maxA = Math.max(...window[my1uzr.worknOnPg].cach.map(item => item.a));
+    return maxA + 1;
+}
 async function loadExe2Fn(id_as_a, pFNarams = [], pSCRParams = []) {
  let loader = null;
 
@@ -2276,3 +2283,4 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
+
