@@ -625,11 +625,10 @@ function initializePWAAfterFirebase() {
   }
 
   // Add URLs from window[my1uzr.worknOnPg].csh if available
-  if (my1uzr && my1uzr.worknOnPg && window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].csh && Array.isArray(window[my1uzr.worknOnPg].csh)) {
-   const cshUrls = window[my1uzr.worknOnPg].csh.map(item => item.u).filter(url => url);
-   cacheUrls = cacheUrls.concat(cshUrls);
-  }
-
+if (typeof my1uzr !== 'undefined' && my1uzr && my1uzr.worknOnPg && window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].csh && Array.isArray(window[my1uzr.worknOnPg].csh)) {
+    const cshUrls = window[my1uzr.worknOnPg].csh.map(item => item.u).filter(url => url);
+    cacheUrls = cacheUrls.concat(cshUrls);
+}
   // Remove duplicate URLs
   cacheUrls = [...new Set(cacheUrls)];
 
