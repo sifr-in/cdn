@@ -8,20 +8,21 @@
   {"a":6,"u":"https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"},
   {"a":7,"u":"https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"},
   {"a":8,"u":"https://code.jquery.com/jquery-3.6.0.min.js"},
-  {"a":9,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@e7c5b69/b/b.min.js", "c":"set_bill_innerHTML", "r":"set_bill_innerHTML"},
-  {"a":10,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@9cd8935/b/ba.min.js", "c":"open_bil_inward", "r":"open_bil_inward"},
-  {"a":11,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@734983c/b/bn.min.js", "c":"set_add_itm_nw_innerHTML", "r":"set_add_itm_nw_innerHTML"},
+  {"a":9,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@8dcc1dc/b/b.min.js", "c":"set_bill_innerHTML", "r":"set_bill_innerHTML"},
+  {"a":10,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@1164985/b/ba.min.js", "c":"open_bil_inward", "r":"open_bil_inward"},
+  {"a":11,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@1164985/b/bn.min.js", "c":"set_add_itm_nw_innerHTML", "r":"set_add_itm_nw_innerHTML"},
   {"a":12,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@18ff972/b/bp.min.js", "c":"set_deup_prod_innerHTML", "r":"set_deup_prod_innerHTML"},
-  {"a":13,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4906b1/b/bPrOp.min.css"},
+  {"a":13,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@a30ac23/b/bPrOp.min.css"},
   {"a":14,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@7262bc9/cmn/ei.min.js", "c":"open_entind_crud", "r":"open_entind_crud"},
   {"a":15,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@c68ab18/cmn/my1lp.min.js", "c":"open_shoLgnP", "r":"open_shoLgnP"},
-  {"a":16,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@28cbb02/cmn/my1ap.min.js"},
+  {"a":16,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@4d95515/cmn/my1ap.min.js"},
   {"a":17,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@880d404/cmn/my1xi.min.js"},
-  {"a":18,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@d669e52/cmn/my1drv.min.js"},
-  {"a":19,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@39ef3cc/cmn/my1e3.min.js", "c":"fileUploadTesting", "r":"fileUploadTesting"},
-  {"a":20,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@7262bc9/cmn/my1dra.min.js", "c":"upldAnyFile2drv", "r":"upldAnyFile2drv"},
+  {"a":18,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@24bf6ca/cmn/my1drv.min.js"},
+  {"a":19,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@4f0d0e0/cmn/my1e3.min.js", "c":"fileUploadTesting", "r":"fileUploadTesting"},
+  {"a":20,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@fc84f58/cmn/my1dra.min.js", "c":"upldAnyFile2drv", "r":"upldAnyFile2drv"},
   {"a":21,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@a30ac23/b/be.min.js", "c":"set_be_innerHTML", "r":"set_be_innerHTML"}
 ],
 "shoCachInProgressModal" : true
 
 }
+
