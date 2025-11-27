@@ -48,14 +48,14 @@ function initializePWAAfterFirebase() {
     }, 3000);
    }
 
-   if (appData != null && appData.shoInstallAppModal) {
+  if (typeof appData !== 'undefined' && appData != null && appData.shoInstallAppModal) {
     if (appData.shoInstallAppModal === 1) {
-     console.log('Showing install modal');
-     f_n_sho_install_modal();
+        console.log('Showing install modal');
+        f_n_sho_install_modal();
     }
-   } else {
+} else {
     console.log('"shoInstallAppModal" is not defined.');
-   }
+}
   });
 
   // Check if app is installed
