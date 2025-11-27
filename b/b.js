@@ -62,11 +62,11 @@ async function set_bill_innerHTML(...params) {
 <!-- Second Row - 2 read-only columns -->
 <div class="row g-0 mb-3">
 <div class="col-6">
-<input id="c_dtls_lient" type="text" class="form-control" readonly onclick="(async () => { await loadAndExeFn('open_entind_crud', ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall', 1], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@7262bc9/cmn/ei.min.js'); })()" placeholder="Customer Details">
+<input id="c_dtls_lient" type="text" class="form-control" readonly onclick="(async () => { await loadExe2Fn(14, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall', 1], [1]); })()" placeholder="Customer Details">
 <input type="hidden" id="clientId">
 </div>
 <div class="col-6">
-<input id="r_dtls_eferrer" type="text" class="form-control" readonly onclick="(async () => { await loadAndExeFn('open_entind_crud', ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall', 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@7262bc9/cmn/ei.min.js'); })()" placeholder="Referrer details">
+<input id="r_dtls_eferrer" type="text" class="form-control" readonly onclick="(async () => { await loadExe2Fn(14, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall', 2], [1]); })()" placeholder="Referrer details">
 <input type="hidden" id="referrerId">
 </div>
 </div>
@@ -1589,7 +1589,8 @@ function handleUploadedFile(fileUrl, fileName, fileType, fileId) {
  document.getElementById('itemDescription').value = fileUrl;
 }
 async function temporary() {
- await loadAndExeFn('upldAnyFile2drv', ['fileUploadTesting', 'loader', null, '*', 'handleUploadedFile'], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@7262bc9/cmn/my1dra.min.js');
+ //await loadAndExeFn('upldAnyFile2drv', ['fileUploadTesting', 'loader', null, '*', 'handleUploadedFile'], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@7262bc9/cmn/my1dra.min.js');
+ await loadExe2Fn(20, ['fileUploadTesting', 'loader', null, '*', 'handleUploadedFile'], [1]);
 }
 function enableSaveBtn() {
  const updateBtn = document.getElementById('saveBtn');
@@ -2204,7 +2205,8 @@ async function handleAddNewItem(nwProdNm = '') {
   nwProdNm = document.getElementById('itemName').value.trim();
  }
  //0ni changeed to bn.js
- await loadExecFn("set_add_itm_nw_innerHTML", "set_add_itm_nw_innerHTML", [nwProdNm], "loader", "https://cdn.jsdelivr.net/gh/sifr-in/cdn@734983c/b/bn.min.js", []);
+ //await loadExecFn("set_add_itm_nw_innerHTML", "set_add_itm_nw_innerHTML", [nwProdNm], "loader", "https://cdn.jsdelivr.net/gh/sifr-in/cdn@734983c/b/bn.min.js", []);
+ await loadExe2Fn(11, [nwProdNm], [1]);
 }
 
 // Price Calculation
@@ -3106,9 +3108,9 @@ function handl_op_rspons(response, reload = 0) {
      }
     }
     if (t3032mp != null) {
-      if (window[`da_b_${my1uzr.worknFor}`].confg.calcStock == 1) {
-       await update_qty_sold(response);
-      }
+     if (window[`da_b_${my1uzr.worknFor}`].confg.calcStock == 1) {
+      await update_qty_sold(response);
+     }
     }
     alert("stored successfully");
     if (reload == 1) {
@@ -3214,9 +3216,3 @@ function temporaryAlertFunction(billId) {
  // Implement temporary alert functionality
  console.log('Temporary alert for bill:', billId);
 }
-
-
-
-
-
-
