@@ -20,11 +20,12 @@
   {"a":18,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@24bf6ca/cmn/my1drv.min.js"},
   {"a":19,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@4f0d0e0/cmn/my1e3.min.js", "c":"fileUploadTesting", "r":"fileUploadTesting"},
   {"a":20,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@fc84f58/cmn/my1dra.min.js", "c":"upldAnyFile2drv", "r":"upldAnyFile2drv"},
-  {"a":21,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@4b03f47/b/be.min.js", "c":"set_be_innerHTML", "r":"set_be_innerHTML"}
+  {"a":21,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@72b6b6d/b/be.min.js", "c":"set_be_innerHTML", "r":"set_be_innerHTML"}
 ],
 "shoCachInProgressModal" : true
 
 }
+
 
 
 
