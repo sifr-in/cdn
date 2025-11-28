@@ -1027,7 +1027,11 @@ function setEyeMeasurement(eyeMsrments) {
             if (element.tagName === 'INPUT') {
                 element.value = value;
             } else {
-                element.innerText = value;
+if (typeof value === 'number' && value > 0) {
+  element.innerText = '+' + value;
+} else {
+  element.innerText = value;
+}
             }
         }
     }
