@@ -554,11 +554,11 @@ async function showBillCards() {
   }
  }
 
- if (stored_bill.length === 0) {
-  document.getElementById('billCardsContainer').innerHTML = "<p class='text-muted text-center py-4'>No bills found</p>";
-  modal_bill_cards.style.display = "block";
-  return;
- }
+ // if (stored_bill.length === 0) {
+ //  document.getElementById('billCardsContainer').innerHTML = "<p class='text-muted text-center py-4'>No bills found</p>";
+ //  modal_bill_cards.style.display = "block";
+ //  return;
+ // }
 
  stored_bill.sort((a, b) => {
   const dateA = new Date(a.b);
@@ -3285,3 +3285,4 @@ function temporaryAlertFunction(billId) {
  // Implement temporary alert functionality
  console.log('Temporary alert for bill:', billId);
 }
+
