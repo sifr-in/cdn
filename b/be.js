@@ -1027,7 +1027,8 @@ function setEyeMeasurement(eyeMsrments) {
             if (element.tagName === 'INPUT') {
                 element.value = value;
             } else {
-if (typeof value === 'number' && value > 0) {
+const numValue = parseFloat(value);
+if (!isNaN(numValue) && numValue > 0) {
   element.innerText = '+' + value;
 } else {
   element.innerText = value;
@@ -1101,3 +1102,4 @@ function setupKeyboardNavigation() {
     }
   });
 }
+
