@@ -1020,22 +1020,43 @@ function getEyeMeasurement() {
 }
 function setEyeMeasurement(eyeMsrments) {
     if (!eyeMsrments) return;
-    
-    function setElementValue(elementId, value) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            if (element.tagName === 'INPUT') {
-                element.value = value;
-            } else {
-const numValue = parseFloat(value);
-if (!isNaN(numValue) && numValue > 0) {
-  element.innerText = '+' + value;
-} else {
-  element.innerText = value;
-}
-            }
-        }
+
+ function setElementValue(elementId, value) {
+  const element = document.getElementById(elementId);
+  if (element) {
+   if (element.tagName === 'INPUT') {
+    element.value = value;
+   } else {
+    const numValue = parseFloat(value);
+
+    // Handle specific prefixes for V/n elements
+    if (elementId === "rDvV/n" || elementId === "lDvV/n") {
+     // Remove positive/negative sign and prefix with "6/"
+     const absoluteValue = Math.abs(numValue);
+     if (!isNaN(absoluteValue) && absoluteValue > 0) {
+      element.innerText = '6/' + absoluteValue;
+     } else {
+      element.innerText = value;
+     }
+    } else if (elementId === "rNvV/n" || elementId === "lNvV/n") {
+     // Remove positive/negative sign and prefix with "N/"
+     const absoluteValue = Math.abs(numValue);
+     if (!isNaN(absoluteValue) && absoluteValue > 0) {
+      element.innerText = 'N/' + absoluteValue;
+     } else {
+      element.innerText = value;
+     }
+    } else {
+     // Original logic for other elements
+     if (!isNaN(numValue) && numValue > 0) {
+      element.innerText = '+' + value;
+     } else {
+      element.innerText = value;
+     }
     }
+   }
+  }
+ }
     
     // Right Eye
     if (eyeMsrments.ra !== undefined) setElementValue("rDvSph", eyeMsrments.ra);
@@ -1102,4 +1123,3 @@ function setupKeyboardNavigation() {
     }
   });
 }
-
