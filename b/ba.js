@@ -7,10 +7,50 @@ let sltd_ba_obj = {};
 let g_createNwModal = null;
 let g_targetDivId = null;
 let currentBillModalElement = null; // Store the actual modal element
-// (async () => { await loadAndExeFn('open_entind_crud', ['${l1oaderElementId}', 1, 'modalContentForEntInd', 'commonFnToRunAfter_ba_ViewCall', 1], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@7262bc9/cmn/ei.min.js'); })()
-// Array to store items data
 let itemsData = [];
 let mostUsed_ba_Items = {}; // Track most used items
+let existingBills = []; // Store existing bills for duplicate checking
+let existingBillItems = []; // Store existing bill items for update mode
+let isUpdateMode = false; // Flag to track if we're in update mode
+let currentBillId = null; // Store the current bill ID being updated
+
+// Helper function to get max item name length
+function getMaxItemNameLength() {
+ // Check if the current page has the config variable set
+ if (window[my1uzr.worknOnPg] &&
+  window[my1uzr.worknOnPg].confg &&
+  window[my1uzr.worknOnPg].confg.itmNameMxLength) {
+  return window[my1uzr.worknOnPg].confg.itmNameMxLength;
+ }
+ // Default to 16 characters if not set
+ return 16;
+}
+
+// Function to update item name character counter
+function updateItemNameCounter(textarea) {
+ const maxLength = getMaxItemNameLength();
+ const currentLength = textarea.value.length;
+ const counter = document.getElementById('itemNameCounter');
+ if (counter) {
+  counter.textContent = `${currentLength}/${maxLength}`;
+  // Optional: Change color when approaching limit
+  if (currentLength > maxLength * 0.8) {
+   counter.style.color = currentLength >= maxLength ? 'red' : 'orange';
+  } else {
+   counter.style.color = '';
+  }
+ }
+}
+
+// Function to enable add item button
+function enableAddItemButton() {
+ const addItemBtn = getBillFormElement('#addItemBtn');
+ if (addItemBtn) {
+  addItemBtn.disabled = false;
+  addItemBtn.classList.remove('disabled');
+  addItemBtn.innerHTML = '<i class="fas fa-plus me-1"></i> Add Item';
+ }
+}
 
 async function open_bil_inward(...args) {
 
@@ -20,90 +60,101 @@ async function open_bil_inward(...args) {
  f1nToRunToHandlRspons = args[3] || null;
  s_ba_witchToReturn = args[4] || null;
 
+ // Load existing bills for duplicate checking
+ existingBills = await dbDexieManager.getAllRecords(dbnm, "ba") || [];
+
+ // Load existing bill items for potential update mode
+ existingBillItems = await dbDexieManager.getAllRecords(dbnm, "s") || [];
+
  // Create the form HTML with Bootstrap classes
  const formHTML = `
-    <div class="container-fluid bill-inward-form">
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">Bill Inward Details</h5>
-                <div class="form-section">
-                    <div class="row mb-3">
-                        <div class="col-md-8">
-                            <div class="input-group">
-                                <div id="supplier_nm" class="alert alert-info"></div>
-                                <input type="hidden" id="supplierId" value="0" readonly>
-                                <button class="btn btn-outline-primary" onclick="(async () => { await loadExe2Fn(14, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_ba_ViewCall', 1], [1]); })()">
-                                    <i class="fas fa-user-friends me-1"></i> Select Party
-                                </button>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="billDate" class="form-label">Date of Bill Received:</label>
-                            <input type="date" class="form-control" id="billDate" required>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label for="billNo" class="form-label">Bill No:</label>
-                            <input type="text" class="form-control" id="billNo" required>
-                        </div>
-                        <div class="col-6">
-                            <label for="billAmount" class="form-label">Bill Amount:</label>
-                            <input type="number" class="form-control" id="billAmount" step="0.01" required>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="billRemark" class="form-label">
-                            Remark 
-                            <button type="button" class="btn btn-sm btn-outline-secondary toggle-remark" onclick="toggleRemarkVisibility()">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </label>
-                        <textarea class="form-control" id="billRemark" rows="2" style="display: none;"></textarea>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card mb-4" id="billItemsSection">
-            <div class="card-body">
-                <h5 class="card-title">Bill Items</h5>
-                <div class="row" id="itemsCardsContainer">
-                    <!-- Items will be added here as cards -->
-                </div>
-                <button type="button" class="btn btn-primary mt-3" id="addItemBtn">
-                    <i class="fas fa-plus me-1"></i> Add Item
-                </button>
-            </div>
-        </div>
-
-        <div class="form-actions">
-            <button type="button" class="btn btn-success" id="saveBtn">
-                <i class="fas fa-save me-1"></i> Save Bill
-            </button>
-            <button type="button" class="btn btn-secondary" id="closeBtn">
-                <i class="fas fa-times me-1"></i> Close
-            </button>
-        </div>
+<div class="container-fluid bill-inward-form">
+ <div class="card mb-4">
+  <div class="card-body">
+   <h5 class="card-title">Bill Inward Details</h5>
+   <div class="form-section">
+    <div class="row mb-3">
+     <div class="col-md-8">
+      <div class="input-group">
+       <div id="supplier_nm" class="alert alert-info"></div>
+       <div id="updateModeMsg" class="alert alert-warning ms-2" style="display: none;">
+        <i class="fas fa-lock me-1"></i> Disabled in update mode
+       </div>
+       <input type="hidden" id="supplierId" value="0" readonly>
+       <button class="btn btn-outline-primary" id="selectPartyBtn">
+        <i class="fas fa-user-friends me-1"></i> Select Party
+       </button>
+      </div>
+     </div>
+     <div class="col-md-4">
+      <label for="billDate" class="form-label">Date of Bill Received:</label>
+      <input type="date" class="form-control" id="billDate" required>
+     </div>
     </div>
 
-    <!-- Item Form Modal -->
-    <div id="itemFormModal" class="modal fade" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add/Edit Item</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="itemFormContainer"></div>
-                </div>
-            </div>
-        </div>
+    <div class="row mb-3">
+     <div class="col-6">
+      <label for="billNo" class="form-label">Bill No:</label>
+      <input type="text" class="form-control" id="billNo" required>
+     </div>
+     <div class="col-6">
+      <label for="billAmount" class="form-label">Bill Amount:</label>
+      <input type="number" class="form-control" id="billAmount" step="0.01" required>
+     </div>
     </div>
-    `;
+
+    <div class="mb-3">
+     <label for="billRemark" class="form-label">
+      Remark
+      <button type="button" class="btn btn-sm btn-outline-secondary toggle-remark" onclick="toggleRemarkVisibility()">
+       <i class="fas fa-plus"></i>
+      </button>
+     </label>
+     <textarea class="form-control" id="billRemark" rows="2" style="display: none;"></textarea>
+    </div>
+   </div>
+  </div>
+ </div>
+
+ <div class="card mb-4" id="billItemsSection">
+  <div class="card-body">
+   <h5 class="card-title">Bill Items</h5>
+   <div class="row" id="itemsCardsContainer">
+    <!-- Items will be added here as cards -->
+   </div>
+   <button type="button" class="btn btn-primary mt-3" id="addItemBtn">
+    <i class="fas fa-plus me-1"></i> Add Item
+   </button>
+  </div>
+ </div>
+
+ <div class="form-actions">
+  <button type="button" class="btn btn-success" id="saveBtn">
+   <i class="fas fa-save me-1"></i> Save Bill
+  </button>
+  <button type="button" class="btn btn-warning" id="updateBtn" style="display: none;">
+   <i class="fas fa-sync-alt me-1"></i> Update Bill
+  </button>
+  <button type="button" class="btn btn-secondary" id="closeBtn">
+   <i class="fas fa-times me-1"></i> Close
+  </button>
+ </div>
+</div>
+
+<!-- Item Form Modal -->
+<div id="itemFormModal" class="modal fade" tabindex="-1">
+ <div class="modal-dialog modal-lg">
+  <div class="modal-content">
+   <div class="modal-header">
+    <h5 class="modal-title">Add/Edit Item</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+   </div>
+   <div class="modal-body">
+    <div id="itemFormContainer"></div>
+   </div>
+  </div>
+ </div>
+</div>`;
 
  // Handle modal creation based on createNwModal parameter
  if (g_createNwModal == 1) {
@@ -173,23 +224,291 @@ function setupEventListeners() {
  setTimeout(() => {
   const addItemBtn = getBillFormElement('#addItemBtn');
   const saveBtn = getBillFormElement('#saveBtn');
+  const updateBtn = getBillFormElement('#updateBtn');
   const closeBtn = getBillFormElement('#closeBtn');
   const billNoInput = getBillFormElement('#billNo');
+  const selectPartyBtn = getBillFormElement('#selectPartyBtn');
 
-  console.log('Setting up event listeners:', { addItemBtn, saveBtn, closeBtn, billNoInput });
+  console.log('Setting up event listeners:', { addItemBtn, saveBtn, updateBtn, closeBtn, billNoInput, selectPartyBtn });
 
   addItemBtn?.addEventListener('click', function () {
    showItemFormModal();
   });
 
   saveBtn?.addEventListener('click', saveBillData);
+
+  updateBtn?.addEventListener('click', function () {
+   saveBillData(sltd_ba_obj.a);
+  });
+
   closeBtn?.addEventListener('click', function () {
    const modalId = g_createNwModal == 1 ? (g_targetDivId || 'billInwardModal') : modalid;
    if (modalId) {
     hideModal(modalId);
    }
   });
+
+  // Add bill number blur event for duplicate checking
+  if (billNoInput) {
+   billNoInput.addEventListener('blur', checkDuplicateBillNumber);
+   // Add input event to re-enable button when bill number changes
+   billNoInput.addEventListener('input', function () {
+    enableAddItemButton();
+   });
+  }
+
+  // Add event listener for select party button
+  if (selectPartyBtn) {
+   selectPartyBtn.addEventListener('click', async function () {
+    if (!isUpdateMode) {
+     await loadExe2Fn(14, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_ba_ViewCall', 1], [1]);
+    }
+   });
+  }
  }, 100);
+}
+
+async function checkDuplicateBillNumber() {
+ const billNoInput = getBillFormElement('#billNo');
+ const billNo = billNoInput?.value?.trim();
+
+ // Check if bill number has value
+ if (!billNo || billNo.length === 0) {
+  return;
+ }
+
+ // Check if party is selected
+ if (!sltd_ba_obj?.a || Number(sltd_ba_obj.a) <= 0) {
+  // Party not selected yet, but we still want to show the duplicate warning
+  // We'll check for any bill with this number for any party
+  const duplicateBills = existingBills.filter(bill =>
+   bill.g && bill.g.toLowerCase() === billNo.toLowerCase()
+  );
+
+  if (duplicateBills.length > 0) {
+   showDuplicateBillModal(duplicateBills);
+  }
+  return;
+ }
+
+ // Check for duplicate bill for the selected party (case insensitive)
+ const duplicateBills = existingBills.filter(bill =>
+  bill.e && bill.e.toString() === sltd_ba_obj.a.toString() &&
+  bill.g && bill.g.toLowerCase() === billNo.toLowerCase()
+ );
+
+ if (duplicateBills.length > 0) {
+  showDuplicateBillModal(duplicateBills);
+ }
+}
+
+function showDuplicateBillModal(duplicateBills) {
+ // Create a dynamic modal for duplicate bill warning
+ const modal = create_modal_dynamically('duplicateBillModal');
+
+ let message = '';
+ if (duplicateBills.length === 1) {
+  const bill = duplicateBills[0];
+  message = `Bill number "${bill.g}" already exists`;
+
+  if (sltd_ba_obj?.a && bill.e) {
+   message += ` for this party.`;
+  } else if (bill.e) {
+   message += ` for party ID: ${bill.e}.`;
+  }
+ } else {
+  message = `Bill number "${duplicateBills[0].g}" exists in ${duplicateBills.length} records.`;
+ }
+
+ modal.contentElement.innerHTML = `
+        <div class="modal-header">
+            <h5 class="modal-title">Duplicate Bill Found</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${message}
+            </div>
+            <p>Do you want to see/update this bill inward?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="viewDuplicateBtn">
+                <i class="fas fa-eye me-1"></i> Yes, View/Update
+            </button>
+            <button type="button" class="btn btn-secondary" id="ignoreDuplicateBtn">
+                <i class="fas fa-times me-1"></i> No, Continue New
+            </button>
+        </div>
+    `;
+
+ // Store the duplicate bill(s) in the modal element for later use
+ modal.modalElement.dataset.duplicateBills = JSON.stringify(duplicateBills);
+
+ // Show the modal
+ modal.modalInstance.show();
+
+ // Add event listeners after modal is shown
+ setTimeout(() => {
+  const viewBtn = document.getElementById('viewDuplicateBtn');
+  const ignoreBtn = document.getElementById('ignoreDuplicateBtn');
+  const closeBtn = modal.modalElement.querySelector('.btn-close');
+
+  if (viewBtn) {
+   viewBtn.addEventListener('click', async function () {
+    // Close the duplicate modal
+    modal.modalInstance.hide();
+
+    try {
+     // Get the duplicate bills from data attribute
+     const duplicateBillsData = JSON.parse(modal.modalElement.dataset.duplicateBills);
+     if (duplicateBillsData && duplicateBillsData.length > 0) {
+      // Get the first duplicate bill
+      const duplicateBill = duplicateBillsData[0];
+
+      // Get bill items where f matches the party ID (sltd_ba_obj.a)
+      const partyItems = existingBillItems.filter(item =>
+       item.f && item.f.toString() === sltd_ba_obj.a.toString()
+      );
+
+      // Enable update mode
+      enableUpdateMode(duplicateBill, partyItems);
+     }
+    } catch (error) {
+     console.error('Error processing duplicate bill:', error);
+     alert('Error loading duplicate bill data');
+    }
+   });
+  }
+
+  if (ignoreBtn) {
+   ignoreBtn.addEventListener('click', function () {
+    // Close the modal
+    modal.modalInstance.hide();
+
+    // Disable the add item button
+    const addItemBtn = getBillFormElement('#addItemBtn');
+    if (addItemBtn) {
+     addItemBtn.disabled = true;
+     addItemBtn.classList.add('disabled');
+     addItemBtn.innerHTML = '<i class="fas fa-ban me-1"></i> Add Item (Disabled)';
+    }
+   });
+  }
+
+  if (closeBtn) {
+   closeBtn.addEventListener('click', function () {
+    // When user closes with X, treat as "No"
+    const addItemBtn = getBillFormElement('#addItemBtn');
+    if (addItemBtn) {
+     addItemBtn.disabled = true;
+     addItemBtn.classList.add('disabled');
+     addItemBtn.innerHTML = '<i class="fas fa-ban me-1"></i> Add Item (Disabled)';
+    }
+   });
+  }
+
+  // Handle modal hide event
+  modal.modalElement.addEventListener('hidden.bs.modal', function () {
+   // Check if add item button should be disabled
+   const addItemBtn = getBillFormElement('#addItemBtn');
+   if (addItemBtn && addItemBtn.disabled) {
+    // Button is already disabled (user clicked "No")
+   }
+  });
+ }, 100);
+}
+
+function enableUpdateMode(duplicateBill, partyItems) {
+ // Set update mode flag
+ isUpdateMode = true;
+ currentBillId = duplicateBill.a; // Store the bill ID
+
+ // Hide save button, show update button
+ const saveBtn = getBillFormElement('#saveBtn');
+ const updateBtn = getBillFormElement('#updateBtn');
+
+ if (saveBtn) saveBtn.style.display = 'none';
+ if (updateBtn) updateBtn.style.display = 'inline-block';
+
+ // Disable party selection button and show message
+ const selectPartyBtn = getBillFormElement('#selectPartyBtn');
+ const updateModeMsg = getBillFormElement('#updateModeMsg');
+
+ if (selectPartyBtn) {
+  selectPartyBtn.disabled = true;
+  selectPartyBtn.classList.add('disabled');
+ }
+
+ if (updateModeMsg) {
+  updateModeMsg.style.display = 'block';
+ }
+
+ // Populate form fields with duplicate bill data
+ const billDateInput = getBillFormElement('#billDate');
+ const billNoInput = getBillFormElement('#billNo');
+ const billAmountInput = getBillFormElement('#billAmount');
+ const billRemarkInput = getBillFormElement('#billRemark');
+
+ if (billDateInput && duplicateBill.f) {
+  billDateInput.value = duplicateBill.f;
+ }
+
+ if (billNoInput && duplicateBill.g) {
+  billNoInput.value = duplicateBill.g;
+ }
+
+ if (billAmountInput && duplicateBill.h) {
+  billAmountInput.value = duplicateBill.h;
+ }
+
+ if (billRemarkInput && duplicateBill.i) {
+  billRemarkInput.value = duplicateBill.i;
+  // Show the remark textarea if there's a remark
+  const toggleBtn = getBillFormElement('.toggle-remark');
+  if (billRemarkInput.value.trim() !== '') {
+   billRemarkInput.style.display = 'block';
+   if (toggleBtn) {
+    toggleBtn.innerHTML = '<i class="fas fa-minus"></i>';
+   }
+  }
+ }
+
+ // Clear existing items and load the party items
+ itemsData = [];
+
+ // Convert party items to the format expected by itemsData
+ if (partyItems && partyItems.length > 0) {
+  partyItems.forEach(item => {
+   const itemData = {
+    itemName: item.e || '',
+    itemThumbnail: item.g || '',
+    itemImage: item.h || '',
+    purchasePrice: item.ss?.h || 0,
+    quantityReceived: item.ss?.i || 0,
+    salesPrice: item.ss?.k || 0,
+    receivedUnit: item.ss?.l || '',
+    sellingUnit: item.ss?.m || '',
+    itemRemark: '',
+    excludeFromStock: item.ss?.d === 111,
+    e_a: item.e_a || 0
+   };
+
+   itemsData.push(itemData);
+  });
+
+  // Refresh the items display
+  refreshItemsCards();
+ }
+
+ // Show a success message
+ const supplierNm = getBillFormElement('#supplier_nm');
+ if (supplierNm) {
+  const originalContent = supplierNm.innerHTML;
+  supplierNm.innerHTML = originalContent + ' <span class="text-success"><i class="fas fa-info-circle"></i> Update Mode Activated</span>';
+ }
+
+ console.log('Update mode enabled for bill:', duplicateBill);
 }
 
 function toggleRemarkVisibility() {
@@ -233,69 +552,74 @@ function showItemFormModal(itemIndex = null, itemData = null) {
  }
 
  const isEditMode = itemIndex !== null;
+ const maxLength = getMaxItemNameLength();
 
- // Create the item form HTML with item ID display
  const itemFormHTML = `
-    <div class="item-form-modal">
-        <h5 class="mb-3">${isEditMode ? 'Edit Item' : 'Add New Item'}</h5>
-        <div id="modalItemIdDisplay" class="alert alert-info item-id-display" style="display: none;">
-            <strong>Item ID:</strong> <span id="modalItemIdValue"></span>
-        </div>
-        <div class="mb-3">
-            <label for="modalItemName" class="form-label">Item Name:</label>
-            <textarea class="form-control" id="modalItemName" rows="2" placeholder="Item / Product Name"></textarea>
-        </div>
-        <div class="mb-3">
-            <label for="modalItemThumbnail" class="form-label">Thumbnail Image URL:</label>
-            <input type="url" class="form-control" id="modalItemThumbnail">
-        </div>
-        <div class="mb-3">
-            <label for="modalItemImage" class="form-label">Big Image URL:</label>
-            <input type="url" class="form-control" id="modalItemImage">
-        </div>
-        <div class="row mb-3">
-            <div class="col-4">
-                <label for="modalPurchasePrice" class="form-label">Purch Price:</label>
-                <input type="number" class="form-control" id="modalPurchasePrice" step="0.01" required>
-            </div>
-            <div class="col-4">
-                <label for="modalSalesPrice" class="form-label">Sels Price:</label>
-                <input type="number" class="form-control" id="modalSalesPrice" step="0.01" required>
-            </div>
-            <div class="col-4">
-                <label for="modalQuantity" class="form-label">Qty Rcvd:</label>
-                <input type="number" class="form-control" id="modalQuantity" step="0.01" required>
-            </div>
-        </div>
-        <div class="mb-3">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="exclude_this_item_from_stock_chk" style="border: 1px solid black;">
-                <label class="form-check-label" for="exclude_this_item_from_stock_chk">
-                    Exclude this item from stock
-                </label>
-            </div>
-        </div>
-        <div class="mb-3" style="visibility:hidden">
-            <label for="modalReceivedUnit" class="form-label">Received Unit:</label>
-            <input type="text" class="form-control" id="modalReceivedUnit" required>
-        </div>
-        <div class="mb-3" style="visibility:hidden">
-            <label for="modalSellingUnit" class="form-label">Selling Unit:</label>
-            <input type="text" class="form-control" id="modalSellingUnit" required>
-        </div>
-        <div class="mb-3" style="visibility:hidden">
-            <label for="modalItemRemark" class="form-label">Remark:</label>
-            <textarea class="form-control" id="modalItemRemark" rows="2"></textarea>
-        </div>
-        <div class="d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-primary" id="modalSaveItemBtn">
-                <i class="fas fa-save me-1"></i> ${isEditMode ? 'Update' : 'Save'}
-            </button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                <i class="fas fa-times me-1"></i> Cancel
-            </button>
-        </div>
-    </div>
+<div class="item-form-modal">
+ <h5 class="mb-3">${isEditMode ? 'Edit Item' : 'Add New Item'}</h5>
+ <div id="modalItemIdDisplay" class="alert alert-info item-id-display" style="display: none;">
+  <strong>Item ID:</strong> <span id="modalItemIdValue"></span>
+ </div>
+ <div class="mb-3">
+  <label for="modalItemName" class="form-label">Item Name:</label>
+  <textarea class="form-control" id="modalItemName" rows="2" placeholder="Item / Product Name" maxlength="${maxLength}"
+   oninput="updateItemNameCounter(this)"></textarea>
+  <div class="form-text text-end">
+   <span id="itemNameCounter">0/${maxLength}</span> characters
+  </div>
+ </div>
+ <div class="mb-3">
+  <label for="modalItemThumbnail" class="form-label">Thumbnail Image URL:</label>
+  <input type="url" class="form-control" id="modalItemThumbnail">
+ </div>
+ <div class="mb-3">
+  <label for="modalItemImage" class="form-label">Big Image URL:</label>
+  <input type="url" class="form-control" id="modalItemImage">
+ </div>
+ <div class="row mb-3">
+  <div class="col-4">
+   <label for="modalPurchasePrice" class="form-label">Purch Price:</label>
+   <input type="number" class="form-control" id="modalPurchasePrice" step="0.01" required>
+  </div>
+  <div class="col-4">
+   <label for="modalSalesPrice" class="form-label">Sels Price:</label>
+   <input type="number" class="form-control" id="modalSalesPrice" step="0.01" required>
+  </div>
+  <div class="col-4">
+   <label for="modalQuantity" class="form-label">Qty Rcvd:</label>
+   <input type="number" class="form-control" id="modalQuantity" step="0.01" required>
+  </div>
+ </div>
+ <div class="mb-3">
+  <div class="form-check">
+   <input class="form-check-input" type="checkbox" id="exclude_this_item_from_stock_chk"
+    style="border: 1px solid black;">
+   <label class="form-check-label" for="exclude_this_item_from_stock_chk">
+    Exclude this item from stock
+   </label>
+  </div>
+ </div>
+ <div class="mb-3" style="visibility:hidden">
+  <label for="modalReceivedUnit" class="form-label">Received Unit:</label>
+  <input type="text" class="form-control" id="modalReceivedUnit" required>
+ </div>
+ <div class="mb-3" style="visibility:hidden">
+  <label for="modalSellingUnit" class="form-label">Selling Unit:</label>
+  <input type="text" class="form-control" id="modalSellingUnit" required>
+ </div>
+ <div class="mb-3" style="visibility:hidden">
+  <label for="modalItemRemark" class="form-label">Remark:</label>
+  <textarea class="form-control" id="modalItemRemark" rows="2"></textarea>
+ </div>
+ <div class="d-flex justify-content-end gap-2">
+  <button type="button" class="btn btn-primary" id="modalSaveItemBtn">
+   <i class="fas fa-save me-1"></i> ${isEditMode ? 'Update' : 'Save'}
+  </button>
+  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+   <i class="fas fa-times me-1"></i> Cancel
+  </button>
+ </div>
+</div>
     `;
 
  // Set the form content
@@ -336,6 +660,11 @@ function showItemFormModal(itemIndex = null, itemData = null) {
    document.getElementById('modalItemIdDisplay').style.display = 'block';
    document.getElementById('modalItemIdValue').textContent = itemData.e_a;
   }
+
+  // Update counter for existing data
+  setTimeout(() => {
+   updateItemNameCounter(document.getElementById('modalItemName'));
+  }, 100);
  }
 
  // Set up save button event listener
@@ -430,8 +759,18 @@ function saveItemToTable(itemIndex = null) {
 
 function validateItemForm() {
  // Simple validation - expand as needed
- if (!document.getElementById('modalItemName').value) {
+ const itemNameInput = document.getElementById('modalItemName');
+ const itemName = itemNameInput?.value?.trim();
+ const maxLength = getMaxItemNameLength();
+
+ if (!itemName) {
   alert('Please enter item name');
+  return false;
+ }
+
+ if (itemName.length > maxLength) {
+  alert(`Item name cannot exceed ${maxLength} characters. Current length: ${itemName.length}`);
+  itemNameInput.focus();
   return false;
  }
 
@@ -472,53 +811,54 @@ function refreshItemsCards() {
   const isNewItem = item.e_a === 0;
 
   cardCol.innerHTML = `
-            <div class="card item-card h-100 ${isNewItem ? 'border-warning' : ''} ${item.excludeFromStock ? 'border-danger' : ''}" data-index="${index}">
-                <div class="card-header d-flex justify-content-between align-items-center py-2 ${isNewItem ? 'bg-warning text-dark' : item.excludeFromStock ? 'bg-danger text-white' : 'bg-light'}">
-                    <small class="fw-bold">
-                        ${isNewItem ? 'NEW ITEM' : `Item ID: ${item.e_a}`}
-                        ${item.excludeFromStock ? ' (Excluded)' : ''}
-                    </small>
-                    <div class="item-actions">
-                        <button class="btn btn-sm btn-outline-primary edit-btn me-1" data-index="${index}">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger delete-btn" data-index="${index}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body p-3">
-                    <div class="row">
-                        <div class="col-4">
-                            <img src="${item.itemThumbnail || 'https://cdn-icons-png.freepik.com/512/13543/13543330.png'}" 
-                                 class="img-fluid rounded" 
-                                 alt="${item.itemName}"
-                                 onerror="this.src='https://cdn-icons-png.freepik.com/512/13543/13543330.png'">
-                        </div>
-                        <div class="col-8">
-                            <h6 class="card-title mb-2 text-truncate" title="${item.itemName}">${item.itemName}</h6>
-                            <div class="item-details">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <small class="text-muted">Purchase:</small>
-                                    <small class="fw-bold">₹${item.purchasePrice.toFixed(2)}</small>
-                                </div>
-                                <div class="d-flex justify-content-between mb-1">
-                                    <small class="text-muted">Sales:</small>
-                                    <small class="fw-bold text-success">₹${item.salesPrice.toFixed(2)}</small>
-                                </div>
-                                <div class="d-flex justify-content-between mb-1">
-                                    <small class="text-muted">Qty:</small>
-                                    <small class="fw-bold">${item.quantityReceived} ${item.receivedUnit}</small>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <small class="text-muted">Total:</small>
-                                    <small class="fw-bold text-primary">₹${(item.purchasePrice * item.quantityReceived).toFixed(2)}</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="card item-card h-100 ${isNewItem ? 'border-warning' : ''} ${item.excludeFromStock ? 'border-danger' : ''}"
+ data-index="${index}">
+ <div
+  class="card-header d-flex justify-content-between align-items-center py-2 ${isNewItem ? 'bg-warning text-dark' : item.excludeFromStock ? 'bg-danger text-white' : 'bg-light'}">
+  <small class="fw-bold">
+   ${isNewItem ? 'NEW ITEM' : `Item ID: ${item.e_a}`}
+   ${item.excludeFromStock ? ' (Excluded)' : ''}
+  </small>
+  <div class="item-actions">
+   <button class="btn btn-sm btn-outline-primary edit-btn me-1" data-index="${index}">
+    <i class="fas fa-edit"></i>
+   </button>
+   <button class="btn btn-sm btn-outline-danger delete-btn" data-index="${index}">
+    <i class="fas fa-trash"></i>
+   </button>
+  </div>
+ </div>
+ <div class="card-body p-3">
+  <div class="row">
+   <div class="col-4">
+    <img src="${item.itemThumbnail || 'https://cdn-icons-png.freepik.com/512/13543/13543330.png'}"
+     class="img-fluid rounded" alt="${item.itemName}"
+     onerror="this.src='https://cdn-icons-png.freepik.com/512/13543/13543330.png'">
+   </div>
+   <div class="col-8">
+    <h6 class="card-title mb-2 text-truncate" title="${item.itemName}" style="max-width: 100%;">${item.itemName}</h6>
+    <div class="item-details">
+     <div class="d-flex justify-content-between mb-1">
+      <small class="text-muted">Purchase:</small>
+      <small class="fw-bold">₹${item.purchasePrice.toFixed(2)}</small>
+     </div>
+     <div class="d-flex justify-content-between mb-1">
+      <small class="text-muted">Sales:</small>
+      <small class="fw-bold text-success">₹${item.salesPrice.toFixed(2)}</small>
+     </div>
+     <div class="d-flex justify-content-between mb-1">
+      <small class="text-muted">Qty:</small>
+      <small class="fw-bold">${item.quantityReceived} ${item.receivedUnit}</small>
+     </div>
+     <div class="d-flex justify-content-between">
+      <small class="text-muted">Total:</small>
+      <small class="fw-bold text-primary">₹${(item.purchasePrice * item.quantityReceived).toFixed(2)}</small>
+     </div>
+    </div>
+   </div>
+  </div>
+ </div>
+</div>
         `;
 
   // Add click event for the entire card (excluding action buttons)
@@ -616,7 +956,7 @@ function hideModal(modalId) {
  }
 }
 
-async function saveBillData() {
+async function saveBillData(billIdParam = null) {
  // Show loader
  const loaderElement = document.getElementById(l1oaderElementId) || createLoader();
  loaderElement.style.display = 'flex';
@@ -656,7 +996,12 @@ async function saveBillData() {
   payload0.da = billData;
   payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'ba', "col": 'b', "cl": "b" }, { "tb": 'p', "col": 'b', "cl": "b" }, { "tb": 's', "col": 'b', "cl": "b" }]);
   payload0.vw = 1;
-  payload0.fn = 47;
+  payload0.fn = 47;//insert
+  // If in update mode, add the bill ID
+  if (isUpdateMode && currentBillId) {
+   payload0.fn = 56;//update
+   billData.a = currentBillId;
+  }
 
   var r368esponse = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 15000, 0, 1, 0);
 
@@ -736,19 +1081,8 @@ function validateForm() {
     resolve(false);
    }
 
-   let cstmr = await dbDexieManager.getAllRecords(dbnm, "ba");
-   if (!cstmr || cstmr.length === 0) {
-    console.warn("No customers found in database");
-   } else {
-    const c377stmr = cstmr.filter(d377ata =>
-     d377ata.e.toString() === sltd_ba_obj.a.toString() &&
-     d377ata.g.toString() === billNo.trim()
-    );
-    if (c377stmr && c377stmr.length > 0) {
-     alert('Bill already exists');
-     resolve(false);
-    }
-   }
+   // Note: Duplicate bill check is now handled by checkDuplicateBillNumber function
+   // and the add item button will be disabled if duplicate exists
 
    // Validate bill amount (positive number)
    const billAmount = parseFloat(getBillFormElement('#billAmount').value);
@@ -849,8 +1183,8 @@ async function showItemNameDropdown(inputElement) {
                     <img src="${item.gu || 'https://cdn-icons-png.freepik.com/512/13543/13543330.png'}" 
                          class="me-2" style="width: 40px; height: 40px; object-fit: cover; border-radius: 3px;"
                          onerror="this.src='https://cdn-icons-png.freepik.com/512/13543/13543330.png'">
-                    <div>
-                        <div class="fw-bold">${item.gn}</div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="fw-bold text-truncate" title="${item.gn}">${item.gn}</div>
                         <small class="text-muted">${item.ba_f} [₹${item.k}] - ${item.ba_g}</small>
                     </div>
                 </div>
@@ -866,6 +1200,9 @@ async function showItemNameDropdown(inputElement) {
     // Show item ID
     document.getElementById('modalItemIdDisplay').style.display = 'block';
     document.getElementById('modalItemIdValue').textContent = item.g;
+
+    // Update character counter
+    updateItemNameCounter(document.getElementById('modalItemName'));
 
     // Track usage
     mostUsed_ba_Items[item.a] = (mostUsed_ba_Items[item.a] || 0) + 1;
@@ -942,6 +1279,9 @@ function commonFnToRunAfter_ba_ViewCall(...args) {
    // Create the element if it doesn't exist
    createSupplierNameElement(args[0]);
   }
+
+  // Enable add item button when party is selected (in case it was disabled from duplicate check)
+  enableAddItemButton();
  }
 }
 
@@ -980,129 +1320,7 @@ function createSupplierNameElement(supplierData) {
 // Updated applyStyles function with card-specific styles
 function applyStyles() {
  const style = document.createElement('style');
- style.textContent = `
-    .new-item-display {
-        background-color: #fff3cd !important;
-        border-left: 4px solid #ffc107 !important;
-        color: #856404 !important;
-    }
-
-    .new-item-display span {
-        color: #856404 !important;
-        font-style: italic;
-    }
-    
-    .item-id-display {
-        padding: 8px 12px;
-        border-radius: 4px;
-        margin-bottom: 15px;
-        font-size: 14px;
-    }
-
-    .item-id-display span {
-        font-weight: bold;
-    }
-    
-    .bill-inward-form {
-        font-family: Arial, sans-serif;
-        margin: 0 auto;
-        padding: 20px;
-        background: #f9f9f9;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .toggle-remark {
-        font-size: 0.75rem;
-        padding: 0.125rem 0.25rem;
-    }
-    
-    .item-card {
-        cursor: pointer;
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    }
-    
-    .item-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
-    
-    .item-card .card-header {
-        padding: 0.5rem 0.75rem;
-    }
-    
-    .item-card .card-body {
-        padding: 0.75rem;
-    }
-    
-    .item-card .item-actions {
-        /* Buttons are now always visible */
-        opacity: 1;
-    }
-    
-    .item-card .item-actions .btn {
-        padding: 0.125rem 0.375rem;
-        font-size: 0.75rem;
-    }
-    
-    .item-card .card-title {
-        font-size: 0.9rem;
-        line-height: 1.2;
-    }
-    
-    .item-card .item-details {
-        font-size: 0.8rem;
-    }
-    
-    .item-card img {
-        height: 80px;
-        object-fit: cover;
-    }
-    
-    .item-dropdown-item {
-        display: flex;
-        align-items: center;
-        padding: 8px 10px;
-        cursor: pointer;
-        border-bottom: 1px solid #eee;
-    }
-    
-    .item-dropdown-item:hover {
-        background-color: #f5f5f5;
-    }
-    
-    .item-dropdown-item img {
-        width: 55px;
-        height: 55px;
-        object-fit: cover;
-        margin-right: 10px;
-        border-radius: 3px;
-    }
-    
-    .item-dropdown-item .item-name {
-        flex: 1;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .item-card .col-4 {
-            width: 30%;
-        }
-        .item-card .col-8 {
-            width: 70%;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .col-md-6 {
-            width: 100%;
-        }
-    }
-    `;
+ style.textContent = `.new-item-display{background-color:#fff3cd!important;border-left:4px solid #ffc107!important;color:#856404!important}.new-item-display span{color:#856404!important;font-style:italic}.item-id-display{padding:8px 12px;border-radius:4px;margin-bottom:15px;font-size:14px}.item-id-display span{font-weight:700}.bill-inward-form{font-family:Arial,sans-serif;margin:0 auto;padding:20px;background:#f9f9f9;border-radius:8px;box-shadow:0 2px 4px rgb(0 0 0 / .1)}.toggle-remark{font-size:.75rem;padding:.125rem .25rem}.item-card{cursor:pointer;transition:transform 0.2s ease-in-out,box-shadow 0.2s ease-in-out}.item-card:hover{transform:translateY(-2px);box-shadow:0 4px 8px rgb(0 0 0 / .15)}.item-card .card-header{padding:.5rem .75rem}.item-card .card-body{padding:.75rem}.item-card .item-actions{opacity:1}.item-card .item-actions .btn{padding:.125rem .375rem;font-size:.75rem}.item-card .card-title{font-size:.9rem;line-height:1.2}.item-card .item-details{font-size:.8rem}.item-card img{height:80px;object-fit:cover}.item-dropdown-item{display:flex;align-items:center;padding:8px 10px;cursor:pointer;border-bottom:1px solid #eee}.item-dropdown-item:hover{background-color:#f5f5f5}.item-dropdown-item img{width:55px;height:55px;object-fit:cover;margin-right:10px;border-radius:3px}.item-dropdown-item .item-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}@media (max-width:768px){.item-card .col-4{width:30%}.item-card .col-8{width:70%}}@media (max-width:576px){.col-md-6{width:100%}}`;
 
  document.head.appendChild(style);
-
 }
