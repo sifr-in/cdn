@@ -6,89 +6,89 @@ let currentEditingRecord = null;
 let currentModalId = null; // Add this to track the current modal ID
 
 async function open_entind_crud(...args) {
-    loaderElement = document.getElementById(args[0] || null);
-    const createNwModalif1 = 1; // args[1] || 0;
-    const trgtDvIdForEntInd = args[2] || null;
-    f1nEiToExe = args[3] || null;
-    s_ei_witchToReturn = args[4] || null;
+ loaderElement = document.getElementById(args[0] || null);
+ const createNwModalif1 = 1; // args[1] || 0;
+ const trgtDvIdForEntInd = args[2] || null;
+ f1nEiToExe = args[3] || null;
+ s_ei_witchToReturn = args[4] || null;
 
-    if (loaderElement) {
-        loaderElement.style.display = 'flex';
+ if (loaderElement) {
+  loaderElement.style.display = 'flex';
+ }
+
+ try {
+  // Load d_entInd_ata first
+  d_entInd_ata = await dbDexieManager.getAllRecords(dbnm, "c");
+  // Sort d_entInd_ata descending by b field (created date)
+  d_entInd_ata.sort((a, b) => new Date(b.b) - new Date(a.b));
+
+  setTimeout(() => {
+   // Hide loader when done
+   if (loaderElement) {
+    loaderElement.style.display = 'none';
+   }
+
+   // Check if modal content container already exists
+   let existingContainer = document.getElementById(trgtDvIdForEntInd);
+
+   if (createNwModalif1 == 1) {
+    // Generate unique modal ID
+    currentModalId = 'entind_modal_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+    // Use existing function to create modal
+    const modalResult = create_modal_dynamically(currentModalId);
+    const modal = modalResult.modalElement;
+    let modalContent = modalResult.contentElement;
+
+    // If container already exists elsewhere, remove it
+    if (existingContainer && existingContainer.parentNode) {
+     existingContainer.remove();
     }
 
-    try {
-        // Load d_entInd_ata first
-        d_entInd_ata = await dbDexieManager.getAllRecords(dbnm, "c");
-        // Sort d_entInd_ata descending by b field (created date)
-        d_entInd_ata.sort((a, b) => new Date(b.b) - new Date(a.b));
+    // Set the target div ID for the content
+    modalContent.id = trgtDvIdForEntInd;
+    modalContent.className = 'modal-content h-100 d-flex flex-column';
 
-        setTimeout(() => {
-            // Hide loader when done
-            if (loaderElement) {
-                loaderElement.style.display = 'none';
-            }
+    // Render the CRUD interface
+    renderCRUDInterface(modalContent);
 
-            // Check if modal content container already exists
-            let existingContainer = document.getElementById(trgtDvIdForEntInd);
-            
-            if (createNwModalif1 == 1) {
-                // Generate unique modal ID
-                currentModalId = 'entind_modal_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                
-                // Use existing function to create modal
-                const modalResult = create_modal_dynamically(currentModalId);
-                const modal = modalResult.modalElement;
-                let modalContent = modalResult.contentElement;
-                
-                // If container already exists elsewhere, remove it
-                if (existingContainer && existingContainer.parentNode) {
-                    existingContainer.remove();
-                }
-                
-                // Set the target div ID for the content
-                modalContent.id = trgtDvIdForEntInd;
-                modalContent.className = 'modal-content h-100 d-flex flex-column';
+    // Show the modal
+    modalResult.modalInstance.show();
 
-                // Render the CRUD interface
-                renderCRUDInterface(modalContent);
+    // Add close handler
+    modal.addEventListener('hidden.bs.modal', () => {
+     closeSpecificModal(currentModalId);
+     // Reset current modal ID when modal is closed
+     currentModalId = null;
+    });
 
-                // Show the modal
-                modalResult.modalInstance.show();
-
-                // Add close handler
-                modal.addEventListener('hidden.bs.modal', () => {
-                    closeSpecificModal(currentModalId);
-                    // Reset current modal ID when modal is closed
-                    currentModalId = null;
-                });
-
-            } else {
-                // Use existing target - ensure it exists
-                if (!existingContainer) {
-                    console.error('Target container not found:', trgtDvIdForEntInd);
-                    return;
-                }
-                modalContent = existingContainer;
-                renderCRUDInterface(modalContent);
-
-                // Show modal if modalid is provided
-                if (mdlIdIfContentIsToBeShonInExistng) {
-                    const existingModal = document.getElementById(mdlIdIfContentIsToBeShonInExistng);
-                    if (existingModal) {
-                        const modalInstance = bootstrap.Modal.getInstance(existingModal) || new bootstrap.Modal(existingModal);
-                        modalInstance.show();
-                        currentModalId = mdlIdIfContentIsToBeShonInExistng;
-                    }
-                }
-            }
-        }, 500);
-    } catch (error) {
-        console.error("Error loading d_entInd_ata:", error);
-        if (loaderElement) {
-            loaderElement.style.display = 'none';
-        }
-        showToast("Error loading d_entInd_ata");
+   } else {
+    // Use existing target - ensure it exists
+    if (!existingContainer) {
+     console.error('Target container not found:', trgtDvIdForEntInd);
+     return;
     }
+    modalContent = existingContainer;
+    renderCRUDInterface(modalContent);
+
+    // Show modal if modalid is provided
+    if (mdlIdIfContentIsToBeShonInExistng) {
+     const existingModal = document.getElementById(mdlIdIfContentIsToBeShonInExistng);
+     if (existingModal) {
+      const modalInstance = bootstrap.Modal.getInstance(existingModal) || new bootstrap.Modal(existingModal);
+      modalInstance.show();
+      currentModalId = mdlIdIfContentIsToBeShonInExistng;
+     }
+    }
+   }
+  }, 500);
+ } catch (error) {
+  console.error("Error loading d_entInd_ata:", error);
+  if (loaderElement) {
+   loaderElement.style.display = 'none';
+  }
+  showToast("Error loading d_entInd_ata");
+ }
 }
 
 // Helper function to close specific modal by ID
@@ -232,7 +232,8 @@ function renderCRUDInterface(container) {
 
  // Add search functionality
  document.getElementById('entindSearch').addEventListener('input', function () {
-  renderCards(this.value.toLowerCase());
+  // Pass the trimmed value as-is (not lowercased) to preserve case
+  renderCards(this.value.trim());
  });
 
  /*document.getElementById('clearSearch').addEventListener('click', function () {
@@ -257,7 +258,7 @@ function showAddNewForm(record = null) {
  addNewDiv.classList.remove('d-none');
 
  // Clear any search term
-//  document.getElementById('entindSearch').value = '';
+ //  document.getElementById('entindSearch').value = '';
 
  // Clear the cards container
  document.getElementById('entindCardsContainer').innerHTML = '';
@@ -532,11 +533,14 @@ function renderCards(searchTerm = '') {
  if (!container) return;
  container.innerHTML = '';
 
+ // Trim and convert search term to lowercase once for filtering
+ const searchTermLower = searchTerm.trim().toLowerCase();
+
  const filteredData = searchTerm ? d_entInd_ata.filter(item =>
-  (item.a && item.a.toString().toLowerCase().includes(searchTerm)) ||
-  (item.e && item.e.toString().toLowerCase().includes(searchTerm)) ||
-  (item.h && item.h.toLowerCase().includes(searchTerm)) ||
-  (item.i && item.i.toLowerCase().includes(searchTerm)))
+  (item.a && item.a.toString().toLowerCase().includes(searchTermLower)) ||
+  (item.e && item.e.toString().toLowerCase().includes(searchTermLower)) ||
+  (item.h && item.h.toLowerCase().includes(searchTermLower)) ||
+  (item.i && item.i.toLowerCase().includes(searchTermLower)))
   : d_entInd_ata;
 
  // Hide the add new form initially
@@ -547,18 +551,21 @@ function renderCards(searchTerm = '') {
   showAddNewForm();
 
   // Pre-fill fields based on search term
-  const cleanSearchTerm = searchTerm.trim();
+  const cleanSearchTerm = searchTerm.trim(); // Already trimmed
   const isNumeric = /^\d+$/.test(cleanSearchTerm);
+  const isASCII = /^[\x00-\x7F]*$/.test(cleanSearchTerm);
 
   if (isNumeric) {
    document.getElementById('quickMobile').value = cleanSearchTerm.substring(0, 10);
-  } else {
-   const isASCII = /^[\x00-\x7F]*$/.test(cleanSearchTerm);
-   if (isASCII) {
-    document.getElementById('quickNameEnglish').value = cleanSearchTerm;
-   } else {
-    document.getElementById('quickNameLocal').value = cleanSearchTerm;
-   }
+  }else{
+   document.getElementById('quickNameEnglish').value = cleanSearchTerm;
+  }
+
+  // If search term contains non-English characters, also put in quickNameLocal
+  if (!isASCII) {
+   document.getElementById('quickNameLocal').value = cleanSearchTerm;
+   // Clear English name field if it has non-English characters
+   document.getElementById('quickNameEnglish').value = '';
   }
  }
 
@@ -634,7 +641,7 @@ function renderCards(searchTerm = '') {
      if (r368esponse && r368esponse.su === 1) {
       // Remove from local data
       d_entInd_ata = d_entInd_ata.filter(item => item.a !== id);
-      renderCards(document.getElementById('entindSearch').value.toLowerCase());
+      renderCards(document.getElementById('entindSearch').value);
       showToast("Record deleted successfully");
      } else {
       showToast(r368esponse?.ms || "Error deleting record");
