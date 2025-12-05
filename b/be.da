@@ -9,7 +9,7 @@
   {"a":7,"u":"https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"},
   {"a":8,"u":"https://code.jquery.com/jquery-3.6.0.min.js"},
   {"a":9,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@4695ffa/b/b.min.js", "c":"set_bill_innerHTML", "r":"set_bill_innerHTML"},
-  {"a":10,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@64ec92b/b/ba.min.js", "c":"open_bil_inward", "r":"open_bil_inward"},
+  {"a":10,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@f5eedef/b/ba.min.js", "c":"open_bil_inward", "r":"open_bil_inward"},
   {"a":11,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@cf22227/b/bn.min.js", "c":"set_add_itm_nw_innerHTML", "r":"set_add_itm_nw_innerHTML"},
   {"a":12,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@18ff972/b/bp.min.js", "c":"set_deup_prod_innerHTML", "r":"set_deup_prod_innerHTML"},
   {"a":13,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@a30ac23/b/bPrOp.min.css"},
@@ -25,6 +25,7 @@
 "shoCachInProgressModal" : true
 
 }
+
 
 
 
