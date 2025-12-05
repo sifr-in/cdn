@@ -368,7 +368,7 @@ function showDuplicateBillModal(duplicateBills) {
 
       // Get bill items where f matches the party ID (sltd_ba_obj.a)
       const partyItems = existingBillItems.filter(item =>
-       item.f && item.f.toString() === sltd_ba_obj.a.toString()
+       item.f && item.f === duplicateBill.a
       );
 
       // Enable update mode
