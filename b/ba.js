@@ -53,7 +53,11 @@ function enableAddItemButton() {
 }
 
 async function open_bil_inward(...args) {
-
+itemsData = [];
+isUpdateMode = false;
+currentBillId = null;
+sltd_ba_obj = {};
+ 
  l1oaderElementId = document.getElementById(args[0] || null);
  g_createNwModal = args[1] || 0;
  g_targetDivId = args[2] || null;
@@ -1329,4 +1333,5 @@ function applyStyles() {
 
  document.head.appendChild(style);
 }
+
 
