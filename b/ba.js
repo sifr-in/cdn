@@ -231,6 +231,11 @@ function setupEventListeners() {
 
   console.log('Setting up event listeners:', { addItemBtn, saveBtn, updateBtn, closeBtn, billNoInput, selectPartyBtn });
 
+if (selectPartyBtn && !isUpdateMode) {
+  selectPartyBtn.disabled = false;
+  selectPartyBtn.classList.remove('disabled');
+}
+  
   addItemBtn?.addEventListener('click', function () {
    showItemFormModal();
   });
@@ -481,16 +486,16 @@ function enableUpdateMode(duplicateBill, partyItems) {
  if (partyItems && partyItems.length > 0) {
   partyItems.forEach(item => {
    const itemData = {
-    itemName: item.e || '',
-    itemThumbnail: item.g || '',
-    itemImage: item.h || '',
-    purchasePrice: item.ss?.h || 0,
-    quantityReceived: item.ss?.i || 0,
-    salesPrice: item.ss?.k || 0,
-    receivedUnit: item.ss?.l || '',
-    sellingUnit: item.ss?.m || '',
-    itemRemark: '',
-    excludeFromStock: item.ss?.d === 111,
+    itemName: item.gn || '',
+    itemThumbnail: item.hu || '',
+    itemImage: item.gu || '',
+    purchasePrice: item.h || 0,
+    quantityReceived: item.i || 0,
+    salesPrice: item.k || 0,
+    receivedUnit: item.j || '',
+    sellingUnit: item.l || '',
+    itemRemark: item.m || '',
+    excludeFromStock: item.d === 111,
     e_a: item.e_a || 0
    };
 
@@ -1324,3 +1329,4 @@ function applyStyles() {
 
  document.head.appendChild(style);
 }
+
