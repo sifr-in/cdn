@@ -1015,6 +1015,10 @@ async function saveBillData(billIdParam = null) {
   var r368esponse = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 15000, 0, 1, 0);
 
   if (r368esponse && r368esponse.su === 1) {
+   if(payload0.fn == 56){
+    let t1021mp = await dbDexieManager.deleteRecords(dbnm, 'ba', billData.a);
+    let t1022mp = (await dbDexieManager.getAllRecords(dbnm, 's')).filter(o => o.f === billData.a).forEach(o => dbDexieManager.deleteRecords(dbnm, 's', o.a));
+   }
    if (f1nToRunToHandlRspons && window[f1nToRunToHandlRspons]) {
     window[f1nToRunToHandlRspons](r368esponse, s_ba_witchToReturn);
     const modalId = g_createNwModal == 1 ? (g_targetDivId || 'billInwardModal') : modalid;
@@ -1333,5 +1337,3 @@ function applyStyles() {
 
  document.head.appendChild(style);
 }
-
-
