@@ -19,6 +19,25 @@ let globalBill = {};
 let globalItems = [];
 let globalCashInfo = [];
 
+// QR Scanner variables
+let continuousQRMode = false;
+let qrScannerActive = false;
+let currentQRScanner = null;
+let html5QrcodeScanner = null;
+
+// QR Scanner state
+let qrScannerState = {
+  isPaused: false,
+  shouldResume: false,
+  scanner: null
+};
+
+// Helper function to play sounds
+function playSound(url) {
+ const audio = new Audio(url);
+ audio.play().catch(e => console.log('Audio play failed:', e));
+}
+
 async function set_bill_innerHTML(...params) {
  try {
   items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
@@ -92,10 +111,16 @@ class="form-control form-control-sm mb-2"
 placeholder="Scan or type item ID" 
 id="itemIdInput"
 style="font-size: 0.8rem;">
+
+<!-- Continuous QR Mode Switch -->
+<div class="form-check form-switch mt-2 mb-2" style="font-size: 0.8rem;">
+    <input class="form-check-input" type="checkbox" id="continuousQRMode">
+</div>
+
 <div id="itemImageContainer" class="text-center">
 <i class="fas fa-image fa-3x text-muted"></i>
 <div class="mt-2">
-<small class="text-muted">No Image</small>
+<small class="text-muted"></small>
 </div>
 </div>
 </div>
@@ -329,8 +354,7 @@ style="font-weight: bold;">
 </button>
 </div>
 <div class="col-4">
-<!-- <button class="btn btn-info w-100" id="printBtn" disabled onclick='printBill(billTableRowId)'></button> -->
-<button class="btn btn-info w-100" id="printBtn" disabled onclick='window.open("bPrOp.html?b=" + billTableRowId)'>
+<button class="btn btn-info w-100" id="printBtn" disabled onclick='playSound("https://bigsoundbank.com/UPLOAD/mp3/1417.mp3"); sho_bl_modal(billTableRowId)'>
 <i class="fas fa-print me-2"></i>Print
 </button>
 </div>
@@ -367,7 +391,37 @@ style="font-weight: bold;">
 
  // Add event listener for item ID input
  document.getElementById('itemIdInput').addEventListener('input', handleItemIdInput);
- document.getElementById('itemIdInput').addEventListener('click', openQRScanner);
+ document.getElementById('itemIdInput').addEventListener('click', async function () {
+  // If continuous mode is on and scanner is already active, don't open another
+  if (continuousQRMode && qrScannerActive) {
+   showToast('Continuous scan already active');
+   return;
+  }
+
+  // Open QR scanner modal
+  await openQRScannerModal();
+ });
+
+ // Add event listener for continuous QR mode switch
+ document.getElementById('continuousQRMode').addEventListener('change', function (e) {
+  continuousQRMode = e.target.checked;
+
+  // Save preference to localStorage
+  localStorage.setItem('continuousQRMode', continuousQRMode ? 'true' : 'false');
+
+  if (continuousQRMode) {
+   showToast('Continuous scan mode enabled');
+  }
+ });
+
+ // Load saved preference
+ setTimeout(() => {
+  const savedMode = localStorage.getItem('continuousQRMode');
+  if (savedMode !== null) {
+   continuousQRMode = savedMode === 'true';
+   document.getElementById('continuousQRMode').checked = continuousQRMode;
+  }
+ }, 100);
 
  // Add event listeners for discount calculations
  document.getElementById('discountPercentage').addEventListener('input', calculateDiscountFromPercentage);
@@ -414,85 +468,6 @@ style="font-weight: bold;">
  if (typeof billingRequisit_be === 'function') {
   billingRequisit_be();
  }
-}
-function printBill(billTableRowId) {
- if (!billTableRowId || billTableRowId === 0) {
-  showToast('Please save the bill first before printing');
-  return;
- }
-
- const modal = create_modal_dynamically('bill_print_modal');
- const modalContent = modal.contentElement;
- const modalInstance = modal.modalInstance;
-
- // Use the URL with parameters directly in iframe src
- const printUrl = `https://sifr-in.github.io/cdn/b/bPrOp.html?b=${billTableRowId}&flPath=/${appOwner.eo}/b/&dbName=my1_in_${appOwner.tn}`;
-
- modalContent.innerHTML = `
-        <div class="modal-header">
-            <h5 class="modal-title">Print Bill #${billTableRowId}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body p-0">
-            <div class="d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
-                <button class="btn btn-primary btn-sm" onclick="printIframeContent('billPrintIframe')">
-                    <i class="fas fa-print me-2"></i>Print
-                </button>
-                <button class="btn btn-outline-secondary btn-sm" onclick="reloadBillIframe(${billTableRowId})">
-                    <i class="fas fa-redo me-2"></i>Reload
-                </button>
-            </div>
-            <iframe 
-                id="billPrintIframe" 
-                src="${printUrl}" 
-                style="width: 100%; height: 70vh; border: none;"
-                onload="onBillIframeLoad(this)"
-                onerror="onBillIframeError(this)"
-            ></iframe>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
-    `;
-
- modalInstance.show();
-}
-
-// Helper function to print iframe content
-function printIframeContent(iframeId) {
- const iframe = document.getElementById(iframeId);
- if (iframe && iframe.contentWindow) {
-  try {
-   iframe.contentWindow.print();
-  } catch (error) {
-   console.error('Print error:', error);
-   showToast('Print failed. Please try reloading the bill.');
-  }
- } else {
-  showToast('Cannot access print content');
- }
-}
-
-// Helper function to reload iframe with current bill ID
-function reloadBillIframe(billTableRowId) {
- const iframe = document.getElementById('billPrintIframe');
- if (iframe) {
-  // Add timestamp to avoid caching
-  iframe.src = `https://sifr-in.github.io/cdn/b/bPrOp.html?b=${billTableRowId}&flPath=/${appOwner.eo}/b/&dbName=my1_in_${appOwner.tn}`;
-  showToast('Bill reloaded');
- }
-}
-
-// Callback when iframe loads successfully
-function onBillIframeLoad(iframe) {
- console.log('Bill print iframe loaded successfully');
- // You can add additional logic here when iframe loads
-}
-
-// Callback when iframe fails to load
-function onBillIframeError(iframe) {
- console.error('Bill print iframe failed to load');
- showToast('Failed to load bill. The bill print page might be unavailable.');
 }
 
 async function showBillCards() {
@@ -751,9 +726,17 @@ async function handleBillAction(m_odalInstance, action, b346illID) {
    }
    break;
   case 'print':
-   window.open("bPrOp.html?b=" + billTableRowId);
+   playSound('https://bigsoundbank.com/UPLOAD/mp3/1417.mp3');
+   sho_bl_modal(billTableRowId);
+   // window.open("bPrOp.html?b=" + billTableRowId);
    break;
  }
+}
+async function sho_bl_modal(billTableRowId) {
+ // Play print sound
+ playSound('https://bigsoundbank.com/UPLOAD/mp3/1417.mp3');
+
+ await loadExe2Fn(22, [billTableRowId], []);
 }
 function showAlreadyReceivedAmts(b346illID, s594CurrItems, c594ashInfo) {
  const modal = create_modal_dynamically('received_amount_modal');
@@ -1281,7 +1264,7 @@ function addBillItemToForm(item) {
  const itemDetails = items.find(i => i.a == item.f) || {};
 
  const itemHTML = `
-        <div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${item.f}">
+        <div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${item.f}" data-item-rate="${itemDetails.k || 0}">
             <div class="card-body">
                 <div class="row">
                     <!-- Left side - Image -->
@@ -1306,32 +1289,38 @@ function addBillItemToForm(item) {
                                 <strong>${itemDetails.gn || 'Unknown Item'}</strong>
                             </div>
                             <div class="col-2 d-flex align-items-center justify-content-end">
-                                <div class="action-dropdown">
-                                    <button class="btn btn-link ellipsis-btn" onclick="toggleActionMenu(${uniqueItemId})">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                    <div class="action-menu" id="actionMenu-${uniqueItemId}">
-                                        <div class="action-menu-item edit" onclick="editItem(${uniqueItemId})">
-                                            <i class="fas fa-edit me-2"></i>Edit
-                                        </div>
-                                        <div class="action-menu-item delete" onclick="removeItemFromInvoice(${uniqueItemId})">
-                                            <i class="fas fa-trash me-2"></i>Delete
-                                        </div>
-                                    </div>
-                                </div>
+                                <button class="btn btn-outline-danger btn-sm" onclick="removeItemFromInvoice(${uniqueItemId})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
                         </div>
                         
                         <!-- Row 2 - Quantity, Rate, Price -->
                         <div class="row mb-2 g-0">
                             <div class="col-4">
-                                <strong>Qty:</strong> ${item.h || '1'}
+                                <strong>Qty:</strong> 
+                                <input type="number" 
+                                       class="form-control form-control-sm d-inline-block w-auto" 
+                                       value="${item.h || '1'}" 
+                                       min="1" 
+                                       step="1"
+                                       style="width: 70px; display: inline-block;"
+                                       onchange="updateItemQuantity(${uniqueItemId}, this.value)"
+                                       onblur="updateItemQuantity(${uniqueItemId}, this.value)">
                             </div>
                             <div class="col-4">
-                                <strong>Rate:</strong> ₹${parseFloat(itemDetails.k || 0).toFixed(2)}
+                                <strong>Rate:</strong> 
+                                <input type="number" 
+                                       class="form-control form-control-sm d-inline-block w-auto" 
+                                       value="${parseFloat(itemDetails.k || 0).toFixed(2)}" 
+                                       min="0" 
+                                       step="0.01"
+                                       style="width: 80px; display: inline-block;"
+                                       onchange="updateItemRate(${uniqueItemId}, this.value)"
+                                       onblur="updateItemRate(${uniqueItemId}, this.value)">
                             </div>
                             <div class="col-4">
-                                <strong>Price:</strong> ₹${parseFloat(item.g || 0).toFixed(2)}
+                                <strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${parseFloat(item.g || 0).toFixed(2)}</span>
                             </div>
                         </div>
                         
@@ -1758,12 +1747,13 @@ async function crUpBill(fnNumber) {
   const billItems = Array.from(addedItems).map(item => {
    const itemId = item.getAttribute('data-item-id') || '';
    const name = item.querySelector('strong').textContent;
-   const qtyElement = item.querySelector('.col-4:nth-child(1)');
-   const priceElement = item.querySelector('.col-4:nth-child(3)');
+   const qtyInput = item.querySelector('input[type="number"]');
+   const rateInput = item.querySelectorAll('input[type="number"]')[1];
+   const priceElement = item.querySelector('span[id^="itemPrice-"]');
    const descriptionElement = item.querySelector('.text-muted');
 
-   const qty = parseInt(qtyElement.textContent.replace('Qty:', '').trim()) || 0;
-   const price = parseFloat(priceElement.textContent.replace('Price: ₹', '').trim()) || 0;
+   const qty = parseInt(qtyInput.value) || 0;
+   const price = parseFloat(priceElement.textContent) || 0;
    const description = descriptionElement.textContent === 'No description' ? '' : descriptionElement.textContent;
 
    return {
@@ -1828,6 +1818,9 @@ async function crUpBill(fnNumber) {
     }
    }
    showToast('Bill saved successfully!');
+
+   // Play success sound
+   playSound('https://cdn.uppbeat.io/audio-files/550fafd5d5403a2f6e11b6feefd0899e/ca847a02644164ab90c3d80471e5ac23/57f3eeed9ce661826b31f4cf857e3afe/STREAMING-ui-double-digital-beep-gfx-sounds-1-1-00-00.mp3');
   } else {
    alert(extractMessages(response));
   }
@@ -1946,11 +1939,435 @@ async function loadQRScanner() {
  });
 }
 
+// Helper function to stop QR scanner
+function stopQRScanner(scanner, container, overlay) {
+ // Reset flags
+ qrScannerState.isPaused = false;
+ qrScannerState.shouldResume = false;
+ 
+ if (scanner) {
+  scanner.clear().then(() => {
+   // Wait a bit to ensure scanner is fully stopped
+   setTimeout(() => {
+    if (container && container.parentNode) {
+     document.body.removeChild(container);
+    }
+    if (overlay && overlay.parentNode) {
+     document.body.removeChild(overlay);
+    }
+    currentQRScanner = null;
+    qrScannerActive = false;
+    html5QrcodeScanner = null;
+    
+    // Remove event listeners
+    window.removeEventListener('beforeunload', handleBackButton);
+    window.removeEventListener('popstate', handleBackButton);
+   }, 500);
+  }).catch(error => {
+   console.log('Scanner stop error:', error);
+   // Force cleanup even if scanner fails to clear
+   if (container && container.parentNode) {
+    document.body.removeChild(container);
+   }
+   if (overlay && overlay.parentNode) {
+    document.body.removeChild(overlay);
+   }
+   currentQRScanner = null;
+   qrScannerActive = false;
+   html5QrcodeScanner = null;
+   
+   window.removeEventListener('beforeunload', handleBackButton);
+   window.removeEventListener('popstate', handleBackButton);
+  });
+ }
+}
+
+// Handle back button press
+function handleBackButton() {
+ if (qrScannerActive && currentQRScanner) {
+  // Find and close the scanner
+  const container = document.getElementById('qr-reader');
+  const overlay = document.querySelector('div[style*="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7)"]');
+
+  if (container && overlay) {
+   stopQRScanner(currentQRScanner, container, overlay);
+
+   // Prevent default back navigation if scanner is active
+   if (continuousQRMode) {
+    // Create a new history entry to prevent going back
+    history.pushState(null, null, location.href);
+    return false;
+   }
+  }
+ }
+}
+
+// QR Scanner Modal Functions
+async function openQRScannerModal() {
+ try {
+  // Load QR scanner library first
+  await loadQRScanner();
+
+  // Create modal for QR scanner
+  const modal = create_modal_dynamically('qr_scanner_modal');
+  const modalContent = modal.contentElement;
+  const modalInstance = modal.modalInstance;
+
+  // Set modal content
+  modalContent.innerHTML = `
+            <div class="modal-header">
+                <h5 class="modal-title">QR Code Scanner</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="qr-reader-container" class="text-center">
+                    <div id="qr-reader" style="width: 100%"></div>
+                    <div id="qr-scanner-status" class="mt-3">
+                        <div class="spinner-border text-primary" role="status" id="qr-scanner-loading">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-muted mt-2" id="qr-scanner-message">Initializing camera...</p>
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <button class="btn btn-danger btn-sm" id="stopScannerBtn">
+                        <i class="fas fa-stop me-1"></i> Stop Scanner
+                    </button>
+                </div>
+            </div>
+        `;
+
+  modalInstance.show();
+
+  // Add scanner container style
+  const scannerContainer = document.getElementById('qr-reader-container');
+  scannerContainer.style.minHeight = '300px';
+
+  // Initialize scanner after modal is shown
+  modal.modalElement.addEventListener('shown.bs.modal', async function () {
+   await initializeQRScannerInModal(modalInstance, modalContent);
+  });
+
+  // Handle stop button
+  document.getElementById('stopScannerBtn').addEventListener('click', function () {
+   stopQRScanner(html5QrcodeScanner, document.getElementById('qr-reader'), modal.modalElement);
+   modalInstance.hide();
+  });
+
+ } catch (error) {
+  console.error('QR Scanner modal failed:', error);
+  showToast('QR Scanner failed to load. Please try again.');
+ }
+}
+
+async function initializeQRScannerInModal(modalInstance, modalContent) {
+ try {
+  // Check camera permissions
+  const stream = await navigator.mediaDevices.getUserMedia({
+   video: { facingMode: "environment" }
+  });
+  stream.getTracks().forEach(track => track.stop());
+
+  // Reset scanner state
+  qrScannerState.isPaused = false;
+  qrScannerState.shouldResume = false;
+
+  // Initialize scanner
+  html5QrcodeScanner = new Html5QrcodeScanner(
+   "qr-reader",
+   {
+    fps: 10,
+    qrbox: { width: 250, height: 250 }
+   },
+   false
+  );
+
+  currentQRScanner = html5QrcodeScanner;
+  qrScannerActive = true;
+
+  // Hide loading indicator
+  document.getElementById('qr-scanner-loading').style.display = 'none';
+  document.getElementById('qr-scanner-message').textContent = 'Ready to scan...';
+
+  html5QrcodeScanner.render(
+    async (decodedText) => {
+    // Check if we should resume scanning
+    if (qrScannerState.shouldResume) {
+        qrScannerState.isPaused = false;
+        qrScannerState.shouldResume = false;
+    }
+    
+    // If scanning is paused, ignore this scan
+    if (qrScannerState.isPaused) {
+        console.log('Scanning paused, ignoring scan');
+        return;
+    }
+
+    // Pause scanning temporarily
+    qrScannerState.isPaused = true;
+
+    // Show scanning status
+    document.getElementById('qr-scanner-message').textContent = 'Processing QR code...';
+    document.getElementById('qr-scanner-message').className = 'text-info mt-2';
+
+    // Play scan sound immediately when QR is detected
+    playSound('https://assets.mixkit.co/active_storage/sfx/1082/1082.wav');
+
+    // Check if item exists
+    const matchedItems = items.find((c) => c.a.toString() == decodedText);
+
+    if (!matchedItems) {
+     // Item not found - show confirmation modal
+     // Keep scanning paused until user decides
+     
+     // Update status message
+     document.getElementById('qr-scanner-message').textContent = 'Item not found in database';
+     document.getElementById('qr-scanner-message').className = 'text-danger mt-2';
+
+     // Show confirmation modal
+     const confirmModal = create_modal_dynamically('item_not_found_modal');
+     const confirmContent = confirmModal.contentElement;
+     const confirmInstance = confirmModal.modalInstance;
+
+     confirmContent.innerHTML = `
+                        <div class="modal-header">
+                            <h5 class="modal-title">Item Not Found</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Scanned QR code: <strong>${decodedText}</strong></p>
+                            <p>This item ID was not found in the database.</p>
+                            <p>Do you want to continue scanning?</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="handleItemNotFoundNo()">No, Stop</button>
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="handleItemNotFoundYes()">Yes, Continue</button>
+                        </div>
+                    `;
+
+     confirmInstance.show();
+
+     return;
+    }
+
+    // Item found - process it
+    document.getElementById('itemIdInput').value = decodedText;
+
+    // Process the scanned item
+    handleItemIdInput({ target: { value: decodedText } });
+
+    // Clear the input
+    document.getElementById('itemIdInput').value = '';
+
+    // Show success message
+    document.getElementById('qr-scanner-message').textContent = 'Item found! Checking if added to sale list...';
+    document.getElementById('qr-scanner-message').className = 'text-success mt-2';
+
+    // Wait for a moment to allow the item to be processed and added
+    setTimeout(() => {
+     // Check if item was successfully added to sale list
+     const itemWasAdded = verifyItemAddedToSaleList(matchedItems.a);
+     
+     if (itemWasAdded) {
+      document.getElementById('qr-scanner-message').textContent = 'Item added successfully!';
+      
+      // If not in continuous mode, close the scanner modal after successful addition
+      if (!continuousQRMode) {
+       setTimeout(() => {
+        // Clear the scanner
+        if (html5QrcodeScanner) {
+         html5QrcodeScanner.clear().then(() => {
+          qrScannerActive = false;
+          currentQRScanner = null;
+          html5QrcodeScanner = null;
+         });
+        }
+        
+        // Close the modal
+        const modal = bootstrap.Modal.getInstance(modalInstance.modalElement);
+        if (modal) {
+         modal.hide();
+        }
+        
+        showToast('Item added to sale list successfully!');
+       }, 1000);
+      } else {
+       // In continuous mode, just show success and continue
+       showToast('Item added to sale list successfully!');
+       
+       const scanDelay = window[my1uzr.worknOnPg]?.confg?.scanDelayQR || 3000;
+       
+       setTimeout(() => {
+        qrScannerState.isPaused = false;
+        qrScannerState.shouldResume = false;
+        
+        // Reset status message after delay
+        setTimeout(() => {
+         if (document.getElementById('qr-scanner-message')) {
+          document.getElementById('qr-scanner-message').textContent = 'Ready to scan...';
+          document.getElementById('qr-scanner-message').className = 'text-muted mt-2';
+         }
+        }, 500);
+        
+       }, scanDelay);
+      }
+     } else {
+      // Item was not added for some reason
+      document.getElementById('qr-scanner-message').textContent = 'Item found but could not be added. Please try again.';
+      document.getElementById('qr-scanner-message').className = 'text-warning mt-2';
+      
+      // Resume scanning after delay
+      setTimeout(() => {
+       qrScannerState.isPaused = false;
+       qrScannerState.shouldResume = false;
+       document.getElementById('qr-scanner-message').textContent = 'Ready to scan...';
+       document.getElementById('qr-scanner-message').className = 'text-muted mt-2';
+      }, 2000);
+     }
+    }, 500);
+   },
+   (errorMessage) => {
+    // Don't show error messages for normal camera operation
+    // Only log for debugging, but don't display to user
+    if (!errorMessage.includes('NotFoundException') && !errorMessage.includes('No QR code')) {
+     console.log(`QR Scan: ${errorMessage}`);
+    }
+
+    // Don't update the UI with error messages
+    // The message stays as "Ready to scan..."
+   }
+  );
+
+  // Handle modal close
+  modalInstance.modalElement.addEventListener('hidden.bs.modal', function () {
+   // Reset scanner state
+   qrScannerState.isPaused = false;
+   qrScannerState.shouldResume = false;
+   
+   if (html5QrcodeScanner) {
+    // Stop the scanner first
+    html5QrcodeScanner.clear().then(() => {
+     qrScannerActive = false;
+     currentQRScanner = null;
+     html5QrcodeScanner = null;
+     
+     // Remove the scanner DOM element
+     const scannerElement = document.getElementById('qr-reader');
+     if (scannerElement) {
+      scannerElement.innerHTML = '';
+     }
+    }).catch(error => {
+     console.log('Scanner cleanup error:', error);
+     qrScannerActive = false;
+     currentQRScanner = null;
+     html5QrcodeScanner = null;
+    });
+   }
+  });
+
+ } catch (error) {
+  console.error('QR Scanner initialization failed:', error);
+
+  // Update status message
+  if (document.getElementById('qr-scanner-message')) {
+   document.getElementById('qr-scanner-message').textContent =
+    'Camera access denied or not available. Please check permissions.';
+   document.getElementById('qr-scanner-message').className = 'text-danger mt-2';
+  }
+
+  // Hide loading indicator
+  if (document.getElementById('qr-scanner-loading')) {
+   document.getElementById('qr-scanner-loading').style.display = 'none';
+  }
+
+  showToast('QR scanner is currently unavailable. Please enter the item ID manually.');
+ }
+}
+
+function handleItemNotFoundYes() {
+ // Set flag to resume scanning
+ qrScannerState.shouldResume = true;
+ 
+ // Reset status message
+ setTimeout(() => {
+  if (document.getElementById('qr-scanner-message')) {
+   document.getElementById('qr-scanner-message').textContent = 'Ready to scan...';
+   document.getElementById('qr-scanner-message').className = 'text-muted mt-2';
+  }
+ }, 100);
+ 
+ // Close the item not found modal
+ const itemNotFoundModal = bootstrap.Modal.getInstance(document.getElementById('item_not_found_modal'));
+ if (itemNotFoundModal) {
+  itemNotFoundModal.hide();
+ }
+}
+
+function handleItemNotFoundNo() {
+ // Reset scanner state
+ qrScannerState.isPaused = false;
+ qrScannerState.shouldResume = false;
+ 
+ if (html5QrcodeScanner) {
+  html5QrcodeScanner.clear().then(() => {
+   qrScannerActive = false;
+   currentQRScanner = null;
+   html5QrcodeScanner = null;
+   
+   // Close the scanner modal
+   const scannerModal = bootstrap.Modal.getInstance(document.getElementById('qr_scanner_modal'));
+   if (scannerModal) {
+    scannerModal.hide();
+   }
+   
+   // Close the item not found modal
+   const itemNotFoundModal = bootstrap.Modal.getInstance(document.getElementById('item_not_found_modal'));
+   if (itemNotFoundModal) {
+    itemNotFoundModal.hide();
+   }
+   
+   showToast('QR scanning stopped');
+  });
+ }
+}
+
 async function openQRScanner() {
+ try {
+  // Check if continuous mode is enabled
+  continuousQRMode = document.getElementById('continuousQRMode').checked;
+
+  if (continuousQRMode) {
+   // Use the existing continuous scanning implementation
+   await openContinuousQRScanner();
+  } else {
+   // Use the new modal-based scanner
+   await openQRScannerModal();
+  }
+
+ } catch (error) {
+  console.error('QR Scanner failed:', error);
+
+  // Provide specific user feedback based on the error
+  if (error.name === 'NotAllowedError') {
+   showToast('Camera access was denied. Please allow camera permissions in your browser settings.');
+  } else if (error.name === 'NotFoundError') {
+   showToast('No camera found on this device.');
+  } else {
+   showToast('QR scanner is currently unavailable. Please enter the item ID manually.');
+  }
+
+  document.getElementById('itemIdInput').focus();
+ }
+}
+
+async function openContinuousQRScanner() {
+ // This is the existing implementation for continuous scanning
+ // Keep your existing code for continuous mode here
+
  try {
   // Check camera permissions and availability first
   const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-  stream.getTracks().forEach(track => track.stop()); // Stop the stream immediately after permission check
+  stream.getTracks().forEach(track => track.stop());
 
   // Create UI elements for the scanner
   const overlay = document.createElement('div');
@@ -1962,60 +2379,99 @@ async function openQRScanner() {
 
   scannerContainer.classList.add('scanner-container');
 
+  // Add a close button for continuous mode
+  scannerContainer.innerHTML += `
+            <div class="text-center mt-3">
+                <button class="btn btn-danger btn-sm" id="stopContinuousScan">
+                    <i class="fas fa-stop me-1"></i> Stop Scanning
+                </button>
+                <div class="small text-muted mt-2">
+                    Continuous mode: Items will be added automatically. Click stop or press back button to exit.
+                </div>
+            </div>
+        `;
+
   document.body.appendChild(overlay);
   document.body.appendChild(scannerContainer);
 
-  // Initialize the scanner with the FIXED configuration (no supportedScanTypes)
+  // Initialize the scanner
   const html5QrcodeScanner = new Html5QrcodeScanner(
    "qr-reader",
    {
     fps: 10,
     qrbox: { width: 250, height: 250 }
-    // Removed the problematic supportedScanTypes line
    },
    false
   );
 
+  currentQRScanner = html5QrcodeScanner;
+  qrScannerActive = true;
+
+  // Flag to prevent multiple scans during delay
+  let isScanningPaused = false;
+
   html5QrcodeScanner.render(
    (decodedText) => {
-    // Success: Populate the input and process the item
+    // If scanning is paused, ignore this scan
+    if (isScanningPaused) {
+     return;
+    }
+
+    // Pause scanning temporarily
+    isScanningPaused = true;
+
+    // Populate the input and process the item
     document.getElementById('itemIdInput').value = decodedText;
+
+    // Play QR scan sound
+    playSound('https://assets.mixkit.co/active_storage/sfx/1082/1082.wav');
+
+    // Process the scanned item
     handleItemIdInput({ target: { value: decodedText } });
 
-    html5QrcodeScanner.clear().then(() => {
-     document.body.removeChild(scannerContainer);
-     document.body.removeChild(overlay);
-    });
+    // Clear the input
+    document.getElementById('itemIdInput').value = '';
+
+    // Wait for the configured delay before resuming scanning
+    const scanDelay = window[my1uzr.worknOnPg]?.confg?.scanDelayQR || 3000;
+
+    setTimeout(() => {
+     isScanningPaused = false;
+    }, scanDelay);
+
    },
    (errorMessage) => {
-    // Errors are logged but scanning continues
-    console.log(`QR Scan: ${errorMessage}`);
+    // Don't log normal camera operation errors
+    if (!errorMessage.includes('NotFoundException') && !errorMessage.includes('No QR code')) {
+     console.log(`QR Scan: ${errorMessage}`);
+    }
    }
   );
 
-  // Close scanner when clicking the overlay
-  overlay.addEventListener('click', () => {
-   html5QrcodeScanner.clear().then(() => {
-    document.body.removeChild(scannerContainer);
-    document.body.removeChild(overlay);
-   });
+  // Add stop button handler for continuous mode
+  document.getElementById('stopContinuousScan').addEventListener('click', () => {
+   stopQRScanner(html5QrcodeScanner, scannerContainer, overlay);
   });
 
- } catch (error) {
-  console.error('QR Scanner initialization failed:', error);
-  // Provide specific user feedback based on the error
-  if (error.name === 'NotAllowedError') {
-   showToast('Camera access was denied. Please allow camera permissions in your browser settings.');
-  } else if (error.name === 'NotFoundError') {
-   showToast('No camera found on this device.');
-  } else {
-   showToast('QR scanner is currently unavailable. Please enter the item ID manually.');
+  // Close scanner when clicking the overlay
+  overlay.addEventListener('click', () => {
+   stopQRScanner(html5QrcodeScanner, scannerContainer, overlay);
+  });
+
+  // Listen for back button press
+  if ('onbeforeunload' in window) {
+   window.addEventListener('beforeunload', handleBackButton);
   }
-  document.getElementById('itemIdInput').focus();
+
+  // Also listen for popstate (browser back button)
+  window.addEventListener('popstate', handleBackButton);
+
+ } catch (error) {
+  console.error('Continuous QR Scanner failed:', error);
+  throw error;
  }
 }
 
-// Item ID Input Handling
 function handleItemIdInput(event) {
  const itemId = event.target.value.trim();
 
@@ -2040,11 +2496,190 @@ function handleItemIdInput(event) {
  if (!matchedItems) {
   // No items found - show toast
   showToast('No items found with this ID');
+
+  // In continuous mode, clear input and continue scanning
+  if (continuousQRMode && qrScannerActive) {
+   event.target.value = '';
+  }
  } else {
-  // Single item found - auto-select it
-  selectItem(matchedItems);
-  event.target.value = ''; // Clear the input
+  // Check if addByQR config exists and is enabled
+  if (window[my1uzr.worknOnPg]?.confg?.addByQR == 1) {
+   // Directly add item to sale list with QR
+   addItemDirectlyFromQR(matchedItems);
+   event.target.value = ''; // Clear the input
+   
+   // Set a flag to indicate successful addition
+   window.lastQRScannedItemAdded = true;
+   window.lastQRScannedItemId = matchedItems.a;
+  } else {
+   // Single item found - auto-select it in the form
+   selectItem(matchedItems);
+   event.target.value = ''; // Clear the input
+   
+   // Set flag for form selection
+   window.lastQRScannedItemAdded = true;
+   window.lastQRScannedItemId = matchedItems.a;
+  }
+
+  // In continuous mode, item is already added, so just continue
+  if (continuousQRMode && qrScannerActive) {
+   // Input is already cleared above
+  }
  }
+}
+
+// Function to directly add item from QR scan
+function addItemDirectlyFromQR(item) {
+ const itemId = item.a;
+ const currentRate = parseFloat(item.k || 0);
+ const quantity = 1; // Default quantity for QR scan
+
+ // Check if item already exists in sale list with same rate
+ const existingItem = findExistingItemInSaleList(itemId, currentRate);
+
+ if (existingItem) {
+  // Item exists with same rate - increment quantity
+  incrementItemQuantity(existingItem);
+  showToast(`Quantity increased for ${item.gn || 'Item'}`);
+
+  // Play sound for item addition
+  playSound('https://cdn.pixabay.com/download/audio/2025/10/21/audio_3880ed67e2.mp3');
+ } else {
+  // Item doesn't exist - add new item to sale list
+  addItemToSaleList(item, quantity, currentRate);
+  showToast(`${item.gn || 'Item'} added to sale list`);
+
+  // Play sound for item addition
+  playSound('https://cdn.pixabay.com/download/audio/2025/10/21/audio_3880ed67e2.mp3');
+ }
+}
+
+// Find existing item in sale list with same ID and rate
+function findExistingItemInSaleList(itemId, rate) {
+ const addedItems = document.querySelectorAll('#addedItemsContainer .added-item-card');
+ for (const itemCard of addedItems) {
+  const cardItemId = itemCard.getAttribute('data-item-id');
+  const cardRate = parseFloat(itemCard.getAttribute('data-item-rate') || 0);
+
+  if (cardItemId == itemId && Math.abs(cardRate - rate) < 0.01) { // Compare with tolerance for floating point
+   return itemCard;
+  }
+ }
+ return null;
+}
+
+// Increment quantity of existing item
+function incrementItemQuantity(itemCard) {
+ const qtyInput = itemCard.querySelector('input[type="number"]');
+ const currentQty = parseInt(qtyInput.value) || 1;
+ const newQty = currentQty + 1;
+
+ qtyInput.value = newQty;
+
+ // Trigger quantity update to recalculate price
+ updateItemQuantity(getItemCardId(itemCard), newQty);
+}
+
+// Get the unique ID of an item card
+function getItemCardId(itemCard) {
+ const idMatch = itemCard.id.match(/invoiceItem-(\d+)/);
+ return idMatch ? parseInt(idMatch[1]) : null;
+}
+
+// Add item directly to sale list (without using the form)
+function addItemToSaleList(item, quantity, rate) {
+ const itemId = item.a;
+ const name = item.gn || 'Unknown Item';
+ const imageUrl = item.gu || '';
+ const description = item.ba_f || '';
+ const price = quantity * rate;
+ const uniqueItemId = Date.now();
+
+ const addedItemsContainer = document.getElementById('addedItemsContainer');
+
+ const itemHTML = `
+    <div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}">
+      <div class="card-body">
+        <div class="row">
+          <!-- Left side - Image (fixed 3 columns) -->
+          <div class="col-3">
+            <div class="text-center">
+              ${imageUrl ?
+   `<img src="${imageUrl}" class="added-item-image" alt="Item Image" 
+                      onerror="this.style.display='none'; this.parentElement.innerHTML = '<i class=\\'fas fa-image fa-2x text-muted\\'></i><div class=\\'mt-1\\'><small class=\\'text-muted\\'>No Image</small></div>'">` :
+   `<i class="fas fa-image fa-2x text-muted"></i>
+                 <div class="mt-1">
+                   <small class="text-muted">No Image</small>
+                 </div>`
+  }
+            </div>
+          </div>
+          
+          <!-- Right side - Details (fixed 9 columns) -->
+          <div class="col-9">
+            <!-- Row 1 - Item Name -->
+            <div class="row mb-2 g-0">
+              <div class="col-10">
+                <strong>${name}</strong>
+              </div>
+              <div class="col-2 d-flex align-items-center justify-content-end">
+                <button class="btn btn-outline-danger btn-sm" onclick="removeItemFromInvoice(${uniqueItemId})">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Row 2 - Quantity, Rate, Price (fixed 4-4-4 columns) -->
+            <div class="row mb-2 g-0">
+              <div class="col-4">
+                <strong>Qty:</strong> 
+                <input type="number" 
+                       class="form-control form-control-sm d-inline-block w-auto" 
+                       value="${quantity}" 
+                       min="1" 
+                       step="1"
+                       style="width: 70px; display: inline-block;"
+                       onchange="updateItemQuantity(${uniqueItemId}, this.value)"
+                       onblur="updateItemQuantity(${uniqueItemId}, this.value)">
+              </div>
+              <div class="col-4">
+                <strong>Rate:</strong> 
+                <input type="number" 
+                       class="form-control form-control-sm d-inline-block w-auto" 
+                       value="${rate.toFixed(2)}" 
+                       min="0" 
+                       step="0.01"
+                       style="width: 80px; display: inline-block;"
+                       onchange="updateItemRate(${uniqueItemId}, this.value)"
+                       onblur="updateItemRate(${uniqueItemId}, this.value)">
+              </div>
+              <div class="col-4">
+                <strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${price.toFixed(2)}</span>
+              </div>
+            </div>
+            
+            <!-- Row 3 - Description -->
+            <div class="row g-0">
+              <div class="col-12">
+                <small class="text-muted">${description || 'No description'}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+ addedItemsContainer.insertAdjacentHTML('beforeend', itemHTML);
+
+ // Update bill summary
+ updateBillSummary();
+
+ // Clear the form
+ clearItemForm();
+
+ // Play sound for item addition
+ playSound('https://cdn.pixabay.com/download/audio/2025/10/21/audio_3880ed67e2.mp3');
 }
 
 function selectItem(item) {
@@ -2279,12 +2914,12 @@ function calculatePrice() {
  document.getElementById('itemPrice').value = price.toFixed(2);
 }
 
-// Add Item to Invoice with validation
+// Add Item to Invoice with validation and quantity increment logic
 function addItemToInvoice() {
  const name = document.getElementById('itemName').value.trim();
- const qty = document.getElementById('itemQty').value;
- const rate = document.getElementById('itemRate').value;
- const price = document.getElementById('itemPrice').value;
+ const qty = parseInt(document.getElementById('itemQty').value) || 1;
+ const rate = parseFloat(document.getElementById('itemRate').value) || 0;
+ const price = parseFloat(document.getElementById('itemPrice').value) || 0;
  const description = document.getElementById('itemDescription').value;
  const itemId = document.getElementById('itemName').getAttribute('data-item-id');
  const imageUrl = document.querySelector('#itemImageContainer img')?.src || '';
@@ -2297,11 +2932,28 @@ function addItemToInvoice() {
   return validateAndScrollToField('itemRate', 'Please enter a valid price');
  }
 
+ // Check if item already exists in sale list with same rate
+ const existingItem = findExistingItemInSaleList(itemId, rate);
+
+ if (existingItem) {
+  // Item exists with same rate - increment quantity
+  incrementItemQuantity(existingItem);
+  showToast(`Quantity increased for ${name}`);
+
+  // Clear the form
+  clearItemForm();
+
+  // Play sound for item addition
+  playSound('https://cdn.pixabay.com/download/audio/2025/10/21/audio_3880ed67e2.mp3');
+  return;
+ }
+
+ // If item doesn't exist or has different rate, add as new item
  const addedItemsContainer = document.getElementById('addedItemsContainer');
  const uniqueItemId = Date.now(); // Unique ID for each item
 
  const itemHTML = `
-    <div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}">
+    <div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}">
       <div class="card-body">
         <div class="row">
           <!-- Left side - Image (fixed 3 columns) -->
@@ -2326,32 +2978,38 @@ function addItemToInvoice() {
                 <strong>${name}</strong>
               </div>
               <div class="col-2 d-flex align-items-center justify-content-end">
-                <div class="action-dropdown">
-                  <button class="btn btn-link ellipsis-btn" onclick="toggleActionMenu(${uniqueItemId})">
-                    <i class="fas fa-ellipsis-v"></i>
-                  </button>
-                  <div class="action-menu" id="actionMenu-${uniqueItemId}">
-                    <div class="action-menu-item edit" onclick="editItem(${uniqueItemId})">
-                      <i class="fas fa-edit me-2"></i>Edit
-                    </div>
-                    <div class="action-menu-item delete" onclick="removeItemFromInvoice(${uniqueItemId})">
-                      <i class="fas fa-trash me-2"></i>Delete
-                    </div>
-                  </div>
-                </div>
+                <button class="btn btn-outline-danger btn-sm" onclick="removeItemFromInvoice(${uniqueItemId})">
+                  <i class="fas fa-trash"></i>
+                </button>
               </div>
             </div>
             
             <!-- Row 2 - Quantity, Rate, Price (fixed 4-4-4 columns) -->
             <div class="row mb-2 g-0">
               <div class="col-4">
-                <strong>Qty:</strong> ${qty}
+                <strong>Qty:</strong> 
+                <input type="number" 
+                       class="form-control form-control-sm d-inline-block w-auto" 
+                       value="${qty}" 
+                       min="1" 
+                       step="1"
+                       style="width: 70px; display: inline-block;"
+                       onchange="updateItemQuantity(${uniqueItemId}, this.value)"
+                       onblur="updateItemQuantity(${uniqueItemId}, this.value)">
               </div>
               <div class="col-4">
-                <strong>Rate:</strong> ₹${parseFloat(rate).toFixed(2)}
+                <strong>Rate:</strong> 
+                <input type="number" 
+                       class="form-control form-control-sm d-inline-block w-auto" 
+                       value="${rate.toFixed(2)}" 
+                       min="0" 
+                       step="0.01"
+                       style="width: 80px; display: inline-block;"
+                       onchange="updateItemRate(${uniqueItemId}, this.value)"
+                       onblur="updateItemRate(${uniqueItemId}, this.value)">
               </div>
               <div class="col-4">
-                <strong>Price:</strong> ₹${parseFloat(price).toFixed(2)}
+                <strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${price.toFixed(2)}</span>
               </div>
             </div>
             
@@ -2374,77 +3032,74 @@ function addItemToInvoice() {
 
  // Update bill summary
  updateBillSummary();
+
+ // Play sound for item addition
+ playSound('https://cdn.pixabay.com/download/audio/2025/10/21/audio_3880ed67e2.mp3');
 }
 
-// Action Menu Functions
-function toggleActionMenu(itemId) {
- // Close all other open menus first
- const allMenus = document.querySelectorAll('.action-menu');
- allMenus.forEach(menu => {
-  if (menu.id !== `actionMenu-${itemId}`) {
-   menu.classList.remove('show');
-  }
- });
-
- // Toggle current menu
- const menu = document.getElementById(`actionMenu-${itemId}`);
- if (menu) {
-  menu.classList.toggle('show');
- }
-
- // Close menu when clicking outside
- const clickHandler = (e) => {
-  if (!menu.contains(e.target) && !e.target.closest('.ellipsis-btn')) {
-   menu.classList.remove('show');
-   document.removeEventListener('click', clickHandler);
-  }
- };
-
- setTimeout(() => {
-  document.addEventListener('click', clickHandler);
- }, 100);
-}
-
-function editItem(itemId) {
+// Inline Edit Functions for Quantity and Rate
+function updateItemQuantity(itemId, newQuantity) {
  const itemElement = document.getElementById(`invoiceItem-${itemId}`);
  if (!itemElement) return;
 
- // Get current values from the item card
- const name = itemElement.querySelector('strong').textContent;
- const qty = itemElement.querySelector('.col-4:nth-child(1)').textContent.replace('Qty:', '').trim();
- const rate = itemElement.querySelector('.col-4:nth-child(2)').textContent.replace('Rate: ₹', '').trim();
- const price = itemElement.querySelector('.col-4:nth-child(3)').textContent.replace('Price: ₹', '').trim();
- const description = itemElement.querySelector('.text-muted').textContent;
- const imageUrl = itemElement.querySelector('img')?.src || '';
- const originalItemId = itemElement.getAttribute('data-item-id');
+ // Validate quantity
+ newQuantity = parseInt(newQuantity) || 1;
+ if (newQuantity < 1) {
+  newQuantity = 1;
+  const qtyInput = itemElement.querySelector('input[type="number"]');
+  if (qtyInput) qtyInput.value = 1;
+ }
 
- // Populate the form with existing values
- document.getElementById('itemName').value = name;
- document.getElementById('itemName').setAttribute('data-item-id', originalItemId);
- document.getElementById('itemQty').value = qty;
- document.getElementById('itemRate').value = rate;
- document.getElementById('itemPrice').value = price;
- document.getElementById('itemDescription').value = description === 'No description' ? '' : description;
+ // Get current rate
+ const rateInput = itemElement.querySelectorAll('input[type="number"]')[1];
+ const currentRate = parseFloat(rateInput.value) || 0;
 
- // Update image
- updateItemImage(imageUrl);
+ // Calculate new price
+ const newPrice = newQuantity * currentRate;
 
- // Remove the item from added items
- itemElement.remove();
+ // Update price display
+ const priceElement = document.getElementById(`itemPrice-${itemId}`);
+ if (priceElement) {
+  priceElement.textContent = newPrice.toFixed(2);
+ }
 
  // Update bill summary
  updateBillSummary();
-
- // Scroll to the form
- const fieldRect = document.getElementById('itemName').getBoundingClientRect();
- const scrollTopPosition = window.pageYOffset + fieldRect.top - 100;
- window.scrollTo({ top: scrollTopPosition, behavior: 'smooth' });
- document.getElementById('itemName').focus();
 }
 
+function updateItemRate(itemId, newRate) {
+ const itemElement = document.getElementById(`invoiceItem-${itemId}`);
+ if (!itemElement) return;
+
+ // Validate rate
+ newRate = parseFloat(newRate) || 0;
+ if (newRate < 0) {
+  newRate = 0;
+  const rateInput = itemElement.querySelectorAll('input[type="number"]')[1];
+  if (rateInput) rateInput.value = 0;
+ }
+
+ // Get current quantity
+ const qtyInput = itemElement.querySelector('input[type="number"]');
+ const currentQuantity = parseInt(qtyInput.value) || 1;
+
+ // Calculate new price
+ const newPrice = currentQuantity * newRate;
+
+ // Update price display
+ const priceElement = document.getElementById(`itemPrice-${itemId}`);
+ if (priceElement) {
+  priceElement.textContent = newPrice.toFixed(2);
+ }
+
+ // Update bill summary
+ updateBillSummary();
+}
+
+// Remove Item Function
 function removeItemFromInvoice(itemId) {
  const itemElement = document.getElementById(`invoiceItem-${itemId}`);
- if (itemElement) {
+ if (itemElement && confirm('Are you sure you want to remove this item?')) {
   itemElement.remove();
   updateBillSummary();
  }
@@ -2460,12 +3115,14 @@ function calculateBillSummary() {
  addedItems.forEach(item => {
   totalItems++;
 
-  const qtyElement = item.querySelector('.col-4:nth-child(1)');
-  const priceElement = item.querySelector('.col-4:nth-child(3)');
+  const qtyInput = item.querySelector('input[type="number"]');
+  const rateInput = item.querySelectorAll('input[type="number"]')[1];
+  const priceElement = item.querySelector('span[id^="itemPrice-"]');
 
-  if (qtyElement && priceElement) {
-   const qty = parseInt(qtyElement.textContent.replace('Qty:', '').trim()) || 0;
-   const price = parseFloat(priceElement.textContent.replace('Price: ₹', '').trim()) || 0;
+  if (qtyInput && rateInput && priceElement) {
+   const qty = parseInt(qtyInput.value) || 0;
+   const rate = parseFloat(rateInput.value) || 0;
+   const price = parseFloat(priceElement.textContent) || 0;
 
    totalQuantity += qty;
    totalPrice += price;
@@ -2491,12 +3148,14 @@ function calculateLoadedBillTotals() {
  addedItems.forEach(item => {
   totalItems++;
 
-  const qtyElement = item.querySelector('.col-4:nth-child(1)');
-  const priceElement = item.querySelector('.col-4:nth-child(3)');
+  const qtyInput = item.querySelector('input[type="number"]');
+  const rateInput = item.querySelectorAll('input[type="number"]')[1];
+  const priceElement = item.querySelector('span[id^="itemPrice-"]');
 
-  if (qtyElement && priceElement) {
-   const qty = parseInt(qtyElement.textContent.replace('Qty:', '').trim()) || 0;
-   const price = parseFloat(priceElement.textContent.replace('Price: ₹', '').trim()) || 0;
+  if (qtyInput && rateInput && priceElement) {
+   const qty = parseInt(qtyInput.value) || 0;
+   const rate = parseFloat(rateInput.value) || 0;
+   const price = parseFloat(priceElement.textContent) || 0;
 
    totalQuantity += qty;
    totalPrice += price;
@@ -2759,8 +3418,8 @@ function showToast(message) {
 }
 
 function addDropdownStyles() {
-const style = document.createElement('style');
-style.textContent = `
+ const style = document.createElement('style');
+ style.textContent = `
 .item-dropdown {
 position: absolute;
 background: white;
@@ -2832,65 +3491,42 @@ object-fit: cover;
 border-radius: 4px;
 }
 
-.action-dropdown {
-position: relative;
-display: inline-block;
+/* Inline edit styles */
+.added-item-card .form-control-sm {
+  display: inline-block !important;
+  height: 24px;
+  padding: 0 4px;
+  font-size: 0.875rem;
+  margin-left: 4px;
 }
 
-.action-menu {
-display: none;
-position: absolute;
-right: 0;
-top: 100%;
-background: white;
-border: 1px solid #ddd;
-border-radius: 4px;
-box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-z-index: 1000;
-min-width: 120px;
+.added-item-card .form-control-sm:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
 }
 
-.action-menu.show {
-display: block;
+/* Delete button */
+.added-item-card .btn-outline-danger.btn-sm {
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  border-width: 1px;
 }
 
-.action-menu-item {
-padding: 8px 12px;
-cursor: pointer;
-border-bottom: 1px solid #f0f0f0;
-transition: background-color 0.2s;
+.added-item-card .btn-outline-danger.btn-sm:hover {
+  background-color: #dc3545;
+  color: white;
 }
 
-.action-menu-item:last-child {
-border-bottom: none;
+/* Quantity and Rate labels */
+.added-item-card strong {
+  font-size: 0.9rem;
+  margin-right: 4px;
 }
 
-.action-menu-item:hover {
-background-color: #f8f9fa;
-}
-
-.action-menu-item.edit {
-color: #007bff;
-}
-
-.action-menu-item.delete {
-color: #dc3545;
-}
-
-.ellipsis-btn {
-background: none;
-border: none;
-font-size: 1.2rem;
-color: #6c757d;
-cursor: pointer;
-padding: 4px 8px;
-border-radius: 4px;
-transition: all 0.2s;
-}
-
-.ellipsis-btn:hover {
-background-color: #f8f9fa;
-color: #495057;
+/* Price display */
+[id^="itemPrice-"] {
+  font-weight: bold;
+  color: #28a745;
 }
 
 .qr-scanner-modal {
@@ -2993,6 +3629,73 @@ font-size: 0.75rem;
 height: 38px; /* Match input field height */
 }
 
+/* Continuous QR mode switch */
+.form-switch .form-check-input {
+    height: 1.2rem;
+    width: 2.4rem;
+    cursor: pointer;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.form-switch .form-check-label {
+    font-size: 0.8rem;
+    color: #495057;
+    cursor: pointer;
+}
+
+/* Success alert in continuous mode */
+.alert-success {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Stop button in continuous mode */
+#stopContinuousScan {
+    margin-top: 10px;
+}
+
+/* QR Scanner Modal Styles */
+#qr-scanner_modal .modal-dialog {
+    max-width: 500px;
+}
+
+#qr-reader-container {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#qr-scanner-status {
+    text-align: center;
+}
+
+#qr-scanner-loading {
+    width: 3rem;
+    height: 3rem;
+}
+
+#qr-scanner-message {
+    font-size: 0.9rem;
+    margin-top: 10px;
+}
+
+/* Item Not Found Modal */
+#item_not_found_modal .modal-dialog {
+    max-width: 400px;
+}
+
 @media (max-width: 576px) {
 .row.g-2 > [class*="col-"] {
 margin-bottom: 0.5rem;
@@ -3009,6 +3712,17 @@ font-size: 0.9rem;
 
 .btn-success.btn-sm {
 height: 36px; /* Slightly smaller on mobile */
+}
+
+/* Adjust inline edit inputs on mobile */
+.added-item-card .form-control-sm {
+  width: 60px !important;
+  font-size: 0.8rem;
+}
+
+/* QR Scanner modal on mobile */
+#qr-scanner_modal .modal-dialog {
+    margin: 10px;
 }
 }
 
@@ -3067,7 +3781,7 @@ cursor: not-allowed !important;
 background-color: transparent !important;
 }
 `;
-document.head.appendChild(style);
+ document.head.appendChild(style);
 }
 
 function commonFnToRunAfter_op_ViewCall(obj, swtch) {
@@ -3271,18 +3985,43 @@ async function getMaxBillNo() {
  return t4642;
 }
 
-// Close all action menus when clicking outside
-document.addEventListener('click', function (e) {
- if (!e.target.closest('.action-dropdown')) {
-  const allMenus = document.querySelectorAll('.action-menu');
-  allMenus.forEach(menu => {
-   menu.classList.remove('show');
-  });
- }
-});
-
 function temporaryAlertFunction(billId) {
  // Implement temporary alert functionality
  console.log('Temporary alert for bill:', billId);
 }
 
+// Function to verify if item was successfully added to sale list
+function verifyItemAddedToSaleList(itemId) {
+ // Get current rate from the matched item
+ const matchedItem = items.find(item => item.a == itemId);
+ if (!matchedItem) return false;
+ 
+ const currentRate = parseFloat(matchedItem.k || 0);
+ 
+ // Check if item exists in sale list with same ID and rate
+ const addedItems = document.querySelectorAll('#addedItemsContainer .added-item-card');
+ 
+ for (const itemCard of addedItems) {
+  const cardItemId = itemCard.getAttribute('data-item-id');
+  const cardRate = parseFloat(itemCard.getAttribute('data-item-rate') || 0);
+  
+  if (cardItemId == itemId && Math.abs(cardRate - currentRate) < 0.01) {
+   // Item found in sale list - verify quantity
+   const qtyInput = itemCard.querySelector('input[type="number"]');
+   const quantity = parseInt(qtyInput.value) || 0;
+   
+   if (quantity > 0) {
+    return true; // Item successfully added to sale list
+   }
+  }
+ }
+ 
+ // Also check if item was added via the form (when addByQR is disabled)
+ const itemNameInput = document.getElementById('itemName');
+ if (itemNameInput && itemNameInput.getAttribute('data-item-id') == itemId) {
+  // Item is loaded in the form, ready to be added
+  return true;
+ }
+ 
+ return false; // Item not found in sale list
+}
