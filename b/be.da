@@ -8,7 +8,7 @@
   {"a":6,"u":"https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"},
   {"a":7,"u":"https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"},
   {"a":8,"u":"https://code.jquery.com/jquery-3.6.0.min.js"},
-  {"a":9,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@4695ffa/b/b.min.js", "c":"set_bill_innerHTML", "r":"set_bill_innerHTML"},
+  {"a":9,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@83d12d7/b/b.js", "c":"set_bill_innerHTML", "r":"set_bill_innerHTML"},
   {"a":10,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@14002e4/b/ba.min.js", "c":"open_bil_inward", "r":"open_bil_inward"},
   {"a":11,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@cf22227/b/bn.min.js", "c":"set_add_itm_nw_innerHTML", "r":"set_add_itm_nw_innerHTML"},
   {"a":12,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@18ff972/b/bp.min.js", "c":"set_deup_prod_innerHTML", "r":"set_deup_prod_innerHTML"},
@@ -20,22 +20,8 @@
   {"a":18,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@24bf6ca/cmn/my1drv.min.js"},
   {"a":19,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@4f0d0e0/cmn/my1e3.min.js", "c":"fileUploadTesting", "r":"fileUploadTesting"},
   {"a":20,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@fc84f58/cmn/my1dra.min.js", "c":"upldAnyFile2drv", "r":"upldAnyFile2drv"},
-  {"a":21,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@ac9a8fc/b/be.min.js", "c":"set_be_innerHTML", "r":"set_be_innerHTML"}
+  {"a":21,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@ac9a8fc/b/be.min.js", "c":"set_be_innerHTML", "r":"set_be_innerHTML"},
+  {"a":22,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@bd87e26/b/bePr.js", "c":"sho_bepr_mdl", "r":"sho_bepr_mdl"}
 ],
 "shoCachInProgressModal" : true
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
