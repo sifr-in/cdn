@@ -3554,7 +3554,7 @@ function handl_op_rspons(response, reload = 0) {
      for (let bill of response.b.l) {
       let iTotal = 0;
       for (let item of stored_bill_items) {
-       if (item.td == bill.a && item.tb == 7) {
+       if (item.e == bill.a) {
         let amount = parseFloat(item.j) || 0;
         iTotal += amount;
        }
