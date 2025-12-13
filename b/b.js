@@ -2953,76 +2953,76 @@ function addItemToInvoice() {
  const uniqueItemId = Date.now(); // Unique ID for each item
 
  const itemHTML = `
-    <div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}">
-      <div class="card-body">
-        <div class="row">
-          <!-- Left side - Image (fixed 3 columns) -->
-          <div class="col-3">
-            <div class="text-center">
-              ${imageUrl ?
-   `<img src="${imageUrl}" class="added-item-image" alt="Item Image" 
-                      onerror="this.style.display='none'; this.parentElement.innerHTML = '<i class=\\'fas fa-image fa-2x text-muted\\'></i><div class=\\'mt-1\\'><small class=\\'text-muted\\'>No Image</small></div>'">` :
-   `<i class="fas fa-image fa-2x text-muted"></i>
-                 <div class="mt-1">
-                   <small class="text-muted">No Image</small>
-                 </div>`
-  }
-            </div>
-          </div>
-          
-          <!-- Right side - Details (fixed 9 columns) -->
-          <div class="col-9">
-            <!-- Row 1 - Item Name -->
-            <div class="row mb-2 g-0">
-              <div class="col-10">
-                <strong>${name}</strong>
-              </div>
-              <div class="col-2 d-flex align-items-center justify-content-end">
-                <button class="btn btn-outline-danger btn-sm" onclick="removeItemFromInvoice(${uniqueItemId})">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
-            </div>
-            
-            <!-- Row 2 - Quantity, Rate, Price (fixed 4-4-4 columns) -->
-            <div class="row mb-2 g-0">
-              <div class="col-4">
-                <strong>Qty:</strong> 
-                <input type="number" 
-                       class="form-control form-control-sm d-inline-block w-auto" 
-                       value="${qty}" 
-                       min="1" 
-                       step="1"
-                       style="width: 70px; display: inline-block;"
-                       onchange="updateItemQuantity(${uniqueItemId}, this.value)"
-                       onblur="updateItemQuantity(${uniqueItemId}, this.value)">
-              </div>
-              <div class="col-4">
-                <strong>Rate:</strong> 
-                <input type="number" 
-                       class="form-control form-control-sm d-inline-block w-auto" 
-                       value="${rate.toFixed(2)}" 
-                       min="0" 
-                       step="0.01"
-                       style="width: 80px; display: inline-block;"
-                       onchange="updateItemRate(${uniqueItemId}, this.value)"
-                       onblur="updateItemRate(${uniqueItemId}, this.value)">
-              </div>
-              <div class="col-4">
-                <strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${price.toFixed(2)}</span>
-              </div>
-            </div>
-            
-            <!-- Row 3 - Description -->
-            <div class="row g-0">
-              <div class="col-12">
-                <small class="text-muted">${description || 'No description'}</small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}">
+<div class="card-body">
+<div class="row">
+<!-- Left side - Image (fixed 3 columns) -->
+<div class="col-3">
+<div class="text-center">
+${imageUrl ?
+`<img src="${imageUrl}" class="added-item-image" alt="Item Image" 
+onerror="this.style.display='none'; this.parentElement.innerHTML = '<i class=\\'fas fa-image fa-2x text-muted\\'></i><div class=\\'mt-1\\'><small class=\\'text-muted\\'>No Image</small></div>'">` :
+`<i class="fas fa-image fa-2x text-muted"></i>
+<div class="mt-1">
+<small class="text-muted">No Image</small>
+</div>`
+}
+</div>
+</div>
+
+<!-- Right side - Details (fixed 9 columns) -->
+<div class="col-9">
+<!-- Row 1 - Item Name -->
+<div class="row mb-2 g-0">
+<div class="col-10">
+<strong>${name}</strong>
+</div>
+<div class="col-2 d-flex align-items-center justify-content-end">
+<button class="btn btn-outline-danger btn-sm" onclick="removeItemFromInvoice(${uniqueItemId})">
+<i class="fas fa-trash"></i>
+</button>
+</div>
+</div>
+
+<!-- Row 2 - Quantity, Rate, Price (fixed 4-4-4 columns) -->
+<div class="row mb-2 g-0">
+<div class="col-4">
+<strong>Qty:</strong> 
+<input type="number" 
+class="form-control form-control-sm d-inline-block w-auto" 
+value="${qty}" 
+min="1" 
+step="1"
+style="width: 70px; display: inline-block;"
+onchange="updateItemQuantity(${uniqueItemId}, this.value)"
+onblur="updateItemQuantity(${uniqueItemId}, this.value)">
+</div>
+<div class="col-4">
+<strong>Rate:</strong> 
+<input type="number" 
+class="form-control form-control-sm d-inline-block w-auto" 
+value="${rate.toFixed(2)}" 
+min="0" 
+step="0.01"
+style="width: 80px; display: inline-block;"
+onchange="updateItemRate(${uniqueItemId}, this.value)"
+onblur="updateItemRate(${uniqueItemId}, this.value)">
+</div>
+<div class="col-4">
+<strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${price.toFixed(2)}</span>
+</div>
+</div>
+
+<!-- Row 3 - Description -->
+<div class="row g-0">
+<div class="col-12">
+<small class="text-muted">${description || 'No description'}</small>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
   `;
 
  addedItemsContainer.insertAdjacentHTML('beforeend', itemHTML);
@@ -3244,30 +3244,30 @@ function updateReceivedAmountsUI() {
   const formattedDate = formatDateTime(payment.dateTime);
 
   html += `
-      <div class="card mb-2 received-amount-card" id="receivedAmount-${payment.id}">
-        <div class="card-body py-2">
-          <div class="row align-items-center">
-            <div class="col-6">
-              <small class="text-muted">${formattedDate}</small>
-            </div>
-            <div class="col-4">
-              <strong>${paymentTypeIcon} ₹${payment.amount.toFixed(2)}</strong>
-            </div>
-            <div class="col-2 text-end">
-              <div class="dropdown">
-                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="fas fa-ellipsis-v"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                  <li><button class="dropdown-item" onclick="updatePayment(${payment.id})"><i class="fas fa-edit me-2"></i>Update</button></li>
-                  <li><hr class="dropdown-divider"><hr class="dropdown-divider"></li>
-                  <li><button class="dropdown-item text-danger" onclick="removeReceivedAmount(${payment.id})"><i class="fas fa-trash me-2"></i>Delete</button></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="card mb-2 received-amount-card" id="receivedAmount-${payment.id}">
+<div class="card-body py-2">
+<div class="row align-items-center">
+<div class="col-6">
+<small class="text-muted">${formattedDate}</small>
+</div>
+<div class="col-4">
+<strong>${paymentTypeIcon} ₹${payment.amount.toFixed(2)}</strong>
+</div>
+<div class="col-2 text-end">
+<div class="dropdown">
+<button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+<i class="fas fa-ellipsis-v"></i>
+</button>
+<ul class="dropdown-menu dropdown-menu-end">
+<li><button class="dropdown-item" onclick="updatePayment(${payment.id})"><i class="fas fa-edit me-2"></i>Update</button></li>
+<li><hr class="dropdown-divider"><hr class="dropdown-divider"></li>
+<li><button class="dropdown-item text-danger" onclick="removeReceivedAmount(${payment.id})"><i class="fas fa-trash me-2"></i>Delete</button></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
     `;
  });
 
@@ -3537,39 +3537,42 @@ function handl_op_rspons(response, reload = 0) {
     stored_bill_cash_info = await dbDexieManager.getAllRecords(dbnm, "r") || [];
     clientReferrerArray = await dbDexieManager.getAllRecords(dbnm, "c") || [];
 
-    if (response.b && response.b.l && response.b.l.length > 0 && response.r && response.r.l && response.r.l.length > 0) {
-     for (let bill of response.b.l) {
-      let rTotal = 0;
-      for (let cashInfo of stored_bill_cash_info) {
-       if (cashInfo.td == bill.a && cashInfo.tb == 7) {
-        let amount = parseFloat(cashInfo.j) || 0;
-        rTotal += amount;
-       }
-      }
-      bill.r_tot = rTotal.toFixed(2);
-     }
-    }
-
-    if (response.b && response.b.l && response.b.l.length > 0 && response.i && response.i.l && response.i.l.length > 0) {
-     for (let bill of response.b.l) {
-      let iTotal = 0;
-      for (let item of stored_bill_items) {
-       if (item.e == bill.a) {
-        let amount = parseFloat(item.j) || 0;
-        iTotal += amount;
-       }
-      }
-      bill.i_tot = iTotal.toFixed(2);
-     }
-    }
-
     if (response.b && response.b.l && response.b.l.length > 0) {
-     for (let bill of response.b.l) {
+     if (response.r && response.r.l && response.r.l.length > 0) {
+      for (let bIdx = 0; bIdx < response.b.l.length; bIdx++) {
+       let bill = response.b.l[bIdx];
+       let rTotal = 0;
+       for (let cashInfo of stored_bill_cash_info) {
+        if (cashInfo.td == bill.a && cashInfo.tb == 7) {
+         let amount = parseFloat(cashInfo.j) || 0;
+         rTotal += amount;
+        }
+       }
+       response.b.l[bIdx].r_tot = rTotal.toFixed(2);
+      }
+     }
+
+     if (response.i && response.i.l && response.i.l.length > 0) {
+      for (let bIdx = 0; bIdx < response.b.l.length; bIdx++) {
+       let bill = response.b.l[bIdx];
+       let iTotal = 0;
+       for (let item of stored_bill_items) {
+        if (item.e == bill.a) {
+         let amount = parseFloat(item.j) || 0;
+         iTotal += amount;
+        }
+       }
+       response.b.l[bIdx].i_tot = iTotal.toFixed(2);
+      }
+     }
+
+     for (let bIdx = 0; bIdx < response.b.l.length; bIdx++) {
+      let bill = response.b.l[bIdx];
       let rTot = parseFloat(bill.r_tot) || 0;
       let iTot = parseFloat(bill.i_tot) || 0;
       let kAmount = parseFloat(bill.k) || 0;
 
-      bill.rem = (rTot - kAmount - rTot).toFixed(2);
+      response.b.l[bIdx].rem = (iTot - kAmount - rTot).toFixed(2);
      }
      const t3574mp = await dbDexieManager.insertToDexie(dbnm, "b", response.b.l, true, ["g"]);
     }
