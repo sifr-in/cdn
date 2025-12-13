@@ -27,9 +27,9 @@ let html5QrcodeScanner = null;
 
 // QR Scanner state
 let qrScannerState = {
-  isPaused: false,
-  shouldResume: false,
-  scanner: null
+ isPaused: false,
+ shouldResume: false,
+ scanner: null
 };
 
 // Helper function to play sounds
@@ -1944,7 +1944,7 @@ function stopQRScanner(scanner, container, overlay) {
  // Reset flags
  qrScannerState.isPaused = false;
  qrScannerState.shouldResume = false;
- 
+
  if (scanner) {
   scanner.clear().then(() => {
    // Wait a bit to ensure scanner is fully stopped
@@ -1958,7 +1958,7 @@ function stopQRScanner(scanner, container, overlay) {
     currentQRScanner = null;
     qrScannerActive = false;
     html5QrcodeScanner = null;
-    
+
     // Remove event listeners
     window.removeEventListener('beforeunload', handleBackButton);
     window.removeEventListener('popstate', handleBackButton);
@@ -1975,7 +1975,7 @@ function stopQRScanner(scanner, container, overlay) {
    currentQRScanner = null;
    qrScannerActive = false;
    html5QrcodeScanner = null;
-   
+
    window.removeEventListener('beforeunload', handleBackButton);
    window.removeEventListener('popstate', handleBackButton);
   });
@@ -2090,17 +2090,17 @@ async function initializeQRScannerInModal(modalInstance, modalContent) {
   document.getElementById('qr-scanner-message').textContent = 'Ready to scan...';
 
   html5QrcodeScanner.render(
-    async (decodedText) => {
+   async (decodedText) => {
     // Check if we should resume scanning
     if (qrScannerState.shouldResume) {
-        qrScannerState.isPaused = false;
-        qrScannerState.shouldResume = false;
+     qrScannerState.isPaused = false;
+     qrScannerState.shouldResume = false;
     }
-    
+
     // If scanning is paused, ignore this scan
     if (qrScannerState.isPaused) {
-        console.log('Scanning paused, ignoring scan');
-        return;
+     console.log('Scanning paused, ignoring scan');
+     return;
     }
 
     // Pause scanning temporarily
@@ -2119,7 +2119,7 @@ async function initializeQRScannerInModal(modalInstance, modalContent) {
     if (!matchedItems) {
      // Item not found - show confirmation modal
      // Keep scanning paused until user decides
-     
+
      // Update status message
      document.getElementById('qr-scanner-message').textContent = 'Item not found in database';
      document.getElementById('qr-scanner-message').className = 'text-danger mt-2';
@@ -2167,10 +2167,10 @@ async function initializeQRScannerInModal(modalInstance, modalContent) {
     setTimeout(() => {
      // Check if item was successfully added to sale list
      const itemWasAdded = verifyItemAddedToSaleList(matchedItems.a);
-     
+
      if (itemWasAdded) {
       document.getElementById('qr-scanner-message').textContent = 'Item added successfully!';
-      
+
       // If not in continuous mode, close the scanner modal after successful addition
       if (!continuousQRMode) {
        setTimeout(() => {
@@ -2182,25 +2182,25 @@ async function initializeQRScannerInModal(modalInstance, modalContent) {
           html5QrcodeScanner = null;
          });
         }
-        
+
         // Close the modal
         const modal = bootstrap.Modal.getInstance(modalInstance.modalElement);
         if (modal) {
          modal.hide();
         }
-        
+
         showToast('Item added to sale list successfully!');
        }, 1000);
       } else {
        // In continuous mode, just show success and continue
        showToast('Item added to sale list successfully!');
-       
+
        const scanDelay = window[my1uzr.worknOnPg]?.confg?.scanDelayQR || 3000;
-       
+
        setTimeout(() => {
         qrScannerState.isPaused = false;
         qrScannerState.shouldResume = false;
-        
+
         // Reset status message after delay
         setTimeout(() => {
          if (document.getElementById('qr-scanner-message')) {
@@ -2208,14 +2208,14 @@ async function initializeQRScannerInModal(modalInstance, modalContent) {
           document.getElementById('qr-scanner-message').className = 'text-muted mt-2';
          }
         }, 500);
-        
+
        }, scanDelay);
       }
      } else {
       // Item was not added for some reason
       document.getElementById('qr-scanner-message').textContent = 'Item found but could not be added. Please try again.';
       document.getElementById('qr-scanner-message').className = 'text-warning mt-2';
-      
+
       // Resume scanning after delay
       setTimeout(() => {
        qrScannerState.isPaused = false;
@@ -2243,14 +2243,14 @@ async function initializeQRScannerInModal(modalInstance, modalContent) {
    // Reset scanner state
    qrScannerState.isPaused = false;
    qrScannerState.shouldResume = false;
-   
+
    if (html5QrcodeScanner) {
     // Stop the scanner first
     html5QrcodeScanner.clear().then(() => {
      qrScannerActive = false;
      currentQRScanner = null;
      html5QrcodeScanner = null;
-     
+
      // Remove the scanner DOM element
      const scannerElement = document.getElementById('qr-reader');
      if (scannerElement) {
@@ -2287,7 +2287,7 @@ async function initializeQRScannerInModal(modalInstance, modalContent) {
 function handleItemNotFoundYes() {
  // Set flag to resume scanning
  qrScannerState.shouldResume = true;
- 
+
  // Reset status message
  setTimeout(() => {
   if (document.getElementById('qr-scanner-message')) {
@@ -2295,7 +2295,7 @@ function handleItemNotFoundYes() {
    document.getElementById('qr-scanner-message').className = 'text-muted mt-2';
   }
  }, 100);
- 
+
  // Close the item not found modal
  const itemNotFoundModal = bootstrap.Modal.getInstance(document.getElementById('item_not_found_modal'));
  if (itemNotFoundModal) {
@@ -2307,25 +2307,25 @@ function handleItemNotFoundNo() {
  // Reset scanner state
  qrScannerState.isPaused = false;
  qrScannerState.shouldResume = false;
- 
+
  if (html5QrcodeScanner) {
   html5QrcodeScanner.clear().then(() => {
    qrScannerActive = false;
    currentQRScanner = null;
    html5QrcodeScanner = null;
-   
+
    // Close the scanner modal
    const scannerModal = bootstrap.Modal.getInstance(document.getElementById('qr_scanner_modal'));
    if (scannerModal) {
     scannerModal.hide();
    }
-   
+
    // Close the item not found modal
    const itemNotFoundModal = bootstrap.Modal.getInstance(document.getElementById('item_not_found_modal'));
    if (itemNotFoundModal) {
     itemNotFoundModal.hide();
    }
-   
+
    showToast('QR scanning stopped');
   });
  }
@@ -2507,7 +2507,7 @@ function handleItemIdInput(event) {
    // Directly add item to sale list with QR
    addItemDirectlyFromQR(matchedItems);
    event.target.value = ''; // Clear the input
-   
+
    // Set a flag to indicate successful addition
    window.lastQRScannedItemAdded = true;
    window.lastQRScannedItemId = matchedItems.a;
@@ -2515,7 +2515,7 @@ function handleItemIdInput(event) {
    // Single item found - auto-select it in the form
    selectItem(matchedItems);
    event.target.value = ''; // Clear the input
-   
+
    // Set flag for form selection
    window.lastQRScannedItemAdded = true;
    window.lastQRScannedItemId = matchedItems.a;
@@ -3420,367 +3420,8 @@ function showToast(message) {
 function addDropdownStyles() {
  const style = document.createElement('style');
  style.textContent = `
-.item-dropdown {
-position: absolute;
-background: white;
-border: 1px solid #ddd;
-border-radius: 4px;
-box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-z-index: 1000;
-max-height: 300px;
-overflow-y: auto;
-width: 96%;
-left: 2%;
-}
-
-.item-dropdown-item {
-display: flex;
-align-items: center;
-padding: 8px 12px;
-border-bottom: 1px solid #f0f0f0;
-cursor: pointer;
-transition: background-color 0.2s;
-}
-
-.item-dropdown-item:last-child {
-border-bottom: none;
-}
-
-.item-dropdown-item:hover {
-background-color: #f8f9fa;
-}
-
-.item-dropdown-item img {
-width: 40px;
-height: 40px;
-object-fit: cover;
-border-radius: 4px;
-margin-right: 12px;
-}
-
-.item-dropdown-item .item-name {
-flex: 1;
-font-weight: 500;
-line-height: 1.2;
-}
-
-.item-dropdown-item .item-price {
-text-align: right;
-color: #28a745;
-font-weight: 500;
-line-height: 1.2;
-}
-
-.row.g-0 > [class*="col-"] {
-padding-left: 5px;
-padding-right: 5px;
-}
-
-.row.g-0 .input-group {
-margin-bottom: 0;
-}
-
-.added-item-card {
-border-left: 4px solid #28a745 !important;
-}
-
-.added-item-image {
-max-width: 80px;
-max-height: 80px;
-object-fit: cover;
-border-radius: 4px;
-}
-
-/* Inline edit styles */
-.added-item-card .form-control-sm {
-  display: inline-block !important;
-  height: 24px;
-  padding: 0 4px;
-  font-size: 0.875rem;
-  margin-left: 4px;
-}
-
-.added-item-card .form-control-sm:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
-}
-
-/* Delete button */
-.added-item-card .btn-outline-danger.btn-sm {
-  padding: 2px 6px;
-  font-size: 0.75rem;
-  border-width: 1px;
-}
-
-.added-item-card .btn-outline-danger.btn-sm:hover {
-  background-color: #dc3545;
-  color: white;
-}
-
-/* Quantity and Rate labels */
-.added-item-card strong {
-  font-size: 0.9rem;
-  margin-right: 4px;
-}
-
-/* Price display */
-[id^="itemPrice-"] {
-  font-weight: bold;
-  color: #28a745;
-}
-
-.qr-scanner-modal {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background: rgba(0,0,0,0.8);
-z-index: 2000;
-display: flex;
-justify-content: center;
-align-items: center;
-}
-
-.qr-scanner-content {
-background: white;
-padding: 20px;
-border-radius: 8px;
-text-align: center;
-max-width: 90%;
-max-height: 90%;
-}
-
-#qr-reader.scanner-container {
-position: fixed !important;
-top: 50%;
-left: 50%;
-transform: translate(-50%, -50%);
-}
-
-.received-amount-card {
-border-left: 4px solid #007bff !important;
-transition: all 0.3s ease;
-}
-
-.received-amount-card:hover {
-transform: translateY(-2px);
-box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.badge.bg-secondary {
-font-size: 0.75rem;
-padding: 4px 8px;
-}
-
-.card.border-success {
-border-width: 2px !important;
-}
-
-.bg-light {
-background-color: #f8f9fa !important;
-}
-
-/* Flatpickr customization */
-.flatpickr-input {
-background-color: white !important;
-}
-
-/* Action Buttons Styles */
-.btn-success, .btn-warning, .btn-info {
-font-weight: 600;
-padding: 10px 16px;
-}
-
-.btn:disabled {
-opacity: 0.6;
-cursor: not-allowed;
-transform: none !important;
-}
-
-.btn-secondary:disabled {
-background-color: #6c757d !important;
-border-color: #6c757d !important;
-}
-
-.btn:disabled:hover {
-transform: none !important;
-box-shadow: none !important;
-}
-
-/* Responsive discount line */
-.input-group-sm {
-margin-bottom: 0.5rem;
-}
-
-.input-group-sm .form-control {
-font-size: 0.875rem;
-}
-
-.input-group-sm .input-group-text {
-font-size: 0.875rem;
-padding: 0.25rem 0.5rem;
-}
-
-/* Add New Item Button Styles */
-.btn-success.btn-sm {
-padding: 0.25rem 0.5rem;
-font-size: 0.75rem;
-height: 38px; /* Match input field height */
-}
-
-/* Continuous QR mode switch */
-.form-switch .form-check-input {
-    height: 1.2rem;
-    width: 2.4rem;
-    cursor: pointer;
-}
-
-.form-switch .form-check-input:checked {
-    background-color: #28a745;
-    border-color: #28a745;
-}
-
-.form-switch .form-check-label {
-    font-size: 0.8rem;
-    color: #495057;
-    cursor: pointer;
-}
-
-/* Success alert in continuous mode */
-.alert-success {
-    padding: 0.5rem 1rem;
-    font-size: 0.8rem;
-    animation: fadeIn 0.3s ease-in;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* Stop button in continuous mode */
-#stopContinuousScan {
-    margin-top: 10px;
-}
-
-/* QR Scanner Modal Styles */
-#qr-scanner_modal .modal-dialog {
-    max-width: 500px;
-}
-
-#qr-reader-container {
-    min-height: 300px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-#qr-scanner-status {
-    text-align: center;
-}
-
-#qr-scanner-loading {
-    width: 3rem;
-    height: 3rem;
-}
-
-#qr-scanner-message {
-    font-size: 0.9rem;
-    margin-top: 10px;
-}
-
-/* Item Not Found Modal */
-#item_not_found_modal .modal-dialog {
-    max-width: 400px;
-}
-
-@media (max-width: 576px) {
-.row.g-2 > [class*="col-"] {
-margin-bottom: 0.5rem;
-}
-
-.input-group-sm {
-margin-bottom: 0.25rem;
-}
-
-.btn-success, .btn-warning, .btn-info {
-padding: 8px 12px;
-font-size: 0.9rem;
-}
-
-.btn-success.btn-sm {
-height: 36px; /* Slightly smaller on mobile */
-}
-
-/* Adjust inline edit inputs on mobile */
-.added-item-card .form-control-sm {
-  width: 60px !important;
-  font-size: 0.8rem;
-}
-
-/* QR Scanner modal on mobile */
-#qr-scanner_modal .modal-dialog {
-    margin: 10px;
-}
-}
-
-@media (min-width: 576px) {
-.row.g-2.align-items-end {
-align-items: end !important;
-}
-
-.input-group-sm {
-margin-bottom: 0;
-}
-}
-
-.dropdown-menu {
-z-index: 9999 !important;
-}
-
-.received-amount-card, .card, .modal-body {
-position: static !important;
-}
-
-#received_amount_modal .modal-dialog {
-max-width: 600px;
-}
-
-#addedReceivedAmountsContainerModal {
-max-height: 400px;
-overflow-y: auto;
-}
-
-.received-amount-card {
-border-left: 4px solid #007bff !important;
-}
-
-.badge {
-font-size: 0.6rem;
-padding: 2px 4px;
-}
-
-.bg-warning {
-background-color: #ffc107 !important;
-color: #000 !important;
-}
-
-.bg-danger {
-background-color: #dc3545 !important;
-color: #fff !important;
-}
-
-.item-dropdown-item.disabled {
-opacity: 0.6;
-cursor: not-allowed !important;
-}
-
-.item-dropdown-item.disabled:hover {
-background-color: transparent !important;
-}
-`;
+.item-dropdown{position:absolute;background:#fff;border:1px solid #ddd;border-radius:4px;box-shadow:0 2px 10px rgb(0 0 0 / .1);z-index:1000;max-height:300px;overflow-y:auto;width:96%;left:2%}.item-dropdown-item{display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background-color 0.2s}.item-dropdown-item:last-child{border-bottom:none}.item-dropdown-item:hover{background-color:#f8f9fa}.item-dropdown-item img{width:40px;height:40px;object-fit:cover;border-radius:4px;margin-right:12px}.item-dropdown-item .item-name{flex:1;font-weight:500;line-height:1.2}.item-dropdown-item .item-price{text-align:right;color:#28a745;font-weight:500;line-height:1.2}.row.g-0>[class*="col-"]{padding-left:5px;padding-right:5px}.row.g-0 .input-group{margin-bottom:0}.added-item-card{border-left:4px solid #28a745!important}.added-item-image{max-width:80px;max-height:80px;object-fit:cover;border-radius:4px}.added-item-card .form-control-sm{display:inline-block!important;height:24px;padding:0 4px;font-size:.875rem;margin-left:4px}.added-item-card .form-control-sm:focus{border-color:#007bff;box-shadow:0 0 0 .2rem rgb(0 123 255 / .25)}.added-item-card .btn-outline-danger.btn-sm{padding:2px 6px;font-size:.75rem;border-width:1px}.added-item-card .btn-outline-danger.btn-sm:hover{background-color:#dc3545;color:#fff}.added-item-card strong{font-size:.9rem;margin-right:4px}[id^="itemPrice-"]{font-weight:700;color:#28a745}.qr-scanner-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgb(0 0 0 / .8);z-index:2000;display:flex;justify-content:center;align-items:center}.qr-scanner-content{background:#fff;padding:20px;border-radius:8px;text-align:center;max-width:90%;max-height:90%}#qr-reader.scanner-container{position:fixed!important;top:50%;left:50%;transform:translate(-50%,-50%)}.received-amount-card{border-left:4px solid #007bff!important;transition:all 0.3s ease}.received-amount-card:hover{transform:translateY(-2px);box-shadow:0 4px 8px rgb(0 0 0 / .1)}.badge.bg-secondary{font-size:.75rem;padding:4px 8px}.card.border-success{border-width:2px!important}.bg-light{background-color:#f8f9fa!important}.flatpickr-input{background-color:white!important}.btn-success,.btn-warning,.btn-info{font-weight:600;padding:10px 16px}.btn:disabled{opacity:.6;cursor:not-allowed;transform:none!important}.btn-secondary:disabled{background-color:#6c757d!important;border-color:#6c757d!important}.btn:disabled:hover{transform:none!important;box-shadow:none!important}.input-group-sm{margin-bottom:.5rem}.input-group-sm .form-control{font-size:.875rem}.input-group-sm .input-group-text{font-size:.875rem;padding:.25rem .5rem}.btn-success.btn-sm{padding:.25rem .5rem;font-size:.75rem;height:38px}.form-switch .form-check-input{height:1.2rem;width:2.4rem;cursor:pointer}.form-switch .form-check-input:checked{background-color:#28a745;border-color:#28a745}.form-switch .form-check-label{font-size:.8rem;color:#495057;cursor:pointer}.alert-success{padding:.5rem 1rem;font-size:.8rem;animation:fadeIn 0.3s ease-in}@keyframes fadeIn{from{opacity:0}to{opacity:1}}#stopContinuousScan{margin-top:10px}#qr-scanner_modal .modal-dialog{max-width:500px}#qr-reader-container{min-height:300px;display:flex;flex-direction:column;justify-content:center;align-items:center}#qr-scanner-status{text-align:center}#qr-scanner-loading{width:3rem;height:3rem}#qr-scanner-message{font-size:.9rem;margin-top:10px}#item_not_found_modal .modal-dialog{max-width:400px}@media (max-width:576px){.row.g-2>[class*="col-"]{margin-bottom:.5rem}.input-group-sm{margin-bottom:.25rem}.btn-success,.btn-warning,.btn-info{padding:8px 12px;font-size:.9rem}.btn-success.btn-sm{height:36px}.added-item-card .form-control-sm{width:60px!important;font-size:.8rem}#qr-scanner_modal .modal-dialog{margin:10px}}@media (min-width:576px){.row.g-2.align-items-end{align-items:end!important}.input-group-sm{margin-bottom:0}}.dropdown-menu{z-index:9999!important}.received-amount-card,.card,.modal-body{position:static!important}#received_amount_modal .modal-dialog{max-width:600px}#addedReceivedAmountsContainerModal{max-height:400px;overflow-y:auto}.received-amount-card{border-left:4px solid #007bff!important}.badge{font-size:.6rem;padding:2px 4px}.bg-warning{background-color:#ffc107!important;color:#000!important}.bg-danger{background-color:#dc3545!important;color:#fff!important}.item-dropdown-item.disabled{opacity:.6;cursor:not-allowed!important}.item-dropdown-item.disabled:hover{background-color:transparent!important}
+ `;
  document.head.appendChild(style);
 }
 
@@ -3888,10 +3529,6 @@ function handl_op_rspons(response, reload = 0) {
       await update_qty_sold(response);
      }
     }
-    alert("stored successfully");
-    if (reload == 1) {
-     location.reload();
-    }
     items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
     prods = await dbDexieManager.getAllRecords(dbnm, "p") || [];
     stored_bill = await dbDexieManager.getAllRecords(dbnm, "b") || [];
@@ -3899,6 +3536,47 @@ function handl_op_rspons(response, reload = 0) {
     stored_bill_items = await dbDexieManager.getAllRecords(dbnm, "i") || [];
     stored_bill_cash_info = await dbDexieManager.getAllRecords(dbnm, "r") || [];
     clientReferrerArray = await dbDexieManager.getAllRecords(dbnm, "c") || [];
+
+    if (response.b && response.b.l && response.b.l.length > 0 && response.r && response.r.l && response.r.l.length > 0) {
+     for (let bill of response.b.l) {
+      let rTotal = 0;
+      for (let cashInfo of stored_bill_cash_info) {
+       if (cashInfo.td == bill.a && cashInfo.tb == 7) {
+        let amount = parseFloat(cashInfo.j) || 0;
+        rTotal += amount;
+       }
+      }
+      bill.r_tot = rTotal.toFixed(2);
+     }
+    }
+
+    if (response.b && response.b.l && response.b.l.length > 0 && response.i && response.i.l && response.i.l.length > 0) {
+     for (let bill of response.b.l) {
+      let iTotal = 0;
+      for (let item of stored_bill_items) {
+       if (item.td == bill.a && item.tb == 7) {
+        let amount = parseFloat(item.j) || 0;
+        iTotal += amount;
+       }
+      }
+      bill.i_tot = iTotal.toFixed(2);
+     }
+    }
+
+    if (response.b && response.b.l && response.b.l.length > 0) {
+     for (let bill of response.b.l) {
+      let rTot = parseFloat(bill.r_tot) || 0;
+      let iTot = parseFloat(bill.i_tot) || 0;
+      let kAmount = parseFloat(bill.k) || 0;
+
+      bill.rem = (rTot - kAmount - rTot).toFixed(2);
+     }
+     const t3574mp = await dbDexieManager.insertToDexie(dbnm, "b", response.b.l, true, ["g"]);
+    }
+    alert("stored successfully");
+    if (reload == 1) {
+     location.reload();
+    }
    } else {
     if (response.ms != null) { alert(response.ms); }
     if (response.fn3 != null) {
@@ -3995,33 +3673,33 @@ function verifyItemAddedToSaleList(itemId) {
  // Get current rate from the matched item
  const matchedItem = items.find(item => item.a == itemId);
  if (!matchedItem) return false;
- 
+
  const currentRate = parseFloat(matchedItem.k || 0);
- 
+
  // Check if item exists in sale list with same ID and rate
  const addedItems = document.querySelectorAll('#addedItemsContainer .added-item-card');
- 
+
  for (const itemCard of addedItems) {
   const cardItemId = itemCard.getAttribute('data-item-id');
   const cardRate = parseFloat(itemCard.getAttribute('data-item-rate') || 0);
-  
+
   if (cardItemId == itemId && Math.abs(cardRate - currentRate) < 0.01) {
    // Item found in sale list - verify quantity
    const qtyInput = itemCard.querySelector('input[type="number"]');
    const quantity = parseInt(qtyInput.value) || 0;
-   
+
    if (quantity > 0) {
     return true; // Item successfully added to sale list
    }
   }
  }
- 
+
  // Also check if item was added via the form (when addByQR is disabled)
  const itemNameInput = document.getElementById('itemName');
  if (itemNameInput && itemNameInput.getAttribute('data-item-id') == itemId) {
   // Item is loaded in the form, ready to be added
   return true;
  }
- 
+
  return false; // Item not found in sale list
 }
