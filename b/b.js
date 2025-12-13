@@ -3544,8 +3544,7 @@ function handl_op_rspons(response, reload = 0) {
        let rTotal = 0;
        for (let cashInfo of stored_bill_cash_info) {
         if (cashInfo.td == bill.a && cashInfo.tb == 7) {
-         let amount = parseFloat(cashInfo.j) || 0;
-         rTotal += amount;
+         rTotal += parseFloat(cashInfo.j) || 0;
         }
        }
        response.b.l[bIdx].r_tot = rTotal.toFixed(2);
@@ -3558,8 +3557,7 @@ function handl_op_rspons(response, reload = 0) {
        let iTotal = 0;
        for (let item of stored_bill_items) {
         if (item.e == bill.a) {
-         let amount = parseFloat(item.j) || 0;
-         iTotal += amount;
+         iTotal += parseFloat(item.g) || 0;
         }
        }
        response.b.l[bIdx].i_tot = iTotal.toFixed(2);
@@ -3706,3 +3704,4 @@ function verifyItemAddedToSaleList(itemId) {
 
  return false; // Item not found in sale list
 }
+
