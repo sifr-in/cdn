@@ -114,7 +114,7 @@ style="font-size: 0.8rem;">
 
 <!-- Continuous QR Mode Switch -->
 <div class="form-check form-switch mt-2 mb-2" style="font-size: 0.8rem;">
-    <input class="form-check-input" type="checkbox" id="continuousQRMode">
+<input class="form-check-input" type="checkbox" id="continuousQRMode">
 </div>
 
 <div id="itemImageContainer" class="text-center">
@@ -364,7 +364,7 @@ style="font-weight: bold;">
 </div>
 </div>
 </div>
-  `;
+`;
 
  // Initialize dates with current date and time
  initializeFlatpickr();
@@ -468,6 +468,13 @@ style="font-weight: bold;">
  if (typeof billingRequisit_be === 'function') {
   billingRequisit_be();
  }
+
+ const urlParams = new URLSearchParams(window.location.search);
+ const monoValue = urlParams.get('mono');
+
+ if (monoValue) {
+  await show_client_bills(monoValue);
+ }
 }
 
 async function showBillCards() {
@@ -476,17 +483,17 @@ async function showBillCards() {
  const m_odalInstance = modal.modalInstance;
  // Clear previous cards
  b_ill_cards_container.innerHTML = `
-  <div class="modal-header">
-    <h5 class="modal-title">Search Bills</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-  </div>
-  <div class="modal-body">
-    <div class="input-group mb-3">
-      <input type="text" class="form-control" id="bill_op_search" placeholder="Search by bill no, Mobile, Name...">
-      <span class="input-group-text"><i class="bi bi-search"></i></span>
-    </div>
-    <div id="billCardsContainer" class="row g-3"></div>
-  </div>
+<div class="modal-header">
+<h5 class="modal-title">Search Bills</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+<div class="input-group mb-3">
+<input type="text" class="form-control" id="bill_op_search" placeholder="Search by bill no, Mobile, Name...">
+<span class="input-group-text"><i class="bi bi-search"></i></span>
+</div>
+<div id="billCardsContainer" class="row g-3"></div>
+</div>
 `;
 
  // Create a variable to store the filtered bills
@@ -592,38 +599,38 @@ async function showBillCards() {
    const cardHeader = document.createElement("div");
    cardHeader.className = "card-header d-flex justify-content-between align-items-center";
    cardHeader.innerHTML = `
-     <div>
-       <span class="fw-bold">Bill #${bill.g}</span>
-       <br>
-       <small class="text-muted">${formattedDateTime}</small>
-     </div>
-     <div class="dropdown">
-       <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-         <i class="bi bi-gear"></i>
-       </button>
-       <ul class="dropdown-menu">
-         <li><button class="dropdown-item text-success" data-action="rcpt"><i class="bi bi-cash-coin"></i> Amount Received</button></li>
-         <li><button class="dropdown-item" data-action="view"><i class="bi bi-eye"></i> View Details</button></li>
-         <li><button class="dropdown-item" data-action="print"><i class="bi bi-printer"></i> Print Bill</button></li>
-         <li><hr class="dropdown-divider"></li>
-         <li><button class="dropdown-item text-danger" data-action="del"><i class="bi bi-trash"></i> Delete Bill</button></li>
-       </ul>
-     </div>
-   `;
+<div>
+<span class="fw-bold">Bill #${bill.g}</span>
+<br>
+<small class="text-muted">${formattedDateTime}</small>
+</div>
+<div class="dropdown">
+<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+<i class="bi bi-gear"></i>
+</button>
+<ul class="dropdown-menu">
+<li><button class="dropdown-item text-success" data-action="rcpt"><i class="bi bi-cash-coin"></i> Amount Received</button></li>
+<li><button class="dropdown-item" data-action="view"><i class="bi bi-eye"></i> View Details</button></li>
+<li><button class="dropdown-item" data-action="print"><i class="bi bi-printer"></i> Print Bill</button></li>
+<li><hr class="dropdown-divider"></li>
+<li><button class="dropdown-item text-danger" data-action="del"><i class="bi bi-trash"></i> Delete Bill</button></li>
+</ul>
+</div>
+`;
 
    // Card body
    const cardBody = document.createElement("div");
    cardBody.className = "card-body";
    cardBody.innerHTML = `
-     <div class="mb-2">
-       <h6 class="card-title mb-1">${clientName}</h6>
-       <p class="card-text mb-1">
-         <small class="text-muted">
-           <i class="bi bi-telephone"></i> ${clientMobile}
-         </small>
-       </p>
-     </div>
-   `;
+<div class="mb-2">
+<h6 class="card-title mb-1">${clientName}</h6>
+<p class="card-text mb-1">
+<small class="text-muted">
+<i class="bi bi-telephone"></i> ${clientMobile}
+</small>
+</p>
+</div>
+`;
 
    // Add click event to card body for temporary alert
    cardBody.addEventListener("click", function (e) {
@@ -701,7 +708,8 @@ async function handleBillAction(m_odalInstance, action, b346illID) {
    // Load the bill data into the form
    loadBillIntoForm(sCurrBill, sCurrItems, sCurrCashInfo);
 
-   m_odalInstance.hide();
+   if(m_odalInstance)
+    m_odalInstance.hide();
 
    break;
   case 'del':
@@ -766,112 +774,112 @@ function showAlreadyReceivedAmts(b346illID, s594CurrItems, c594ashInfo) {
  // Set modal title and content
  modalContent.innerHTML = `
 <div class="modal-header">
- <h5 class="modal-title">Add Received Amount - Bill #${b346illID}</h5>
- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<h5 class="modal-title">Add Received Amount - Bill #${b346illID}</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
- <!-- Bill Summary Section -->
- <div class="card mb-3">
-  <div class="card-header bg-light">
-   <h6 class="mb-0">Bill Summary</h6>
-  </div>
-  <div class="card-body">
-   <div class="row text-center">
-    <div class="col-4">
-     <small class="text-muted">Items Total</small>
-     <div class="fw-bold">₹${billTotal.toFixed(2)}</div>
-    </div>
-    <div class="col-4">
-     <small class="text-muted">Discount</small>
-     <div class="fw-bold text-danger">-₹${discountAmount.toFixed(2)}</div>
-    </div>
-    <div class="col-4">
-     <small class="text-muted">Final Amount</small>
-     <div class="fw-bold text-primary">₹${finalAmount.toFixed(2)}</div>
-    </div>
-   </div>
-  </div>
- </div>
+<!-- Bill Summary Section -->
+<div class="card mb-3">
+<div class="card-header bg-light">
+<h6 class="mb-0">Bill Summary</h6>
+</div>
+<div class="card-body">
+<div class="row text-center">
+<div class="col-4">
+<small class="text-muted">Items Total</small>
+<div class="fw-bold">₹${billTotal.toFixed(2)}</div>
+</div>
+<div class="col-4">
+<small class="text-muted">Discount</small>
+<div class="fw-bold text-danger">-₹${discountAmount.toFixed(2)}</div>
+</div>
+<div class="col-4">
+<small class="text-muted">Final Amount</small>
+<div class="fw-bold text-primary">₹${finalAmount.toFixed(2)}</div>
+</div>
+</div>
+</div>
+</div>
 
- <!-- Add Received Amount Card -->
- <div class="card mb-3" id="addReceivedAmountCard">
-  <div class="card-header bg-light">
-   <h6 class="mb-0">Add New Payment</h6>
-  </div>
-  <div class="card-body">
-   <div class="row align-items-end g-2">
-    <!-- Date & Time - col-4 -->
-    <div class="col-4">
-     <label class="form-label small text-muted mb-1">Date</label>
-     <input type="text" class="form-control form-control-sm" id="receivedDateTimeModal" placeholder="Select Date & Time">
-    </div>
+<!-- Add Received Amount Card -->
+<div class="card mb-3" id="addReceivedAmountCard">
+<div class="card-header bg-light">
+<h6 class="mb-0">Add New Payment</h6>
+</div>
+<div class="card-body">
+<div class="row align-items-end g-2">
+<!-- Date & Time - col-4 -->
+<div class="col-4">
+<label class="form-label small text-muted mb-1">Date</label>
+<input type="text" class="form-control form-control-sm" id="receivedDateTimeModal" placeholder="Select Date & Time">
+</div>
 
-    <!-- Amount - col-4 -->
-    <div class="col-4">
-     <label class="form-label small text-muted mb-1">Rcvd Amt.</label>
-     <input type="number" class="form-control form-control-sm" placeholder="Amount" id="receivedAmountModal" min="0"
-      step="1">
-    </div>
+<!-- Amount - col-4 -->
+<div class="col-4">
+<label class="form-label small text-muted mb-1">Rcvd Amt.</label>
+<input type="number" class="form-control form-control-sm" placeholder="Amount" id="receivedAmountModal" min="0"
+step="1">
+</div>
 
-    <!-- Payment Type - col-2 -->
-    <div class="col-2">
-     <label class="form-label small text-muted mb-1">Type</label>
-     <select class="form-control form-control-sm" id="paymentTypeModal">
-      <option value="0">Select</option>
-      <option value="1">Cash</option>
-      <option value="2">Cheque</option>
-      <option value="3">Card</option>
-      <option value="4">UPI</option>
-      <option value="5">Bank Transfer</option>
-     </select>
-    </div>
+<!-- Payment Type - col-2 -->
+<div class="col-2">
+<label class="form-label small text-muted mb-1">Type</label>
+<select class="form-control form-control-sm" id="paymentTypeModal">
+<option value="0">Select</option>
+<option value="1">Cash</option>
+<option value="2">Cheque</option>
+<option value="3">Card</option>
+<option value="4">UPI</option>
+<option value="5">Bank Transfer</option>
+</select>
+</div>
 
-    <!-- Add Button - col-2 -->
-    <div class="col-2">
-     <button class="btn btn-primary btn-sm" onclick="addTempReceivedAmount(${b346illID})">
-      <i class="fas fa-plus"></i>
-     </button>
-    </div>
-   </div>
-  </div>
- </div>
- 
- <!-- Temporary payments container (hidden) -->
- <div id="tempPaymentsContainer" style="display: none;"></div>
+<!-- Add Button - col-2 -->
+<div class="col-2">
+<button class="btn btn-primary btn-sm" onclick="addTempReceivedAmount(${b346illID})">
+<i class="fas fa-plus"></i>
+</button>
+</div>
+</div>
+</div>
+</div>
 
- <!-- Grand Total Summary -->
- <div class="row mt-4">
-  <div class="col-12">
-   <div class="card border-success">
-    <div class="card-body bg-light">
-     <div class="row text-center">
-      <div class="col-4">
-       <h6>Final Amount</h6>
-       <h4 class="text-primary">₹<span id="modalGrandBillTotal">${finalAmount.toFixed(2)}</span></h4>
-      </div>
-      <div class="col-4">
-       <h6>Rcvd</h6>
-       <h4 class="text-success">₹<span id="modalGrandTotalReceived">${totalReceived.toFixed(2)}</span></h4>
-      </div>
-      <div class="col-4">
-       <h6>Bal</h6>
-       <h4 class="text-danger">₹<span id="modalGrandBalance">${balance.toFixed(2)}</span></h4>
-      </div>
-     </div>
-    </div>
-   </div>
-  </div>
- </div>
+<!-- Temporary payments container (hidden) -->
+<div id="tempPaymentsContainer" style="display: none;"></div>
 
- <!-- Existing Received Amounts -->
- <div id="addedReceivedAmountsContainerModal">
-  <h6>Existing Payments</h6>
-  ${renderExistingPayments(c594ashInfo)}
- </div>
+<!-- Grand Total Summary -->
+<div class="row mt-4">
+<div class="col-12">
+<div class="card border-success">
+<div class="card-body bg-light">
+<div class="row text-center">
+<div class="col-4">
+<h6>Final Amount</h6>
+<h4 class="text-primary">₹<span id="modalGrandBillTotal">${finalAmount.toFixed(2)}</span></h4>
+</div>
+<div class="col-4">
+<h6>Rcvd</h6>
+<h4 class="text-success">₹<span id="modalGrandTotalReceived">${totalReceived.toFixed(2)}</span></h4>
+</div>
+<div class="col-4">
+<h6>Bal</h6>
+<h4 class="text-danger">₹<span id="modalGrandBalance">${balance.toFixed(2)}</span></h4>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Existing Received Amounts -->
+<div id="addedReceivedAmountsContainerModal">
+<h6>Existing Payments</h6>
+${renderExistingPayments(c594ashInfo)}
+</div>
 </div>
 <div class="modal-footer">
- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
- <button type="button" class="btn btn-success" onclick="submitAllPayments(${b346illID})">Submit new Payments</button>
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+<button type="button" class="btn btn-success" onclick="submitAllPayments(${b346illID})">Submit new Payments</button>
 </div>
 `;
 
@@ -1050,24 +1058,24 @@ function updateTempPaymentsUI() {
   const formattedDate = formatDateTime(payment.dateTime);
 
   const paymentHTML = `
-   <div class="card mb-2 received-amount-card" style="border-left: 4px solid #ffc107 !important;">
-    <div class="card-body py-2">
-     <div class="row align-items-center">
-      <div class="col-6">
-       <small class="text-muted">${formattedDate}</small>
-      </div>
-      <div class="col-4">
-       <strong>${paymentTypeIcon} ₹${payment.amount.toFixed(2)}</strong>
-      </div>
-      <div class="col-2 text-end">
-       <button class="btn btn-outline-danger btn-sm" onclick="removeTempPayment(${payment.id})">
-        <i class="fas fa-times"></i>
-       </button>
-      </div>
-     </div>
-    </div>
-   </div>
-  `;
+<div class="card mb-2 received-amount-card" style="border-left: 4px solid #ffc107 !important;">
+<div class="card-body py-2">
+<div class="row align-items-center">
+<div class="col-6">
+<small class="text-muted">${formattedDate}</small>
+</div>
+<div class="col-4">
+<strong>${paymentTypeIcon} ₹${payment.amount.toFixed(2)}</strong>
+</div>
+<div class="col-2 text-end">
+<button class="btn btn-outline-danger btn-sm" onclick="removeTempPayment(${payment.id})">
+<i class="fas fa-times"></i>
+</button>
+</div>
+</div>
+</div>
+</div>
+`;
 
   container.insertAdjacentHTML('beforeend', paymentHTML);
  });
@@ -1146,11 +1154,11 @@ function initializeModalFlatpickr() {
 function renderExistingPayments(payments) {
  if (!payments || payments.length === 0) {
   return `
-            <div class="text-center text-muted py-3">
-                <i class="fas fa-receipt fa-2x mb-2"></i>
-                <p>No payments recorded yet</p>
-            </div>
-        `;
+<div class="text-center text-muted py-3">
+<i class="fas fa-receipt fa-2x mb-2"></i>
+<p>No payments recorded yet</p>
+</div>
+`;
  }
 
  let html = '';
@@ -1264,77 +1272,77 @@ function addBillItemToForm(item) {
  const itemDetails = items.find(i => i.a == item.f) || {};
 
  const itemHTML = `
-        <div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${item.f}" data-item-rate="${itemDetails.k || 0}">
-            <div class="card-body">
-                <div class="row">
-                    <!-- Left side - Image -->
-                    <div class="col-3">
-                        <div class="text-center">
-                            ${itemDetails.gu ?
+<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${item.f}" data-item-rate="${itemDetails.k || 0}">
+<div class="card-body">
+<div class="row">
+<!-- Left side - Image -->
+<div class="col-3">
+<div class="text-center">
+${itemDetails.gu ?
    `<img src="${itemDetails.gu}" class="added-item-image" alt="Item Image" 
-                                      onerror="this.style.display='none'; this.parentElement.innerHTML = '<i class=\\'fas fa-image fa-2x text-muted\\'></i><div class=\\'mt-1\\'><small class=\\'text-muted\\'>No Image</small></div>'">` :
+onerror="this.style.display='none'; this.parentElement.innerHTML = '<i class=\\'fas fa-image fa-2x text-muted\\'></i><div class=\\'mt-1\\'><small class=\\'text-muted\\'>No Image</small></div>'">` :
    `<i class="fas fa-image fa-2x text-muted"></i>
-                                 <div class="mt-1">
-                                   <small class="text-muted">No Image</small>
-                                 </div>`
+<div class="mt-1">
+<small class="text-muted">No Image</small>
+</div>`
   }
-                        </div>
-                    </div>
-                    
-                    <!-- Right side - Details -->
-                    <div class="col-9">
-                        <!-- Row 1 - Item Name -->
-                        <div class="row mb-2 g-0">
-                            <div class="col-10">
-                                <strong>${itemDetails.gn || 'Unknown Item'}</strong>
-                            </div>
-                            <div class="col-2 d-flex align-items-center justify-content-end">
-                                <button class="btn btn-outline-danger btn-sm" onclick="removeItemFromInvoice(${uniqueItemId})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Row 2 - Quantity, Rate, Price -->
-                        <div class="row mb-2 g-0">
-                            <div class="col-4">
-                                <strong>Qty:</strong> 
-                                <input type="number" 
-                                       class="form-control form-control-sm d-inline-block w-auto" 
-                                       value="${item.h || '1'}" 
-                                       min="1" 
-                                       step="1"
-                                       style="width: 70px; display: inline-block;"
-                                       onchange="updateItemQuantity(${uniqueItemId}, this.value)"
-                                       onblur="updateItemQuantity(${uniqueItemId}, this.value)">
-                            </div>
-                            <div class="col-4">
-                                <strong>Rate:</strong> 
-                                <input type="number" 
-                                       class="form-control form-control-sm d-inline-block w-auto" 
-                                       value="${parseFloat(itemDetails.k || 0).toFixed(2)}" 
-                                       min="0" 
-                                       step="0.01"
-                                       style="width: 80px; display: inline-block;"
-                                       onchange="updateItemRate(${uniqueItemId}, this.value)"
-                                       onblur="updateItemRate(${uniqueItemId}, this.value)">
-                            </div>
-                            <div class="col-4">
-                                <strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${parseFloat(item.g || 0).toFixed(2)}</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Row 3 - Description -->
-                        <div class="row g-0">
-                            <div class="col-12">
-                                <small class="text-muted">${item.i || 'No description'}</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
+</div>
+</div>
+
+<!-- Right side - Details -->
+<div class="col-9">
+<!-- Row 1 - Item Name -->
+<div class="row mb-2 g-0">
+<div class="col-10">
+<strong>${itemDetails.gn || 'Unknown Item'}</strong>
+</div>
+<div class="col-2 d-flex align-items-center justify-content-end">
+<button class="btn btn-outline-danger btn-sm" onclick="removeItemFromInvoice(${uniqueItemId})">
+<i class="fas fa-trash"></i>
+</button>
+</div>
+</div>
+
+<!-- Row 2 - Quantity, Rate, Price -->
+<div class="row mb-2 g-0">
+<div class="col-4">
+<strong>Qty:</strong> 
+<input type="number" 
+class="form-control form-control-sm d-inline-block w-auto" 
+value="${item.h || '1'}" 
+min="1" 
+step="1"
+style="width: 70px; display: inline-block;"
+onchange="updateItemQuantity(${uniqueItemId}, this.value)"
+onblur="updateItemQuantity(${uniqueItemId}, this.value)">
+</div>
+<div class="col-4">
+<strong>Rate:</strong> 
+<input type="number" 
+class="form-control form-control-sm d-inline-block w-auto" 
+value="${parseFloat(itemDetails.k || 0).toFixed(2)}" 
+min="0" 
+step="0.01"
+style="width: 80px; display: inline-block;"
+onchange="updateItemRate(${uniqueItemId}, this.value)"
+onblur="updateItemRate(${uniqueItemId}, this.value)">
+</div>
+<div class="col-4">
+<strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${parseFloat(item.g || 0).toFixed(2)}</span>
+</div>
+</div>
+
+<!-- Row 3 - Description -->
+<div class="row g-0">
+<div class="col-12">
+<small class="text-muted">${item.i || 'No description'}</small>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+`;
 
  addedItemsContainer.insertAdjacentHTML('beforeend', itemHTML);
 }
@@ -2015,27 +2023,27 @@ async function openQRScannerModal() {
 
   // Set modal content
   modalContent.innerHTML = `
-            <div class="modal-header">
-                <h5 class="modal-title">QR Code Scanner</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="qr-reader-container" class="text-center">
-                    <div id="qr-reader" style="width: 100%"></div>
-                    <div id="qr-scanner-status" class="mt-3">
-                        <div class="spinner-border text-primary" role="status" id="qr-scanner-loading">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="text-muted mt-2" id="qr-scanner-message">Initializing camera...</p>
-                    </div>
-                </div>
-                <div class="text-center mt-3">
-                    <button class="btn btn-danger btn-sm" id="stopScannerBtn">
-                        <i class="fas fa-stop me-1"></i> Stop Scanner
-                    </button>
-                </div>
-            </div>
-        `;
+<div class="modal-header">
+<h5 class="modal-title">QR Code Scanner</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+<div id="qr-reader-container" class="text-center">
+<div id="qr-reader" style="width: 100%"></div>
+<div id="qr-scanner-status" class="mt-3">
+<div class="spinner-border text-primary" role="status" id="qr-scanner-loading">
+<span class="visually-hidden">Loading...</span>
+</div>
+<p class="text-muted mt-2" id="qr-scanner-message">Initializing camera...</p>
+</div>
+</div>
+<div class="text-center mt-3">
+<button class="btn btn-danger btn-sm" id="stopScannerBtn">
+<i class="fas fa-stop me-1"></i> Stop Scanner
+</button>
+</div>
+</div>
+`;
 
   modalInstance.show();
 
@@ -2130,20 +2138,20 @@ async function initializeQRScannerInModal(modalInstance, modalContent) {
      const confirmInstance = confirmModal.modalInstance;
 
      confirmContent.innerHTML = `
-                        <div class="modal-header">
-                            <h5 class="modal-title">Item Not Found</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Scanned QR code: <strong>${decodedText}</strong></p>
-                            <p>This item ID was not found in the database.</p>
-                            <p>Do you want to continue scanning?</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="handleItemNotFoundNo()">No, Stop</button>
-                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="handleItemNotFoundYes()">Yes, Continue</button>
-                        </div>
-                    `;
+<div class="modal-header">
+<h5 class="modal-title">Item Not Found</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+<p>Scanned QR code: <strong>${decodedText}</strong></p>
+<p>This item ID was not found in the database.</p>
+<p>Do you want to continue scanning?</p>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="handleItemNotFoundNo()">No, Stop</button>
+<button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="handleItemNotFoundYes()">Yes, Continue</button>
+</div>
+`;
 
      confirmInstance.show();
 
@@ -2381,15 +2389,15 @@ async function openContinuousQRScanner() {
 
   // Add a close button for continuous mode
   scannerContainer.innerHTML += `
-            <div class="text-center mt-3">
-                <button class="btn btn-danger btn-sm" id="stopContinuousScan">
-                    <i class="fas fa-stop me-1"></i> Stop Scanning
-                </button>
-                <div class="small text-muted mt-2">
-                    Continuous mode: Items will be added automatically. Click stop or press back button to exit.
-                </div>
-            </div>
-        `;
+<div class="text-center mt-3">
+<button class="btn btn-danger btn-sm" id="stopContinuousScan">
+<i class="fas fa-stop me-1"></i> Stop Scanning
+</button>
+<div class="small text-muted mt-2">
+Continuous mode: Items will be added automatically. Click stop or press back button to exit.
+</div>
+</div>
+`;
 
   document.body.appendChild(overlay);
   document.body.appendChild(scannerContainer);
@@ -2598,77 +2606,77 @@ function addItemToSaleList(item, quantity, rate) {
  const addedItemsContainer = document.getElementById('addedItemsContainer');
 
  const itemHTML = `
-    <div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}">
-      <div class="card-body">
-        <div class="row">
-          <!-- Left side - Image (fixed 3 columns) -->
-          <div class="col-3">
-            <div class="text-center">
-              ${imageUrl ?
+<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}">
+<div class="card-body">
+<div class="row">
+<!-- Left side - Image (fixed 3 columns) -->
+<div class="col-3">
+<div class="text-center">
+${imageUrl ?
    `<img src="${imageUrl}" class="added-item-image" alt="Item Image" 
-                      onerror="this.style.display='none'; this.parentElement.innerHTML = '<i class=\\'fas fa-image fa-2x text-muted\\'></i><div class=\\'mt-1\\'><small class=\\'text-muted\\'>No Image</small></div>'">` :
+onerror="this.style.display='none'; this.parentElement.innerHTML = '<i class=\\'fas fa-image fa-2x text-muted\\'></i><div class=\\'mt-1\\'><small class=\\'text-muted\\'>No Image</small></div>'">` :
    `<i class="fas fa-image fa-2x text-muted"></i>
-                 <div class="mt-1">
-                   <small class="text-muted">No Image</small>
-                 </div>`
+<div class="mt-1">
+<small class="text-muted">No Image</small>
+</div>`
   }
-            </div>
-          </div>
-          
-          <!-- Right side - Details (fixed 9 columns) -->
-          <div class="col-9">
-            <!-- Row 1 - Item Name -->
-            <div class="row mb-2 g-0">
-              <div class="col-10">
-                <strong>${name}</strong>
-              </div>
-              <div class="col-2 d-flex align-items-center justify-content-end">
-                <button class="btn btn-outline-danger btn-sm" onclick="removeItemFromInvoice(${uniqueItemId})">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
-            </div>
-            
-            <!-- Row 2 - Quantity, Rate, Price (fixed 4-4-4 columns) -->
-            <div class="row mb-2 g-0">
-              <div class="col-4">
-                <strong>Qty:</strong> 
-                <input type="number" 
-                       class="form-control form-control-sm d-inline-block w-auto" 
-                       value="${quantity}" 
-                       min="1" 
-                       step="1"
-                       style="width: 70px; display: inline-block;"
-                       onchange="updateItemQuantity(${uniqueItemId}, this.value)"
-                       onblur="updateItemQuantity(${uniqueItemId}, this.value)">
-              </div>
-              <div class="col-4">
-                <strong>Rate:</strong> 
-                <input type="number" 
-                       class="form-control form-control-sm d-inline-block w-auto" 
-                       value="${rate.toFixed(2)}" 
-                       min="0" 
-                       step="0.01"
-                       style="width: 80px; display: inline-block;"
-                       onchange="updateItemRate(${uniqueItemId}, this.value)"
-                       onblur="updateItemRate(${uniqueItemId}, this.value)">
-              </div>
-              <div class="col-4">
-                <strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${price.toFixed(2)}</span>
-              </div>
-            </div>
-            
-            <!-- Row 3 - Description -->
-            <div class="row g-0">
-              <div class="col-12">
-                <small class="text-muted">${description || 'No description'}</small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+</div>
+</div>
+
+<!-- Right side - Details (fixed 9 columns) -->
+<div class="col-9">
+<!-- Row 1 - Item Name -->
+<div class="row mb-2 g-0">
+<div class="col-10">
+<strong>${name}</strong>
+</div>
+<div class="col-2 d-flex align-items-center justify-content-end">
+<button class="btn btn-outline-danger btn-sm" onclick="removeItemFromInvoice(${uniqueItemId})">
+<i class="fas fa-trash"></i>
+</button>
+</div>
+</div>
+
+<!-- Row 2 - Quantity, Rate, Price (fixed 4-4-4 columns) -->
+<div class="row mb-2 g-0">
+<div class="col-4">
+<strong>Qty:</strong> 
+<input type="number" 
+class="form-control form-control-sm d-inline-block w-auto" 
+value="${quantity}" 
+min="1" 
+step="1"
+style="width: 70px; display: inline-block;"
+onchange="updateItemQuantity(${uniqueItemId}, this.value)"
+onblur="updateItemQuantity(${uniqueItemId}, this.value)">
+</div>
+<div class="col-4">
+<strong>Rate:</strong> 
+<input type="number" 
+class="form-control form-control-sm d-inline-block w-auto" 
+value="${rate.toFixed(2)}" 
+min="0" 
+step="0.01"
+style="width: 80px; display: inline-block;"
+onchange="updateItemRate(${uniqueItemId}, this.value)"
+onblur="updateItemRate(${uniqueItemId}, this.value)">
+</div>
+<div class="col-4">
+<strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${price.toFixed(2)}</span>
+</div>
+</div>
+
+<!-- Row 3 - Description -->
+<div class="row g-0">
+<div class="col-12">
+<small class="text-muted">${description || 'No description'}</small>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+`;
 
  addedItemsContainer.insertAdjacentHTML('beforeend', itemHTML);
 
@@ -2798,10 +2806,10 @@ function showItemDropdown(inputElement) {
   const noResults = document.createElement('div');
   noResults.className = 'item-dropdown-item';
   noResults.innerHTML = `
-            <div class="text-center text-muted py-2">
-                <i class="fas fa-search me-2"></i>No items found
-            </div>
-        `;
+<div class="text-center text-muted py-2">
+<i class="fas fa-search me-2"></i>No items found
+</div>
+`;
   dropdown.appendChild(noResults);
  } else {
   filteredItems.forEach(item => {
@@ -2828,19 +2836,19 @@ function showItemDropdown(inputElement) {
    }
 
    itemElement.innerHTML = `
-                <img src="${item.gu || 'https://cdn-icons-png.freepik.com/512/13543/13543330.png'}" 
-                     onerror="this.src='https://cdn-icons-png.freepik.com/512/13543/13543330.png'">
-                <div class="item-name">
-                    <strong>${prefixText}${item.gn || 'Unnamed Item'}</strong>
-                    ${stockIndicator}
-                    <br>
-                    <small class="text-muted">${item.ba_f || 'No description'}</small>
-                </div>
-                <div class="item-price">
-                    <br>
-                    <small class="text-muted">₹${item.k || '0'}</small>
-                </div>
-            `;
+<img src="${item.gu || 'https://cdn-icons-png.freepik.com/512/13543/13543330.png'}" 
+onerror="this.src='https://cdn-icons-png.freepik.com/512/13543/13543330.png'">
+<div class="item-name">
+<strong>${prefixText}${item.gn || 'Unnamed Item'}</strong>
+${stockIndicator}
+<br>
+<small class="text-muted">${item.ba_f || 'No description'}</small>
+</div>
+<div class="item-price">
+<br>
+<small class="text-muted">₹${item.k || '0'}</small>
+</div>
+`;
 
    // Add disabled styling for out-of-stock items - CHANGED: Check item.d != 111 instead of itemsToIgnoreInStockCount
    if (window[my1uzr.worknOnPg].confg.canSaleIfStock == 1 &&
@@ -2960,13 +2968,13 @@ function addItemToInvoice() {
 <div class="col-3">
 <div class="text-center">
 ${imageUrl ?
-`<img src="${imageUrl}" class="added-item-image" alt="Item Image" 
+   `<img src="${imageUrl}" class="added-item-image" alt="Item Image" 
 onerror="this.style.display='none'; this.parentElement.innerHTML = '<i class=\\'fas fa-image fa-2x text-muted\\'></i><div class=\\'mt-1\\'><small class=\\'text-muted\\'>No Image</small></div>'">` :
-`<i class="fas fa-image fa-2x text-muted"></i>
+   `<i class="fas fa-image fa-2x text-muted"></i>
 <div class="mt-1">
 <small class="text-muted">No Image</small>
 </div>`
-}
+  }
 </div>
 </div>
 
@@ -3023,7 +3031,7 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
 </div>
 </div>
 </div>
-  `;
+`;
 
  addedItemsContainer.insertAdjacentHTML('beforeend', itemHTML);
 
@@ -3229,11 +3237,11 @@ function updateReceivedAmountsUI() {
 
  if (receivedAmounts.length === 0) {
   container.innerHTML = `
-      <div class="text-center text-muted py-3">
-        <i class="fas fa-receipt fa-2x mb-2"></i>
-        <p>No received amounts added yet</p>
-      </div>
-    `;
+<div class="text-center text-muted py-3">
+<i class="fas fa-receipt fa-2x mb-2"></i>
+<p>No received amounts added yet</p>
+</div>
+`;
   return;
  }
 
@@ -3268,7 +3276,7 @@ function updateReceivedAmountsUI() {
 </div>
 </div>
 </div>
-    `;
+`;
  });
 
  container.innerHTML = html;
@@ -3379,19 +3387,19 @@ function updateItemImage(imageUrl) {
  const imageContainer = document.getElementById('itemImageContainer');
  if (imageUrl && imageUrl !== '') {
   imageContainer.innerHTML = `
-      <img src="${imageUrl}" 
-           class="img-fluid rounded" 
-           alt="Item Image"
-           style="max-width: 100%; height: auto; max-height: 120px; object-fit: cover;"
-           onerror="this.style.display='none'; document.getElementById('itemImageContainer').innerHTML = '<i class=\\'fas fa-image fa-3x text-muted\\'></i><div class=\\'mt-2\\'><small class=\\'text-muted\\'>No Image</small></div>'">
-    `;
+<img src="${imageUrl}" 
+class="img-fluid rounded" 
+alt="Item Image"
+style="max-width: 100%; height: auto; max-height: 120px; object-fit: cover;"
+onerror="this.style.display='none'; document.getElementById('itemImageContainer').innerHTML = '<i class=\\'fas fa-image fa-3x text-muted\\'></i><div class=\\'mt-2\\'><small class=\\'text-muted\\'>No Image</small></div>'">
+`;
  } else {
   imageContainer.innerHTML = `
-      <i class="fas fa-image fa-3x text-muted"></i>
-      <div class="mt-2">
-        <small class="text-muted">No Image</small>
-      </div>
-    `;
+<i class="fas fa-image fa-3x text-muted"></i>
+<div class="mt-2">
+<small class="text-muted">No Image</small>
+</div>
+`;
  }
 }
 
@@ -3399,16 +3407,16 @@ function showToast(message) {
  // Simple toast implementation
  const toast = document.createElement('div');
  toast.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #333;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 4px;
-    z-index: 3000;
-    font-size: 14px;
-  `;
+position: fixed;
+top: 20px;
+right: 20px;
+background: #333;
+color: white;
+padding: 12px 20px;
+border-radius: 4px;
+z-index: 3000;
+font-size: 14px;
+`;
  toast.textContent = message;
  document.body.appendChild(toast);
 
@@ -3421,7 +3429,7 @@ function addDropdownStyles() {
  const style = document.createElement('style');
  style.textContent = `
 .item-dropdown{position:absolute;background:#fff;border:1px solid #ddd;border-radius:4px;box-shadow:0 2px 10px rgb(0 0 0 / .1);z-index:1000;max-height:300px;overflow-y:auto;width:96%;left:2%}.item-dropdown-item{display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background-color 0.2s}.item-dropdown-item:last-child{border-bottom:none}.item-dropdown-item:hover{background-color:#f8f9fa}.item-dropdown-item img{width:40px;height:40px;object-fit:cover;border-radius:4px;margin-right:12px}.item-dropdown-item .item-name{flex:1;font-weight:500;line-height:1.2}.item-dropdown-item .item-price{text-align:right;color:#28a745;font-weight:500;line-height:1.2}.row.g-0>[class*="col-"]{padding-left:5px;padding-right:5px}.row.g-0 .input-group{margin-bottom:0}.added-item-card{border-left:4px solid #28a745!important}.added-item-image{max-width:80px;max-height:80px;object-fit:cover;border-radius:4px}.added-item-card .form-control-sm{display:inline-block!important;height:24px;padding:0 4px;font-size:.875rem;margin-left:4px}.added-item-card .form-control-sm:focus{border-color:#007bff;box-shadow:0 0 0 .2rem rgb(0 123 255 / .25)}.added-item-card .btn-outline-danger.btn-sm{padding:2px 6px;font-size:.75rem;border-width:1px}.added-item-card .btn-outline-danger.btn-sm:hover{background-color:#dc3545;color:#fff}.added-item-card strong{font-size:.9rem;margin-right:4px}[id^="itemPrice-"]{font-weight:700;color:#28a745}.qr-scanner-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgb(0 0 0 / .8);z-index:2000;display:flex;justify-content:center;align-items:center}.qr-scanner-content{background:#fff;padding:20px;border-radius:8px;text-align:center;max-width:90%;max-height:90%}#qr-reader.scanner-container{position:fixed!important;top:50%;left:50%;transform:translate(-50%,-50%)}.received-amount-card{border-left:4px solid #007bff!important;transition:all 0.3s ease}.received-amount-card:hover{transform:translateY(-2px);box-shadow:0 4px 8px rgb(0 0 0 / .1)}.badge.bg-secondary{font-size:.75rem;padding:4px 8px}.card.border-success{border-width:2px!important}.bg-light{background-color:#f8f9fa!important}.flatpickr-input{background-color:white!important}.btn-success,.btn-warning,.btn-info{font-weight:600;padding:10px 16px}.btn:disabled{opacity:.6;cursor:not-allowed;transform:none!important}.btn-secondary:disabled{background-color:#6c757d!important;border-color:#6c757d!important}.btn:disabled:hover{transform:none!important;box-shadow:none!important}.input-group-sm{margin-bottom:.5rem}.input-group-sm .form-control{font-size:.875rem}.input-group-sm .input-group-text{font-size:.875rem;padding:.25rem .5rem}.btn-success.btn-sm{padding:.25rem .5rem;font-size:.75rem;height:38px}.form-switch .form-check-input{height:1.2rem;width:2.4rem;cursor:pointer}.form-switch .form-check-input:checked{background-color:#28a745;border-color:#28a745}.form-switch .form-check-label{font-size:.8rem;color:#495057;cursor:pointer}.alert-success{padding:.5rem 1rem;font-size:.8rem;animation:fadeIn 0.3s ease-in}@keyframes fadeIn{from{opacity:0}to{opacity:1}}#stopContinuousScan{margin-top:10px}#qr-scanner_modal .modal-dialog{max-width:500px}#qr-reader-container{min-height:300px;display:flex;flex-direction:column;justify-content:center;align-items:center}#qr-scanner-status{text-align:center}#qr-scanner-loading{width:3rem;height:3rem}#qr-scanner-message{font-size:.9rem;margin-top:10px}#item_not_found_modal .modal-dialog{max-width:400px}@media (max-width:576px){.row.g-2>[class*="col-"]{margin-bottom:.5rem}.input-group-sm{margin-bottom:.25rem}.btn-success,.btn-warning,.btn-info{padding:8px 12px;font-size:.9rem}.btn-success.btn-sm{height:36px}.added-item-card .form-control-sm{width:60px!important;font-size:.8rem}#qr-scanner_modal .modal-dialog{margin:10px}}@media (min-width:576px){.row.g-2.align-items-end{align-items:end!important}.input-group-sm{margin-bottom:0}}.dropdown-menu{z-index:9999!important}.received-amount-card,.card,.modal-body{position:static!important}#received_amount_modal .modal-dialog{max-width:600px}#addedReceivedAmountsContainerModal{max-height:400px;overflow-y:auto}.received-amount-card{border-left:4px solid #007bff!important}.badge{font-size:.6rem;padding:2px 4px}.bg-warning{background-color:#ffc107!important;color:#000!important}.bg-danger{background-color:#dc3545!important;color:#fff!important}.item-dropdown-item.disabled{opacity:.6;cursor:not-allowed!important}.item-dropdown-item.disabled:hover{background-color:transparent!important}
- `;
+`;
  document.head.appendChild(style);
 }
 
@@ -3537,44 +3545,263 @@ function handl_op_rspons(response, reload = 0) {
     stored_bill_cash_info = await dbDexieManager.getAllRecords(dbnm, "r") || [];
     clientReferrerArray = await dbDexieManager.getAllRecords(dbnm, "c") || [];
 
-    if (response.b && response.b.l && response.b.l.length > 0) {
-     if (response.r && response.r.l && response.r.l.length > 0) {
-      for (let bIdx = 0; bIdx < response.b.l.length; bIdx++) {
-       let bill = response.b.l[bIdx];
-       let rTotal = 0;
-       for (let cashInfo of stored_bill_cash_info) {
-        if (cashInfo.td == bill.a && cashInfo.tb == 7) {
-         rTotal += parseFloat(cashInfo.j) || 0;
+
+    // Process bills array to update
+    let bills_array_to_update = [];
+
+    // Process items (response.i.l)
+    if (response.i && response.i.l && response.i.l.length > 0) {
+     // Create unique_by_item_array based on response.i.l.e
+     const uniqueItemsByE = [...new Map(response.i.l.map(item => [item.e, item])).values()];
+
+     for (const uniqueItem of uniqueItemsByE) {
+      // Find all stored_bill_items with matching e
+      const matchingItems = stored_bill_items.filter(item => item.e == uniqueItem.e);
+
+      // Calculate total of stored_bill_items.g
+      const i_tot = matchingItems.reduce((sum, item) => {
+       return sum + (parseFloat(item.g) || 0);
+      }, 0);
+
+      // Find stored_bill with matching a
+      const matchingBill = stored_bill.find(bill => bill.a == uniqueItem.e);
+
+      if (matchingBill) {
+       // Check if this bill is already in bills_array_to_update
+       const existingBillIndex = bills_array_to_update.findIndex(bill => bill.g === matchingBill.g);
+
+       if (existingBillIndex === -1) {
+        // Create a copy of the bill with i_tot property
+        const billToUpdate = { ...matchingBill, i_tot: i_tot.toFixed(2) };
+        bills_array_to_update.push(billToUpdate);
+       } else {
+        // Update existing entry
+        bills_array_to_update[existingBillIndex].i_tot = i_tot.toFixed(2);
+       }
+      }
+     }
+    }
+
+    // Process cash info (response.r.l)
+    if (response.r && response.r.l && response.r.l.length > 0) {
+     // Filter for tb == 7 and create unique array by td
+     const rpItems = response.r.l.filter(item => item.tb == 7);
+     const uniqueByRpArray = [...new Map(rpItems.map(item => [item.td, item])).values()];
+
+     for (const uniqueRp of uniqueByRpArray) {
+      // Find all stored_bill_cash_info with matching tb and td
+      const matchingCashInfos = stored_bill_cash_info.filter(info =>
+       info.tb == 7 && info.td == uniqueRp.td
+      );
+
+      // Calculate total of stored_bill_cash_info.j
+      const r_tot = matchingCashInfos.reduce((sum, info) => {
+       return sum + (parseFloat(info.j) || 0);
+      }, 0);
+
+      // First try to find in bills_array_to_update
+      const existingBillIndex = bills_array_to_update.findIndex(bill => bill.a == uniqueRp.td);
+
+      if (existingBillIndex !== -1) {
+       // Update existing entry
+       bills_array_to_update[existingBillIndex].r_tot = r_tot.toFixed(2);
+      } else {
+       // Find in stored_bill
+       const matchingBill = stored_bill.find(bill => bill.a == uniqueRp.td);
+
+       if (matchingBill) {
+        // Check if this bill is already in bills_array_to_update by g
+        const existingByGIndex = bills_array_to_update.findIndex(bill => bill.g === matchingBill.g);
+
+        if (existingByGIndex === -1) {
+         // Create a copy of the bill with r_tot property
+         const billToUpdate = { ...matchingBill, r_tot: r_tot.toFixed(2) };
+         bills_array_to_update.push(billToUpdate);
+        } else {
+         // Update existing entry
+         bills_array_to_update[existingByGIndex].r_tot = r_tot.toFixed(2);
         }
        }
-       response.b.l[bIdx].r_tot = rTotal.toFixed(2);
+      }
+     }
+    }
+
+    // Ensure uniqueness by g and calculate remaining amount
+    if (bills_array_to_update.length > 0) {
+     // Create unique array by g
+     const uniqueBillsArray = [];
+     const seenGValues = new Set();
+
+     for (const bill of bills_array_to_update) {
+      if (!seenGValues.has(bill.g)) {
+       seenGValues.add(bill.g);
+       uniqueBillsArray.push(bill);
+      } else {
+       // Merge duplicate entries
+       const existingIndex = uniqueBillsArray.findIndex(b => b.g === bill.g);
+       if (existingIndex !== -1) {
+        // Merge i_tot
+        if (bill.i_tot) {
+         uniqueBillsArray[existingIndex].i_tot = bill.i_tot;
+        }
+        // Merge r_tot
+        if (bill.r_tot) {
+         uniqueBillsArray[existingIndex].r_tot = bill.r_tot;
+        }
+       }
       }
      }
 
-     if (response.i && response.i.l && response.i.l.length > 0) {
-      for (let bIdx = 0; bIdx < response.b.l.length; bIdx++) {
-       let bill = response.b.l[bIdx];
-       let iTotal = 0;
-       for (let item of stored_bill_items) {
-        if (item.e == bill.a) {
-         iTotal += parseFloat(item.g) || 0;
-        }
-       }
-       response.b.l[bIdx].i_tot = iTotal.toFixed(2);
-      }
-     }
-
-     for (let bIdx = 0; bIdx < response.b.l.length; bIdx++) {
-      let bill = response.b.l[bIdx];
+     // Calculate remaining amount for each bill
+     for (const bill of uniqueBillsArray) {
       let rTot = parseFloat(bill.r_tot) || 0;
       let iTot = parseFloat(bill.i_tot) || 0;
       let kAmount = parseFloat(bill.k) || 0;
 
-      response.b.l[bIdx].rem = (iTot - kAmount - rTot).toFixed(2);
+      bill.rem = (iTot - kAmount - rTot).toFixed(2);
+
+      // Ensure i_tot and r_tot are strings with 2 decimal places
+      bill.i_tot = (parseFloat(bill.i_tot) || 0).toFixed(2);
+      bill.r_tot = (parseFloat(bill.r_tot) || 0).toFixed(2);
      }
-     const t3574mp = await dbDexieManager.insertToDexie(dbnm, "b", response.b.l, true, ["g"]);
+
+     if (uniqueBillsArray.length > 0) {
+      const t3574mp = await dbDexieManager.insertToDexie(dbnm, "b", uniqueBillsArray, true, ["g"]);
+      stored_bill = await dbDexieManager.getAllRecords(dbnm, "b") || [];
+
+
+
+
+
+
+
+
+
+
+      /*const clientIds = [...new Set(uniqueBillsArray.map(bill => bill.e).filter(id => id))];
+
+      for (const clientId of clientIds) {
+       // Get all bills for this client
+       const allBillsOfCurrentClient = stored_bill.filter(bill => bill.e == clientId);
+
+       // Get client info from clientReferrerArray
+       const clientInfo = clientReferrerArray.find(client => client.a == clientId);
+       const mobileNumber = clientInfo ? clientInfo.e : null;
+
+       if (mobileNumber && allBillsOfCurrentClient.length > 0) {
+        let HTMLmatter = "";
+        let hasDueBills = false;
+
+        // Sort bills by date (most recent first)
+        allBillsOfCurrentClient.sort((a, b) => new Date(b.f) - new Date(a.f));
+        let tot_yene = 0;
+
+        // Create HTML for each bill with due amount
+        for (const bill of allBillsOfCurrentClient) {
+         // Parse amounts
+         const rem = parseFloat(bill.rem) || 0;
+         const iTot = parseFloat(bill.i_tot) || 0;
+         const rTot = parseFloat(bill.r_tot) || 0;
+         const kAmount = parseFloat(bill.k) || 0;
+
+         // Only include bills with due amount
+         if (rem !== 0) {
+          hasDueBills = true;
+
+          tot_yene = tot_yene + rem;
+          // Extract date (first 10 characters)
+          const billDate = bill.f ? bill.f.substring(0, 10) : "";
+
+          // Create HTML card using Bootstrap
+          HTMLmatter += `
+<div class="card mb-3">
+<div class="card-body p-2">
+<div class="row align-items-center">
+<!-- Column 1: Bill Number -->
+<div class="col-3">
+<a href="https://my1.in/${appOwner.eo}/b/b.html?g=${bill.g}" 
+class="text-decoration-none" 
+style="font-weight: bold; font-size: 125%;">
+${bill.g || ''}
+</a>
+</div>
+
+<!-- Column 2: Date -->
+<div class="col-4 text-end">
+${billDate}
+</div>
+
+<!-- Column 6: Due Amount -->
+<div class="col-5 text-end">
+<span style="font-weight: bold; font-size: 125%;">
+₹${rem.toFixed(2)}
+</span>
+</div>
+</div>
+
+<div class="row align-items-center">
+<!-- Column 3: Total Amount -->
+<div class="col-4 text-end">
+₹${iTot.toFixed(2)}
+</div>
+
+<!-- Column 4: Discount -->
+<div class="col-4 text-end">
+₹${kAmount.toFixed(2)}
+</div>
+
+<!-- Column 5: Received Amount -->
+<div class="col-4 text-end">
+₹${rTot.toFixed(2)}
+</div>
+</div>
+</div>
+</div>`;
+         }
+        }
+
+        // If there are due bills, wrap them in a container and store in localStorage
+        if (hasDueBills && HTMLmatter !== "") {
+         // Add a header with client name
+         const clientName = clientInfo ? (clientInfo.i || clientInfo.h || "") : "";
+         const clientHeader = clientName ?
+          `<div class="alert alert-info p-2 mb-2">
+<i class="fas fa-user me-2"></i>
+<strong>${clientName}</strong>   tot-due: <span style="font-weight: bold; font-size: 125%;">${tot_yene}</span>
+</div>` : "";
+
+         const finalHTML = `
+<div class="container-fluid p-2">
+${clientHeader}
+${HTMLmatter}
+</div>`;
+
+         // Store in localStorage using mobile number as key
+         localStorage.setItem(mobileNumber, finalHTML);
+        } else if (mobileNumber) {
+         // If no due bills, remove any existing entry
+         localStorage.removeItem(mobileNumber);
+        }
+       }
+      }*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+     }
     }
     alert("stored successfully");
+
+
     if (reload == 1) {
      location.reload();
     }
@@ -3705,3 +3932,255 @@ function verifyItemAddedToSaleList(itemId) {
  return false; // Item not found in sale list
 }
 
+async function show_client_bills(mono) {
+ if (clientReferrerArray.length === 0) {
+  clientReferrerArray = await dbDexieManager.getAllRecords(dbnm, "c") || [];
+ }
+ 
+ // Filter to get ALL clients with this mobile number
+ const clients = clientReferrerArray.filter(client => client.e.toString() == mono);
+
+ if (clients.length === 0) {
+  alert("No clients found with this mobile number");
+  return;
+ }
+
+ // Create modal
+ const modalResult = create_modal_dynamically('clientBillsModal');
+ const modalContent = modalResult.contentElement;
+ const modalInstance = modalResult.modalInstance;
+
+ let totalOverallDue = 0;
+ let hasDueBillsOverall = false;
+ let allBillsHTML = "";
+ let allClientsBills = [];
+
+ // Process each client
+ for (const client of clients) {
+  // Get all bills for this client
+  const clientBills = stored_bill.filter(bill => bill.e == client.a);
+  
+  // Sort bills by date (most recent first)
+  clientBills.sort((a, b) => new Date(b.f) - new Date(a.f));
+  
+  let clientTotalDue = 0;
+  let clientHasDueBills = false;
+  let clientBillsHTML = "";
+  
+  // Create HTML for each bill of this client
+  for (const bill of clientBills) {
+   // Parse amounts
+   const rem = parseFloat(bill.rem) || 0;
+   const iTot = parseFloat(bill.i_tot) || 0;
+   const rTot = parseFloat(bill.r_tot) || 0;
+   const kAmount = parseFloat(bill.k) || 0;
+
+   clientTotalDue += rem;
+   totalOverallDue += rem;
+
+   // Extract date (first 10 characters)
+   const billDate = bill.f ? bill.f.substring(0, 10) : "";
+
+   // Determine card color based on due status
+   const cardClass = rem === 0 ? "border-success" : "border-danger";
+
+   // Create HTML card for this bill
+   clientBillsHTML += `
+<div class="card mb-1 ${cardClass}">
+<div class="card-body p-2">
+<!-- Header row -->
+<div class="row align-items-center mb-2">
+<!-- Column 1: Bill Number -->
+<button type="button" class="col-3 btn btn-primary" style="font-weight: bold; font-size: 125%;" data-bill-action="view" data-bill-id="${bill.a}">${bill.g || ''}</button>
+
+<!-- Column 2: Date -->
+<div class="col-4 text-end">
+<span class="text-muted">${billDate}</span>
+</div>
+
+<!-- Column 3: Due Amount -->
+<div class="col-5 text-end">
+<span style="font-weight: bold; font-size: 125%; color: ${rem > 0 ? '#dc3545' : '#28a745'}">
+₹${rem.toFixed(2)}
+</span>
+</div>
+</div>
+
+<!-- Amount details row -->
+<div class="row align-items-center">
+<!-- Column 1: Total Amount -->
+<div class="col-4">
+<small class="text-muted">Total</small><br>
+<strong>₹${iTot.toFixed(2)}</strong>
+</div>
+
+<!-- Column 2: Discount -->
+<div class="col-4 text-center">
+<small class="text-muted">Discount</small><br>
+<strong>₹${kAmount.toFixed(2)}</strong>
+</div>
+
+<!-- Column 3: Received Amount -->
+<div class="col-4 text-end">
+<small class="text-muted">Received</small><br>
+<strong>₹${rTot.toFixed(2)}</strong>
+</div>
+</div>
+
+<!-- Remarks row (if available) -->
+${bill.i ? `
+<div class="row mt-2">
+<div class="col-12">
+<small class="text-muted">Remarks:</small>
+<div class="small">${JSON.parse(bill.i).rmrk || ''}</div>
+</div>
+</div>` : ''}
+</div>
+</div>`;
+
+   if (rem !== 0) {
+    clientHasDueBills = true;
+    hasDueBillsOverall = true;
+   }
+  }
+
+  // Track client's bills for summary
+  allClientsBills.push({
+   client: client,
+   bills: clientBills,
+   totalDue: clientTotalDue,
+   hasDueBills: clientHasDueBills,
+   billsCount: clientBills.length
+  });
+
+  // Add client header to the HTML
+  if (clientBills.length > 0) {
+   const clientName = client.i + "<br>" + client.h || "";
+   allBillsHTML += `
+<div class="mb-4" style="background-color:brown">
+<!-- Client header -->
+<div class="card bg-light mb-2">
+<div class="card-body py-2">
+<div class="row align-items-center">
+<div class="col-8">
+<h6 class="mb-1">
+<strong>${clientName}</strong>
+<small class="text-muted d-block">Client ID: ${client.a}</small>
+</h6>
+</div>
+<div class="col-4 text-end">
+<div class="fw-bold ${clientTotalDue > 0 ? 'text-danger' : 'text-success'}">
+₹${clientTotalDue.toFixed(2)}
+</div>
+<small class="text-muted">${clientBills.length} bill(s)</small>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Client's bills -->
+${clientBillsHTML}
+</div>
+<hr class="my-3">`;
+  }
+ }
+
+ // Prepare modal content
+ const modalHTML = `
+<div class="modal-header">
+<h5 class="modal-title">
+Bills for Mobile: ${mono}
+<span class="badge bg-secondary ms-2">${clients.length} client(s)</span>
+</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+<!-- Overall summary -->
+<div class="alert ${hasDueBillsOverall ? 'alert-warning' : 'alert-success'} p-2 mb-3">
+<div class="row align-items-center">
+<div class="col-8">
+<strong>Mobile: ${mono}</strong><br>
+<small class="text-muted">
+${clients.length} client(s) • 
+${allClientsBills.reduce((sum, cb) => sum + cb.billsCount, 0)} total bills
+</small>
+</div>
+<div class="col-4 text-end">
+<div style="font-weight: bold; font-size: 150%; color: ${totalOverallDue > 0 ? '#dc3545' : '#28a745'}">
+₹${totalOverallDue.toFixed(2)}
+</div>
+<small>Total ${totalOverallDue > 0 ? 'Due' : 'Balance'}</small>
+</div>
+</div>
+</div>
+
+<!-- Clients list summary -->
+<div class="mb-3">
+<div class="row row-cols-1 row-cols-md-2 g-2" style="background-color:aquamarine">
+${allClientsBills.map(clientData => {
+ const clientName = clientData.client.i + "<br>" + clientData.client.h || "";
+ const statusClass = clientData.hasDueBills ? 'bg-danger' : 'bg-success';
+ const statusText = clientData.hasDueBills ? 'Has Due' : 'All Paid';
+ 
+ return `
+<div class="col">
+<div class="card h-100">
+<div class="card-body p-2">
+<div class="row align-items-center">
+<div class="col-8">
+<small class="fw-bold">${clientName}</small><br>
+<small class="text-muted">ID: ${clientData.client.a}</small>
+</div>
+<div class="col-4 text-end">
+<div class="fw-bold ${clientData.totalDue > 0 ? 'text-danger' : 'text-success'}">
+₹${clientData.totalDue.toFixed(2)}
+</div>
+<small class="badge ${statusClass}">${statusText}</small>
+</div>
+</div>
+</div>
+</div>
+</div>`;
+}).join('')}
+</div>
+</div>
+
+<!-- All bills -->
+${allClientsBills.reduce((sum, cb) => sum + cb.billsCount, 0) > 0 ? allBillsHTML :
+   '<div class="alert alert-info text-center">No bills found for any client with this mobile number</div>'}
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+${hasDueBillsOverall ?
+   `<button type="button" class="btn btn-primary" onclick="sendPaymentReminder('${mono}', '${clients.map(c => c.i).join(", ")}')">
+<i class="fas fa-bell me-1"></i> Send Reminder to All
+</button>` : ''}
+</div>`;
+
+ // Set modal content
+ modalContent.innerHTML = modalHTML;
+ 
+  modalContent.addEventListener('click', function(e) {
+   const billActionElement = e.target.closest('[data-bill-action]');
+   if (billActionElement) {
+     const action = billActionElement.getAttribute('data-bill-action');
+     const billId = billActionElement.getAttribute('data-bill-id');
+     
+     // Call your handler with modalInstance
+     handleBillAction(modalInstance, action, billId);
+   }
+ });
+ 
+ // Show the modal
+ modalInstance.show();
+ // Return modal instance for further control
+ return modalInstance;
+}
+
+function sendPaymentReminder(mobile, clientName) {
+ const cleanMobile = mobile.replace(/[^\d+]/g, '');
+ const message = `Payment Reminder: Dear ${clientName}, you have pending bills. Please make the payment at your earliest convenience.`;
+ window.open(`https://wa.me/${cleanMobile}?text=${encodeURIComponent(message)}`, '_blank');
+ // For SMS integration:
+ // window.open(`sms:${mobile}?body=${encodeURIComponent(message)}`, '_blank');
+}
