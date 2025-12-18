@@ -475,6 +475,14 @@ style="font-weight: bold;">
  if (monoValue) {
   await show_client_bills(monoValue);
  }
+
+ // Load default remark from localStorage
+ setTimeout(() => {
+  const defaultRemark = localStorage.getItem('defaultBillRemark');
+  if (defaultRemark) {
+   document.getElementById('billNotes').value = defaultRemark;
+  }
+ }, 500);
 }
 
 async function showBillCards() {
@@ -708,7 +716,7 @@ async function handleBillAction(m_odalInstance, action, b346illID) {
    // Load the bill data into the form
    loadBillIntoForm(sCurrBill, sCurrItems, sCurrCashInfo);
 
-   if(m_odalInstance)
+   if (m_odalInstance)
     m_odalInstance.hide();
 
    break;
@@ -1313,8 +1321,8 @@ value="${item.h || '1'}"
 min="1" 
 step="1"
 style="width: 70px; display: inline-block;"
-onchange="updateItemQuantity(${uniqueItemId}, this.value)"
-onblur="updateItemQuantity(${uniqueItemId}, this.value)">
+onchange="updateItemQuantity(${uniqueItemId}, parseFloat(this.value))"
+onblur="updateItemQuantity(${uniqueItemId}, parseFloat(this.value))">
 </div>
 <div class="col-4">
 <strong>Rate:</strong> 
@@ -1335,7 +1343,7 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
 <!-- Row 3 - Description -->
 <div class="row g-0">
 <div class="col-12">
-<small class="text-muted">${item.i || 'No description'}</small>
+<small class="text-muted">${item.i || ''}</small>
 </div>
 </div>
 </div>
@@ -1762,7 +1770,7 @@ async function crUpBill(fnNumber) {
 
    const qty = parseInt(qtyInput.value) || 0;
    const price = parseFloat(priceElement.textContent) || 0;
-   const description = descriptionElement.textContent === 'No description' ? '' : descriptionElement.textContent;
+   const description = descriptionElement.textContent === '' ? '' : descriptionElement.textContent;
 
    return {
     "h": qty.toString(), // Quantity
@@ -1798,7 +1806,14 @@ async function crUpBill(fnNumber) {
    "k": document.getElementById('discountAmount').value || 0,
    "l": r_eferrerId
   };
-  if (fnNumber == 7) { payload0.b.a = billSelectedToUpdate.a; }
+  if (fnNumber == 7) {
+      const hasChanges = checkChangeInSoldItems();
+      if (!hasChanges) {
+       alert("Nothing updated, as no changes are made;");
+       return;
+      }
+      payload0.b.a = billSelectedToUpdate.a; 
+  }
   payload0.r = receivedPayments;
 
   payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'c' }, { "tb": 'b' }, { "tb": 'i' }, { "tb": 'r' }, { "tb": 'be', "col": 'eb', "cl": "eb" }, { "tb": 'ba' }, { "tb": 'p' }, { "tb": 's' }]);
@@ -1830,7 +1845,9 @@ async function crUpBill(fnNumber) {
    // Play success sound
    playSound('https://cdn.uppbeat.io/audio-files/550fafd5d5403a2f6e11b6feefd0899e/ca847a02644164ab90c3d80471e5ac23/57f3eeed9ce661826b31f4cf857e3afe/STREAMING-ui-double-digital-beep-gfx-sounds-1-1-00-00.mp3');
   } else {
-   alert(extractMessages(response));
+    let t1848mp = extractMessages(response);
+    if(t1848mp.length==0)t1848mp = response.ms;
+    alert(t1848mp);
   }
  } catch (error) {
   console.error('Error saving bill:', error);
@@ -2576,16 +2593,34 @@ function findExistingItemInSaleList(itemId, rate) {
  return null;
 }
 
-// Increment quantity of existing item
+// Increment quantity of existing item - SIMPLIFIED AND FIXED
 function incrementItemQuantity(itemCard) {
+ // Get all required elements
  const qtyInput = itemCard.querySelector('input[type="number"]');
+ const rateInput = itemCard.querySelectorAll('input[type="number"]')[1];
+ const priceElement = itemCard.querySelector('span[id^="itemPrice-"]');
+ 
+ if (!qtyInput || !rateInput || !priceElement) {
+  console.error('Could not find required elements in item card');
+  return;
+ }
+ 
+ // Get current values
  const currentQty = parseInt(qtyInput.value) || 1;
+ const currentRate = parseFloat(rateInput.value) || 0;
+ 
+ // Calculate new values
  const newQty = currentQty + 1;
-
+ const newPrice = newQty * currentRate;
+ 
+ // Update the UI
  qtyInput.value = newQty;
-
- // Trigger quantity update to recalculate price
- updateItemQuantity(getItemCardId(itemCard), newQty);
+ priceElement.textContent = newPrice.toFixed(2);
+ 
+ // Update bill summary
+ updateBillSummary();
+ 
+ console.log(`Quantity increased: ${currentQty} → ${newQty}, Price: ${newPrice.toFixed(2)}`);
 }
 
 // Get the unique ID of an item card
@@ -2647,8 +2682,8 @@ value="${quantity}"
 min="1" 
 step="1"
 style="width: 70px; display: inline-block;"
-onchange="updateItemQuantity(${uniqueItemId}, this.value)"
-onblur="updateItemQuantity(${uniqueItemId}, this.value)">
+onchange="updateItemQuantity(${uniqueItemId}, parseFloat(this.value))"
+onblur="updateItemQuantity(${uniqueItemId}, parseFloat(this.value))">
 </div>
 <div class="col-4">
 <strong>Rate:</strong> 
@@ -2669,7 +2704,7 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
 <!-- Row 3 - Description -->
 <div class="row g-0">
 <div class="col-12">
-<small class="text-muted">${description || 'No description'}</small>
+<small class="text-muted">${description || ''}</small>
 </div>
 </div>
 </div>
@@ -2842,7 +2877,7 @@ onerror="this.src='https://cdn-icons-png.freepik.com/512/13543/13543330.png'">
 <strong>${prefixText}${item.gn || 'Unnamed Item'}</strong>
 ${stockIndicator}
 <br>
-<small class="text-muted">${item.ba_f || 'No description'}</small>
+<small class="text-muted">${item.ba_f || ''}</small>
 </div>
 <div class="item-price">
 <br>
@@ -3002,8 +3037,8 @@ value="${qty}"
 min="1" 
 step="1"
 style="width: 70px; display: inline-block;"
-onchange="updateItemQuantity(${uniqueItemId}, this.value)"
-onblur="updateItemQuantity(${uniqueItemId}, this.value)">
+onchange="updateItemQuantity(${uniqueItemId}, parseFloat(this.value))"
+onblur="updateItemQuantity(${uniqueItemId}, parseFloat(this.value))">
 </div>
 <div class="col-4">
 <strong>Rate:</strong> 
@@ -3024,7 +3059,7 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
 <!-- Row 3 - Description -->
 <div class="row g-0">
 <div class="col-12">
-<small class="text-muted">${description || 'No description'}</small>
+<small class="text-muted">${description || ''}</small>
 </div>
 </div>
 </div>
@@ -3197,6 +3232,14 @@ function initializeReceivedAmountForm() {
 }
 
 function addReceivedAmount() {
+const hasChanges = checkChangeInSoldItems();
+if (billSelectedToUpdate && !hasChanges) {
+ let sCurrItems = stored_bill_items.filter(item => item.e == billSelectedToUpdate.a);
+ let cCashInfo = stored_bill_cash_info.filter(cash => cash.tb == 7 && cash.td == billSelectedToUpdate.a);
+ showAlreadyReceivedAmts(billSelectedToUpdate.a, sCurrItems, cCashInfo);
+ return;
+}
+
  const dateTime = document.getElementById('receivedDateTime').value;
  const amount = parseFloat(document.getElementById('receivedAmount').value) || 0;
  const paymentType = document.getElementById('paymentType').value;
@@ -3679,110 +3722,110 @@ function handl_op_rspons(response, reload = 0) {
 
 
       /*const clientIds = [...new Set(uniqueBillsArray.map(bill => bill.e).filter(id => id))];
-
+      
       for (const clientId of clientIds) {
-       // Get all bills for this client
-       const allBillsOfCurrentClient = stored_bill.filter(bill => bill.e == clientId);
-
-       // Get client info from clientReferrerArray
-       const clientInfo = clientReferrerArray.find(client => client.a == clientId);
-       const mobileNumber = clientInfo ? clientInfo.e : null;
-
-       if (mobileNumber && allBillsOfCurrentClient.length > 0) {
-        let HTMLmatter = "";
-        let hasDueBills = false;
-
-        // Sort bills by date (most recent first)
-        allBillsOfCurrentClient.sort((a, b) => new Date(b.f) - new Date(a.f));
-        let tot_yene = 0;
-
-        // Create HTML for each bill with due amount
-        for (const bill of allBillsOfCurrentClient) {
-         // Parse amounts
-         const rem = parseFloat(bill.rem) || 0;
-         const iTot = parseFloat(bill.i_tot) || 0;
-         const rTot = parseFloat(bill.r_tot) || 0;
-         const kAmount = parseFloat(bill.k) || 0;
-
-         // Only include bills with due amount
-         if (rem !== 0) {
-          hasDueBills = true;
-
-          tot_yene = tot_yene + rem;
-          // Extract date (first 10 characters)
-          const billDate = bill.f ? bill.f.substring(0, 10) : "";
-
-          // Create HTML card using Bootstrap
-          HTMLmatter += `
-<div class="card mb-3">
-<div class="card-body p-2">
-<div class="row align-items-center">
-<!-- Column 1: Bill Number -->
-<div class="col-3">
-<a href="https://my1.in/${appOwner.eo}/b/b.html?g=${bill.g}" 
-class="text-decoration-none" 
-style="font-weight: bold; font-size: 125%;">
-${bill.g || ''}
-</a>
-</div>
-
-<!-- Column 2: Date -->
-<div class="col-4 text-end">
-${billDate}
-</div>
-
-<!-- Column 6: Due Amount -->
-<div class="col-5 text-end">
-<span style="font-weight: bold; font-size: 125%;">
-₹${rem.toFixed(2)}
-</span>
-</div>
-</div>
-
-<div class="row align-items-center">
-<!-- Column 3: Total Amount -->
-<div class="col-4 text-end">
-₹${iTot.toFixed(2)}
-</div>
-
-<!-- Column 4: Discount -->
-<div class="col-4 text-end">
-₹${kAmount.toFixed(2)}
-</div>
-
-<!-- Column 5: Received Amount -->
-<div class="col-4 text-end">
-₹${rTot.toFixed(2)}
-</div>
-</div>
-</div>
-</div>`;
-         }
-        }
-
-        // If there are due bills, wrap them in a container and store in localStorage
-        if (hasDueBills && HTMLmatter !== "") {
-         // Add a header with client name
-         const clientName = clientInfo ? (clientInfo.i || clientInfo.h || "") : "";
-         const clientHeader = clientName ?
-          `<div class="alert alert-info p-2 mb-2">
-<i class="fas fa-user me-2"></i>
-<strong>${clientName}</strong>   tot-due: <span style="font-weight: bold; font-size: 125%;">${tot_yene}</span>
-</div>` : "";
-
-         const finalHTML = `
-<div class="container-fluid p-2">
-${clientHeader}
-${HTMLmatter}
-</div>`;
-
-         // Store in localStorage using mobile number as key
-         localStorage.setItem(mobileNumber, finalHTML);
-        } else if (mobileNumber) {
-         // If no due bills, remove any existing entry
-         localStorage.removeItem(mobileNumber);
-        }
-       }
+      // Get all bills for this client
+      const allBillsOfCurrentClient = stored_bill.filter(bill => bill.e == clientId);
+      
+      // Get client info from clientReferrerArray
+      const clientInfo = clientReferrerArray.find(client => client.a == clientId);
+      const mobileNumber = clientInfo ? clientInfo.e : null;
+      
+      if (mobileNumber && allBillsOfCurrentClient.length > 0) {
+      let HTMLmatter = "";
+      let hasDueBills = false;
+      
+      // Sort bills by date (most recent first)
+      allBillsOfCurrentClient.sort((a, b) => new Date(b.f) - new Date(a.f));
+      let tot_yene = 0;
+      
+      // Create HTML for each bill with due amount
+      for (const bill of allBillsOfCurrentClient) {
+      // Parse amounts
+      const rem = parseFloat(bill.rem) || 0;
+      const iTot = parseFloat(bill.i_tot) || 0;
+      const rTot = parseFloat(bill.r_tot) || 0;
+      const kAmount = parseFloat(bill.k) || 0;
+      
+      // Only include bills with due amount
+      if (rem !== 0) {
+      hasDueBills = true;
+      
+      tot_yene = tot_yene + rem;
+      // Extract date (first 10 characters)
+      const billDate = bill.f ? bill.f.substring(0, 10) : "";
+      
+      // Create HTML card using Bootstrap
+      HTMLmatter += `
+      <div class="card mb-3">
+      <div class="card-body p-2">
+      <div class="row align-items-center">
+      <!-- Column 1: Bill Number -->
+      <div class="col-3">
+      <a href="https://my1.in/${appOwner.eo}/b/b.html?g=${bill.g}" 
+      class="text-decoration-none" 
+      style="font-weight: bold; font-size: 125%;">
+      ${bill.g || ''}
+      </a>
+      </div>
+      
+      <!-- Column 2: Date -->
+      <div class="col-4 text-end">
+      ${billDate}
+      </div>
+      
+      <!-- Column 6: Due Amount -->
+      <div class="col-5 text-end">
+      <span style="font-weight: bold; font-size: 125%;">
+      ₹${rem.toFixed(2)}
+      </span>
+      </div>
+      </div>
+      
+      <div class="row align-items-center">
+      <!-- Column 3: Total Amount -->
+      <div class="col-4 text-end">
+      ₹${iTot.toFixed(2)}
+      </div>
+      
+      <!-- Column 4: Discount -->
+      <div class="col-4 text-end">
+      ₹${kAmount.toFixed(2)}
+      </div>
+      
+      <!-- Column 5: Received Amount -->
+      <div class="col-4 text-end">
+      ₹${rTot.toFixed(2)}
+      </div>
+      </div>
+      </div>
+      </div>`;
+      }
+      }
+      
+      // If there are due bills, wrap them in a container and store in localStorage
+      if (hasDueBills && HTMLmatter !== "") {
+      // Add a header with client name
+      const clientName = clientInfo ? (clientInfo.i || clientInfo.h || "") : "";
+      const clientHeader = clientName ?
+      `<div class="alert alert-info p-2 mb-2">
+      <i class="fas fa-user me-2"></i>
+      <strong>${clientName}</strong>   tot-due: <span style="font-weight: bold; font-size: 125%;">${tot_yene}</span>
+      </div>` : "";
+      
+      const finalHTML = `
+      <div class="container-fluid p-2">
+      ${clientHeader}
+      ${HTMLmatter}
+      </div>`;
+      
+      // Store in localStorage using mobile number as key
+      localStorage.setItem(mobileNumber, finalHTML);
+      } else if (mobileNumber) {
+      // If no due bills, remove any existing entry
+      localStorage.removeItem(mobileNumber);
+      }
+      }
       }*/
 
 
@@ -3936,7 +3979,7 @@ async function show_client_bills(mono) {
  if (clientReferrerArray.length === 0) {
   clientReferrerArray = await dbDexieManager.getAllRecords(dbnm, "c") || [];
  }
- 
+
  // Filter to get ALL clients with this mobile number
  const clients = clientReferrerArray.filter(client => client.e.toString() == mono);
 
@@ -3959,14 +4002,14 @@ async function show_client_bills(mono) {
  for (const client of clients) {
   // Get all bills for this client
   const clientBills = stored_bill.filter(bill => bill.e == client.a);
-  
+
   // Sort bills by date (most recent first)
   clientBills.sort((a, b) => new Date(b.f) - new Date(a.f));
-  
+
   let clientTotalDue = 0;
   let clientHasDueBills = false;
   let clientBillsHTML = "";
-  
+
   // Create HTML for each bill of this client
   for (const bill of clientBills) {
    // Parse amounts
@@ -4118,11 +4161,11 @@ ${allClientsBills.reduce((sum, cb) => sum + cb.billsCount, 0)} total bills
 <div class="mb-3">
 <div class="row row-cols-1 row-cols-md-2 g-2" style="background-color:aquamarine">
 ${allClientsBills.map(clientData => {
- const clientName = clientData.client.i + "<br>" + clientData.client.h || "";
- const statusClass = clientData.hasDueBills ? 'bg-danger' : 'bg-success';
- const statusText = clientData.hasDueBills ? 'Has Due' : 'All Paid';
- 
- return `
+  const clientName = clientData.client.i + "<br>" + clientData.client.h || "";
+  const statusClass = clientData.hasDueBills ? 'bg-danger' : 'bg-success';
+  const statusText = clientData.hasDueBills ? 'Has Due' : 'All Paid';
+
+  return `
 <div class="col">
 <div class="card h-100">
 <div class="card-body p-2">
@@ -4141,7 +4184,7 @@ ${allClientsBills.map(clientData => {
 </div>
 </div>
 </div>`;
-}).join('')}
+ }).join('')}
 </div>
 </div>
 
@@ -4159,18 +4202,18 @@ ${hasDueBillsOverall ?
 
  // Set modal content
  modalContent.innerHTML = modalHTML;
- 
-  modalContent.addEventListener('click', function(e) {
-   const billActionElement = e.target.closest('[data-bill-action]');
-   if (billActionElement) {
-     const action = billActionElement.getAttribute('data-bill-action');
-     const billId = billActionElement.getAttribute('data-bill-id');
-     
-     // Call your handler with modalInstance
-     handleBillAction(modalInstance, action, billId);
-   }
+
+ modalContent.addEventListener('click', function (e) {
+  const billActionElement = e.target.closest('[data-bill-action]');
+  if (billActionElement) {
+   const action = billActionElement.getAttribute('data-bill-action');
+   const billId = billActionElement.getAttribute('data-bill-id');
+
+   // Call your handler with modalInstance
+   handleBillAction(modalInstance, action, billId);
+  }
  });
- 
+
  // Show the modal
  modalInstance.show();
  // Return modal instance for further control
@@ -4183,4 +4226,159 @@ function sendPaymentReminder(mobile, clientName) {
  window.open(`https://wa.me/${cleanMobile}?text=${encodeURIComponent(message)}`, '_blank');
  // For SMS integration:
  // window.open(`sms:${mobile}?body=${encodeURIComponent(message)}`, '_blank');
+}
+function setDefaRmrk() {
+ const modal = create_modal_dynamically('defaultRemarkModal');
+ const modalContent = modal.contentElement;
+ const modalInstance = modal.modalInstance;
+
+ // Get existing default remark from localStorage
+ const existingRemark = localStorage.getItem('defaultBillRemark') || '';
+
+ // Set modal content
+ modalContent.innerHTML = `
+<div class="modal-header">
+<h5 class="modal-title">Set Default Bill Remark</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+<div class="mb-3">
+<label for="defaultRemarkInput" class="form-label">Default Remark:</label>
+<textarea class="form-control" id="defaultRemarkInput" rows="4" placeholder="Enter default remark to be auto-filled for all new bills...">${existingRemark}</textarea>
+</div>
+<div class="form-text">
+This remark will be automatically filled in the bill notes section for new bills.
+</div>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+<button type="button" class="btn btn-primary" onclick="saveDefaultRemark()">Save Default Remark</button>
+</div>
+`;
+
+ modalInstance.show();
+}
+
+function saveDefaultRemark() {
+ const remarkInput = document.getElementById('defaultRemarkInput');
+ const remark = remarkInput.value.trim();
+
+ // Save to localStorage
+ localStorage.setItem('defaultBillRemark', remark);
+
+ // Close the modal
+ const modal = bootstrap.Modal.getInstance(document.getElementById('defaultRemarkModal'));
+ if (modal) {
+  modal.hide();
+ }
+
+ // Show success message
+ showToast('Default remark saved successfully!');
+}
+function checkChangeInSoldItems() {
+ try {
+  // Get current bill ID
+  if (!billTableRowId || billTableRowId <= 0) {
+   console.log('No bill selected for update');
+   return false;
+  }
+
+  // Get the current bill items from stored data
+  const storedBillItems = stored_bill_items.filter(item => item.e == billTableRowId);
+
+  // Get current items from the form
+  const currentItems = getCurrentFormItems();
+
+  // If number of items changed
+  if (storedBillItems.length !== currentItems.length) {
+   console.log('Number of items changed:', storedBillItems.length, '→', currentItems.length);
+   return true;
+  }
+
+  // Create a map of stored items by item ID for easy comparison
+  const storedItemsMap = new Map();
+  storedBillItems.forEach(item => {
+   const key = `${item.f}_${item.g}`; // item ID + price
+   storedItemsMap.set(key, {
+    id: item.f,
+    quantity: parseFloat(item.h) || 0,
+    price: parseFloat(item.g) || 0,
+    description: item.i || '',
+    originalItem: item
+   });
+  });
+
+  // Check each current item against stored items
+  for (const currentItem of currentItems) {
+   const key = `${currentItem.itemId}_${currentItem.price}`;
+
+   if (!storedItemsMap.has(key)) {
+    // Item with this ID and price doesn't exist in stored items
+    console.log('New item found or price changed:', currentItem);
+    return true;
+   }
+
+   const storedItem = storedItemsMap.get(key);
+
+   // Compare quantity
+   if (Math.abs(storedItem.quantity - currentItem.quantity) > 0.01) {
+    console.log('Quantity changed:', storedItem.quantity, '→', currentItem.quantity);
+    return true;
+   }
+
+   // Compare description (optional, remove if not needed)
+   if (storedItem.description !== currentItem.description) {
+    console.log('Description changed:', storedItem.description, '→', currentItem.description);
+    return true;
+   }
+
+   // Remove from map to track unmatched items
+   storedItemsMap.delete(key);
+  }
+
+  // If there are items left in storedItemsMap, they were removed from the form
+  if (storedItemsMap.size > 0) {
+   console.log('Items removed from form:', Array.from(storedItemsMap.keys()));
+   return true;
+  }
+
+  console.log('No changes detected in sold items');
+  return false;
+
+ } catch (error) {
+  console.error('Error checking changes in sold items:', error);
+  // In case of error, assume there are changes to be safe
+  return true;
+ }
+}
+function getCurrentFormItems() {
+ const currentItems = [];
+ const addedItems = document.querySelectorAll('#addedItemsContainer .added-item-card');
+
+ addedItems.forEach(item => {
+  try {
+   const itemId = item.getAttribute('data-item-id') || '';
+   const qtyInput = item.querySelector('input[type="number"]');
+   const rateInput = item.querySelectorAll('input[type="number"]')[1];
+   const priceElement = item.querySelector('span[id^="itemPrice-"]');
+   const descriptionElement = item.querySelector('.text-muted');
+
+   const quantity = parseFloat(qtyInput.value) || 0;
+   const rate = parseFloat(rateInput.value) || 0;
+   const price = parseFloat(priceElement.textContent) || 0;
+   const description = descriptionElement?.textContent || '';
+
+   currentItems.push({
+    itemId: itemId,
+    quantity: quantity,
+    rate: rate,
+    price: price,
+    description: description
+   });
+  } catch (error) {
+   console.error('Error parsing item:', error);
+  }
+ });
+
+ return currentItems;
 }
