@@ -3974,7 +3974,30 @@ function verifyItemAddedToSaleList(itemId) {
 
  return false; // Item not found in sale list
 }
-
+function getBillRemarks(billI) {
+    if (!billI && billI !== 0) return '';
+    
+    try {
+        // Try to parse JSON
+        const parsed = JSON.parse(billI);
+        
+        // Check if it has rmrk property
+        if (parsed && typeof parsed === 'object' && 'rmrk' in parsed) {
+            return parsed.rmrk || '';
+        }
+        
+        // If it's an object without rmrk, stringify it
+        if (parsed && typeof parsed === 'object') {
+            return JSON.stringify(parsed);
+        }
+        
+        // If it's a string after parsing (unlikely but possible)
+        return String(parsed);
+    } catch (e) {
+        // Not valid JSON, return as string
+        return String(billI);
+    }
+}
 async function show_client_bills(mono) {
  if (clientReferrerArray.length === 0) {
   clientReferrerArray = await dbDexieManager.getAllRecords(dbnm, "c") || [];
@@ -4075,7 +4098,7 @@ ${bill.i ? `
 <div class="row mt-2">
 <div class="col-12">
 <small class="text-muted">Remarks:</small>
-<div class="small">${JSON.parse(bill.i).rmrk || ''}</div>
+<div class="small">${getBillRemarks(bill.i)}</div>
 </div>
 </div>` : ''}
 </div>
