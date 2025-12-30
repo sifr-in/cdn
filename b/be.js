@@ -15,277 +15,625 @@ const COPY_LEFT_TO_RIGHT = 'left_to_right';
 const COPY_RIGHT_TO_LEFT = 'right_to_left';
 let currentCopyOperation = null;
 
+// Add these validation functions
+function validateAxisInput(inputId) {
+ const input = document.getElementById(inputId);
+ if (!input) return;
+
+ input.addEventListener('input', function () {
+  let value = parseFloat(this.value);
+
+  // If value is NaN, clear it
+  if (isNaN(value)) {
+   this.value = '';
+   return;
+  }
+
+  // Ensure value is between 0 and 180
+  if (value < 0) {
+   this.value = '0';
+  } else if (value > 180) {
+   this.value = '180';
+  } else {
+   // Keep only integers for axis
+   this.value = Math.round(value);
+  }
+ });
+
+ input.addEventListener('blur', function () {
+  let value = parseFloat(this.value);
+
+  // If value is NaN, clear it
+  if (isNaN(value)) {
+   this.value = '';
+   return;
+  }
+
+  // Ensure value is between 0 and 180
+  if (value < 0) {
+   this.value = '0';
+  } else if (value > 180) {
+   this.value = '180';
+  } else {
+   // Keep only integers for axis
+   this.value = Math.round(value);
+  }
+ });
+
+ // Prevent non-numeric input
+ input.addEventListener('keydown', function (e) {
+  // Allow: backspace, delete, tab, escape, enter, decimal point, numbers
+  if ([46, 8, 9, 27, 13, 110, 190].includes(e.keyCode) ||
+   // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+   (e.keyCode === 65 && (e.ctrlKey || e.metaKey)) ||
+   (e.keyCode === 67 && (e.ctrlKey || e.metaKey)) ||
+   (e.keyCode === 86 && (e.ctrlKey || e.metaKey)) ||
+   (e.keyCode === 88 && (e.ctrlKey || e.metaKey)) ||
+   // Allow: home, end, left, right
+   (e.keyCode >= 35 && e.keyCode <= 39) ||
+   // Allow: numbers on keypad
+   (e.keyCode >= 96 && e.keyCode <= 105)) {
+   return;
+  }
+
+  // Prevent if not a number
+  if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) &&
+   (e.keyCode < 96 || e.keyCode > 105)) {
+   e.preventDefault();
+  }
+ });
+}
+function validateVNInput(inputId) {
+ const input = document.getElementById(inputId);
+ if (!input) return;
+
+ input.addEventListener('input', function () {
+  let value = parseFloat(this.value);
+
+  // If value is NaN, clear it
+  if (isNaN(value)) {
+   this.value = '';
+   return;
+  }
+
+  // Ensure value is between 0 and 20
+  if (value < 0) {
+   this.value = '0';
+  } else if (value > 20) {
+   this.value = '20';
+  } else {
+   // NO decimal values for V/N - only integers
+   this.value = Math.round(value);
+  }
+ });
+
+ input.addEventListener('blur', function () {
+  let value = parseFloat(this.value);
+
+  // If value is NaN, clear it
+  if (isNaN(value)) {
+   this.value = '';
+   return;
+  }
+
+  // Ensure value is between 0 and 20
+  if (value < 0) {
+   this.value = '0';
+  } else if (value > 20) {
+   this.value = '20';
+  } else {
+   // NO decimal values for V/N - only integers
+   this.value = Math.round(value);
+  }
+ });
+
+ // Prevent non-numeric input including decimal point
+ input.addEventListener('keydown', function (e) {
+  // Allow: backspace, delete, tab, escape, enter, numbers
+  // REMOVED: 110 (decimal point on keypad), 190 (decimal point)
+  if ([46, 8, 9, 27, 13].includes(e.keyCode) ||
+   // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+   (e.keyCode === 65 && (e.ctrlKey || e.metaKey)) ||
+   (e.keyCode === 67 && (e.ctrlKey || e.metaKey)) ||
+   (e.keyCode === 86 && (e.ctrlKey || e.metaKey)) ||
+   (e.keyCode === 88 && (e.ctrlKey || e.metaKey)) ||
+   // Allow: home, end, left, right
+   (e.keyCode >= 35 && e.keyCode <= 39) ||
+   // Allow: numbers on keypad
+   (e.keyCode >= 96 && e.keyCode <= 105)) {
+   return;
+  }
+
+  // Prevent if not a number
+  if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) &&
+   (e.keyCode < 96 || e.keyCode > 105)) {
+   e.preventDefault();
+  }
+ });
+}
+
+function validatePDInput(inputId) {
+ const input = document.getElementById(inputId);
+ if (!input) return;
+
+ input.addEventListener('input', function () {
+  let value = parseFloat(this.value);
+
+  // If value is NaN, clear it
+  if (isNaN(value)) {
+   this.value = '';
+   return;
+  }
+
+  // Ensure value is between 0 and 90
+  if (value < 0) {
+   this.value = '0';
+  } else if (value > 90) {
+   this.value = '90';
+  } else {
+   // NO decimal values for PD - only integers
+   this.value = Math.round(value);
+  }
+ });
+
+ input.addEventListener('blur', function () {
+  let value = parseFloat(this.value);
+
+  // If value is NaN, clear it
+  if (isNaN(value)) {
+   this.value = '';
+   return;
+  }
+
+  // Ensure value is between 0 and 90
+  if (value < 0) {
+   this.value = '0';
+  } else if (value > 90) {
+   this.value = '90';
+  } else {
+   // NO decimal values for PD - only integers
+   this.value = Math.round(value);
+  }
+ });
+
+ // Prevent non-numeric input including decimal point
+ input.addEventListener('keydown', function (e) {
+  // Allow: backspace, delete, tab, escape, enter, numbers
+  // REMOVED: 110 (decimal point on keypad), 190 (decimal point)
+  if ([46, 8, 9, 27, 13].includes(e.keyCode) ||
+   // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+   (e.keyCode === 65 && (e.ctrlKey || e.metaKey)) ||
+   (e.keyCode === 67 && (e.ctrlKey || e.metaKey)) ||
+   (e.keyCode === 86 && (e.ctrlKey || e.metaKey)) ||
+   (e.keyCode === 88 && (e.ctrlKey || e.metaKey)) ||
+   // Allow: home, end, left, right
+   (e.keyCode >= 35 && e.keyCode <= 39) ||
+   // Allow: numbers on keypad
+   (e.keyCode >= 96 && e.keyCode <= 105)) {
+   return;
+  }
+
+  // Prevent if not a number
+  if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) &&
+   (e.keyCode < 96 || e.keyCode > 105)) {
+   e.preventDefault();
+  }
+ });
+}
+
+// Add this function to setup all validations
+function setupAllValidations() {
+ // Axis validations
+ validateAxisInput('rDvAxis');
+ validateAxisInput('rNvAxis');
+ validateAxisInput('lDvAxis');
+ validateAxisInput('lNvAxis');
+
+ // V/N validations
+ validateVNInput('rDvV/n');
+ validateVNInput('rNvV/n');
+ validateVNInput('lDvV/n');
+ validateVNInput('lNvV/n');
+
+ // PD validations
+ validatePDInput('rPd');
+ validatePDInput('lPd');
+}
+
 async function set_be_innerHTML(...params) {
  const c_ontainer_blank_main = document.getElementById(params[0]);
  c_ontainer_blank_main.innerHTML = `
 <div class="container-fluid" style="--bs-gutter-x: 0rem;">
- <div class="row">
-  <div id="table-div-right" class="col-md-6 mb-3">
-   <div class="card">
-    <div class="card-body">
-     <table id="tbl_left_eye_measurements" class="table table-bordered table-sm mb-0">
-      <thead class="table-light">
-       <tr>
-        <th class="align-middle">
-         Right
-         <button id="copyRightToLeft" class="btn btn-sm btn-outline-secondary ms-2">Copy to L</button>
-        </th>
-        <th>SPH</th>
-        <th>CYL</th>
-        <th>AXIS</th>
-        <th>V/N</th>
-       </tr>
-      </thead>
-      <tbody>
-       <tr>
-        <td class="fw-bold">DV</td>
-        <td>
-         <input id="rDvSph" class="form-control form-control-sm to_add" autocomplete="off" type="text" readonly
-          tabindex="11" />
-        </td>
-        <td>
-         <input id="rDvCyl" class="form-control form-control-sm" autocomplete="off" type="text" readonly
-          tabindex="12" />
-        </td>
-        <td>
-         <input id="rDvAxis" class="form-control form-control-sm" autocomplete="off" type="text" tabindex="13" />
-        </td>
-        <td>
-         <div class="input-group input-group-sm">
-          <span class="input-group-text">6/</span>
-          <input id="rDvV/n" class="form-control" autocomplete="off" type="text" tabindex="14" />
-         </div>
-        </td>
-       </tr>
-       <tr>
-        <td class="fw-bold">NV</td>
-        <td>
-         <input id="rNvSph" class="form-control form-control-sm to_add" autocomplete="off" type="text" readonly
-          tabindex="15" />
-        </td>
-        <td>
-         <input id="rNvCyl" class="form-control form-control-sm" autocomplete="off" type="text" readonly
-          tabindex="16" />
-        </td>
-        <td>
-         <input id="rNvAxis" class="form-control form-control-sm" autocomplete="off" type="text" tabindex="17" />
-        </td>
-        <td>
-         <div class="input-group input-group-sm">
-          <span class="input-group-text">N/</span>
-          <input id="rNvV/n" class="form-control" autocomplete="off" type="text" tabindex="18" />
-         </div>
-        </td>
-       </tr>
-      </tbody>
-      <tfoot>
-       <tr>
-        <td class="text-center fw-bold">ADD</td>
-        <td>
-         <input id="rAdd" class="form-control form-control-sm" autocomplete="off" type="text" readonly tabindex="19" />
-        </td>
-        <td></td>
-        <td></td>
-        <td></td>
-       </tr>
-       <tr>
-        <td class="text-center fw-bold">PD</td>
-        <td>
-         <input id="rPd" class="form-control form-control-sm" autocomplete="off" type="text" placeholder="PD"
-          tabindex="20" />
-        </td>
-        <td></td>
-        <td></td>
-        <td></td>
-       </tr>
-       <tr style="display: none">
-        <td></td>
-        <td class="text-center fw-bold">Lens-Type</td>
-        <td colspan="3">
-         <select id="rSelect" class="form-select form-select-sm lens-type"></select>
-        </td>
-       </tr>
-      </tfoot>
-     </table>
-    </div>
-   </div>
-  </div>
-
-  <div id="table-div-left" class="col-md-6 mb-3">
-   <div class="card">
-    <div class="card-body">
-     <table id="tbl_right_eye_measurements" class="table table-bordered table-sm mb-0">
-      <thead class="table-light">
-       <tr>
-        <th class="align-middle">
-         Left
-         <button id="copyLeftToRight" class="btn btn-sm btn-outline-secondary ms-2">Copy to R</button>
-        </th>
-        <th>SPH</th>
-        <th>CYL</th>
-        <th>AXIS</th>
-        <th>V/N</th>
-       </tr>
-      </thead>
-      <tbody>
-       <tr>
-        <td class="fw-bold">DV</td>
-        <td>
-         <input id="lDvSph" class="form-control form-control-sm to_add" autocomplete="off" type="text" readonly
-          tabindex="1" />
-        </td>
-        <td>
-         <input id="lDvCyl" class="form-control form-control-sm" autocomplete="off" type="text" readonly tabindex="2" />
-        </td>
-        <td>
-         <input id="lDvAxis" class="form-control form-control-sm" autocomplete="off" type="text" tabindex="3" />
-        </td>
-        <td>
-         <div class="input-group input-group-sm">
-          <span class="input-group-text">6/</span>
-          <input id="lDvV/n" class="form-control" autocomplete="off" type="text" tabindex="4" />
-         </div>
-        </td>
-       </tr>
-       <tr>
-        <td class="fw-bold">NV</td>
-        <td>
-         <input id="lNvSph" class="form-control form-control-sm to_add" autocomplete="off" type="text" readonly
-          tabindex="5" />
-        </td>
-        <td>
-         <input id="lNvCyl" class="form-control form-control-sm" autocomplete="off" type="text" readonly tabindex="6" />
-        </td>
-        <td>
-         <input id="lNvAxis" class="form-control form-control-sm" autocomplete="off" type="text" tabindex="7" />
-        </td>
-        <td>
-         <div class="input-group input-group-sm">
-          <span class="input-group-text">N/</span>
-          <input id="lNvV/n" class="form-control" autocomplete="off" type="text" tabindex="8" />
-         </div>
-        </td>
-       </tr>
-      </tbody>
-      <tfoot>
-       <tr>
-        <td class="text-center fw-bold">ADD</td>
-        <td>
-         <input id="lAdd" class="form-control form-control-sm" autocomplete="off" type="text" readonly tabindex="9" />
-        </td>
-        <td></td>
-        <td></td>
-        <td></td>
-       </tr>
-       <tr>
-        <td class="text-center fw-bold">PD</td>
-        <td>
-         <input id="lPd" class="form-control form-control-sm" autocomplete="off" type="text" placeholder="PD"
-          tabindex="10" />
-        </td>
-        <td></td>
-        <td></td>
-        <td></td>
-       </tr>
-       <tr style="display: none">
-        <td></td>
-        <td class="text-center fw-bold">Lens-Type</td>
-        <td colspan="3">
-         <select id="lSelect" class="form-select form-select-sm lens-type"></select>
-        </td>
-       </tr>
-      </tfoot>
-     </table>
-    </div>
-   </div>
-  </div>
- </div>
+<div class="row">
+<div id="table-div-right" class="col-md-6 mb-3">
+<div class="card">
+<div class="card-body" style="padding: 2px;">
+<button id="copyRightToLeft" class="btn btn-sm btn-outline-secondary ms-2 mb-2">Copy readings to L eye</button>
+<table id="tbl_left_eye_measurements" class="table table-bordered table-sm mb-0 eye-measurement-table">
+<colgroup>
+<col style="width: 20%; min-width: 45px;"> <!-- Column 0: Eye label -->
+<col style="width: 19%; min-width: 55px;""> <!-- Column 1: SPH -->
+<col style="width: 19%; min-width: 55px;""> <!-- Column 2: CYL -->
+<col style="width: 19%; min-width: 55px;""> <!-- Column 3: AXIS -->
+<col style="width: 23%; min-width: 60px;"> <!-- Column 4: V/N -->
+</colgroup>
+<thead class="table-light">
+<tr>
+<th class="align-middle text-center fw-bold eye-label">
+Right
+</th>
+<th class="text-center">SPH</th>
+<th class="text-center cyl-column">CYL</th>
+<th class="text-center axis-column">AXIS</th>
+<th class="text-center vn-column">V/N</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="fw-bold text-center eye-label">DV</td>
+<td>
+<input id="rDvSph" class="form-control form-control-sm to_add" autocomplete="off" type="text" readonly
+tabindex="11" />
+</td>
+<td class="cyl-column">
+<input id="rDvCyl" class="form-control form-control-sm" autocomplete="off" type="text" readonly
+tabindex="12" />
+</td>
+<td class="axis-column">
+<input id="rDvAxis" class="form-control form-control-sm axis-input" autocomplete="off" type="number" tabindex="13" min="0" max="180" step="1"/>
+</td>
+<td class="vn-column">
+<div class="input-group input-group-sm vn-input-group">
+<span class="input-group-text vn-prefix">6/</span>
+<input id="rDvV/n" class="form-control vn-input" autocomplete="off" type="number" tabindex="14" min="0" max="20" step="0.1"/>
+</div>
+</td>
+</tr>
+<tr>
+<td class="fw-bold text-center eye-label">NV</td>
+<td>
+<input id="rNvSph" class="form-control form-control-sm to_add" autocomplete="off" type="text" readonly
+tabindex="15" />
+</td>
+<td class="cyl-column">
+<input id="rNvCyl" class="form-control form-control-sm" autocomplete="off" type="text" readonly
+tabindex="16" />
+</td>
+<td class="axis-column">
+<input id="rNvAxis" class="form-control form-control-sm axis-input" autocomplete="off" type="number" tabindex="17" min="0" max="180" step="1"/>
+</td>
+<td class="vn-column">
+<div class="input-group input-group-sm vn-input-group">
+<span class="input-group-text vn-prefix">N/</span>
+<input id="rNvV/n" class="form-control vn-input" autocomplete="off" type="number" tabindex="18" min="0" max="20" step="0.1"/>
+</div>
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td class="text-center fw-bold eye-label">ADD</td>
+<td>
+<input id="rAdd" class="form-control form-control-sm" autocomplete="off" type="text" readonly tabindex="19" />
+</td>
+<td class="cyl-column"></td>
+<td class="axis-column"></td>
+<td class="vn-column"></td>
+</tr>
+<tr>
+<td class="text-center fw-bold eye-label">PD</td>
+<td>
+<input id="rPd" class="form-control form-control-sm pd-input" autocomplete="off" type="number" tabindex="20" min="0" max="90" step="0.5"/>
+</td>
+<td class="cyl-column"></td>
+<td class="axis-column"></td>
+<td class="vn-column"></td>
+</tr>
+<tr style="display: none">
+<td></td>
+<td class="text-center fw-bold">Lens-Type</td>
+<td colspan="3">
+<select id="rSelect" class="form-select form-select-sm lens-type"></select>
+</td>
+</tr>
+</tfoot>
+</table>
+</div>
+</div>
 </div>
 
+<div id="table-div-left" class="col-md-6 mb-3">
+<div class="card">
+<div class="card-body" style="padding: 2px;">
+<button id="copyLeftToRight" class="btn btn-sm btn-outline-secondary ms-2 mb-2">Copy readings to R eye</button>
+<table id="tbl_right_eye_measurements" class="table table-bordered table-sm mb-0 eye-measurement-table">
+<colgroup>
+<col style="width: 20%; min-width: 45px;"> <!-- Column 0: Eye label -->
+<col style="width: 19%; min-width: 55px;""> <!-- Column 1: SPH -->
+<col style="width: 19%; min-width: 55px;""> <!-- Column 2: CYL -->
+<col style="width: 19%; min-width: 55px;""> <!-- Column 3: AXIS -->
+<col style="width: 23%; min-width: 60px;"> <!-- Column 4: V/N -->
+</colgroup>
+<thead class="table-light">
+<tr>
+<th class="align-middle text-center fw-bold eye-label">
+Left
+</th>
+<th class="text-center">SPH</th>
+<th class="text-center cyl-column">CYL</th>
+<th class="text-center axis-column">AXIS</th>
+<th class="text-center vn-column">V/N</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="fw-bold text-center eye-label">DV</td>
+<td>
+<input id="lDvSph" class="form-control form-control-sm to_add" autocomplete="off" type="text" readonly
+tabindex="1" />
+</td>
+<td class="cyl-column">
+<input id="lDvCyl" class="form-control form-control-sm" autocomplete="off" type="text" readonly tabindex="2" />
+</td>
+<td class="axis-column">
+<input id="lDvAxis" class="form-control form-control-sm axis-input" autocomplete="off" type="number" tabindex="3" min="0" max="180" step="1"/>
+</td>
+<td class="vn-column">
+<div class="input-group input-group-sm vn-input-group">
+<span class="input-group-text vn-prefix">6/</span>
+<input id="lDvV/n" class="form-control vn-input" autocomplete="off" type="number" tabindex="4" min="0" max="20" step="0.1"/>
+</div>
+</td>
+</tr>
+<tr>
+<td class="fw-bold text-center eye-label">NV</td>
+<td>
+<input id="lNvSph" class="form-control form-control-sm to_add" autocomplete="off" type="text" readonly
+tabindex="5" />
+</td>
+<td class="cyl-column">
+<input id="lNvCyl" class="form-control form-control-sm" autocomplete="off" type="text" readonly tabindex="6" />
+</td>
+<td class="axis-column">
+<input id="lNvAxis" class="form-control form-control-sm axis-input" autocomplete="off" type="number" tabindex="7" min="0" max="180" step="1"/>
+</td>
+<td class="vn-column">
+<div class="input-group input-group-sm vn-input-group">
+<span class="input-group-text vn-prefix">N/</span>
+<input id="lNvV/n" class="form-control vn-input" autocomplete="off" type="number" tabindex="8" min="0" max="20" step="0.1"/>
+</div>
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td class="text-center fw-bold eye-label">ADD</td>
+<td>
+<input id="lAdd" class="form-control form-control-sm" autocomplete="off" type="text" readonly tabindex="9" />
+</td>
+<td class="cyl-column"></td>
+<td class="axis-column"></td>
+<td class="vn-column"></td>
+</tr>
+<tr>
+<td class="text-center fw-bold eye-label">PD</td>
+<td>
+<input id="lPd" class="form-control form-control-sm pd-input" autocomplete="off" type="number" tabindex="10" min="0" max="90" step="0.5"/>
+</td>
+<td class="cyl-column"></td>
+<td class="axis-column"></td>
+<td class="vn-column"></td>
+</tr>
+<tr style="display: none">
+<td></td>
+<td class="text-center fw-bold">Lens-Type</td>
+<td colspan="3">
+<select id="lSelect" class="form-select form-select-sm lens-type"></select>
+</td>
+</tr>
+</tfoot>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<style>
+.eye-measurement-table {
+table-layout: fixed;
+width: 100%;
+border-collapse: separate;
+border-spacing: 0;
+}
+
+.eye-measurement-table th,
+.eye-measurement-table td {
+padding: 0.25rem !important;
+vertical-align: middle !important;
+}
+
+.eye-measurement-table .eye-label {
+font-size: 0.85rem;
+padding: 0.15rem !important;
+word-break: break-word;
+white-space: normal;
+background-color: #f8f9fa !important; /* Light gray for label column */
+}
+
+.eye-measurement-table .form-control,
+.eye-measurement-table .form-control-sm {
+font-size: 0.8rem !important;
+padding: 0.2rem 0.3rem !important;
+height: calc(1.5em + 0.4rem + 2px) !important;
+width: 100% !important;
+min-width: 0 !important;
+}
+
+.eye-measurement-table .input-group-sm {
+min-width: 0 !important;
+}
+
+.eye-measurement-table .vn-input-group {
+flex-wrap: nowrap !important;
+}
+
+.eye-measurement-table .vn-prefix {
+font-size: 0.75rem !important;
+padding: 0.2rem 0.1rem !important;
+min-width: 20px !important;
+width: auto !important;
+flex: 0 0 auto !important;
+}
+
+.eye-measurement-table input[type="number"] {
+min-width: 0 !important;
+}
+
+/* Column 2: CYL - Light Blue */
+.eye-measurement-table .cyl-column {
+background-color: #e7f5ff !important; /* Very light blue */
+}
+
+.eye-measurement-table th.cyl-column {
+background-color: #95d2ff !important; /* Slightly darker blue for header */
+}
+
+/* Column 3: AXIS - Light Green */
+.eye-measurement-table .axis-column {
+background-color: #e6f7ef !important; /* Very light green */
+}
+
+.eye-measurement-table th.axis-column {
+background-color: #8fffcf !important; /* Slightly darker green for header */
+}
+
+/* Column 4: V/N - Light Yellow */
+.eye-measurement-table .vn-column {
+background-color: #fff9e6 !important; /* Very light yellow */
+}
+
+.eye-measurement-table th.vn-column {
+background-color: #ffe89e !important; /* Slightly darker yellow for header */
+}
+
+/* Column 1: SPH - No special color (white/default) */
+.eye-measurement-table th:not(.eye-label):not(.cyl-column):not(.axis-column):not(.vn-column),
+.eye-measurement-table td:not(.eye-label):not(.cyl-column):not(.axis-column):not(.vn-column) {
+background-color: #ffffff !important;
+}
+
+/* Validation styling */
+.eye-measurement-table .axis-input:invalid,
+.eye-measurement-table .vn-input:invalid,
+.eye-measurement-table .pd-input:invalid {
+border-color: #dc3545;
+box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+}
+
+@media (max-width: 768px) {
+.eye-measurement-table .eye-label {
+font-size: 0.75rem;
+}
+
+.eye-measurement-table .form-control,
+.eye-measurement-table .form-control-sm {
+font-size: 0.75rem !important;
+padding: 0.15rem 0.2rem !important;
+}
+
+.eye-measurement-table .vn-prefix {
+font-size: 0.7rem !important;
+padding: 0.15rem 0.05rem !important;
+min-width: 18px !important;
+}
+}
+</style>
+
 <div id="copyConfirmModal" class="modal fade" tabindex="-1">
- <div class="modal-dialog modal-sm">
-  <div class="modal-content">
-   <div class="modal-header">
-    <h5 class="modal-title">Confirm Copy</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-   </div>
-   <div class="modal-body">
-    <p id="copyModalMessage">The target eye already has measurements. Do you want to overwrite?</p>
-   </div>
-   <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-    <button type="button" class="btn btn-primary" id="confirmCopyYes">Yes, Overwrite</button>
-   </div>
-  </div>
- </div>
+<div class="modal-dialog modal-sm">
+<div class="modal-content">
+<div class="modal-header">
+<h5 class="modal-title">Confirm Copy</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<div class="modal-body">
+<p id="copyModalMessage">The target eye already has measurements. Do you want to overwrite?</p>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+<button type="button" class="btn btn-primary" id="confirmCopyYes">Yes, Overwrite</button>
+</div>
+</div>
+</div>
 </div>
 
 <div id="modal_dvnv" class="modal fade" tabindex="-1">
- <div class="modal-dialog modal-lg">
-  <div class="modal-content">
-   <div class="modal-header">
-    <h5 class="modal-title">Enter Measurement</h5>
-    <button type="button" class="btn-close" id="close_dvnv"></button>
-   </div>
-   <div class="modal-body">
-    <div id="manual_div" class="input-group mb-3">
-     <input id="manual_input" class="form-control" type="number" placeholder="Enter Manually" step="0.25" />
-     <button id="manual_btn" class="btn btn-primary">Enter</button>
-    </div>
-
-    <div class="row text-center mb-3">
-     <div class="col-3">
-      <div class="form-check">
-       <input id="positive" class="form-check-input t_radio" type="radio" name="t_radio" />
-       <label class="form-check-label" for="positive">Positive</label>
-      </div>
-     </div>
-     <div class="col-3">
-      <div class="form-check">
-       <input id="negative" class="form-check-input t_radio" type="radio" name="t_radio" />
-       <label class="form-check-label" for="negative">Negative</label>
-      </div>
-     </div>
-     <div class="col-3">
-      <div class="form-check">
-       <input id="both" class="form-check-input t_radio" type="radio" name="t_radio" checked />
-       <label class="form-check-label" for="both">Both</label>
-      </div>
-     </div>
-     <div class="col-3">
-      <div class="form-check">
-       <input id="zero" class="form-check-input t_radio" type="radio" name="t_radio" />
-       <label class="form-check-label" for="zero">Zero</label>
-      </div>
-     </div>
-    </div>
-
-    <div id="modal_dvnv_table_div" class="table-responsive">
-     <table id="dvnv_table_negative" class="modal_dvnv_table table table-bordered table-sm mb-0">
-      ${generateNegativeTable()}
-     </table>
-
-     <!-- Fix 1: Zero as a separator bar between negative and positive -->
-     <div class="zero-separator bg-light border border-secondary text-center py-2 my-2">
-      <span class="fw-bold fs-5">0.00</span>
-     </div>
-
-     <table id="dvnv_table_positive" class="modal_dvnv_table table table-bordered table-sm mt-0">
-      ${generatePositiveTable()}
-     </table>
-
-     <!-- Hidden zero table for zero radio selection -->
-     <table id="dvnv_table_zero" class="modal_dvnv_table table table-bordered table-sm d-none">
-      <tr>
-       <td class="table-success text-center fw-bold" colspan="4" style="cursor: pointer;">0.00</td>
-      </tr>
-     </table>
-    </div>
-   </div>
-  </div>
- </div>
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+<div class="modal-header">
+<h5 class="modal-title">Enter Measurement</h5>
+<button type="button" class="btn-close" id="close_dvnv"></button>
 </div>
- `;
+<div class="modal-body">
+<div id="manual_div" class="input-group mb-3">
+<input id="manual_input" class="form-control" type="number" placeholder="Enter Manually" step="0.25" />
+<button id="manual_btn" class="btn btn-primary">Enter</button>
+</div>
+
+<div class="row text-center mb-3">
+<div class="col-3">
+<div class="form-check">
+<input id="positive" class="form-check-input t_radio" type="radio" name="t_radio" />
+<label class="form-check-label" for="positive">Positive</label>
+</div>
+</div>
+<div class="col-3">
+<div class="form-check">
+<input id="negative" class="form-check-input t_radio" type="radio" name="t_radio" />
+<label class="form-check-label" for="negative">Negative</label>
+</div>
+</div>
+<div class="col-3">
+<div class="form-check">
+<input id="both" class="form-check-input t_radio" type="radio" name="t_radio" checked />
+<label class="form-check-label" for="both">Both</label>
+</div>
+</div>
+<div class="col-3">
+<div class="form-check">
+<input id="zero" class="form-check-input t_radio" type="radio" name="t_radio" />
+<label class="form-check-label" for="zero">Zero</label>
+</div>
+</div>
+</div>
+
+<div id="modal_dvnv_table_div" class="table-responsive">
+<table id="dvnv_table_negative" class="modal_dvnv_table table table-bordered table-sm mb-0">
+${generateNegativeTable()}
+</table>
+
+<!-- Fix 1: Zero as a separator bar between negative and positive -->
+<div class="zero-separator bg-light border border-secondary text-center py-2 my-2">
+<span class="fw-bold fs-5">0.00</span>
+</div>
+
+<table id="dvnv_table_positive" class="modal_dvnv_table table table-bordered table-sm mt-0">
+${generatePositiveTable()}
+</table>
+
+<!-- Hidden zero table for zero radio selection -->
+<table id="dvnv_table_zero" class="modal_dvnv_table table table-bordered table-sm d-none">
+<tr>
+<td class="table-success text-center fw-bold" colspan="4" style="cursor: pointer;">0.00</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+`;
 
  // Initialize modal and other global elements
  el_modal_dvnv = new bootstrap.Modal(document.getElementById('modal_dvnv'));
@@ -301,6 +649,7 @@ async function set_be_innerHTML(...params) {
  setupEventListeners();
  setupKeyboardNavigation();
  setupCopyFunctionality();
+ setupAllValidations(); // Add this line to set up all validations
 }
 
 // Helper function to generate negative table rows
@@ -505,10 +854,12 @@ function setupEventListeners() {
 
  document.getElementById("lDvAxis").addEventListener("blur", function () {
   chkLeftNearToCopy();
+  validateAxisInputOnBlur(this);
  });
 
  document.getElementById("lNvAxis").addEventListener("blur", function () {
   chkLeftNearToCopy();
+  validateAxisInputOnBlur(this);
  });
 
  document.getElementById("lAdd").addEventListener("blur", function () {
@@ -591,10 +942,12 @@ function setupEventListeners() {
 
  document.getElementById("rDvAxis").addEventListener("blur", function () {
   chkRightNearToCopy();
+  validateAxisInputOnBlur(this);
  });
 
  document.getElementById("rNvAxis").addEventListener("blur", function () {
   chkRightNearToCopy();
+  validateAxisInputOnBlur(this);
  });
 
  document.getElementById("rAdd").addEventListener("blur", function () {
@@ -659,6 +1012,32 @@ function setupEventListeners() {
   decide = 10;
   el_modal_dvnv.show();
   eyeMeasurementInfocus = 1;
+ });
+
+ // Add validation for V/N fields
+ document.getElementById("lDvV/n").addEventListener("blur", function () {
+  validateVNInputOnBlur(this);
+ });
+
+ document.getElementById("lNvV/n").addEventListener("blur", function () {
+  validateVNInputOnBlur(this);
+ });
+
+ document.getElementById("rDvV/n").addEventListener("blur", function () {
+  validateVNInputOnBlur(this);
+ });
+
+ document.getElementById("rNvV/n").addEventListener("blur", function () {
+  validateVNInputOnBlur(this);
+ });
+
+ // Add validation for PD fields
+ document.getElementById("lPd").addEventListener("blur", function () {
+  validatePDInputOnBlur(this);
+ });
+
+ document.getElementById("rPd").addEventListener("blur", function () {
+  validatePDInputOnBlur(this);
  });
 
  Array.from(document.getElementsByClassName("to_add")).forEach(
@@ -982,6 +1361,65 @@ function setupEventListeners() {
  }
 }
 
+// Add these validation helper functions
+function validateAxisInputOnBlur(inputElement) {
+ let value = parseFloat(inputElement.value);
+
+ // If value is NaN, clear it
+ if (isNaN(value)) {
+  inputElement.value = '';
+  return;
+ }
+
+ // Ensure value is between 0 and 180
+ if (value < 0) {
+  inputElement.value = '0';
+ } else if (value > 180) {
+  inputElement.value = '180';
+ } else {
+  // Keep only integers for axis
+  inputElement.value = Math.round(value);
+ }
+}
+function validateVNInputOnBlur(inputElement) {
+ let value = parseFloat(inputElement.value);
+
+ // If value is NaN, clear it
+ if (isNaN(value)) {
+  inputElement.value = '';
+  return;
+ }
+
+ // Ensure value is between 0 and 20
+ if (value < 0) {
+  inputElement.value = '0';
+ } else if (value > 20) {
+  inputElement.value = '20';
+ } else {
+  // NO decimal values for V/N - only integers
+  inputElement.value = Math.round(value);
+ }
+}
+
+function validatePDInputOnBlur(inputElement) {
+ let value = parseFloat(inputElement.value);
+
+ // If value is NaN, clear it
+ if (isNaN(value)) {
+  inputElement.value = '';
+  return;
+ }
+
+ // Ensure value is between 0 and 90
+ if (value < 0) {
+  inputElement.value = '0';
+ } else if (value > 90) {
+  inputElement.value = '90';
+ } else {
+  // NO decimal values for PD - only integers
+  inputElement.value = Math.round(value);
+ }
+}
 function getEyeMeasurement() {
  const eye_msrmnt = {};
 
