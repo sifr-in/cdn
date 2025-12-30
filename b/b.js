@@ -42,7 +42,7 @@ async function set_bill_innerHTML(...params) {
  try {
   items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
   prods = await dbDexieManager.getAllRecords(dbnm, "p") || [];
-  clientReferrerArray = [];//   clientReferrerArray = await dbDexieManager.getAllRecords(dbnm, "c");
+  clientReferrerArray = [];
   stored_bill = await dbDexieManager.getAllRecords(dbnm, "b") || [];
   stored_eye_msrmnt = await dbDexieManager.getAllRecords(dbnm, "be") || [];
   stored_bill_items = await dbDexieManager.getAllRecords(dbnm, "i") || [];
@@ -99,74 +99,6 @@ async function set_bill_innerHTML(...params) {
 </div>
 </div>
 
-<!-- Blank Item Card Template -->
-<div class="card mb-3" id="blankItemCard">
-<div class="card-body">
-<div class="row">
-<!-- Left side - Image (fixed 3 columns) -->
-<div class="col-3">
-<div class="text-center">
-<input type="text" 
-class="form-control form-control-sm mb-2" 
-placeholder="Scan or type item ID" 
-id="itemIdInput"
-style="font-size: 0.8rem;">
-
-<!-- Continuous QR Mode Switch -->
-<div class="form-check form-switch mt-2 mb-2" style="font-size: 0.8rem;">
-<input class="form-check-input" type="checkbox" id="continuousQRMode">
-</div>
-
-<div id="itemImageContainer" class="text-center">
-<i class="fas fa-image fa-3x text-muted"></i>
-<div class="mt-2">
-<small class="text-muted"></small>
-</div>
-</div>
-</div>
-</div>
-
-<!-- Right side - Details (fixed 9 columns) -->
-<div class="col-9">
-<!-- Row 1 - Item Name with Add New Button -->
-<div class="row mb-2 g-0">
-<div class="col-10">
-<input type="text" class="form-control" placeholder="Item Name" id="itemName">
-</div>
-<div class="col-2 d-flex align-items-center" onclick="handleAddNewItem(document.getElementById('itemName').value)" title="Add New Item">
-<i class="fas fa-plus"></i>
-</div>
-</div>
-
-<!-- Row 2 - Quantity, Rate, Price (fixed 4-4-4 columns) -->
-<div class="row mb-2 g-0">
-<div class="col-4">
-<input type="number" class="form-control" placeholder="Qty" id="itemQty" min="1" value="1">
-</div>
-<div class="col-4">
-<input type="number" class="form-control" placeholder="Rate" id="itemRate" min="0" step="1">
-</div>
-<div class="col-4">
-<input type="number" class="form-control" placeholder="Price" id="itemPrice" min="0" step="1" readonly>
-</div>
-</div>
-
-<!-- Row 3 - Description and Add Button (fixed 10-2 columns) -->
-<div class="row g-0">
-<div class="col-10">
-<textarea class="form-control" placeholder="Description" id="itemDescription" rows="2"></textarea>
-</div>
-<div class="col-2 d-flex align-items-center">
-<button id="btn_ad_itm_to_invoice" class="btn btn-success btn-sm" onclick="addItemToInvoice()">
-<i class="fas fa-plus"></i>
-</button>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-
 <!-- Added Items Section -->
 <div class="row">
 <div class="col-12">
@@ -177,99 +109,77 @@ style="font-size: 0.8rem;">
 </div>
 </div>
 
-<!-- Bill Summary Section -->
-<div class="row mt-4">
-<div class="col-12">
-<div class="card">
-<div class="card-header bg-light">
-<h5 class="mb-0">Bill Summary</h5>
-</div>
-<div class="card-body">
-<div class="row">
-<div class="col-3">
-<strong>Itms:</strong>
-<span id="totalItems">0</span>
-</div>
-<div class="col-4">
-<strong>Qty:</strong>
-<span id="totalQuantity">0</span>
-</div>
-<div class="col-5">
-<strong>Tot:</strong>
-₹<span id="totalPrice">0.00</span>
+<!-- Add Item Button -->
+<div id="dv_for_add_itm_btn" class="row mb-3" style="display:none;">
+<div class="col-12 text-center">
+<button class="btn btn-primary" onclick="showAddItemModal()">
+<i class="fas fa-plus-circle me-2"></i>Add Item to Bill
+</button>
 </div>
 </div>
 
-<!-- Discount and Final Amount in One Line -->
-<div class="row mt-2 align-items-end">
+<!-- Items Summary Row (separate from Bill Summary) -->
+<div class="row" id="itemsSummaryRow" style="background-color: #9dceff; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+<div class="col-12">
+<div class="row text-center">
 <div class="col-3">
-<div class="input-group input-group-sm">
-<span class="input-group-text" style="padding:1px;">Di%</span>
-<input type="number" 
-class="form-control" 
-id="discountPercentage" 
-min="0" 
-max="100" 
-step="0.1"
-placeholder="0.00"
-value="0">
+<strong style="color: #495057;">Itms:</strong>
+<span id="totalItems" style="font-weight: bold; color: #212529;">0</span>
 </div>
+<div class="col-3">
+<strong style="color: #495057;">Qty:</strong>
+<span id="totalQuantity" style="font-weight: bold; color: #212529;">0</span>
 </div>
-<div class="col-4">
-<div class="input-group input-group-sm">
-<span class="input-group-text" style="padding:1px;">Di₹</span>
-<input type="number" 
-class="form-control" 
-id="discountAmount" 
-min="0" 
-step="1"
-placeholder="0.00"
-value="0">
-</div>
-</div>
-<div class="col-5">
-<div class="input-group input-group-sm">
-<span class="input-group-text bg-success text-white">₹</span>
-<input type="number" 
-class="form-control bg-success text-white" 
-id="finalAmount"
-min="0" 
-step="1"
-value="0.00"
-style="font-weight: bold;">
-</div>
-</div>
-</div>
+<div class="col-6">
+<strong style="color: #495057;">Total:</strong>
+<span style="font-weight: bold; color: #28a745;">₹<span id="totalPrice">0.00</span></span>
 </div>
 </div>
 </div>
 </div>
 
 <!-- Received Amounts Section -->
-<div class="row mt-4">
+<div class="row mt-4" id="rcvd_amts_dv">
 <div class="col-12">
-<div class="card">
+<div class="card" style="background-color: bisque;">
+<div class="card-body">
+
+<!-- 4. Discount Row -->
+<div class="row mb-3">
+<div class="row g-2">
+<div class="col-6">
+<div class="input-group input-group-sm">
+<span class="input-group-text" style="padding:1px;">Discont %</span>
+<input type="number" class="form-control" id="discountPercentage" style="font-weight: bold;font-size: 1.2rem;background-color:coral" min="0" max="100" step="0.1" placeholder="0.00" value="0">
+</div>
+</div>
+<div class="col-6">
+<div class="input-group input-group-sm">
+<span class="input-group-text" style="padding:1px;">Discont ₹</span>
+<input type="number" class="form-control" id="discountAmount" style="font-weight: bold;font-size: 1.2rem;background-color:coral" min="0" step="1" placeholder="0.00" value="0">
+</div>
+</div>
+</div>
+</div>
+
+<!-- 2. Add Received Amount Card -->
 <div class="card-header bg-light">
 <h5 class="mb-0">Received Amounts</h5>
 </div>
-<div class="card-body">
-<!-- Add Received Amount Card -->
 <div class="card mb-3" id="addReceivedAmountCard">
 <div class="row align-items-end g-2">
-<!-- Date & Time - col-4 -->
-<div class="col-4">
+<div class="col-6">
 <label class="form-label small text-muted mb-1">Date</label>
 <input type="text" class="form-control form-control-sm" id="receivedDateTime" placeholder="Select Date & Time">
 </div>
 
-<!-- Amount - col-4 -->
-<div class="col-4">
+<div class="col-6">
 <label class="form-label small text-muted mb-1">Rcvd Amt.</label>
-<input type="number" class="form-control form-control-sm" placeholder="Amount" id="receivedAmount" min="0" step="1">
+<input type="number" class="form-control form-control-sm" placeholder="Amount" id="receivedAmount" min="0" step="1" style="background-color:burlywood;font-size: 1.1rem;">
 </div>
 
-<!-- Payment Type - col-2 -->
-<div class="col-2">
+<div class="col-6"></div>
+<div class="col-4">
 <label class="form-label small text-muted mb-1">Type</label>
 <select class="form-control form-control-sm" id="paymentType">
 <option value="0">Select</option>
@@ -283,7 +193,6 @@ style="font-weight: bold;">
 
 <!-- Add Button - col-2 -->
 <div class="col-2">
-
 <button class="btn btn-primary btn-sm" onclick="addReceivedAmount()">
 <i class="fas fa-plus"></i>
 </button>
@@ -296,23 +205,33 @@ style="font-weight: bold;">
 <!-- Received amounts will appear here -->
 </div>
 
-<!-- Grand Total Summary -->
-<div class="row mt-4">
+<!-- 1. Total Row -->
+<div class="row mb-1">
+<div class="col-12 d-flex justify-content-between align-items-center">
+<label class="form-label mb-0" style="font-weight: bold;">Total:</label>
+<span style="font-weight: bold; font-size: 1.2rem; color: #28a745;">₹<span id="grandBillTotal">0.00</span></span>
+</div>
+</div>
+
+<!-- 3. Received Total Row -->
+<div class="row">
+<div class="col-12 d-flex justify-content-between align-items-center">
+<label class="form-label mb-0" style="font-weight: bold;">Received:</label>
+<span style="font-weight: bold; font-size: 1.2rem; color: #007bff;">₹<span id="grandTotalReceived">0.00</span></span>
+</div>
+</div>
+
+<!-- 5. Grand Total Row -->
+<div class="row mt-2">
 <div class="col-12">
 <div class="card border-success">
 <div class="card-body bg-light">
-<div class="row text-center">
-<div class="col-4">
-<h6>Total</h6>
-<h4 class="text-primary">₹<span id="grandBillTotal">0.00</span></h4>
+<div class="row align-items-center">
+<div class="col-6">
+<h5 class="mb-0" style="font-weight: bold;">Total due:</h5>
 </div>
-<div class="col-4">
-<h6>Rcvd</h6>
-<h4 class="text-success">₹<span id="grandTotalReceived">0.00</span></h4>
-</div>
-<div class="col-4">
-<h6>Bal</h6>
-<h4 class="text-danger">₹<span id="grandBalance">0.00</span></h4>
+<div class="col-6 text-end">
+<h4 class="mb-0" style="font-weight: bold; color: #dc3545;">₹<span id="grandBalance">0.00</span></h4>
 </div>
 </div>
 </div>
@@ -337,7 +256,7 @@ style="font-weight: bold;">
 <div class="col-12">
 <div class="card">
 <div class="card-body">
-<textarea class="form-control" id="billNotes" rows="3" placeholder="Add any notes or comments for this bill..."></textarea>
+<textarea class="form-control" id="billNotes" rows="3" placeholder="Set comment/note for this bill.\nWhile generating 'bill-print', u can decide whether to print this 'note' in bill;"></textarea>
 </div>
 </div>
 <div class="card">
@@ -369,87 +288,17 @@ style="font-weight: bold;">
  // Initialize dates with current date and time
  initializeFlatpickr();
 
- // Add event listeners
- document.getElementById('itemQty').addEventListener('input', calculatePrice);
- document.getElementById('itemRate').addEventListener('input', calculatePrice);
-
- document.getElementById('itemName').addEventListener('input', function (e) {
-  // Show dropdown when user starts typing
-  showItemDropdown(this);
-  // if (this.value.length > 0) {
-  //     showItemDropdown(this);
-  // }
- });
-
- document.getElementById('itemName').addEventListener('focus', function (e) {
-  const inputRect = this.getBoundingClientRect();
-  const scrollTopPosition = window.pageYOffset + inputRect.top - 10;
-  window.scrollTo({ top: scrollTopPosition, behavior: 'smooth' });
-  // Show dropdown with all items when focused (empty search)
-  showItemDropdown(this);
- });
-
- // Add event listener for item ID input
- document.getElementById('itemIdInput').addEventListener('input', handleItemIdInput);
- document.getElementById('itemIdInput').addEventListener('click', async function () {
-  // If continuous mode is on and scanner is already active, don't open another
-  if (continuousQRMode && qrScannerActive) {
-   showToast('Continuous scan already active');
-   return;
-  }
-
-  // Open QR scanner modal
-  await openQRScannerModal();
- });
-
- // Add event listener for continuous QR mode switch
- document.getElementById('continuousQRMode').addEventListener('change', function (e) {
-  continuousQRMode = e.target.checked;
-
-  // Save preference to localStorage
-  localStorage.setItem('continuousQRMode', continuousQRMode ? 'true' : 'false');
-
-  if (continuousQRMode) {
-   showToast('Continuous scan mode enabled');
-  }
- });
-
- // Load saved preference
- setTimeout(() => {
-  const savedMode = localStorage.getItem('continuousQRMode');
-  if (savedMode !== null) {
-   continuousQRMode = savedMode === 'true';
-   document.getElementById('continuousQRMode').checked = continuousQRMode;
-  }
- }, 100);
-
  // Add event listeners for discount calculations
  document.getElementById('discountPercentage').addEventListener('input', calculateDiscountFromPercentage);
  document.getElementById('discountAmount').addEventListener('input', calculateDiscountFromAmount);
- document.getElementById('finalAmount').addEventListener('input', calculateDiscountFromFinalAmount);
 
- document.getElementById('itemName').addEventListener('blur', function (e) {
-  const inputElement = this;
+ // Add select all on focus for discount inputs
+ document.getElementById('discountPercentage').addEventListener('focus', function () {
+  this.select();
+ });
 
-  // Clear any existing timeout
-  if (blurTimeout) {
-   clearTimeout(blurTimeout);
-  }
-
-  // Set a flag to track if dropdown was clicked
-  dropdownClicked = false;
-
-  // Delay the blur handling to see if dropdown item gets clicked
-  blurTimeout = setTimeout(() => {
-   // If dropdown was clicked, don't proceed with blur validation
-   if (dropdownClicked) {
-    dropdownClicked = false; // Reset for next time
-    return;
-   }
-
-   // Otherwise, proceed with blur validation
-   handleItemNameBlur(inputElement);
-  }, 200); // 200ms delay - enough time for click to register
+ document.getElementById('discountAmount').addEventListener('focus', function () {
+  this.select();
  });
 
  // Initialize received amount form
@@ -481,8 +330,609 @@ style="font-weight: bold;">
   const defaultRemark = localStorage.getItem('defaultBillRemark');
   if (defaultRemark) {
    document.getElementById('billNotes').value = defaultRemark;
+   updateBillSectionsVisibility();
   }
  }, 500);
+ setTimeout(() => {
+  updateBillSectionsVisibility();
+ }, 700);
+}
+
+function showAddItemModal() {
+ // Create a modal
+ const modal = create_modal_dynamically('addItemModal');
+ const modalContent = modal.contentElement;
+ const modalInstance = modal.modalInstance;
+
+ // Create a clean modal form
+ const modalHTML = `
+<div class="modal-header">
+<h5 class="modal-title">Add Item to Bill</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+<div class="row">
+<!-- Left side - Image (fixed 3 columns) -->
+<div class="col-3">
+<div class="text-center">
+<input type="text" 
+class="form-control form-control-sm mb-2" 
+placeholder="Scan or type item ID" 
+id="modalItemIdInput"
+style="font-size: 0.8rem;">
+
+<!-- Continuous QR Mode Switch -->
+<div class="form-check form-switch mt-2 mb-2" style="font-size: 0.8rem;">
+<input class="form-check-input" type="checkbox" id="modalContinuousQRMode">
+<label class="form-check-label" for="modalContinuousQRMode">Continuous Scan</label>
+</div>
+
+<div id="modalItemImageContainer" class="text-center">
+<i class="fas fa-image fa-3x text-muted"></i>
+<div class="mt-2">
+<small class="text-muted">No Image</small>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Right side - Details (fixed 9 columns) -->
+<div class="col-9">
+<!-- Row 1 - Item Name with Add New Button -->
+<div class="row mb-2 g-0">
+<div class="col-12">
+<input type="text" class="form-control" placeholder="Item Name" id="modalItemName">
+</div>
+</div>
+
+<!-- Row 2 - Quantity, Rate, Price (fixed 4-4-4 columns) -->
+<div class="row mb-2 g-0">
+<div class="col-4">
+<input type="number" class="form-control" placeholder="Qty" id="modalItemQty" min="1" value="1">
+</div>
+<div class="col-4">
+<input type="number" class="form-control" placeholder="Rate" id="modalItemRate" min="0" step="1">
+</div>
+<div class="col-4">
+<input type="number" class="form-control" placeholder="Price" id="modalItemPrice" min="0" step="1" readonly>
+</div>
+</div>
+
+<!-- Row 3 - Description and Add Button -->
+<div class="row g-0">
+<div class="col-12">
+<textarea class="form-control" placeholder="Description" id="modalItemDescription" rows="2"></textarea>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="modal-footer">
+<button id="modalAddNewItemBtn" class="btn btn-warning w-100" onclick="handleAddNewItemInModal()" style="display: none;"><i class="fas fa-plus"></i> in inventory</button>
+&emsp;&emsp;
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+&emsp;
+<button class="btn btn-success h-100" id="modalAddItemBtn" onclick="addItemFromModal()" disabled><i class="fas fa-plus"></i> in bill</button>
+</div>
+`;
+
+ modalContent.innerHTML = modalHTML;
+
+ // Initialize event listeners for the modal - pass the entire modal object
+ initializeModalEventListeners(modal);
+
+ // Show the modal
+ modalInstance.show();
+
+ // Focus on the item name field
+ setTimeout(() => {
+  const modalItemName = document.getElementById('modalItemName');
+  if (modalItemName) {
+   modalItemName.focus();
+  }
+ }, 100);
+}
+
+function initializeModalEventListeners(modalResult) {
+ // Get elements from the modal
+ const modalItemQty = document.getElementById('modalItemQty');
+ const modalItemRate = document.getElementById('modalItemRate');
+ const modalItemName = document.getElementById('modalItemName');
+ const modalItemIdInput = document.getElementById('modalItemIdInput');
+ const modalContinuousQRMode = document.getElementById('modalContinuousQRMode');
+ const modalAddNewItemBtn = document.getElementById('modalAddNewItemBtn');
+ const modalAddItemBtn = document.getElementById('modalAddItemBtn');
+
+ // Safely add modal close event listener
+ if (modalResult && modalResult.modalElement) {
+  modalResult.modalElement.addEventListener('hidden.bs.modal', function () {
+   // Clear any blur timeout
+   if (blurTimeout) {
+    clearTimeout(blurTimeout);
+    blurTimeout = null;
+   }
+  });
+ }
+
+ if (modalItemQty && modalItemRate) {
+  modalItemQty.addEventListener('input', calculateModalPrice);
+  modalItemRate.addEventListener('input', calculateModalPrice);
+ }
+
+ if (modalItemName) {
+  modalItemName.addEventListener('input', function (e) {
+   showItemDropdown(this);
+
+   // Show/hide Add New Item button based on search
+   const searchValue = this.value.trim();
+   if (modalAddNewItemBtn) {
+    if (searchValue) {
+     const matchedItems = items.filter(item => {
+      if (!item || !item.gn) return false;
+      return item.gn.toLowerCase().includes(searchValue.toLowerCase());
+     });
+
+     if (matchedItems.length === 0) {
+      modalAddNewItemBtn.style.display = 'block';
+     } else {
+      modalAddNewItemBtn.style.display = 'none';
+     }
+    } else {
+     modalAddNewItemBtn.style.display = 'none';
+    }
+   }
+  });
+
+  modalItemName.addEventListener('focus', function (e) {
+   showItemDropdown(this);
+  });
+
+  modalItemName.addEventListener('blur', function (e) {
+   const inputElement = this;
+
+   if (blurTimeout) {
+    clearTimeout(blurTimeout);
+   }
+
+   dropdownClicked = false;
+
+   blurTimeout = setTimeout(() => {
+    if (dropdownClicked) {
+     dropdownClicked = false;
+     return;
+    } else {
+     handleModalItemNameBlur(inputElement);
+    }
+   }, 200);
+  });
+ }
+
+ if (modalItemIdInput) {
+  modalItemIdInput.addEventListener('input', handleModalItemIdInput);
+  modalItemIdInput.addEventListener('click', async function () {
+   if (modalContinuousQRMode && modalContinuousQRMode.checked && qrScannerActive) {
+    showToast('Continuous scan already active');
+    return;
+   }
+   await openQRScannerModal();
+  });
+ }
+
+ if (modalContinuousQRMode) {
+  modalContinuousQRMode.addEventListener('change', function (e) {
+   continuousQRMode = e.target.checked;
+   localStorage.setItem('continuousQRMode', continuousQRMode ? 'true' : 'false');
+
+   if (continuousQRMode) {
+    showToast('Continuous scan mode enabled');
+   }
+  });
+ }
+
+ // Enable/disable add button based on form validity
+ if (modalItemName && modalAddItemBtn) {
+  modalItemName.addEventListener('input', function () {
+   updateModalAddButtonState();
+  });
+
+  modalItemRate.addEventListener('input', function () {
+   updateModalAddButtonState();
+  });
+ }
+
+ if (modalItemRate) {
+  modalItemRate.addEventListener('input', function () {
+   calculateModalPrice();
+   updateModalAddButtonState(); // Add this line
+  });
+ }
+}
+
+function calculateModalPrice() {
+ const qty = parseFloat(document.getElementById('modalItemQty').value) || 0;
+ const rate = parseFloat(document.getElementById('modalItemRate').value) || 0;
+ const price = qty * rate;
+ document.getElementById('modalItemPrice').value = price.toFixed(2);
+
+ // Update add button state
+ updateModalAddButtonState();
+}
+
+function updateModalAddButtonState() {
+ const modalAddItemBtn = document.getElementById('modalAddItemBtn');
+ if (!modalAddItemBtn) return;
+
+ const name = document.getElementById('modalItemName').value.trim();
+ const price = parseFloat(document.getElementById('modalItemPrice').value) || 0;
+ const itemId = document.getElementById('modalItemName').getAttribute('data-item-id');
+
+ // Check if item exists in inventory
+ const itemExistsInInventory = checkIfItemExists(name);
+
+ // Enable button only if:
+ // 1. Name is not empty
+ // 2. Price > 0
+ // 3. Item exists in inventory OR we have a valid item ID
+ // 4. Item has a valid ID (either from existing item or newly created)
+ if (name && price > 0 && (itemExistsInInventory || itemId)) {
+  modalAddItemBtn.disabled = false;
+ } else {
+  modalAddItemBtn.disabled = true;
+ }
+}
+
+// Helper function to check if item exists in inventory
+function checkIfItemExists(itemName) {
+ if (!itemName.trim()) return false;
+
+ const searchName = itemName.toLowerCase().trim();
+
+ // Check if exact match exists in items array
+ const matchedItems = items.filter(item => {
+  if (!item || !item.gn) return false;
+  return item.gn.toLowerCase() === searchName;
+ });
+
+ return matchedItems.length > 0;
+}
+
+function handleModalItemNameBlur(inputElement) {
+ const itemName = inputElement.value.trim();
+ const modalAddNewItemBtn = document.getElementById('modalAddNewItemBtn');
+
+ if (itemName === '') {
+  clearModalItemForm();
+  if (modalAddNewItemBtn) modalAddNewItemBtn.style.display = 'none';
+  // Update button state
+  updateModalAddButtonState();
+  return;
+ }
+
+ const matchedItems = items.filter(item => {
+  if (!item || !item.gn) return false;
+  return item.gn.toLowerCase() === itemName.toLowerCase();
+ });
+
+ if (matchedItems.length !== 1) {
+  // Clear the data-item-id attribute since item doesn't exist
+  inputElement.removeAttribute('data-item-id');
+  if (modalAddNewItemBtn) modalAddNewItemBtn.style.display = 'block';
+ } else {
+  // Exactly one match found
+  if (modalAddNewItemBtn) modalAddNewItemBtn.style.display = 'none';
+  // Set the item ID attribute
+  inputElement.setAttribute('data-item-id', matchedItems[0].a);
+ }
+
+ // Always update button state after name blur
+ updateModalAddButtonState();
+}
+
+function clearModalItemForm() {
+ document.getElementById('modalItemName').value = '';
+ document.getElementById('modalItemName').removeAttribute('data-item-id');
+ document.getElementById('modalItemQty').value = '1';
+ document.getElementById('modalItemRate').value = '';
+ document.getElementById('modalItemPrice').value = '';
+ document.getElementById('modalItemDescription').value = '';
+ document.getElementById('modalItemIdInput').value = '';
+
+ const imageContainer = document.getElementById('modalItemImageContainer');
+ if (imageContainer) {
+  imageContainer.innerHTML = `
+<i class="fas fa-image fa-3x text-muted"></i>
+<div class="mt-2">
+<small class="text-muted">No Image</small>
+</div>
+`;
+ }
+
+ const modalAddItemBtn = document.getElementById('modalAddItemBtn');
+ if (modalAddItemBtn) {
+  modalAddItemBtn.disabled = true;
+ }
+}
+
+function handleModalItemIdInput(event) {
+ const itemId = event.target.value.trim();
+
+ if (itemId === '') {
+  const existingDropdown = document.querySelector('.item-id-dropdown');
+  if (existingDropdown) {
+   existingDropdown.remove();
+  }
+  return;
+ }
+
+ const matchedItems = items.find((c) => c.a.toString() == itemId);
+
+ const existingDropdown = document.querySelector('.item-id-dropdown');
+ if (existingDropdown) {
+  existingDropdown.remove();
+ }
+
+ if (!matchedItems) {
+  showToast('No items found with this ID');
+
+  if (continuousQRMode && qrScannerActive) {
+   event.target.value = '';
+  }
+ } else {
+  if (window[my1uzr.worknOnPg]?.confg?.addByQR == 1) {
+   addItemDirectlyFromQR(matchedItems);
+   event.target.value = '';
+
+   window.lastQRScannedItemAdded = true;
+   window.lastQRScannedItemId = matchedItems.a;
+
+   // Close the modal after adding via QR
+   const modal = bootstrap.Modal.getInstance(document.getElementById('addItemModal'));
+   if (modal) {
+    modal.hide();
+   }
+  } else {
+   selectModalItem(matchedItems);
+   event.target.value = '';
+
+   window.lastQRScannedItemAdded = true;
+   window.lastQRScannedItemId = matchedItems.a;
+  }
+ }
+}
+
+function selectModalItem(item) {
+ document.getElementById('modalItemName').value = item.gn;
+ document.getElementById('modalItemRate').value = item.k;
+ document.getElementById('modalItemQty').value = '1';
+
+ // Set the data-item-id attribute
+ document.getElementById('modalItemName').setAttribute('data-item-id', item.a);
+
+ calculateModalPrice();
+
+ const imageContainer = document.getElementById('modalItemImageContainer');
+ if (imageContainer && item.gu) {
+  imageContainer.innerHTML = `
+<img src="${item.gu}" 
+class="img-fluid rounded" 
+alt="Item Image"
+style="max-width: 100%; height: auto; max-height: 120px; object-fit: cover;"
+onerror="this.style.display='none'; document.getElementById('modalItemImageContainer').innerHTML = '<i class=\\'fas fa-image fa-3x text-muted\\'></i><div class=\\'mt-2\\'><small class=\\'text-muted\\'>No Image</small></div>'">
+`;
+ }
+
+ mostUsedItems[item.a] = (mostUsedItems[item.a] || 0) + 1;
+
+ const modalAddNewItemBtn = document.getElementById('modalAddNewItemBtn');
+ if (modalAddNewItemBtn) modalAddNewItemBtn.style.display = 'none';
+
+ // Update button state
+ updateModalAddButtonState();
+
+ setTimeout(() => {
+  document.getElementById('modalItemQty').focus();
+ }, 10);
+}
+
+async function handleAddNewItemInModal(nwProdNm = '') {
+ // Get the value from modal if not provided
+ if (!nwProdNm) {
+  nwProdNm = document.getElementById('modalItemName').value.trim();
+ }
+
+ // Close the dropdown in modal
+ const dropdown = document.querySelector('.item-dropdown');
+ if (dropdown) {
+  dropdown.remove();
+ }
+
+ // Then open the add item modal
+ await loadExe2Fn(11, [nwProdNm, "handleNewItmAddedToInventory"], [1]);
+}
+function handleNewItmAddedToInventory(nwItmNm) {
+ try {
+  const itemName = nwItmNm.trim();
+  // 2. Find the item in items array (case-insensitive)
+  const findItem = () => {
+   return items.find(item => {
+    if (!item || !item.gn) return false;
+    return item.gn.toLowerCase() === itemName.toLowerCase();
+   });
+  };
+
+  let foundItem = findItem();
+
+  if (!foundItem) {
+   // If not found immediately, wait a bit and try again (item might have just been added)
+   setTimeout(() => {
+    // Refresh items array if needed
+    if (typeof dbDexieManager !== 'undefined') {
+     dbDexieManager.getAllRecords(dbnm, "s").then(refreshedItems => {
+      items = refreshedItems || [];
+      const retryItem = findItem();
+
+      if (retryItem) {
+       // Simulate a dropdown click event to add the item
+       selectModalItem(retryItem);
+       addItemFromModal();
+      } else {
+       showToast(`Item "${itemName}" not found in inventory`);
+      }
+     }).catch(error => {
+      console.error('Error refreshing items:', error);
+      showToast('Error searching for item');
+     });
+    }
+   }, 1000);
+   return;
+  }
+
+  // 3. Use the existing function to add the item
+  selectModalItem(foundItem);
+  addItemFromModal();
+  updateBillSectionsVisibility();
+
+ } catch (error) {
+  console.error('Error in handleNewItmAddedToInventory:', error);
+  showToast('Error adding new inventory item to bill');
+ }
+}
+
+function addItemFromModal() {
+ // Get values from modal
+ const name = document.getElementById('modalItemName').value.trim();
+ const qty = parseInt(document.getElementById('modalItemQty').value) || 1;
+ const rate = parseFloat(document.getElementById('modalItemRate').value) || 0;
+ const price = parseFloat(document.getElementById('modalItemPrice').value) || 0;
+ const description = document.getElementById('modalItemDescription').value;
+ const itemId = document.getElementById('modalItemName').getAttribute('data-item-id');
+ const imageUrl = document.getElementById('modalItemImageContainer img')?.src || '';
+
+ // Validation
+ if (!name) {
+  showToast('Please enter item name');
+  document.getElementById('modalItemName').focus();
+  return;
+ }
+
+ if (!price || parseFloat(price) <= 0) {
+  showToast('Please enter a valid price');
+  document.getElementById('modalItemRate').focus();
+  return;
+ }
+
+ // Check if item already exists in sale list with same rate
+ const existingItem = findExistingItemInSaleList(itemId, rate);
+
+ if (existingItem) {
+  // Item exists with same rate - increment quantity
+  incrementItemQuantity(existingItem);
+  showToast(`Quantity increased for ${name}`);
+
+  // Close the modal
+  const modal = bootstrap.Modal.getInstance(document.getElementById('addItemModal'));
+  if (modal) {
+   modal.hide();
+  }
+
+  // Play sound for item addition
+  playSound('https://cdn.pixabay.com/download/audio/2025/10/21/audio_3880ed67e2.mp3');
+  return;
+ }
+
+ // Add new item
+ const addedItemsContainer = document.getElementById('addedItemsContainer');
+ const uniqueItemId = Date.now();
+
+ const itemHTML = `
+<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}">
+<div class="card-body">
+<div class="row">
+<!-- Left side - Image (fixed 3 columns) -->
+<div class="col-3">
+<div class="text-center">
+${imageUrl ?
+   `<img src="${imageUrl}" class="added-item-image" alt="Item Image" 
+onerror="this.style.display='none'; this.parentElement.innerHTML = '<i class=\\'fas fa-image fa-2x text-muted\\'></i><div class=\\'mt-1\\'><small class=\\'text-muted\\'>No Image</small></div>'">` :
+   `<i class="fas fa-image fa-2x text-muted"></i>
+<div class="mt-1">
+<small class="text-muted">No Image</small>
+</div>`
+  }
+</div>
+</div>
+
+<!-- Right side - Details (fixed 9 columns) -->
+<div class="col-9">
+<!-- Row 1 - Item Name -->
+<div class="row mb-2 g-0">
+<div class="col-10">
+<strong>${name}</strong>
+</div>
+<div class="col-2 d-flex align-items-center justify-content-end">
+<button class="btn btn-outline-danger btn-sm" onclick="removeItemFromInvoice(${uniqueItemId})">
+<i class="fas fa-trash"></i>
+</button>
+</div>
+</div>
+
+<!-- Row 2 - Quantity, Rate, Price (fixed 4-4-4 columns) -->
+<div class="row mb-2 g-0">
+<div class="col-4">
+<strong>Qty:</strong> 
+<input type="number" 
+class="form-control form-control-sm d-inline-block w-auto" 
+value="${qty}" 
+min="1" 
+step="1"
+style="width: 70px; display: inline-block;"
+onchange="updateItemQuantity(${uniqueItemId}, parseFloat(this.value))"
+onblur="updateItemQuantity(${uniqueItemId}, parseFloat(this.value))">
+</div>
+<div class="col-4">
+<strong>Rate:</strong> 
+<input type="number" 
+class="form-control form-control-sm d-inline-block w-auto" 
+value="${rate.toFixed(2)}" 
+min="0" 
+step="0.01"
+style="width: 80px; display: inline-block;"
+onchange="updateItemRate(${uniqueItemId}, this.value)"
+onblur="updateItemRate(${uniqueItemId}, this.value)">
+</div>
+<div class="col-4">
+<strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${price.toFixed(2)}</span>
+</div>
+</div>
+
+<!-- Row 3 - Description -->
+<div class="row g-0">
+<div class="col-12">
+<small class="text-muted">${description || ''}</small>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+`;
+
+ addedItemsContainer.insertAdjacentHTML('beforeend', itemHTML);
+
+ // Update bill summary
+ updateBillSummary();
+
+ // Close the modal
+ const modal = bootstrap.Modal.getInstance(document.getElementById('addItemModal'));
+ if (modal) {
+  modal.hide();
+ }
+
+ // Play sound for item addition
+ playSound('https://cdn.pixabay.com/download/audio/2025/10/21/audio_3880ed67e2.mp3');
+ setTimeout(() => {
+  updateBillSectionsVisibility();
+ }, 1111);
 }
 
 async function showBillCards() {
@@ -543,12 +993,6 @@ async function showBillCards() {
    return;
   }
  }
-
- // if (stored_bill.length === 0) {
- //  document.getElementById('billCardsContainer').innerHTML = "<p class='text-muted text-center py-4'>No bills found</p>";
- //  modal_bill_cards.style.display = "block";
- //  return;
- // }
 
  stored_bill.sort((a, b) => {
   const dateA = new Date(a.b);
@@ -744,7 +1188,6 @@ async function handleBillAction(m_odalInstance, action, b346illID) {
   case 'print':
    playSound('https://bigsoundbank.com/UPLOAD/mp3/1417.mp3');
    sho_bl_modal(billTableRowId);
-   // window.open("bPrOp.html?b=" + billTableRowId);
    break;
  }
 }
@@ -959,6 +1402,7 @@ async function submitAllPayments(billId) {
     j: payment.amount.toString(), // Amount received
     k: payment.dateTime.split(' ')[0], // Date only (YYYY-MM-DD format)
     td: billData.a, // Bill ID
+    n: payment.constraintCounter || 0
    };
 
    payload0.r = paymentPayload;
@@ -1006,12 +1450,95 @@ function addTempReceivedAmount(billId) {
   return;
  }
 
- // Add to temporary array
+ // Extract date part
+ const paymentDate = dateTime.split(' ')[0];
+
+ // Get client ID from bill data
+ const currentBill = stored_bill.find(bill => bill.a == billId);
+ if (!currentBill) {
+  showToast('Bill not found');
+  return;
+ }
+
+ const clientId = currentBill.e;
+ const paymentTypeInt = parseInt(paymentType) || 0;
+
+ // Collect all matching payments - ONLY for same date
+ const matchingPayments = [];
+
+ // Check in temporary payments - ONLY same date
+ window.tempReceivedAmounts.forEach(payment => {
+  const existingDate = payment.dateTime.split(' ')[0];
+  const existingAmount = parseFloat(payment.amount) || 0;
+
+  if (payment.clientId === clientId &&
+   Math.abs(existingAmount - amount) < 0.001 &&
+   existingDate === paymentDate && // Same date
+   payment.paymentType === paymentType) {
+   matchingPayments.push({
+    constraintCounter: payment.constraintCounter || 0,
+    date: existingDate,
+    source: 'temp'
+   });
+  }
+ });
+
+ // Check in stored payments for this client - ONLY same date
+ stored_bill_cash_info.forEach(payment => {
+  const existingDate = payment.k || '';
+  const existingAmount = parseFloat(payment.j) || 0;
+  const existingPaymentType = payment.i || '0';
+
+  if (payment.f === 0 &&
+   payment.h === clientId &&
+   Math.abs(existingAmount - amount) < 0.001 &&
+   existingDate === paymentDate && // Same date
+   parseInt(existingPaymentType) === paymentTypeInt) {
+   matchingPayments.push({
+    constraintCounter: payment.n || 0,
+    date: existingDate,
+    source: 'stored'
+   });
+  }
+ });
+
+ // Calculate constraint counter
+ let constraintCounter = 0; // Default to 1 for first payment on this date
+
+ if (matchingPayments.length > 0) {
+  // Find the highest constraint counter for this date
+  const constraintCounters = matchingPayments.map(p => p.constraintCounter || 0);
+  const maxCounter = Math.max(...constraintCounters);
+
+  // Ask user for confirmation
+  let message = `Same amount (₹${amount.toFixed(2)}) on same date (${paymentDate}) already exists.\n\n`;
+
+  if (matchingPayments.length === 1) {
+   message += `Current constraint counter: ${maxCounter}\n\n`;
+  } else {
+   message += `Current constraint counters: 0 to ${maxCounter}\n\n`;
+  }
+
+  const nextCounter = maxCounter + 1;
+  message += `Do you want to add another payment with constraint counter ${nextCounter}?`;
+
+  const userResponse = confirm(message);
+
+  if (!userResponse) {
+   return;
+  }
+
+  constraintCounter = nextCounter;
+ }
+
+ // Add to temporary array with constraint counter
  const tempPayment = {
   id: Date.now(),
   dateTime: dateTime,
   amount: amount,
   paymentType: paymentType,
+  constraintCounter: constraintCounter || 0,
+  clientId: clientId,
   timestamp: new Date().toISOString()
  };
 
@@ -1027,7 +1554,12 @@ function addTempReceivedAmount(billId) {
  // Update the totals in the modal
  updateModalTotals();
 
- showToast('Payment added to temporary list. Click "Submit All Payments" to save.');
+ // Show success message with constraint counter info
+ if (constraintCounter > 0) {
+  showToast(`Payment added to temporary list with constraint counter: ${constraintCounter}. Click "Submit All Payments" to save.`);
+ } else {
+  showToast('Payment added to temporary list. Click "Submit All Payments" to save.');
+ }
 }
 function updateModalTotals() {
  // Get existing payments total and bill total from stored values
@@ -1065,6 +1597,10 @@ function updateTempPaymentsUI() {
   const paymentTypeIcon = getPaymentTypeIcon(payment.paymentType);
   const formattedDate = formatDateTime(payment.dateTime);
 
+  // Show constraint counter if it exists and is greater than 0
+  const constraintCounterBadge = payment.constraintCounter > 0 ?
+   `<span class="badge bg-${getConstraintCounterColor(payment.constraintCounter)} ms-1" title="Constraint counter: ${payment.constraintCounter}">#${payment.constraintCounter}</span>` : '';
+
   const paymentHTML = `
 <div class="card mb-2 received-amount-card" style="border-left: 4px solid #ffc107 !important;">
 <div class="card-body py-2">
@@ -1073,7 +1609,7 @@ function updateTempPaymentsUI() {
 <small class="text-muted">${formattedDate}</small>
 </div>
 <div class="col-4">
-<strong>${paymentTypeIcon} ₹${payment.amount.toFixed(2)}</strong>
+<strong>${paymentTypeIcon} ₹${payment.amount.toFixed(2)}${constraintCounterBadge}</strong>
 </div>
 <div class="col-2 text-end">
 <button class="btn btn-outline-danger btn-sm" onclick="removeTempPayment(${payment.id})">
@@ -1175,6 +1711,10 @@ function renderExistingPayments(payments) {
   const paymentTypeText = getPaymentTypeText(payment.i);
   const formattedDate = payment.k || 'No date';
 
+  // Show constraint counter (n field) if it exists and is greater than 0
+  const constraintCounterBadge = payment.n > 0 ?
+   `<span class="badge bg-${getConstraintCounterColor(payment.n)} ms-1" title="Constraint counter for same amount on same date">#${payment.n}</span>` : '';
+
   html += `
 <div class="card mb-2 received-amount-card">
 <div class="card-body py-2">
@@ -1183,7 +1723,7 @@ function renderExistingPayments(payments) {
 <small class="text-muted">${formattedDate}</small>
 </div>
 <div class="col-4">
-<strong>${paymentTypeIcon} ₹${parseFloat(payment.j || 0).toFixed(2)}</strong>
+<strong>${paymentTypeIcon} ₹${parseFloat(payment.j || 0).toFixed(2)}${constraintCounterBadge}</strong>
 <br>
 <small class="text-muted">${paymentTypeText}</small>
 </div>
@@ -1198,7 +1738,6 @@ function renderExistingPayments(payments) {
 
  return html;
 }
-
 function loadBillIntoForm(bill, billItems, cashInfo) {
  try {
   // Populate basic bill information
@@ -1234,6 +1773,7 @@ function loadBillIntoForm(bill, billItems, cashInfo) {
    addBillItemToForm(item);
   });
 
+  updateBillSectionsVisibility();
   // Clear and populate received amounts
   receivedAmounts = [];
   if (cashInfo && cashInfo.length > 0) {
@@ -1243,6 +1783,7 @@ function loadBillIntoForm(bill, billItems, cashInfo) {
      dateTime: payment.k || new Date().toISOString().split('T')[0] + ' 00:00',
      amount: parseFloat(payment.j) || 0,
      paymentType: payment.i || '0',
+     constraintCounter: payment.n || 0,
      timestamp: payment.b || new Date().toISOString()
     });
    });
@@ -1275,6 +1816,7 @@ function addBillItemToForm(item) {
 
  const addedItemsContainer = document.getElementById('addedItemsContainer');
  const uniqueItemId = Date.now();
+ updateBillSectionsVisibility();
 
  // Find item details from items array
  const itemDetails = items.find(i => i.a == item.f) || {};
@@ -1391,7 +1933,6 @@ async function delBillByID(b426illID) {
    await dbDexieManager.deleteRecords(dbnm, 'r', o.a);
   }
   await setMaxBillNo();
-  // location.reload();
  } catch (error) {
   alert("Initialization error - please refresh");
  }
@@ -1448,8 +1989,6 @@ async function initializeFlatpickr() {
 
   const now = new Date();
 
-
-  // Initialize Flatpickr for receipt date
   flatpickr("#receiptDate", {
    enableTime: true,
    dateFormat: "Y-m-d H:i",
@@ -1575,88 +2114,12 @@ function validateAndScrollToField(fieldId, message) {
  return false;
 }
 
-function handleItemNameBlur(inputElement) {
- const itemName = inputElement.value.trim();
-
- // Clear the input if it's just whitespace
- if (itemName === '') {
-  inputElement.value = '';
-  clearItemFormFields();
-  disableAddButton();
-  return;
- }
-
- // Check if there's exactly one item with this name
- const matchedItems = items.filter(item => {
-  if (!item || !item.gn) return false;
-  return item.gn.toLowerCase() === itemName.toLowerCase();
- });
-
- if (matchedItems.length !== 1) {
-  // Not exactly one match found - clear fields and disable button
-  clearItemFormFields();
-  disableAddButton();
-
-  // Optional: Show a message if there are multiple matches
-  if (matchedItems.length > 1) {
-   showToast('Multiple items found with this name. Please select from dropdown.');
-  } else if (matchedItems.length === 0) {
-   // Don't show toast here as user might want to add new item
-  }
- } else {
-  // Exactly one match found - ensure add button is enabled
-  enableAddButton();
- }
-}
-
-// Helper function to clear form fields
-function clearItemFormFields() {
- document.getElementById('itemQty').value = '';
- document.getElementById('itemRate').value = '';
- document.getElementById('itemPrice').value = '';
-}
-
-// Helper function to disable add button
-function disableAddButton() {
- const addButton = document.querySelector('#btn_ad_itm_to_invoice');
- if (addButton) {
-  addButton.disabled = true;
-  addButton.classList.add('btn-secondary');
-  addButton.classList.remove('btn-success');
- }
-}
-
-// Helper function to enable add button
-function enableAddButton() {
- const addButton = document.querySelector('#btn_ad_itm_to_invoice');
- if (addButton) {
-  addButton.disabled = false;
-  addButton.classList.remove('btn-secondary');
-  addButton.classList.add('btn-success');
- }
-}
-
-// Also update your clearItemForm function to handle the button state
-function clearItemForm() {
- document.getElementById('itemName').value = '';
- document.getElementById('itemName').removeAttribute('data-item-id');
- document.getElementById('itemQty').value = '1';
- document.getElementById('itemRate').value = '';
- document.getElementById('itemPrice').value = '';
- document.getElementById('itemDescription').value = '';
- document.getElementById('itemIdInput').value = '';
- updateItemImage('');
- enableAddButton(); // Enable button when form is cleared for new entry
-}
-
-// Define your callback function
 function handleUploadedFile(fileUrl, fileName, fileType, fileId) {
  console.log('File uploaded:', fileName, fileUrl);
  // Update your form fields or UI here
  document.getElementById('itemDescription').value = fileUrl;
 }
 async function temporary() {
- //await loadAndExeFn('upldAnyFile2drv', ['fileUploadTesting', 'loader', null, '*', 'handleUploadedFile'], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@7262bc9/cmn/my1dra.min.js');
  await loadExe2Fn(20, ['fileUploadTesting', 'loader', null, '*', 'handleUploadedFile'], [1]);
 }
 function enableSaveBtn() {
@@ -1736,6 +2199,16 @@ async function crUpBill(fnNumber) {
    return validateAndScrollToField('deliveryDate', 'Please select both date and time for delivery');
   }
 
+  // Parse the date strings (format: "YYYY-MM-DD HH:mm")
+  const receiptDate = receiptDateValue;
+  const deliveryDate = deliveryDateValue;
+
+  // Get added items
+  const addedItems = document.querySelectorAll('#addedItemsContainer .added-item-card');
+  if (addedItems.length === 0) {
+   return validateAndScrollToField('itemName', 'Please add at least one item to the bill');
+  }
+
   if (typeof billingRequisit_be === 'function') {
    const eyeMeasurement = getEyeMeasurement();
    if (eyeMeasurement !== null) {
@@ -1747,16 +2220,6 @@ async function crUpBill(fnNumber) {
      return;
     }
    }
-  }
-
-  // Parse the date strings (format: "YYYY-MM-DD HH:mm")
-  const receiptDate = receiptDateValue;
-  const deliveryDate = deliveryDateValue;
-
-  // Get added items
-  const addedItems = document.querySelectorAll('#addedItemsContainer .added-item-card');
-  if (addedItems.length === 0) {
-   return validateAndScrollToField('itemName', 'Please add at least one item to the bill');
   }
 
   // Prepare bill items array
@@ -1780,13 +2243,13 @@ async function crUpBill(fnNumber) {
    };
   });
 
-  // Prepare received amounts array
   const receivedPayments = receivedAmounts.map(payment => {
    const paymentDateTime = payment.dateTime;
    return {
     "i": payment.paymentType, // Payment type
     "j": payment.amount.toFixed(2), // Amount
-    "k": paymentDateTime // Date with time (YYYY-MM-DD HH:mm)
+    "k": paymentDateTime.split(' ')[0], // Date only (YYYY-MM-DD)
+    "n": payment.constraintCounter || 0 // Constraint counter (default to 1 if not set)
    };
   });
 
@@ -1807,12 +2270,12 @@ async function crUpBill(fnNumber) {
    "l": r_eferrerId
   };
   if (fnNumber == 7) {
-      const hasChanges = checkChangeInSoldItems();
-      if (!hasChanges) {
-       alert("Nothing updated, as no changes are made;");
-       return;
-      }
-      payload0.b.a = billSelectedToUpdate.a; 
+   const hasChanges = checkChangeInSoldItems();
+   if (!hasChanges) {
+    alert("Nothing updated, as no changes are made;");
+    return;
+   }
+   payload0.b.a = billSelectedToUpdate.a;
   }
   payload0.r = receivedPayments;
 
@@ -1845,9 +2308,9 @@ async function crUpBill(fnNumber) {
    // Play success sound
    playSound('https://cdn.uppbeat.io/audio-files/550fafd5d5403a2f6e11b6feefd0899e/ca847a02644164ab90c3d80471e5ac23/57f3eeed9ce661826b31f4cf857e3afe/STREAMING-ui-double-digital-beep-gfx-sounds-1-1-00-00.mp3');
   } else {
-    let t1848mp = extractMessages(response);
-    if(t1848mp.length==0)t1848mp = response.ms;
-    alert(t1848mp);
+   let t1848mp = extractMessages(response);
+   if (t1848mp.length == 0) t1848mp = response.ms;
+   alert(t1848mp);
   }
  } catch (error) {
   console.error('Error saving bill:', error);
@@ -1865,7 +2328,6 @@ function extractMessages(data) {
   .join('\n');              // Join with line breaks
 }
 
-// Discount Calculation Functions
 function calculateDiscountFromPercentage() {
  const totalPrice = parseFloat(document.getElementById('totalPrice').textContent) || 0;
  const discountPercentage = parseFloat(document.getElementById('discountPercentage').value) || 0;
@@ -1876,11 +2338,8 @@ function calculateDiscountFromPercentage() {
  const discountAmount = (totalPrice * discountPercentage) / 100;
  document.getElementById('discountAmount').value = discountAmount.toFixed(2);
 
- // Calculate final amount
- const finalAmount = totalPrice - discountAmount;
- document.getElementById('finalAmount').value = finalAmount.toFixed(2);
-
- // Update grand totals
+ // No need to set finalAmount element as it doesn't exist
+ // Just update grand totals directly
  updateGrandTotals();
 }
 
@@ -1894,29 +2353,8 @@ function calculateDiscountFromAmount() {
  const discountPercentage = totalPrice > 0 ? (discountAmount / totalPrice) * 100 : 0;
  document.getElementById('discountPercentage').value = discountPercentage.toFixed(2);
 
- // Calculate final amount
- const finalAmount = totalPrice - discountAmount;
- document.getElementById('finalAmount').value = finalAmount.toFixed(2);
-
- // Update grand totals
- updateGrandTotals();
-}
-
-function calculateDiscountFromFinalAmount() {
- const totalPrice = parseFloat(document.getElementById('totalPrice').textContent) || 0;
- const finalAmount = parseFloat(document.getElementById('finalAmount').value) || 0;
-
- if (totalPrice <= 0) return;
-
- // Calculate discount amount
- const discountAmount = totalPrice - finalAmount;
- document.getElementById('discountAmount').value = discountAmount.toFixed(2);
-
- // Calculate discount percentage
- const discountPercentage = totalPrice > 0 ? (discountAmount / totalPrice) * 100 : 0;
- document.getElementById('discountPercentage').value = discountPercentage.toFixed(2);
-
- // Update grand totals
+ // No need to set finalAmount element as it doesn't exist
+ // Just update grand totals directly
  updateGrandTotals();
 }
 
@@ -2176,13 +2614,13 @@ async function initializeQRScannerInModal(modalInstance, modalContent) {
     }
 
     // Item found - process it
-    document.getElementById('itemIdInput').value = decodedText;
+    document.getElementById('modalItemIdInput').value = decodedText;
 
     // Process the scanned item
-    handleItemIdInput({ target: { value: decodedText } });
+    handleModalItemIdInput({ target: { value: decodedText } });
 
     // Clear the input
-    document.getElementById('itemIdInput').value = '';
+    document.getElementById('modalItemIdInput').value = '';
 
     // Show success message
     document.getElementById('qr-scanner-message').textContent = 'Item found! Checking if added to sale list...';
@@ -2359,7 +2797,7 @@ function handleItemNotFoundNo() {
 async function openQRScanner() {
  try {
   // Check if continuous mode is enabled
-  continuousQRMode = document.getElementById('continuousQRMode').checked;
+  continuousQRMode = document.getElementById('modalContinuousQRMode').checked;
 
   if (continuousQRMode) {
    // Use the existing continuous scanning implementation
@@ -2381,7 +2819,7 @@ async function openQRScanner() {
    showToast('QR scanner is currently unavailable. Please enter the item ID manually.');
   }
 
-  document.getElementById('itemIdInput').focus();
+  document.getElementById('modalItemIdInput').focus();
  }
 }
 
@@ -2446,16 +2884,16 @@ Continuous mode: Items will be added automatically. Click stop or press back but
     isScanningPaused = true;
 
     // Populate the input and process the item
-    document.getElementById('itemIdInput').value = decodedText;
+    document.getElementById('modalItemIdInput').value = decodedText;
 
     // Play QR scan sound
     playSound('https://assets.mixkit.co/active_storage/sfx/1082/1082.wav');
 
     // Process the scanned item
-    handleItemIdInput({ target: { value: decodedText } });
+    handleModalItemIdInput({ target: { value: decodedText } });
 
     // Clear the input
-    document.getElementById('itemIdInput').value = '';
+    document.getElementById('modalItemIdInput').value = '';
 
     // Wait for the configured delay before resuming scanning
     const scanDelay = window[my1uzr.worknOnPg]?.confg?.scanDelayQR || 3000;
@@ -2494,62 +2932,6 @@ Continuous mode: Items will be added automatically. Click stop or press back but
  } catch (error) {
   console.error('Continuous QR Scanner failed:', error);
   throw error;
- }
-}
-
-function handleItemIdInput(event) {
- const itemId = event.target.value.trim();
-
- if (itemId === '') {
-  // Clear any existing dropdown
-  const existingDropdown = document.querySelector('.item-id-dropdown');
-  if (existingDropdown) {
-   existingDropdown.remove();
-  }
-  return;
- }
-
- // Search for items by ID (items.a)
- const matchedItems = items.find((c) => c.a.toString() == itemId);
-
- // Close any existing dropdown
- const existingDropdown = document.querySelector('.item-id-dropdown');
- if (existingDropdown) {
-  existingDropdown.remove();
- }
-
- if (!matchedItems) {
-  // No items found - show toast
-  showToast('No items found with this ID');
-
-  // In continuous mode, clear input and continue scanning
-  if (continuousQRMode && qrScannerActive) {
-   event.target.value = '';
-  }
- } else {
-  // Check if addByQR config exists and is enabled
-  if (window[my1uzr.worknOnPg]?.confg?.addByQR == 1) {
-   // Directly add item to sale list with QR
-   addItemDirectlyFromQR(matchedItems);
-   event.target.value = ''; // Clear the input
-
-   // Set a flag to indicate successful addition
-   window.lastQRScannedItemAdded = true;
-   window.lastQRScannedItemId = matchedItems.a;
-  } else {
-   // Single item found - auto-select it in the form
-   selectItem(matchedItems);
-   event.target.value = ''; // Clear the input
-
-   // Set flag for form selection
-   window.lastQRScannedItemAdded = true;
-   window.lastQRScannedItemId = matchedItems.a;
-  }
-
-  // In continuous mode, item is already added, so just continue
-  if (continuousQRMode && qrScannerActive) {
-   // Input is already cleared above
-  }
  }
 }
 
@@ -2599,27 +2981,28 @@ function incrementItemQuantity(itemCard) {
  const qtyInput = itemCard.querySelector('input[type="number"]');
  const rateInput = itemCard.querySelectorAll('input[type="number"]')[1];
  const priceElement = itemCard.querySelector('span[id^="itemPrice-"]');
- 
+
  if (!qtyInput || !rateInput || !priceElement) {
   console.error('Could not find required elements in item card');
   return;
  }
- 
+
  // Get current values
  const currentQty = parseInt(qtyInput.value) || 1;
  const currentRate = parseFloat(rateInput.value) || 0;
- 
+
  // Calculate new values
  const newQty = currentQty + 1;
  const newPrice = newQty * currentRate;
- 
+
  // Update the UI
  qtyInput.value = newQty;
  priceElement.textContent = newPrice.toFixed(2);
- 
+
  // Update bill summary
  updateBillSummary();
- 
+ updateBillSectionsVisibility();
+
  console.log(`Quantity increased: ${currentQty} → ${newQty}, Price: ${newPrice.toFixed(2)}`);
 }
 
@@ -2639,6 +3022,7 @@ function addItemToSaleList(item, quantity, rate) {
  const uniqueItemId = Date.now();
 
  const addedItemsContainer = document.getElementById('addedItemsContainer');
+ updateBillSectionsVisibility();
 
  const itemHTML = `
 <div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}">
@@ -2718,35 +3102,8 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
  // Update bill summary
  updateBillSummary();
 
- // Clear the form
- clearItemForm();
-
  // Play sound for item addition
  playSound('https://cdn.pixabay.com/download/audio/2025/10/21/audio_3880ed67e2.mp3');
-}
-
-function selectItem(item) {
- // Populate the form with item data
- document.getElementById('itemName').value = item.gn;
- document.getElementById('itemRate').value = item.k;
- document.getElementById('itemQty').value = '1'; // Set default quantity to 1
- calculatePrice(); // Calculate and show the price
-
- // Update the image
- updateItemImage(item.gu);
-
- // Store item ID in a hidden field or data attribute
- const itemNameInput = document.getElementById('itemName');
- itemNameInput.setAttribute('data-item-id', item.a);
-
- // Track usage
- mostUsedItems[item.a] = (mostUsedItems[item.a] || 0) + 1;
-
- // Enable the add button since we have a valid item
- enableAddButton();
-
- // Focus on quantity field for quick editing
- document.getElementById('itemQty').focus();
 }
 
 function showItemDropdown(inputElement) {
@@ -2762,18 +3119,21 @@ function showItemDropdown(inputElement) {
  const dropdown = document.createElement('div');
  dropdown.className = 'item-dropdown';
 
- // Position dropdown below the input relative to the modal
+ // Check if we're in a modal
  const modal = inputElement.closest('.modal');
  if (modal) {
-  const modalRect = modal.getBoundingClientRect();
-  dropdown.style.top = `${rect.bottom - modalRect.top}px`;
-  dropdown.style.left = `${rect.left - modalRect.left}px`;
-  dropdown.style.width = `${rect.width}px`;
+  // Position relative to modal for better control
+  dropdown.style.position = 'fixed';
+  dropdown.style.top = `${rect.bottom}px`;
+  dropdown.style.left = '0';
+  dropdown.style.width = '100%';
+  dropdown.style.maxWidth = '100%';
+  dropdown.style.zIndex = '9999';
 
-  // Append to modal instead of body
-  modal.appendChild(dropdown);
+  // Append to body to avoid modal overflow issues
+  document.body.appendChild(dropdown);
  } else {
-  // Fallback to original positioning if no modal found
+  // Original positioning for non-modal
   dropdown.style.top = `${rect.bottom + window.scrollY}px`;
   dropdown.style.left = '2%';
   dropdown.style.width = '96%';
@@ -2787,7 +3147,7 @@ function showItemDropdown(inputElement) {
   filteredItems = items.filter(item => {
    if (!item || !item.gn) return false;
 
-   // Apply stock filtering based on config - CHANGED: Check item.d != 111 instead of itemsToIgnoreInStockCount
+   // Apply stock filtering based on config
    if (window[my1uzr.worknOnPg].confg.canSaleIfStock == 1 && item.d != 111) {
     // Only show items with available stock > 0
     if (!item.qAvlb || item.qAvlb <= 0) {
@@ -2818,11 +3178,11 @@ function showItemDropdown(inputElement) {
    return (mostUsedItems[b.a] || 0) - (mostUsedItems[a.a] || 0);
   });
  } else {
-  // When no search value, apply stock filtering to all items - CHANGED: Check item.d != 111 instead of itemsToIgnoreInStockCount
+  // When no search value, apply stock filtering to all items
   filteredItems = items.filter(item => {
    if (!item || !item.gn) return false;
 
-   // Apply stock filtering based on config - CHANGED: Check item.d != 111 instead of itemsToIgnoreInStockCount
+   // Apply stock filtering based on config
    if (window[my1uzr.worknOnPg].confg.canSaleIfStock == 1 && item.d != 111) {
     // Only show items with available stock > 0
     return item.qAvlb && item.qAvlb > 0;
@@ -2885,7 +3245,7 @@ ${stockIndicator}
 </div>
 `;
 
-   // Add disabled styling for out-of-stock items - CHANGED: Check item.d != 111 instead of itemsToIgnoreInStockCount
+   // Add disabled styling for out-of-stock items
    if (window[my1uzr.worknOnPg].confg.canSaleIfStock == 1 &&
     item.d != 111 &&
     (!item.qAvlb || item.qAvlb <= 0)) {
@@ -2903,15 +3263,22 @@ ${stockIndicator}
       blurTimeout = null;
      }
 
-     // Select the item
-     selectItem(item);
+     // Select the item - pass the inputElement context
+     if (inputElement.id === 'modalItemName') {
+      selectModalItem(item);
+     }
 
      // Remove dropdown
      dropdown.remove();
 
-     // Focus on quantity field
+     // Focus on quantity field - check if we're in modal or main form
      setTimeout(() => {
-      document.getElementById('itemQty').focus();
+      if (inputElement.id === 'modalItemName') {
+       const modalQty = document.getElementById('modalItemQty');
+       if (modalQty) {
+        modalQty.focus();
+       }
+      }
      }, 10);
     });
    }
@@ -2931,153 +3298,6 @@ ${stockIndicator}
  setTimeout(() => {
   document.addEventListener('click', clickHandler);
  }, 100);
-}
-
-async function handleAddNewItem(nwProdNm = '') {
- // Close the dropdown first
- const dropdown = document.querySelector('.item-dropdown');
- if (dropdown) {
-  dropdown.remove();
- }
-
- // If no name provided, get current item name value
- if (!nwProdNm) {
-  nwProdNm = document.getElementById('itemName').value.trim();
- }
- //0ni changeed to bn.js
- //await loadExecFn("set_add_itm_nw_innerHTML", "set_add_itm_nw_innerHTML", [nwProdNm], "loader", "https://cdn.jsdelivr.net/gh/sifr-in/cdn@734983c/b/bn.min.js", []);
- await loadExe2Fn(11, [nwProdNm], [1]);
-}
-
-// Price Calculation
-function calculatePrice() {
- const qty = parseFloat(document.getElementById('itemQty').value) || 0;
- const rate = parseFloat(document.getElementById('itemRate').value) || 0;
- const price = qty * rate;
- document.getElementById('itemPrice').value = price.toFixed(2);
-}
-
-// Add Item to Invoice with validation and quantity increment logic
-function addItemToInvoice() {
- const name = document.getElementById('itemName').value.trim();
- const qty = parseInt(document.getElementById('itemQty').value) || 1;
- const rate = parseFloat(document.getElementById('itemRate').value) || 0;
- const price = parseFloat(document.getElementById('itemPrice').value) || 0;
- const description = document.getElementById('itemDescription').value;
- const itemId = document.getElementById('itemName').getAttribute('data-item-id');
- const imageUrl = document.querySelector('#itemImageContainer img')?.src || '';
-
- if (!name) {
-  return validateAndScrollToField('itemName', 'Please enter item name');
- }
-
- if (!price || parseFloat(price) <= 0) {
-  return validateAndScrollToField('itemRate', 'Please enter a valid price');
- }
-
- // Check if item already exists in sale list with same rate
- const existingItem = findExistingItemInSaleList(itemId, rate);
-
- if (existingItem) {
-  // Item exists with same rate - increment quantity
-  incrementItemQuantity(existingItem);
-  showToast(`Quantity increased for ${name}`);
-
-  // Clear the form
-  clearItemForm();
-
-  // Play sound for item addition
-  playSound('https://cdn.pixabay.com/download/audio/2025/10/21/audio_3880ed67e2.mp3');
-  return;
- }
-
- // If item doesn't exist or has different rate, add as new item
- const addedItemsContainer = document.getElementById('addedItemsContainer');
- const uniqueItemId = Date.now(); // Unique ID for each item
-
- const itemHTML = `
-<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}">
-<div class="card-body">
-<div class="row">
-<!-- Left side - Image (fixed 3 columns) -->
-<div class="col-3">
-<div class="text-center">
-${imageUrl ?
-   `<img src="${imageUrl}" class="added-item-image" alt="Item Image" 
-onerror="this.style.display='none'; this.parentElement.innerHTML = '<i class=\\'fas fa-image fa-2x text-muted\\'></i><div class=\\'mt-1\\'><small class=\\'text-muted\\'>No Image</small></div>'">` :
-   `<i class="fas fa-image fa-2x text-muted"></i>
-<div class="mt-1">
-<small class="text-muted">No Image</small>
-</div>`
-  }
-</div>
-</div>
-
-<!-- Right side - Details (fixed 9 columns) -->
-<div class="col-9">
-<!-- Row 1 - Item Name -->
-<div class="row mb-2 g-0">
-<div class="col-10">
-<strong>${name}</strong>
-</div>
-<div class="col-2 d-flex align-items-center justify-content-end">
-<button class="btn btn-outline-danger btn-sm" onclick="removeItemFromInvoice(${uniqueItemId})">
-<i class="fas fa-trash"></i>
-</button>
-</div>
-</div>
-
-<!-- Row 2 - Quantity, Rate, Price (fixed 4-4-4 columns) -->
-<div class="row mb-2 g-0">
-<div class="col-4">
-<strong>Qty:</strong> 
-<input type="number" 
-class="form-control form-control-sm d-inline-block w-auto" 
-value="${qty}" 
-min="1" 
-step="1"
-style="width: 70px; display: inline-block;"
-onchange="updateItemQuantity(${uniqueItemId}, parseFloat(this.value))"
-onblur="updateItemQuantity(${uniqueItemId}, parseFloat(this.value))">
-</div>
-<div class="col-4">
-<strong>Rate:</strong> 
-<input type="number" 
-class="form-control form-control-sm d-inline-block w-auto" 
-value="${rate.toFixed(2)}" 
-min="0" 
-step="0.01"
-style="width: 80px; display: inline-block;"
-onchange="updateItemRate(${uniqueItemId}, this.value)"
-onblur="updateItemRate(${uniqueItemId}, this.value)">
-</div>
-<div class="col-4">
-<strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${price.toFixed(2)}</span>
-</div>
-</div>
-
-<!-- Row 3 - Description -->
-<div class="row g-0">
-<div class="col-12">
-<small class="text-muted">${description || ''}</small>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-`;
-
- addedItemsContainer.insertAdjacentHTML('beforeend', itemHTML);
-
- // Clear the form
- clearItemForm();
-
- // Update bill summary
- updateBillSummary();
-
- // Play sound for item addition
- playSound('https://cdn.pixabay.com/download/audio/2025/10/21/audio_3880ed67e2.mp3');
 }
 
 // Inline Edit Functions for Quantity and Rate
@@ -3145,6 +3365,8 @@ function removeItemFromInvoice(itemId) {
  if (itemElement && confirm('Are you sure you want to remove this item?')) {
   itemElement.remove();
   updateBillSummary();
+
+  updateBillSectionsVisibility();
  }
 }
 
@@ -3210,10 +3432,8 @@ function calculateLoadedBillTotals() {
  document.getElementById('totalQuantity').textContent = totalQuantity;
  document.getElementById('totalPrice').textContent = totalPrice.toFixed(2);
 
- // Set final amount (you might want to store discount info in your bill object)
- document.getElementById('finalAmount').value = totalPrice.toFixed(2);
-
- // Update grand totals
+ // No need to set finalAmount as it doesn't exist
+ // Just update grand totals
  updateGrandTotals();
 }
 
@@ -3230,19 +3450,19 @@ function updateBillSummary() {
 function initializeReceivedAmountForm() {
  // Flatpickr already handles the initial value
 }
-
 function addReceivedAmount() {
-const hasChanges = checkChangeInSoldItems();
-if (billSelectedToUpdate && !hasChanges) {
- let sCurrItems = stored_bill_items.filter(item => item.e == billSelectedToUpdate.a);
- let cCashInfo = stored_bill_cash_info.filter(cash => cash.tb == 7 && cash.td == billSelectedToUpdate.a);
- showAlreadyReceivedAmts(billSelectedToUpdate.a, sCurrItems, cCashInfo);
- return;
-}
+ const hasChanges = checkChangeInSoldItems();
+ if (billSelectedToUpdate && !hasChanges) {
+  let sCurrItems = stored_bill_items.filter(item => item.e == billSelectedToUpdate.a);
+  let cCashInfo = stored_bill_cash_info.filter(cash => cash.tb == 7 && cash.td == billSelectedToUpdate.a);
+  showAlreadyReceivedAmts(billSelectedToUpdate.a, sCurrItems, cCashInfo);
+  return;
+ }
 
  const dateTime = document.getElementById('receivedDateTime').value;
  const amount = parseFloat(document.getElementById('receivedAmount').value) || 0;
  const paymentType = document.getElementById('paymentType').value;
+ const clientId = parseInt(document.getElementById('clientId').value) || 0;
 
  // Validation
  if (!dateTime) {
@@ -3253,28 +3473,84 @@ if (billSelectedToUpdate && !hasChanges) {
   return validateAndScrollToField('receivedAmount', 'Please enter a valid amount');
  }
 
- // Create received amount object
- const receivedAmount = {
-  id: -Date.now(),
-  dateTime: dateTime,
-  amount: amount,
-  paymentType: paymentType,
-  timestamp: new Date().toISOString()
- };
+ if (!clientId || clientId === 0) {
+  return validateAndScrollToField('c_dtls_lient', 'Please select a customer first');
+ }
 
- // Add to array
- receivedAmounts.push(receivedAmount);
+ // Extract date part (YYYY-MM-DD)
+ const paymentDate = dateTime.split(' ')[0];
 
- // Update UI
- updateReceivedAmountsUI();
+ // Validate payment uniqueness
+ (async () => {
+  const validationResult = await validatePaymentUniqueness(clientId, amount, dateTime, paymentType);
 
- // Clear form
- clearReceivedAmountForm();
+  let constraintCounter = 0; // Default to 1 for first payment on this date
 
- // Update grand totals
- updateGrandTotals();
+  console.log('Validation result:', validationResult);
+
+  if (validationResult.matchingCount > 0) {
+   // Same amount/date payments exist for THIS SPECIFIC DATE
+   let message = `Same amount (₹${amount.toFixed(2)}) on same date (${paymentDate}) already exists.\n\n`;
+
+   if (validationResult.matchingCount === 1) {
+    message += `Existing constraint counter: ${validationResult.existingConstraint}`;
+   } else {
+    message += `Existing constraint counters: 0 to ${validationResult.existingConstraint}`;
+   }
+
+   const nextCounter = validationResult.nextConstraint;
+   message += `\n\nDo you want to add another payment with constraint counter ${nextCounter}?`;
+
+   console.log('Asking user:', message);
+
+   const userResponse = confirm(message);
+
+   if (!userResponse) {
+    console.log('User cancelled');
+    return;
+   }
+
+   constraintCounter = nextCounter;
+   console.log('Setting constraint counter to:', constraintCounter);
+  } else {
+   // No matching payments for this date
+   console.log('No matching payments for date', paymentDate, '- using constraint counter 1');
+   constraintCounter = 0;
+  }
+
+  // Create received amount object with constraint counter
+  const receivedAmount = {
+   id: -Date.now(),
+   dateTime: dateTime,
+   amount: amount,
+   paymentType: paymentType,
+   constraintCounter: constraintCounter || 0,
+   clientId: clientId,
+   timestamp: new Date().toISOString()
+  };
+
+  console.log('Adding payment with constraint counter:', constraintCounter, receivedAmount);
+
+  // Add to array
+  receivedAmounts.push(receivedAmount);
+
+  // Update UI
+  updateReceivedAmountsUI();
+
+  // Clear form
+  clearReceivedAmountForm();
+
+  // Update grand totals
+  updateGrandTotals();
+
+  // Show success message with constraint counter info
+  if (constraintCounter > 0) {
+   showToast(`Payment added successfully! Constraint counter: ${constraintCounter}`);
+  } else {
+   showToast('Payment added successfully!');
+  }
+ })();
 }
-
 function updateReceivedAmountsUI() {
  const container = document.getElementById('addedReceivedAmountsContainer');
 
@@ -3294,6 +3570,10 @@ function updateReceivedAmountsUI() {
   const paymentTypeIcon = getPaymentTypeIcon(payment.paymentType);
   const formattedDate = formatDateTime(payment.dateTime);
 
+  // Only show constraint counter badge if > 1
+  const constraintCounterBadge = payment.constraintCounter > 0 ?
+   `<span class="badge bg-${getConstraintCounterColor(payment.constraintCounter)} ms-1" title="Constraint counter: ${payment.constraintCounter}">#${payment.constraintCounter}</span>` : '';
+
   html += `
 <div class="card mb-2 received-amount-card" id="receivedAmount-${payment.id}">
 <div class="card-body py-2">
@@ -3302,7 +3582,7 @@ function updateReceivedAmountsUI() {
 <small class="text-muted">${formattedDate}</small>
 </div>
 <div class="col-4">
-<strong>${paymentTypeIcon} ₹${payment.amount.toFixed(2)}</strong>
+<strong>${paymentTypeIcon} ₹${payment.amount.toFixed(2)}${constraintCounterBadge}</strong>
 </div>
 <div class="col-2 text-end">
 <div class="dropdown">
@@ -3324,10 +3604,9 @@ function updateReceivedAmountsUI() {
 
  container.innerHTML = html;
 }
-
 function getPaymentTypeIcon(type) {
  const paymentTypeIcons = {
-  '0': '0', // Unknown
+  '0': '*', // Unknown
   '1': 'C', // Cash
   '2': 'Q', // Cheque
   '3': 'A', // Card
@@ -3348,7 +3627,6 @@ function getPaymentTypeText(type) {
  };
  return paymentTypes[type] || 'Unknown';
 }
-
 function updatePayment(paymentId) {
  // Find the payment to update
  const paymentIndex = receivedAmounts.findIndex(payment => payment.id === paymentId);
@@ -3356,12 +3634,18 @@ function updatePayment(paymentId) {
 
  const payment = receivedAmounts[paymentIndex];
 
+ // Store original values
+ const originalPayment = { ...payment };
+
  // Populate the form with existing payment data
  document.getElementById('receivedDateTime').value = payment.dateTime;
  document.getElementById('receivedAmount').value = payment.amount;
  document.getElementById('paymentType').value = payment.paymentType;
 
- // Remove the payment from the array
+ // Store original payment data in a global variable for validation
+ window.paymentBeingEdited = originalPayment;
+
+ // Remove the payment from the array temporarily
  receivedAmounts.splice(paymentIndex, 1);
 
  // Update UI
@@ -3374,15 +3658,151 @@ function updatePayment(paymentId) {
  window.scrollTo({ top: scrollTopPosition, behavior: 'smooth' });
  document.getElementById('receivedAmount').focus();
 
- showToast('Payment loaded for editing. Update the details and click Add to save.');
-}
+ // Replace the add button temporarily
+ const originalAddButton = document.querySelector('button[onclick="addReceivedAmount()"]');
+ if (originalAddButton) {
+  originalAddButton.setAttribute('onclick', `validateAndUpdatePayment(${paymentId})`);
+  originalAddButton.innerHTML = '<i class="fas fa-save me-2"></i>Update Payment';
+  originalAddButton.classList.remove('btn-primary');
+  originalAddButton.classList.add('btn-warning');
+ }
 
+ showToast('Payment loaded for editing. Update the details and click "Update Payment" to save.');
+}
+async function validateAndUpdatePayment(paymentId) {
+ const dateTime = document.getElementById('receivedDateTime').value;
+ const amount = parseFloat(document.getElementById('receivedAmount').value) || 0;
+ const paymentType = document.getElementById('paymentType').value;
+ const clientId = parseInt(document.getElementById('clientId').value) || 0;
+
+ // Validation
+ if (!dateTime) {
+  return validateAndScrollToField('receivedDateTime', 'Please select date and time');
+ }
+
+ if (amount <= 0) {
+  return validateAndScrollToField('receivedAmount', 'Please enter a valid amount');
+ }
+
+ if (!clientId || clientId === 0) {
+  return validateAndScrollToField('c_dtls_lient', 'Please select a customer');
+ }
+
+ // Get original payment data
+ const originalPayment = window.paymentBeingEdited;
+ if (!originalPayment) {
+  showToast('Error: Original payment data not found');
+  return;
+ }
+
+ // Extract date parts
+ const paymentDate = dateTime.split(' ')[0];
+ const originalPaymentDate = originalPayment.dateTime.split(' ')[0];
+
+ // Check if values have changed
+ const hasChanged = Math.abs(amount - originalPayment.amount) > 0.001 ||
+  paymentDate !== originalPaymentDate ||
+  paymentType !== originalPayment.paymentType;
+
+ let constraintCounter = originalPayment.constraintCounter || 0;
+
+ if (hasChanged) {
+  // Values have changed, need to validate uniqueness
+  // First, exclude the original payment from validation
+  const tempValidationArray = receivedAmounts.filter(p => p.id !== paymentId);
+  const originalReceivedAmounts = [...receivedAmounts];
+
+  // Temporarily remove the original payment for validation
+  receivedAmounts = tempValidationArray;
+
+  const validationResult = await validatePaymentUniqueness(clientId, amount, dateTime, paymentType);
+
+  // Restore the original array
+  receivedAmounts = originalReceivedAmounts;
+
+  if (validationResult.matchingCount > 0) {
+   // Same amount/date payments exist
+   let message = `Same amount (₹${amount.toFixed(2)}) on same date (${paymentDate}) already exists.\n\n`;
+
+   if (validationResult.matchingCount === 1) {
+    message += `Existing constraint counter: ${validationResult.existingConstraint}\n\n`;
+   } else {
+    message += `Existing constraint counters: 0 to ${validationResult.existingConstraint}\n\n`;
+   }
+
+   message += `Do you want to update with constraint counter ${validationResult.nextConstraint}?`;
+
+   const userResponse = confirm(message);
+
+   if (!userResponse) {
+    // Restore original payment
+    receivedAmounts.push(originalPayment);
+    updateReceivedAmountsUI();
+    updateGrandTotals();
+    return;
+   }
+   constraintCounter = validationResult.nextConstraint - 1;
+  }
+ }
+
+ // Create updated payment object
+ const updatedPayment = {
+  id: paymentId,
+  dateTime: dateTime,
+  amount: amount,
+  paymentType: paymentType,
+  constraintCounter: constraintCounter || 0,
+  clientId: clientId,
+  timestamp: new Date().toISOString()
+ };
+
+ // Add to array
+ receivedAmounts.push(updatedPayment);
+
+ // Update UI
+ updateReceivedAmountsUI();
+ updateGrandTotals();
+
+ // Clear form
+ clearReceivedAmountForm();
+
+ // Clear the editing state
+ window.paymentBeingEdited = null;
+
+ // Restore the original add button
+ const addButton = document.querySelector('button[onclick^="validateAndUpdatePayment"]');
+ if (addButton) {
+  addButton.setAttribute('onclick', 'addReceivedAmount()');
+  addButton.innerHTML = '<i class="fas fa-plus"></i>';
+  addButton.classList.remove('btn-warning');
+  addButton.classList.add('btn-primary');
+ }
+
+ // Show success message
+ if (constraintCounter > 0) {
+  showToast(`Payment updated successfully! Constraint counter: ${constraintCounter}`);
+ } else {
+  showToast('Payment updated successfully!');
+ }
+}
 function removeReceivedAmount(id) {
+ // Find the payment to get its details
+ const payment = receivedAmounts.find(p => p.id === id);
+
+ if (payment) {
+  // Show confirmation with constraint counter info
+  const constraintInfo = payment.constraintCounter > 0 ?
+   ` (Constraint counter: ${payment.constraintCounter})` : '';
+
+  if (!confirm(`Remove payment of ₹${payment.amount.toFixed(2)}${constraintInfo}?`)) {
+   return;
+  }
+ }
+
  receivedAmounts = receivedAmounts.filter(payment => payment.id !== id);
  updateReceivedAmountsUI();
  updateGrandTotals();
 }
-
 function formatDateTime(dateTimeString) {
  const date = new Date(dateTimeString);
  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -3395,10 +3815,22 @@ function clearReceivedAmountForm() {
 }
 
 function updateGrandTotals() {
- const finalAmount = parseFloat(document.getElementById('finalAmount').value) || 0;
+ // Get total price from items
+ const totalPrice = parseFloat(document.getElementById('totalPrice').textContent) || 0;
+
+ // Get discount amount
+ const discountAmount = parseFloat(document.getElementById('discountAmount').value) || 0;
+
+ // Calculate final amount after discount
+ const finalAmount = totalPrice - discountAmount;
+
+ // Get total received
  const totalReceived = receivedAmounts.reduce((sum, payment) => sum + payment.amount, 0);
+
+ // Calculate balance
  const balance = finalAmount - totalReceived;
 
+ // Update display elements
  document.getElementById('grandBillTotal').textContent = finalAmount.toFixed(2);
  document.getElementById('grandTotalReceived').textContent = totalReceived.toFixed(2);
  document.getElementById('grandBalance').textContent = balance.toFixed(2);
@@ -3411,38 +3843,6 @@ function updateGrandTotals() {
   balanceElement.className = 'text-warning';
  } else {
   balanceElement.className = 'text-danger';
- }
-}
-
-// Utility Functions
-function clearItemForm() {
- document.getElementById('itemName').value = '';
- document.getElementById('itemName').removeAttribute('data-item-id');
- document.getElementById('itemQty').value = '1';
- document.getElementById('itemRate').value = '';
- document.getElementById('itemPrice').value = '';
- document.getElementById('itemDescription').value = '';
- document.getElementById('itemIdInput').value = '';
- updateItemImage('');
-}
-
-function updateItemImage(imageUrl) {
- const imageContainer = document.getElementById('itemImageContainer');
- if (imageUrl && imageUrl !== '') {
-  imageContainer.innerHTML = `
-<img src="${imageUrl}" 
-class="img-fluid rounded" 
-alt="Item Image"
-style="max-width: 100%; height: auto; max-height: 120px; object-fit: cover;"
-onerror="this.style.display='none'; document.getElementById('itemImageContainer').innerHTML = '<i class=\\'fas fa-image fa-3x text-muted\\'></i><div class=\\'mt-2\\'><small class=\\'text-muted\\'>No Image</small></div>'">
-`;
- } else {
-  imageContainer.innerHTML = `
-<i class="fas fa-image fa-3x text-muted"></i>
-<div class="mt-2">
-<small class="text-muted">No Image</small>
-</div>
-`;
  }
 }
 
@@ -3471,7 +3871,424 @@ font-size: 14px;
 function addDropdownStyles() {
  const style = document.createElement('style');
  style.textContent = `
-.item-dropdown{position:absolute;background:#fff;border:1px solid #ddd;border-radius:4px;box-shadow:0 2px 10px rgb(0 0 0 / .1);z-index:1000;max-height:300px;overflow-y:auto;width:96%;left:2%}.item-dropdown-item{display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background-color 0.2s}.item-dropdown-item:last-child{border-bottom:none}.item-dropdown-item:hover{background-color:#f8f9fa}.item-dropdown-item img{width:40px;height:40px;object-fit:cover;border-radius:4px;margin-right:12px}.item-dropdown-item .item-name{flex:1;font-weight:500;line-height:1.2}.item-dropdown-item .item-price{text-align:right;color:#28a745;font-weight:500;line-height:1.2}.row.g-0>[class*="col-"]{padding-left:5px;padding-right:5px}.row.g-0 .input-group{margin-bottom:0}.added-item-card{border-left:4px solid #28a745!important}.added-item-image{max-width:80px;max-height:80px;object-fit:cover;border-radius:4px}.added-item-card .form-control-sm{display:inline-block!important;height:24px;padding:0 4px;font-size:.875rem;margin-left:4px}.added-item-card .form-control-sm:focus{border-color:#007bff;box-shadow:0 0 0 .2rem rgb(0 123 255 / .25)}.added-item-card .btn-outline-danger.btn-sm{padding:2px 6px;font-size:.75rem;border-width:1px}.added-item-card .btn-outline-danger.btn-sm:hover{background-color:#dc3545;color:#fff}.added-item-card strong{font-size:.9rem;margin-right:4px}[id^="itemPrice-"]{font-weight:700;color:#28a745}.qr-scanner-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgb(0 0 0 / .8);z-index:2000;display:flex;justify-content:center;align-items:center}.qr-scanner-content{background:#fff;padding:20px;border-radius:8px;text-align:center;max-width:90%;max-height:90%}#qr-reader.scanner-container{position:fixed!important;top:50%;left:50%;transform:translate(-50%,-50%)}.received-amount-card{border-left:4px solid #007bff!important;transition:all 0.3s ease}.received-amount-card:hover{transform:translateY(-2px);box-shadow:0 4px 8px rgb(0 0 0 / .1)}.badge.bg-secondary{font-size:.75rem;padding:4px 8px}.card.border-success{border-width:2px!important}.bg-light{background-color:#f8f9fa!important}.flatpickr-input{background-color:white!important}.btn-success,.btn-warning,.btn-info{font-weight:600;padding:10px 16px}.btn:disabled{opacity:.6;cursor:not-allowed;transform:none!important}.btn-secondary:disabled{background-color:#6c757d!important;border-color:#6c757d!important}.btn:disabled:hover{transform:none!important;box-shadow:none!important}.input-group-sm{margin-bottom:.5rem}.input-group-sm .form-control{font-size:.875rem}.input-group-sm .input-group-text{font-size:.875rem;padding:.25rem .5rem}.btn-success.btn-sm{padding:.25rem .5rem;font-size:.75rem;height:38px}.form-switch .form-check-input{height:1.2rem;width:2.4rem;cursor:pointer}.form-switch .form-check-input:checked{background-color:#28a745;border-color:#28a745}.form-switch .form-check-label{font-size:.8rem;color:#495057;cursor:pointer}.alert-success{padding:.5rem 1rem;font-size:.8rem;animation:fadeIn 0.3s ease-in}@keyframes fadeIn{from{opacity:0}to{opacity:1}}#stopContinuousScan{margin-top:10px}#qr-scanner_modal .modal-dialog{max-width:500px}#qr-reader-container{min-height:300px;display:flex;flex-direction:column;justify-content:center;align-items:center}#qr-scanner-status{text-align:center}#qr-scanner-loading{width:3rem;height:3rem}#qr-scanner-message{font-size:.9rem;margin-top:10px}#item_not_found_modal .modal-dialog{max-width:400px}@media (max-width:576px){.row.g-2>[class*="col-"]{margin-bottom:.5rem}.input-group-sm{margin-bottom:.25rem}.btn-success,.btn-warning,.btn-info{padding:8px 12px;font-size:.9rem}.btn-success.btn-sm{height:36px}.added-item-card .form-control-sm{width:60px!important;font-size:.8rem}#qr-scanner_modal .modal-dialog{margin:10px}}@media (min-width:576px){.row.g-2.align-items-end{align-items:end!important}.input-group-sm{margin-bottom:0}}.dropdown-menu{z-index:9999!important}.received-amount-card,.card,.modal-body{position:static!important}#received_amount_modal .modal-dialog{max-width:600px}#addedReceivedAmountsContainerModal{max-height:400px;overflow-y:auto}.received-amount-card{border-left:4px solid #007bff!important}.badge{font-size:.6rem;padding:2px 4px}.bg-warning{background-color:#ffc107!important;color:#000!important}.bg-danger{background-color:#dc3545!important;color:#fff!important}.item-dropdown-item.disabled{opacity:.6;cursor:not-allowed!important}.item-dropdown-item.disabled:hover{background-color:transparent!important}
+.item-dropdown{
+position: absolute;
+background: #fff;
+border: 1px solid #ddd;
+border-radius: 4px;
+box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+z-index: 1000;
+max-height: 300px;
+overflow-y: auto;
+width: 96%;
+left: 2%
+}
+
+/* Modal-specific dropdown styles */
+.item-dropdown.modal-dropdown {
+position: fixed !important;
+top: auto !important;
+left: 0 !important;
+width: 100% !important;
+max-width: 100% !important;
+z-index: 9999 !important;
+border-radius: 0;
+border-left: none;
+border-right: none;
+border-bottom: 1px solid #ddd;
+box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.item-dropdown-item{
+display: flex;
+align-items: center;
+padding: 8px 12px;
+border-bottom: 1px solid #f0f0f0;
+cursor: pointer;
+transition: background-color 0.2s;
+min-height: 60px;
+}
+
+.item-dropdown-item:last-child{
+border-bottom: none;
+}
+
+.item-dropdown-item:hover{
+background-color: #f8f9fa;
+}
+
+.item-dropdown-item img{
+width: 40px;
+height: 40px;
+object-fit: cover;
+border-radius: 4px;
+margin-right: 12px;
+}
+
+.item-dropdown-item .item-name{
+flex: 1;
+font-weight: 500;
+line-height: 1.2;
+min-width: 0; /* Allows text to wrap */
+overflow-wrap: break-word;
+}
+
+.item-dropdown-item .item-price{
+text-align: right;
+color: #28a745;
+font-weight: 500;
+line-height: 1.2;
+min-width: 80px;
+}
+
+.row.g-0>[class*="col-"]{
+padding-left: 5px;
+padding-right: 5px;
+}
+
+.row.g-0 .input-group{
+margin-bottom: 0;
+}
+
+.added-item-card{
+border-left: 4px solid #28a745 !important;
+}
+
+.added-item-image{
+max-width: 80px;
+max-height: 80px;
+object-fit: cover;
+border-radius: 4px;
+}
+
+.added-item-card .form-control-sm{
+display: inline-block !important;
+height: 24px;
+padding: 0 4px;
+font-size: .875rem;
+margin-left: 4px;
+}
+
+.added-item-card .form-control-sm:focus{
+border-color: #007bff;
+box-shadow: 0 0 0 .2rem rgba(0, 123, 255, .25);
+}
+
+.added-item-card .btn-outline-danger.btn-sm{
+padding: 2px 6px;
+font-size: .75rem;
+border-width: 1px;
+}
+
+.added-item-card .btn-outline-danger.btn-sm:hover{
+background-color: #dc3545;
+color: #fff;
+}
+
+.added-item-card strong{
+font-size: .9rem;
+margin-right: 4px;
+}
+
+[id^="itemPrice-"]{
+font-weight: 700;
+color: #28a745;
+}
+
+.qr-scanner-modal{
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.8);
+z-index: 2000;
+display: flex;
+justify-content: center;
+align-items: center;
+}
+
+.qr-scanner-content{
+background: #fff;
+padding: 20px;
+border-radius: 8px;
+text-align: center;
+max-width: 90%;
+max-height: 90%;
+}
+
+#qr-reader.scanner-container{
+position: fixed !important;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+}
+
+.received-amount-card{
+border-left: 4px solid #007bff !important;
+transition: all 0.3s ease;
+}
+
+.received-amount-card:hover{
+transform: translateY(-2px);
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.badge.bg-secondary{
+font-size: .75rem;
+padding: 4px 8px;
+}
+
+.card.border-success{
+border-width: 2px !important;
+}
+
+.bg-light{
+background-color: #f8f9fa !important;
+}
+
+.flatpickr-input{
+background-color: white !important;
+}
+
+.btn-success, .btn-warning, .btn-info{
+font-weight: 600;
+padding: 10px 16px;
+}
+
+.btn:disabled{
+opacity: .6;
+cursor: not-allowed;
+transform: none !important;
+}
+
+.btn-secondary:disabled{
+background-color: #6c757d !important;
+border-color: #6c757d !important;
+}
+
+.btn:disabled:hover{
+transform: none !important;
+box-shadow: none !important;
+}
+
+.input-group-sm{
+margin-bottom: .5rem;
+}
+
+.input-group-sm .form-control{
+font-size: .875rem;
+}
+
+.input-group-sm .input-group-text{
+font-size: .875rem;
+padding: .25rem .5rem;
+}
+
+.btn-success.btn-sm{
+padding: .25rem .5rem;
+font-size: .75rem;
+height: 38px;
+}
+
+.form-switch .form-check-input{
+height: 1.2rem;
+width: 2.4rem;
+cursor: pointer;
+}
+
+.form-switch .form-check-input:checked{
+background-color: #28a745;
+border-color: #28a745;
+}
+
+.form-switch .form-check-label{
+font-size: .8rem;
+color: #495057;
+cursor: pointer;
+}
+
+.alert-success{
+padding: .5rem 1rem;
+font-size: .8rem;
+animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn{
+from{ opacity: 0; }
+to{ opacity: 1; }
+}
+
+#stopContinuousScan{
+margin-top: 10px;
+}
+
+#qr-scanner_modal .modal-dialog{
+max-width: 500px;
+}
+
+#qr-reader-container{
+min-height: 300px;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+}
+
+#qr-scanner-status{
+text-align: center;
+}
+
+#qr-scanner-loading{
+width: 3rem;
+height: 3rem;
+}
+
+#qr-scanner-message{
+font-size: .9rem;
+margin-top: 10px;
+}
+
+#item_not_found_modal .modal-dialog{
+max-width: 400px;
+}
+
+@media (max-width: 576px){
+.row.g-2>[class*="col-"]{
+margin-bottom: .5rem;
+}
+
+.input-group-sm{
+margin-bottom: .25rem;
+}
+
+.btn-success, .btn-warning, .btn-info{
+padding: 8px 12px;
+font-size: .9rem;
+}
+
+.btn-success.btn-sm{
+height: 36px;
+}
+
+.added-item-card .form-control-sm{
+width: 60px !important;
+font-size: .8rem;
+}
+
+#qr-scanner_modal .modal-dialog{
+margin: 10px;
+}
+
+/* Mobile dropdown styles */
+.item-dropdown.modal-dropdown {
+max-height: 50vh;
+}
+}
+
+@media (min-width: 576px){
+.row.g-2.align-items-end{
+align-items: end !important;
+}
+
+.input-group-sm{
+margin-bottom: 0;
+}
+}
+
+.dropdown-menu{
+z-index: 9999 !important;
+}
+
+.received-amount-card, .card, .modal-body{
+position: static !important;
+}
+
+#received_amount_modal .modal-dialog{
+max-width: 600px;
+}
+
+#addedReceivedAmountsContainerModal{
+max-height: 400px;
+overflow-y: auto;
+}
+
+.received-amount-card{
+border-left: 4px solid #007bff !important;
+}
+
+.badge{
+font-size: .6rem;
+padding: 2px 4px;
+}
+
+.bg-warning{
+background-color: #ffc107 !important;
+color: #000 !important;
+}
+
+.bg-danger{
+background-color: #dc3545 !important;
+color: #fff !important;
+}
+
+.item-dropdown-item.disabled{
+opacity: .6;
+cursor: not-allowed !important;
+}
+
+.item-dropdown-item.disabled:hover{
+background-color: transparent !important;
+}
+
+/* Ensure dropdown works in modal */
+.modal {
+overflow: visible !important;
+}
+
+.modal-body {
+overflow: visible !important;
+}
+
+/* Dropdown item text wrapping */
+.item-dropdown-item .item-name small {
+display: block;
+white-space: normal;
+overflow: hidden;
+text-overflow: ellipsis;
+max-height: 2.4em;
+line-height: 1.2em;
+}
+
+/* For mobile modal dropdowns */
+@media (max-width: 768px) {
+.item-dropdown.modal-dropdown {
+position: fixed !important;
+top: 0 !important;
+left: 0 !important;
+right: 0 !important;
+bottom: 0 !important;
+width: 100% !important;
+height: 100% !important;
+max-height: 100% !important;
+border-radius: 0;
+border: none;
+box-shadow: none;
+background: rgba(255, 255, 255, 0.98);
+z-index: 99999 !important;
+}
+
+.item-dropdown.modal-dropdown .item-dropdown-item {
+padding: 12px 16px;
+min-height: 70px;
+border-bottom: 1px solid #eee;
+}
+
+.item-dropdown.modal-dropdown .item-dropdown-item img {
+width: 50px;
+height: 50px;
+}
+}
 `;
  document.head.appendChild(style);
 }
@@ -3481,6 +4298,7 @@ function commonFnToRunAfter_op_ViewCall(obj, swtch) {
   // Set values to client
   document.getElementById('c_dtls_lient').value = obj.i + " " + obj.h + " " + obj.e;
   document.getElementById('clientId').value = obj.a;
+  document.getElementById('dv_for_add_itm_btn').style.display = "block";
  } else if (swtch === 2) {
   // Set values to referrer
   document.getElementById('r_dtls_eferrer').value = obj.i + " " + obj.h + " " + obj.e;
@@ -3711,135 +4529,6 @@ function handl_op_rspons(response, reload = 0) {
      if (uniqueBillsArray.length > 0) {
       const t3574mp = await dbDexieManager.insertToDexie(dbnm, "b", uniqueBillsArray, true, ["g"]);
       stored_bill = await dbDexieManager.getAllRecords(dbnm, "b") || [];
-
-
-
-
-
-
-
-
-
-
-      /*const clientIds = [...new Set(uniqueBillsArray.map(bill => bill.e).filter(id => id))];
-      
-      for (const clientId of clientIds) {
-      // Get all bills for this client
-      const allBillsOfCurrentClient = stored_bill.filter(bill => bill.e == clientId);
-      
-      // Get client info from clientReferrerArray
-      const clientInfo = clientReferrerArray.find(client => client.a == clientId);
-      const mobileNumber = clientInfo ? clientInfo.e : null;
-      
-      if (mobileNumber && allBillsOfCurrentClient.length > 0) {
-      let HTMLmatter = "";
-      let hasDueBills = false;
-      
-      // Sort bills by date (most recent first)
-      allBillsOfCurrentClient.sort((a, b) => new Date(b.f) - new Date(a.f));
-      let tot_yene = 0;
-      
-      // Create HTML for each bill with due amount
-      for (const bill of allBillsOfCurrentClient) {
-      // Parse amounts
-      const rem = parseFloat(bill.rem) || 0;
-      const iTot = parseFloat(bill.i_tot) || 0;
-      const rTot = parseFloat(bill.r_tot) || 0;
-      const kAmount = parseFloat(bill.k) || 0;
-      
-      // Only include bills with due amount
-      if (rem !== 0) {
-      hasDueBills = true;
-      
-      tot_yene = tot_yene + rem;
-      // Extract date (first 10 characters)
-      const billDate = bill.f ? bill.f.substring(0, 10) : "";
-      
-      // Create HTML card using Bootstrap
-      HTMLmatter += `
-      <div class="card mb-3">
-      <div class="card-body p-2">
-      <div class="row align-items-center">
-      <!-- Column 1: Bill Number -->
-      <div class="col-3">
-      <a href="https://my1.in/${appOwner.eo}/b/b.html?g=${bill.g}" 
-      class="text-decoration-none" 
-      style="font-weight: bold; font-size: 125%;">
-      ${bill.g || ''}
-      </a>
-      </div>
-      
-      <!-- Column 2: Date -->
-      <div class="col-4 text-end">
-      ${billDate}
-      </div>
-      
-      <!-- Column 6: Due Amount -->
-      <div class="col-5 text-end">
-      <span style="font-weight: bold; font-size: 125%;">
-      ₹${rem.toFixed(2)}
-      </span>
-      </div>
-      </div>
-      
-      <div class="row align-items-center">
-      <!-- Column 3: Total Amount -->
-      <div class="col-4 text-end">
-      ₹${iTot.toFixed(2)}
-      </div>
-      
-      <!-- Column 4: Discount -->
-      <div class="col-4 text-end">
-      ₹${kAmount.toFixed(2)}
-      </div>
-      
-      <!-- Column 5: Received Amount -->
-      <div class="col-4 text-end">
-      ₹${rTot.toFixed(2)}
-      </div>
-      </div>
-      </div>
-      </div>`;
-      }
-      }
-      
-      // If there are due bills, wrap them in a container and store in localStorage
-      if (hasDueBills && HTMLmatter !== "") {
-      // Add a header with client name
-      const clientName = clientInfo ? (clientInfo.i || clientInfo.h || "") : "";
-      const clientHeader = clientName ?
-      `<div class="alert alert-info p-2 mb-2">
-      <i class="fas fa-user me-2"></i>
-      <strong>${clientName}</strong>   tot-due: <span style="font-weight: bold; font-size: 125%;">${tot_yene}</span>
-      </div>` : "";
-      
-      const finalHTML = `
-      <div class="container-fluid p-2">
-      ${clientHeader}
-      ${HTMLmatter}
-      </div>`;
-      
-      // Store in localStorage using mobile number as key
-      localStorage.setItem(mobileNumber, finalHTML);
-      } else if (mobileNumber) {
-      // If no due bills, remove any existing entry
-      localStorage.removeItem(mobileNumber);
-      }
-      }
-      }*/
-
-
-
-
-
-
-
-
-
-
-
-
-
      }
     }
     alert("stored successfully");
@@ -3903,7 +4592,7 @@ async function update_qty_sold(resp3206onse) {
    }
   });
 
-  // Add qSold column to stock items, excluding items where d == 111 - CHANGED: Check item.d != 111 instead of itemsToIgnoreInStockCount
+  // Add qSold column to stock items, excluding items where d == 111
   t_s_mp.forEach(stockItem => {
    stockItem.qSold = stockSales[stockItem.a] || 0;
    stockItem.qAvlb = stockItem.i - stockItem.qSold;
@@ -3965,38 +4654,31 @@ function verifyItemAddedToSaleList(itemId) {
   }
  }
 
- // Also check if item was added via the form (when addByQR is disabled)
- const itemNameInput = document.getElementById('itemName');
- if (itemNameInput && itemNameInput.getAttribute('data-item-id') == itemId) {
-  // Item is loaded in the form, ready to be added
-  return true;
- }
-
  return false; // Item not found in sale list
 }
 function getBillRemarks(billI) {
-    if (!billI && billI !== 0) return '';
-    
-    try {
-        // Try to parse JSON
-        const parsed = JSON.parse(billI);
-        
-        // Check if it has rmrk property
-        if (parsed && typeof parsed === 'object' && 'rmrk' in parsed) {
-            return parsed.rmrk || '';
-        }
-        
-        // If it's an object without rmrk, stringify it
-        if (parsed && typeof parsed === 'object') {
-            return JSON.stringify(parsed);
-        }
-        
-        // If it's a string after parsing (unlikely but possible)
-        return String(parsed);
-    } catch (e) {
-        // Not valid JSON, return as string
-        return String(billI);
-    }
+ if (!billI && billI !== 0) return '';
+
+ try {
+  // Try to parse JSON
+  const parsed = JSON.parse(billI);
+
+  // Check if it has rmrk property
+  if (parsed && typeof parsed === 'object' && 'rmrk' in parsed) {
+   return parsed.rmrk || '';
+  }
+
+  // If it's an object without rmrk, stringify it
+  if (parsed && typeof parsed === 'object') {
+   return JSON.stringify(parsed);
+  }
+
+  // If it's a string after parsing (unlikely but possible)
+  return String(parsed);
+ } catch (e) {
+  // Not valid JSON, return as string
+  return String(billI);
+ }
 }
 async function show_client_bills(mono) {
  if (clientReferrerArray.length === 0) {
@@ -4404,4 +5086,342 @@ function getCurrentFormItems() {
  });
 
  return currentItems;
+}
+
+function updateBillSectionsVisibility() {
+ const addedItemsContainer = document.getElementById('addedItemsContainer');
+ const itemsSummaryRow = document.getElementById('itemsSummaryRow');
+ const receivedAmountsSection = document.getElementById('rcvd_amts_dv');
+ const blankDivSection1 = document.querySelector('#blankDivSection1')?.closest('.row');
+
+ const hasItems = addedItemsContainer && addedItemsContainer.children.length > 0;
+
+ // Show/hide items summary section
+ if (itemsSummaryRow) {
+  itemsSummaryRow.style.display = hasItems ? 'flex' : 'none';
+ }
+
+ // Show/hide received amounts section
+ if (receivedAmountsSection) {
+  receivedAmountsSection.style.display = hasItems ? 'block' : 'none';
+ }
+
+ // Show/hide blank div section
+ if (blankDivSection1) {
+  blankDivSection1.style.display = hasItems ? 'block' : 'none';
+ }
+}
+// Helper function to check if a payment already exists in receivedAmounts array
+function checkDuplicateInReceivedAmounts(clientId, amount, date, paymentType = '0', constraintCounter = 0) {
+ return receivedAmounts.some(payment => {
+  const paymentDate = payment.dateTime.split(' ')[0]; // Extract date part
+  const paymentAmount = parseFloat(payment.amount) || 0;
+  const paymentClientId = parseInt(document.getElementById('clientId').value) || 0;
+  const paymentConstraint = payment.constraintCounter || 0;
+
+  return paymentClientId === clientId &&
+   Math.abs(paymentAmount - amount) < 0.001 &&
+   paymentDate === date &&
+   payment.paymentType === paymentType &&
+   paymentConstraint === constraintCounter;
+ });
+}
+
+// Helper function to check if a payment exists in stored_bill_cash_info
+function checkDuplicateInStoredCashInfo(clientId, amount, date, paymentType = '0', constraintCounter = 0) {
+ return stored_bill_cash_info.some(payment => {
+  // Filter only payments for the current bill if we're in bill context
+  if (billTableRowId && payment.td !== billTableRowId) {
+   return false;
+  }
+
+  const paymentAmount = parseFloat(payment.j) || 0;
+  const paymentDate = payment.k || '';
+  const paymentTypeInt = parseInt(payment.i) || 0;
+
+  return payment.f === 0 &&
+   payment.h === clientId &&
+   Math.abs(paymentAmount - amount) < 0.001 &&
+   paymentDate === date &&
+   paymentTypeInt === parseInt(paymentType) &&
+   (payment.n || 0) === constraintCounter;
+ });
+}
+
+// Helper function to get next constraint counter
+function getNextConstraintCounter(clientId, amount, date, paymentType = '0') {
+ let maxCounter = 0;
+
+ // Check in receivedAmounts array
+ receivedAmounts.forEach(payment => {
+  const paymentDate = payment.dateTime.split(' ')[0];
+  const paymentAmount = parseFloat(payment.amount) || 0;
+  const paymentClientId = parseInt(document.getElementById('clientId').value) || 0;
+
+  if (paymentClientId === clientId &&
+   Math.abs(paymentAmount - amount) < 0.001 &&
+   paymentDate === date &&
+   payment.paymentType === paymentType) {
+   maxCounter = Math.max(maxCounter, payment.constraintCounter || 0);
+  }
+ });
+
+ // Check in stored_bill_cash_info
+ stored_bill_cash_info.forEach(payment => {
+  // Only check payments for current bill if we're in bill context
+  if (billTableRowId && payment.td !== billTableRowId) {
+   return;
+  }
+
+  const paymentAmount = parseFloat(payment.j) || 0;
+  const paymentDate = payment.k || '';
+  const paymentTypeInt = parseInt(payment.i) || 0;
+
+  if (payment.f === 0 &&
+   payment.h === clientId &&
+   Math.abs(paymentAmount - amount) < 0.001 &&
+   paymentDate === date &&
+   paymentTypeInt === parseInt(paymentType)) {
+   maxCounter = Math.max(maxCounter, payment.n || 0);
+  }
+ });
+
+ return maxCounter + 1;
+}
+/*async function validatePaymentUniqueness(clientId, amount, dateTime, paymentType = '0') {
+const paymentDate = dateTime.split(' ')[0]; // Get only YYYY-MM-DD part
+const paymentTypeInt = parseInt(paymentType) || 0;
+
+// DEBUG: Log what we're checking
+console.log('Validating payment uniqueness:', {
+clientId,
+amount,
+dateTime,
+paymentDate,
+paymentType
+});
+
+// Arrays to collect matching payments (ONLY same date)
+const matchingPayments = [];
+
+// Check in receivedAmounts (pending payments) - ONLY for same date
+receivedAmounts.forEach(payment => {
+const paymentDatePart = payment.dateTime.split(' ')[0]; // Get only date part
+const paymentAmount = parseFloat(payment.amount) || 0;
+const paymentClientId = parseInt(payment.clientId) || 0;
+const paymentTypeVal = payment.paymentType || '0';
+
+// Check if same date, amount, client, and payment type
+if (paymentClientId === clientId &&
+Math.abs(paymentAmount - amount) < 0.001 &&
+paymentDatePart === paymentDate && // IMPORTANT: Same date
+paymentTypeVal === paymentType) {
+matchingPayments.push({
+constraintCounter: payment.constraintCounter || 0,
+date: paymentDatePart,
+source: 'pending'
+});
+
+console.log('Found matching pending payment:', {
+date: paymentDatePart,
+amount: paymentAmount,
+constraintCounter: payment.constraintCounter || 0
+});
+}
+});
+
+// Check in stored_bill_cash_info (saved payments) for this client - ONLY for same date
+stored_bill_cash_info.forEach(payment => {
+// Only check payments for current client
+if (payment.h !== clientId) return;
+
+const paymentAmount = parseFloat(payment.j) || 0;
+const paymentDatePart = payment.k || ''; // Already just date
+const paymentTypeVal = payment.i || '0';
+
+// Check if same date, amount, client, and payment type
+if (payment.f === 0 &&
+Math.abs(paymentAmount - amount) < 0.001 &&
+paymentDatePart === paymentDate && // IMPORTANT: Same date
+parseInt(paymentTypeVal) === paymentTypeInt) {
+matchingPayments.push({
+constraintCounter: payment.n || 0,
+date: paymentDatePart,
+source: 'saved'
+});
+
+console.log('Found matching saved payment:', {
+date: paymentDatePart,
+amount: paymentAmount,
+constraintCounter: payment.n || 0
+});
+}
+});
+
+console.log('Total matching payments for date', paymentDate + ':', matchingPayments.length);
+
+if (matchingPayments.length === 0) {
+// No matching payments for this date
+console.log('No matching payments found for date', paymentDate);
+return {
+isDuplicate: false,
+existingConstraint: 0,
+nextConstraint: 1, // First payment on this date gets constraint 1
+location: 'none',
+matchingCount: 0
+};
+}
+
+// Find all constraint counters for this specific date
+const constraintCounters = matchingPayments.map(p => p.constraintCounter || 0);
+const maxCounter = Math.max(...constraintCounters);
+
+console.log('Constraint counters for date', paymentDate + ':', constraintCounters);
+console.log('Max constraint counter:', maxCounter);
+
+return {
+isDuplicate: matchingPayments.length > 0,
+existingConstraint: maxCounter,
+nextConstraint: maxCounter + 1, // Next available constraint counter for this date
+location: 'mixed',
+matchingCount: matchingPayments.length
+};
+}*/
+async function validatePaymentUniqueness(clientId, amount, dateTime) {
+ const paymentDate = dateTime.split(' ')[0]; // Get only YYYY-MM-DD part
+
+ // DEBUG: Log what we're checking
+ console.log('Validating payment uniqueness:', {
+  clientId,
+  amount,
+  dateTime,
+  paymentDate
+ });
+
+ // Arrays to collect matching payments (ONLY same date)
+ const matchingPayments = [];
+
+ // Check in receivedAmounts (pending payments) - ONLY for same date
+ receivedAmounts.forEach(payment => {
+  const paymentDatePart = payment.dateTime.split(' ')[0]; // Get only date part
+  const paymentAmount = parseFloat(payment.amount) || 0;
+  const paymentClientId = parseInt(payment.clientId) || 0;
+
+  // Check if same date, amount, and client (payment type removed)
+  if (paymentClientId === clientId &&
+   Math.abs(paymentAmount - amount) < 0.001 &&
+   paymentDatePart === paymentDate) { // IMPORTANT: Same date
+   matchingPayments.push({
+    constraintCounter: payment.constraintCounter || 0,
+    date: paymentDatePart,
+    source: 'pending'
+   });
+
+   console.log('Found matching pending payment:', {
+    date: paymentDatePart,
+    amount: paymentAmount,
+    constraintCounter: payment.constraintCounter || 0
+   });
+  }
+ });
+
+ // Check in stored_bill_cash_info (saved payments) for this client - ONLY for same date
+ stored_bill_cash_info.forEach(payment => {
+  // Only check payments for current client
+  if (payment.h !== clientId) return;
+
+  const paymentAmount = parseFloat(payment.j) || 0;
+  const paymentDatePart = payment.k || ''; // Already just date
+
+  // Check if same date, amount, client (payment type removed, f=0 always)
+  if (payment.f === 0 && // Always require f = 0
+   Math.abs(paymentAmount - amount) < 0.001 &&
+   paymentDatePart === paymentDate) { // IMPORTANT: Same date
+   matchingPayments.push({
+    constraintCounter: payment.n || 0,
+    date: paymentDatePart,
+    source: 'saved'
+   });
+
+   console.log('Found matching saved payment:', {
+    date: paymentDatePart,
+    amount: paymentAmount,
+    constraintCounter: payment.n || 0
+   });
+  }
+ });
+
+ console.log('Total matching payments for date', paymentDate + ':', matchingPayments.length);
+
+ if (matchingPayments.length === 0) {
+  // No matching payments for this date
+  console.log('No matching payments found for date', paymentDate);
+  return {
+   isDuplicate: false,
+   existingConstraint: 0,
+   nextConstraint: 1, // First payment on this date gets constraint 1
+   location: 'none',
+   matchingCount: 0
+  };
+ }
+
+ // Find all constraint counters for this specific date
+ const constraintCounters = matchingPayments.map(p => p.constraintCounter || 0);
+ const maxCounter = Math.max(...constraintCounters);
+
+ console.log('Constraint counters for date', paymentDate + ':', constraintCounters);
+ console.log('Max constraint counter:', maxCounter);
+
+ return {
+  isDuplicate: matchingPayments.length > 0,
+  existingConstraint: maxCounter,
+  nextConstraint: maxCounter + 1, // Next available constraint counter for this date
+  location: 'mixed',
+  matchingCount: matchingPayments.length
+ };
+}
+function shouldShowConstraintCounter(clientId, amount, dateTime, paymentType = '0') {
+ const paymentDate = dateTime.split(' ')[0];
+
+ // Check if there are any other payments with same amount on same date
+ let hasSameDatePayments = false;
+
+ // Check in receivedAmounts
+ receivedAmounts.forEach(payment => {
+  const paymentDatePart = payment.dateTime.split(' ')[0];
+  const paymentAmount = parseFloat(payment.amount) || 0;
+  const paymentClientId = parseInt(payment.clientId) || 0;
+
+  if (paymentClientId === clientId &&
+   Math.abs(paymentAmount - amount) < 0.001 &&
+   paymentDatePart === paymentDate) {
+   hasSameDatePayments = true;
+  }
+ });
+
+ // Check in stored_bill_cash_info
+ stored_bill_cash_info.forEach(payment => {
+  const paymentDatePart = payment.k || '';
+  const paymentAmount = parseFloat(payment.j) || 0;
+
+  if (payment.f === 0 &&
+   payment.h === clientId &&
+   Math.abs(paymentAmount - amount) < 0.001 &&
+   paymentDatePart === paymentDate) {
+   hasSameDatePayments = true;
+  }
+ });
+
+ return hasSameDatePayments;
+}
+// Add this function near the top with other helper functions
+function getConstraintCounterColor(counter) {
+ const colorMap = {
+  0: 'secondary',    // Counter 0
+  1: 'primary',      // Counter 1
+  2: 'success',      // Counter 2
+  3: 'warning',      // Counter 3
+  4: 'danger',       // Counter 4
+ };
+ return colorMap[counter] || 'info'; // Default for counters > 4
 }
