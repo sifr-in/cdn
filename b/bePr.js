@@ -262,6 +262,18 @@ margin-top: 10px;
 </div>
 </div>
 
+<div class="config-form-group" style="margin-bottom: 15px;">
+<div class="form-check form-switch">
+<input class="form-check-input" type="checkbox" id="printRemarks">
+<label class="form-check-label" for="printRemarks">
+<b>Print Remark on bill</b>
+</label>
+</div>
+<div class="paper-info" style="font-size: 11px; margin-top: 5px;">
+Toggle off to hide remarks from print
+</div>
+</div>
+
 <div class="preview-display">
 <!-- Single preview container with paper background and print area -->
 <div id="previewMain" class="preview-container">
@@ -394,17 +406,17 @@ async function loadInvoiceData(billId, modalElement) {
   let whatsAppLnkTxt = mob_client?.replace(".", "") + "&text=" + "Hello, *" + name_client?.trim() + "*\n";
   whatsAppLnkTxt += "Details of your voucher no.*" + curr_bill_info.g + "*\n";
 
-  /*if (clientConfig.show_all_receipts == 1 && sCurrCashInfo && sCurrCashInfo.length > 0) {
-   whatsAppLnkTxt += `\n*Receipts:*\n`;
+/*if (clientConfig.show_all_receipts == 1 && sCurrCashInfo && sCurrCashInfo.length > 0) {
+whatsAppLnkTxt += `\n*Receipts:*\n`;
 
-   sCurrCashInfo.forEach(receipt => {
-    const date = receipt.k ? convertDateFormatToIndia(new Date(receipt.k)) : 'No Date';
-    const amount = parseFloat(receipt.j || 0);
-    whatsAppLnkTxt += `${date}: \`${amount.toFixed(2)}\`\n`;
-   });
+sCurrCashInfo.forEach(receipt => {
+const date = receipt.k ? convertDateFormatToIndia(new Date(receipt.k)) : 'No Date';
+const amount = parseFloat(receipt.j || 0);
+whatsAppLnkTxt += `${date}: \`${amount.toFixed(2)}\`\n`;
+});
 
-   whatsAppLnkTxt += `*Total Received: \`${advanceAmt.toFixed(2)}\`*\n`;
-  } else*/ {
+whatsAppLnkTxt += `*Total Received: \`${advanceAmt.toFixed(2)}\`*\n`;
+} else*/ {
    let formattedArray;
    if (discountAmt != 0) {
     formattedArray = formatNumbersForWhatsApp([t_itms_otal.toFixed(2), discountAmt.toFixed(2), advanceAmt.toFixed(2), dueAmt]);
@@ -544,7 +556,7 @@ function createInvoiceHTML(data) {
   if (isVerticalLayout) {
    // Vertical layout: Right table above, Left table below (separate rows)
    eyeTablesHTML = `
-<div class="eye-measurements-container" style="margin: 15px 0;">
+<div id="eyeMeasurementsContainer" class="eye-measurements-container" style="margin: 15px 0;">
 <!-- Right Eye Table (Above) -->
 <div class="right-eye-table" style="border: 1px solid #000; margin-bottom: 15px;">
 <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
@@ -631,7 +643,7 @@ function createInvoiceHTML(data) {
   } else {
    // Original horizontal layout (side-by-side)
    eyeTablesHTML = `
-<div class="eye-measurements-container" style="display: flex; justify-content: space-between; margin: 15px 0; gap: 20px;">
+<div id="eyeMeasurementsContainer" class="eye-measurements-container" style="display: flex; justify-content: space-between; margin: 15px 0; gap: 20px;">
 <div class="right-eye-table" style="flex: 1; border: 1px solid #000;">
 <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
 <thead>
@@ -787,7 +799,7 @@ ${advanceAmt.toFixed(2)}
   if (textMatch?.[1]) {
    remarkText = textMatch[1];
   }
-  remarksHTML = `<div style="width: 75%;"><b>Note: </b>${remarkText}</div>`;
+  remarksHTML = `<div id="invoiceRemarks" style="width: 75%;"><b>Note: </b>${remarkText}</div>`;
  }
 
  // Return the HTML structure - Note: NO fixed dimensions here
@@ -1170,6 +1182,13 @@ async function showPaperConfigModal(modalElement) {
 
  // Create config modal
  const { contentElement, modalInstance, modalElement: configModalElement } = create_modal_dynamically('paperConfigModal');
+ //content not scrolling got resolved after adding below;
+ configModalElement.querySelector('.modal-dialog').classList.add('modal-lg');
+ const modalBody = contentElement.querySelector('.modal-body');
+ if (!modalBody) {
+  contentElement.style.maxHeight = '80vh';
+  contentElement.style.overflowY = 'auto';
+ }
 
  contentElement.innerHTML = `
 <style>
@@ -1330,6 +1349,18 @@ font-style: italic;
 <h5 class="mb-4">Print Settings</h5>
 
 <div class="config-section">
+<div class="config-form-group" style="margin-bottom: 15px;">
+<div class="form-check form-switch">
+<input class="form-check-input" type="checkbox" id="printEyeMeasurements" 
+${currentSettings.printEyeMeasurements !== false ? 'checked' : ''}>
+<label class="form-check-label" for="printEyeMeasurements">
+<b>Print Eye Measurements</b>
+</label>
+</div>
+<div class="paper-info" style="font-size: 11px; margin-top: 5px;">
+Toggle off to hide eye measurements from print
+</div>
+</div>
 <h6>Paper Settings</h6>
 
 <div class="config-form-group">
@@ -1458,6 +1489,7 @@ Natural content aspect ratio: ${aspectRatio.toFixed(2)} (W:H)
  const calculatedWidthSpan = configModalElement.querySelector('#calculatedWidth');
  const positionButtons = configModalElement.querySelectorAll('.position-btn');
  const saveBtn = configModalElement.querySelector('#saveConfig');
+ const printEyeMeasurementsCheckbox = configModalElement.querySelector('#printEyeMeasurements');
 
  let selectedPosition = currentSettings.position || 'top-left';
  let currentDimensionType = currentSettings.dimensionType || 'width';
@@ -1529,6 +1561,7 @@ Natural content aspect ratio: ${aspectRatio.toFixed(2)} (W:H)
  // Save configuration
  saveBtn.addEventListener('click', async function () {
   const paperSettings = {
+   printEyeMeasurements: printEyeMeasurementsCheckbox.checked,
    paperSize: paperSizeSelect.value,
    orientation: orientationSelect.value,
    customPaperWidth: customPaperWidthInput.value,
@@ -2296,11 +2329,33 @@ z-index: 9999;
 box-sizing: border-box;
 `;
 
+  const paperSettings = JSON.parse(localStorage.getItem('paperSettings') || '{}');
+  const printEyeMeasurements = paperSettings.printEyeMeasurements !== false;
+
+  const printRemarksCheckbox = modalElement.querySelector('#printRemarks');
+  const printRemarks = printRemarksCheckbox ? printRemarksCheckbox.checked : false;
+
   // Clone the content WITH styles
   const clone = invoiceContent.cloneNode(true);
 
   // Apply inline styles directly to the clone
   applyInlineStylesToClone(clone);
+
+  // Remove eye measurements if toggle is OFF
+  if (!printEyeMeasurements) {
+   const eyeMeasurementsContainer = clone.querySelector('#eyeMeasurementsContainer');
+   if (eyeMeasurementsContainer) {
+    eyeMeasurementsContainer.remove();
+   }
+  }
+
+  // Remove remarks if toggle is OFF
+  if (!printRemarks) {
+   const remarksContainer = clone.querySelector('#invoiceRemarks');
+   if (remarksContainer) {
+    remarksContainer.remove();
+   }
+  }
 
   tempDiv.appendChild(clone);
   document.body.appendChild(tempDiv);
@@ -2485,26 +2540,26 @@ function price_in_words(price) {
 }
 
 function formatNumbersForWhatsApp(numbers) {
-  // Convert to strings with 2 decimal places
-  const formattedNumbers = numbers.map(num => {
-    const numValue = parseFloat(num);
-    if (isNaN(numValue)) return num.toString();
-    return numValue.toFixed(2);
-  });
-  
-  // Find max length
-  const maxLength = Math.max(...formattedNumbers.map(str => str.length));
-  
-  return formattedNumbers.map(strNum => {
-    // For monospace fonts, we can use regular spaces
-    const spacesNeeded = maxLength - strNum.length;
-    
-    // Create left padding with non-breaking spaces or regular spaces
-    const padding = '_'.repeat(Math.max(0, spacesNeeded)); // Using non-breaking spaces
-    
-    // Add spaces before negative sign for proper alignment
-    return padding + strNum;
-  });
+ // Convert to strings with 2 decimal places
+ const formattedNumbers = numbers.map(num => {
+  const numValue = parseFloat(num);
+  if (isNaN(numValue)) return num.toString();
+  return numValue.toFixed(2);
+ });
+
+ // Find max length
+ const maxLength = Math.max(...formattedNumbers.map(str => str.length));
+
+ return formattedNumbers.map(strNum => {
+  // For monospace fonts, we can use regular spaces
+  const spacesNeeded = maxLength - strNum.length;
+
+  // Create left padding with non-breaking spaces or regular spaces
+  const padding = '_'.repeat(Math.max(0, spacesNeeded)); // Using non-breaking spaces
+
+  // Add spaces before negative sign for proper alignment
+  return padding + strNum;
+ });
 }
 
 function convertDateFormatToIndia(date) {
