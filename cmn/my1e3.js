@@ -154,11 +154,11 @@ function createDynamicLoader(message = 'Loading...', countdown = null) {
   const style = document.createElement('style');
   style.id = 'loader-spin-style';
   style.textContent = `
-     @keyframes spin {
-       0% { transform: rotate(0deg); }
-       100% { transform: rotate(360deg); }
-     }
-   `;
+@keyframes spin {
+0% { transform: rotate(0deg); }
+100% { transform: rotate(360deg); }
+}
+`;
   document.head.appendChild(style);
  }
 
@@ -260,10 +260,10 @@ function loadPromiseScript(url) {
 async function loadCshScriptsSequentially(...scriptIds) {
  // Get the cache array
  const csheArray = window[my1uzr.worknOnPg]?.csh || [];
- 
+
  // Filter scripts by the provided "a" values
  const scriptsToLoad = csheArray.filter(script => scriptIds.includes(script.a));
- 
+
  if (scriptsToLoad.length === 0) {
   console.warn('No scripts found with the provided IDs:', scriptIds);
   return {
@@ -443,12 +443,12 @@ async function loadExecFn(fnsToChk, fnsToRun, pFNarams = [], idOfLoader, scriptU
  }
 }
 function getNextCshId() {
-    if (!window[my1uzr.worknOnPg].cach || window[my1uzr.worknOnPg].cach.length === 0) {
-        return 1;
-    }
-    // Get the highest 'a' value and increment
-    const maxA = Math.max(...window[my1uzr.worknOnPg].cach.map(item => item.a));
-    return maxA + 1;
+ if (!window[my1uzr.worknOnPg].cach || window[my1uzr.worknOnPg].cach.length === 0) {
+  return 1;
+ }
+ // Get the highest 'a' value and increment
+ const maxA = Math.max(...window[my1uzr.worknOnPg].cach.map(item => item.a));
+ return maxA + 1;
 }
 async function loadExe2Fn(id_as_a, pFNarams = [], pSCRParams = []) {
  let loader = null;
@@ -1071,16 +1071,16 @@ function showToast(message, options = {}) {
  return { dismiss };
 }
 async function checkInternetConnection() {
-    try {
-        const response = await fetch('https://www.google.com/favicon.ico', {
-            method: 'HEAD',
-            mode: 'no-cors',
-            cache: 'no-cache'
-        });
-        return true;
-    } catch (error) {
-        return false;
-    }
+ try {
+  const response = await fetch('https://www.google.com/favicon.ico', {
+   method: 'HEAD',
+   mode: 'no-cors',
+   cache: 'no-cache'
+  });
+  return true;
+ } catch (error) {
+  return false;
+ }
 }
 function chkIfLoggedIn() {
  return new Promise((resolve) => {
@@ -1111,12 +1111,12 @@ function chkIfLoggedIn() {
     dialog.style.zIndex = '1000';
 
     dialog.innerHTML = `
-                <p style="color:black;">Do you want to login on this page?</p>
-                <div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
-                    <button id="dialogYes">Yes</button>
-                    <button id="dialogNo">No</button>
-                </div>
-            `;
+<p style="color:black;">Do you want to login on this page?</p>
+<div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
+<button id="dialogYes">Yes</button>
+<button id="dialogNo">No</button>
+</div>
+`;
 
     document.body.appendChild(dialog);
 
@@ -1139,16 +1139,16 @@ function chkIfLoggedIn() {
 
 async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderId = null, timeout = 20000, maxRetries = 0, shoLoginByOas2orByPas1 = 0, registerAtOwnerIfNotRegistered = 1) {
  try {
-        // Check internet connection first
-        if (!navigator.onLine) {
-            return Promise.reject(new Error("Connect to network"));
-        }
-        // Optional: More robust check
-        const isConnected = await checkInternetConnection();
-        if (!isConnected) {
-            return Promise.reject(new Error("No stable internet connection"));
-        }
-  
+  // Check internet connection first
+  if (!navigator.onLine) {
+   return Promise.reject(new Error("Connect to network"));
+  }
+  // Optional: More robust check
+  const isConnected = await checkInternetConnection();
+  if (!isConnected) {
+   return Promise.reject(new Error("No stable internet connection"));
+  }
+
   const t343mp = await chkIfLoggedIn();
 
   if (t343mp.su == 2) {
@@ -1176,12 +1176,12 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
     if (loaderId === null) {
      dynamicLoaderId = 'loader-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
      const loaderHtml = `
-      <div id="${dynamicLoaderId}" class="d-flex justify-content-center align-items-center" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;">
-       <div class="spinner-border text-light" role="status">
-        <span class="visually-hidden">Loading...</span>
-       </div>
-      </div>
-     `;
+<div id="${dynamicLoaderId}" class="d-flex justify-content-center align-items-center" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;">
+<div class="spinner-border text-light" role="status">
+<span class="visually-hidden">Loading...</span>
+</div>
+</div>
+`;
      document.body.insertAdjacentHTML('beforeend', loaderHtml);
     } else if (loaderId) {
      document.getElementById(loaderId).style.display = "flex";
@@ -1372,11 +1372,11 @@ function showLoginInfo(shoLogOut, showLoginModalDirectly, shoLoginByOas2orByPas1
   modalTitle.appendChild(span_lgot);
 
   /*addLongPressListener(modalTitle, function() {
-   if (confirm('Are you sure you want to log out?')) {
-    my1uzr = null;
-    localStorage.setItem('my1uzr', null);
-    location.reload();
-   }
+  if (confirm('Are you sure you want to log out?')) {
+  my1uzr = null;
+  localStorage.setItem('my1uzr', null);
+  location.reload();
+  }
   }, 3000);*/
 
   const infoContainer = document.createElement('div');
@@ -1696,16 +1696,16 @@ function createHiddenIframe(hiddenAudioPlayer) {
  const iframe = document.createElement('iframe');
  iframe.id = hiddenAudioPlayer;
  iframe.style.cssText = `
-  position: fixed;
-  top: -1000px;
-  left: -1000px;
-  width: 1px;
-  height: 1px;
-  border: none;
-  opacity: 0;
-  pointer-events: none;
-  visibility: hidden;
- `;
+position: fixed;
+top: -1000px;
+left: -1000px;
+width: 1px;
+height: 1px;
+border: none;
+opacity: 0;
+pointer-events: none;
+visibility: hidden;
+`;
  document.body.appendChild(iframe);
  return iframe;
 }
@@ -2066,12 +2066,12 @@ function create_modal_dynamically(modalId = 'dynamicModal') {
  const modalContentId = `${modalId}_modal_content`;
 
  modal.innerHTML = `
-        <div class="modal-dialog">
-            <div class="modal-content" id="${modalContentId}">
-                <!-- Modal content will be inserted here -->
-            </div>
-        </div>
-    `;
+<div class="modal-dialog modal-dialog-scrollable">
+<div class="modal-content" id="${modalContentId}">
+<!-- Modal content will be inserted here -->
+</div>
+</div>
+`;
 
  document.body.appendChild(modal);
 
@@ -2325,5 +2325,3 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
-
-
