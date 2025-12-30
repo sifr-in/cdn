@@ -1201,6 +1201,14 @@ function showAlreadyReceivedAmts(b346illID, s594CurrItems, c594ashInfo) {
  const modal = create_modal_dynamically('received_amount_modal');
  const modalContent = modal.contentElement;
  const modalInstance = modal.modalInstance;
+ 
+ //content not scrolling got resolved after adding below;
+ modal.modalElement.querySelector('.modal-dialog').classList.add('modal-lg');
+ const modalBody = modalContent.querySelector('.modal-body');
+ if (!modalBody) {
+  modalContent.style.maxHeight = '85vh';
+  modalContent.style.overflowY = 'auto';
+ }
 
  // Calculate bill total from items
  const billTotal = s594CurrItems.reduce((sum, item) => sum + parseFloat(item.g || 0), 0);
@@ -5425,3 +5433,4 @@ function getConstraintCounterColor(counter) {
  };
  return colorMap[counter] || 'info'; // Default for counters > 4
 }
+
