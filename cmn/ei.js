@@ -107,112 +107,159 @@ function closeSpecificModal(modalId) {
 function renderCRUDInterface(container) {
  // Create search box and cards container
  container.innerHTML = `
-        <div class="modal-header sticky-top bg-white border-bottom pb-2">
-            <div class="d-flex justify-content-between align-items-center w-100">
-                <div class="input-group">
-                    <button type="button" id="bt_sho_ad_ei" class="btn btn-primary">+</button>
-                    <input type="text" class="form-control" id="entindSearch" placeholder="Search by ID, Mobile, Name...">
-                    <button class="btn btn-outline-secondary" type="button" id="clearSearch">
-                        X
-                    </button>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-            </div>
-        </div>
-        <div class="modal-body overflow-auto flex-grow-1">
-            <div id="addNewWhenNotFound" class="card mb-3 d-none">
-                <div class="card-header">
-                    <h5 id="formTitle" class="card-title mb-0">Add new record:</h5>
-                </div>
-                <div class="card-body">
-                    <form id="quickAddForm">
-                        <input type="hidden" id="editRecordId" value="">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label>Country Code</label>
-                                    <select class="form-control" id="quickCountryCode">
-                                        <option value="91" selected>India (+91)</option>
-                                        <option value="1">USA/Canada (+1)</option>
-                                        <option value="44">UK (+44)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label>Mobile Number*</label>
-                                    <input type="text" class="form-control" id="quickMobile" required>
-                                    <small class="text-danger" id="mobileError" style="display:none">Must be 10 digits</small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label>Relation</label>
-                                    <select class="form-control" id="quickRelation">
+<div class="modal-header bg-white border-bottom pb-2" style="flex-shrink: 0;">
+<div class="d-flex justify-content-between align-items-center w-100">
+<div class="input-group">
+<button type="button" id="bt_sho_ad_ei" class="btn btn-primary">+</button>
+<input type="text" class="form-control" id="entindSearch" placeholder="Search by ID, Mobile, Name...">
+<button class="btn btn-outline-secondary" type="button" id="clearSearch">
+X
+</button>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+</div>
+</div>
+<div class="modal-body flex-grow-1 d-flex flex-column" style="overflow: hidden;">
+<div id="addNewWhenNotFound" class="card mb-3 d-none" style="max-height: 70vh; overflow-y: auto;">
+<div class="card-header sticky-top bg-white" style="z-index: 1;">
+<h5 id="formTitle" class="card-title mb-0">Add new Ent-Ind:</h5>
+<small>Ent-Ind = Entity/Individual:</small>
+</div>
+<div class="card-body" style="min-height: 0;">
+<form id="quickAddForm" style="height: 100%;">
+<input type="hidden" id="editRecordId" value="">
+
+<!-- Row 1: Country Code - Single row -->
+<div class="row mb-2 p-2 d-flex flex-nowrap" style="background-color: #7dd5ff; border-radius: 5px;">
+<div class="col-auto d-flex align-items-center me-3">
+<label class="fw-bold mb-0">Contry-Cod</label>
+</div>
+<div class="col d-flex align-items-center">
+<select class="form-control w-auto" id="quickCountryCode">
+<option value="91" selected>India (+91)</option>
+<option value="1">USA/Canada (+1)</option>
+<option value="44">UK (+44)</option>
+</select>
+</div>
+</div>
+
+<!-- Row 2: Mobile Number - Single row -->
+<small class="text-danger ms-2" id="mobileError" style="display:none">Must be 10 digits</small>
+<div class="row mb-2 p-2 d-flex flex-nowrap" style="background-color: #ffc198; border-radius: 5px;">
+<div class="col d-flex align-items-center me-3">
+<input type="text" class="form-control" id="quickMobile" required>
+</div>
+<div class="col-auto d-flex align-items-center">
+<label class="fw-bold mb-0">Mobile</label>
+</div>
+</div>
+
+<!-- Row 3: Relation - Single row -->
+<div class="row mb-2 p-2 d-flex flex-nowrap" style="background-color: #88fd88; border-radius: 5px;">
+<div class="col-auto d-flex align-items-center me-3">
+<label class="fw-bold mb-0">Relation </label>
+</div>
+<div class="col d-flex align-items-center">
+<select class="form-control w-auto" id="quickRelation">
 <option value="1" selected>self [स्वतः]</option>
-<option value="2">relative 1 [नातेवाईक 1]</option>
-<option value="3">relative 2 [नातेवाईक 2]</option>
-<option value="4">relative 3 [नातेवाईक 3]</option>
-<option value="5">relative 4 [नातेवाईक 4]</option>
-<option value="6">relative 5 [नातेवाईक 5]</option>
-<option value="7">relative 6 [नातेवाईक 6]</option>
-<option value="8">relative 7 [नातेवाईक 7]</option>
-<option value="9">relative 8 [नातेवाईक 8]</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Name (English, no UTF)</label>
-                                    <input type="text" class="form-control" id="quickNameEnglish">
-                                    <small class="text-danger" id="englishNameError" style="display:none">Only English characters allowed</small>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Name (Local, no ASCII)</label>
-                                    <input type="text" class="form-control" id="quickNameLocal">
-                                    <small class="text-danger" id="localNameError" style="display:none">Only non-English characters allowed</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label>Address</label>
-                                    <input type="text" class="form-control" id="quickAddress">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Gender</label>
-                                    <select class="form-control" id="quickGender">
-                                        <option value="0" selected>Don't know</option>
-                                        <option value="1">Male</option>
-                                        <option value="2">Female</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Image URL</label>
-                                    <input type="url" class="form-control" id="quickImageUrl">
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-primary" id="quickSave">Save</button>
-                        <button type="button" class="btn btn-secondary" id="cancelAddNew">Cancel</button>
-                        <button type="button" class="btn btn-warning" id="updateEntInd" style="display:none;">Update</button>
-                    </form>
-                </div>
-            </div>
-            <div class="row" id="entindCardsContainer"></div>
-        </div>
-    `;
+<option value="2">relative 1 [रिश्तेदार 1]</option>
+<option value="3">relative 2 [रिश्तेदार 2]</option>
+<option value="4">relative 3 [रिश्तेदार 3]</option>
+<option value="5">relative 4 [रिश्तेदार 4]</option>
+<option value="6">relative 5 [रिश्तेदार 5]</option>
+<option value="7">relative 6 [रिश्तेदार 6]</option>
+<option value="8">relative 7 [रिश्तेदार 7]</option>
+<option value="9">relative 8 [रिश्तेदार 8]</option>
+</select>
+</div>
+</div>
+
+<!-- Row 4: English Name - Single row -->
+<div class="row mb-2 p-2 d-flex flex-nowrap" style="background-color: #f0e6ff; border-radius: 5px;">
+<div class="col-auto d-flex align-items-center">
+<label class="fw-bold mb-0">Name in English only</label>
+</div>
+</div>
+<small class="text-danger ms-2" id="englishNameError" style="display:none">Only English characters allowed</small>
+<div class="row mb-2 p-2 d-flex flex-nowrap" style="background-color: #b17dff; border-radius: 5px;">
+<div class="col d-flex align-items-center me-3">
+<input type="text" class="form-control" id="quickNameEnglish" placeholder="Name in English only">
+</div>
+</div>
+
+
+<!-- Row 5: Local Name - Single row -->
+<div class="row mb-2 p-2 d-flex flex-nowrap" style="background-color: #e6f2ff; border-radius: 5px;">
+<div class="col-auto d-flex align-items-center me-3">
+<label class="fw-bold mb-0">स्थानिक भाषा मे नाम (no Eng)</label>
+</div>
+</div>
+<small class="text-danger ms-2" id="localNameError" style="display:none">Only non-English characters allowed</small>
+<div class="row mb-2 p-2 d-flex flex-nowrap" style="background-color: #58a8ff; border-radius: 5px;">
+<div class="col d-flex align-items-center">
+<input type="text" class="form-control" id="quickNameLocal" placeholder="स्थानिक भाषा मे नाम (no Eng)">
+</div>
+</div>
+
+<!-- Row 6: Address Label only -->
+<div class="row mb-2 p-2 d-flex flex-nowrap" style="background-color: #ffe6e6; border-radius: 5px;">
+<div class="col"></div>
+<div class="col-auto d-flex align-items-center ms-auto">
+<label class="fw-bold mb-0">Address</label>
+</div>
+</div>
+
+<!-- Row 7: Address Text Area -->
+<div class="row mb-2 p-2" style="background-color: #ff8585; border-radius: 5px;">
+<div class="col-12">
+<textarea class="form-control" id="quickAddress" rows="2" placeholder="Address"></textarea>
+</div>
+</div>
+
+<!-- Row 8: Gender - Single row -->
+<div class="row mb-2 p-2 d-flex flex-nowrap" style="background-color: #e6fff0; border-radius: 5px;">
+<div class="col d-flex align-items-center me-3">
+<select class="form-control w-auto" id="quickGender">
+<option value="0" selected>Don't know</option>
+<option value="1">Male</option>
+<option value="2">Female</option>
+</select>
+</div>
+<div class="col-auto d-flex align-items-center">
+<label class="fw-bold mb-0">Gender</label>
+</div>
+</div>
+
+<!-- Row 9: Image URL Label only -->
+<div class="row mb-2 p-2 d-flex flex-nowrap" style="background-color: #fffde6; border-radius: 5px; display:none !important;">
+<div class="col"></div>
+<div class="col-auto d-flex align-items-center ms-auto">
+<label class="fw-bold mb-0">URL link of photo / image of ent-ind</label>
+</div>
+</div>
+
+<!-- Row 10: Image URL Text Area -->
+<div class="row mb-2 p-2" style="background-color: #fffde6; border-radius: 5px; display:none;">
+<div class="col-12">
+<textarea class="form-control" id="quickImageUrl" rows="2" placeholder="URL link of photo / image of ent-ind"></textarea>
+</div>
+</div>
+
+<!-- Buttons -->
+<div class="row mt-4" style="flex-shrink: 0;">
+<div class="col-12">
+<button type="button" class="btn btn-primary" id="quickSave">Save</button>
+<button type="button" class="btn btn-secondary" id="cancelAddNew">Cancel</button>
+<button type="button" class="btn btn-warning" id="updateEntInd" style="display:none;">Update</button>
+</div>
+</div>
+</form>
+</div>
+</div>
+<div id="entindCardsContainer" class="flex-grow-1" style="overflow-y: auto; max-height: 70vh;">
+</div>
+</div>
+`;
 
  // Add event listener to show add new form button
  document.getElementById('bt_sho_ad_ei').addEventListener('click', function () {
@@ -235,11 +282,6 @@ function renderCRUDInterface(container) {
   // Pass the trimmed value as-is (not lowercased) to preserve case
   renderCards(this.value.trim());
  });
-
- /*document.getElementById('clearSearch').addEventListener('click', function () {
-  document.getElementById('entindSearch').value = '';
-  renderCards();
- });*/
 
  // Setup form validation
  setupQuickAddFormValidation();
@@ -288,7 +330,7 @@ function showAddNewForm(record = null) {
   document.getElementById('quickImageUrl').value = record.l || '';
  } else {
   // Add new mode
-  formTitle.textContent = 'Add new record:';
+  formTitle.textContent = 'Add new Ent-Ind:';
   saveButton.style.display = 'inline-block';
   updateButton.style.display = 'none';
   recordIdInput.value = '';
@@ -336,7 +378,12 @@ function validateMobile(input) {
 function validateEnglishName(input) {
  const value = input.value;
  const errorElement = document.getElementById('englishNameError');
- if (/[^\x00-\x7F]/.test(value)) {
+
+ // Allow only English letters, spaces, hyphens, apostrophes
+ const isValid = /^[A-Za-z\s\-']+$/.test(value);
+
+ if (!isValid && value) {
+  errorElement.textContent = "Only English letters, spaces, hyphens (-) and apostrophes (') allowed";
   errorElement.style.display = 'block';
   input.classList.add('is-invalid');
   return false;
@@ -350,7 +397,21 @@ function validateEnglishName(input) {
 function validateLocalName(input) {
  const value = input.value;
  const errorElement = document.getElementById('localNameError');
- if (value && /[\x00-\x7F]/.test(value.replace(/\s/g, ''))) {
+
+ if (!value) {
+  // Empty is allowed for local name
+  errorElement.style.display = 'none';
+  input.classList.remove('is-invalid');
+  return true;
+ }
+
+ // Allow only non-Latin characters and local language specific punctuation
+ // This pattern excludes: A-Z, a-z, 0-9, and common English punctuation
+ const isValid = /^[^\x00-\x7F\s]*$/.test(value) ||
+  /^[\u0900-\u097F\s\-']+$/.test(value); // Hindi example
+
+ if (!isValid) {
+  errorElement.textContent = "Only non-English/local language characters allowed";
   errorElement.style.display = 'block';
   input.classList.add('is-invalid');
   return false;
@@ -402,25 +463,32 @@ async function saveRecord(isUpdate = false) {
    return;
   }
 
-  // Check if record with same mobile and relation already exists (only for new records)
-  if (!isUpdate) {
-   const countryCode = document.getElementById('quickCountryCode').value;
-   const mobileNumber = document.getElementById('quickMobile').value;
-   const fullMobile = countryCode + "." + mobileNumber;
-   const relation = document.getElementById('quickRelation').value;
+  // Get form values
+  const countryCode = document.getElementById('quickCountryCode').value;
+  const mobileNumber = document.getElementById('quickMobile').value;
+  const fullMobile = countryCode + "." + mobileNumber;
+  const relation = document.getElementById('quickRelation').value;
 
-   const existingRecord = d_entInd_ata.find(item =>
-    item.e.toString() === fullMobile.toString() && item.f.toString() === relation.toString()
-   );
+  // Check for duplicate mobile and relation combination ONLY when adding new record
+  if (!isUpdate) {
+   const existingRecord = d_entInd_ata.find(item => {
+    // Check if both e (mobile) and f (relation) match
+    return item.e && item.e.toString() === fullMobile &&
+     item.f && item.f.toString() === relation;
+   });
 
    if (existingRecord) {
-    if (confirm("This mobile number and relation already exists!\nClick 'yes' to use.\n" + JSON.stringify(existingRecord))) {
+    // Show confirmation dialog
+    const confirmMessage =
+     `This mobile number and relation already exists!\n\n` +
+     `Mobile: ${existingRecord.e}\n` +
+     `Relation: ${getRelationText(existingRecord.f)}\n` +
+     `Name: ${existingRecord.h || existingRecord.i || 'N/A'}\n\n` +
+     `Click 'OK' to use this existing record.`;
+
+    if (confirm(confirmMessage)) {
      if (f1nEiToExe && window[f1nEiToExe]) {
       window[f1nEiToExe](existingRecord, s_ei_witchToReturn);
-      // Close only the current modal by ID
-      if (currentModalId) {
-       closeSpecificModal(currentModalId);
-      }
      }
     }
     return;
@@ -433,8 +501,8 @@ async function saveRecord(isUpdate = false) {
    b: isUpdate ? currentEditingRecord.b : new Date().toISOString().replace('T', ' ').substring(0, 19),
    c: "0",
    d: "0",
-   e: document.getElementById('quickCountryCode').value + "." + document.getElementById('quickMobile').value,
-   f: document.getElementById('quickRelation').value,
+   e: fullMobile,
+   f: relation,
    g: "0",
    h: document.getElementById('quickNameEnglish').value || '',
    i: document.getElementById('quickNameLocal').value || '',
@@ -447,8 +515,8 @@ async function saveRecord(isUpdate = false) {
   };
 
   var c = {};
-  c.e = document.getElementById('quickCountryCode').value + "." + document.getElementById('quickMobile').value;
-  c.f = document.getElementById('quickRelation').value;
+  c.e = fullMobile;
+  c.f = relation;
   c.h = document.getElementById('quickNameEnglish').value || '';
   c.i = document.getElementById('quickNameLocal').value || '';
   c.m = document.getElementById('quickAddress').value || '';
@@ -476,8 +544,8 @@ async function saveRecord(isUpdate = false) {
      return;
     } else {
      const c377stmr = cstmr.filter(d377ata =>
-      d377ata.e.toString() === c.e.toString() &&
-      d377ata.f.toString() === c.f.toString()
+      d377ata.e && d377ata.e.toString() === c.e &&
+      d377ata.f && d377ata.f.toString() === c.f
      );
 
      if (c377stmr && c377stmr.length > 0) {
@@ -557,7 +625,7 @@ function renderCards(searchTerm = '') {
 
   if (isNumeric) {
    document.getElementById('quickMobile').value = cleanSearchTerm.substring(0, 10);
-  }else{
+  } else {
    document.getElementById('quickNameEnglish').value = cleanSearchTerm;
   }
 
@@ -574,26 +642,25 @@ function renderCards(searchTerm = '') {
   const card = document.createElement('div');
   card.className = 'col-md-6 mb-3';
   card.innerHTML = `
-            <div class="card h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <h5 class="card-title">${getGenderText(item.n)} - ${item.h} / ${item.i}</h5>
-                        <small class="text-muted">ID: ${item.a}</small> ${parseFloat(item.j).toFixed(2)}
-                    </div>
-                    ${item.l ? `<img src="${item.l}" class="card-img-top mb-2 img-fluid" style="max-height: 100px; object-fit: contain;" onerror="this.style.display='none'">` : ''}
-                    <div class="card-text">
-                        <div><strong>Mobile:</strong> ${item.e}</div>
-                        <div><strong>Relation:</strong> ${getRelationText(item.f)}</div>
-                        ${item.m ? `<div><strong>Address:</strong> ${item.m}</div>` : ''}
-                    </div>
-                </div>
-                <div class="card-footer bg-transparent">
-                    <button class="btn btn-sm btn-primary edit-btn" data-id="${item.a}">Edit</button>
-                    <button class="btn btn-sm btn-danger delete-btn" data-id="${item.a}">Delete</button>
-                </div>
-            </div>
-        `;
-
+<div class="card h-100">
+<div class="card-body">
+<div class="d-flex justify-content-between">
+<h5 class="card-title">${getGenderText(item.n)} - ${item.h} / ${item.i}</h5>
+<small class="text-muted">ID: ${item.a}</small> ${parseFloat(item.j).toFixed(2)}
+</div>
+${item.l ? `<img src="${item.l}" class="card-img-top mb-2 img-fluid" style="max-height: 100px; object-fit: contain;" onerror="this.style.display='none'">` : ''}
+<div class="card-text">
+<div><strong>Mobile:</strong> ${item.e}</div>
+<div><strong>Relation:</strong> ${getRelationText(item.f)}</div>
+${item.m ? `<div><strong>Address:</strong> ${item.m}</div>` : ''}
+</div>
+</div>
+<div class="card-footer bg-transparent">
+<button class="btn btn-sm btn-primary edit-btn" data-id="${item.a}">Edit</button>
+<button class="btn btn-sm btn-danger delete-btn" data-id="${item.a}">Delete</button>
+</div>
+</div>
+`;
 
   card.style.cursor = 'pointer';
   card.addEventListener('click', (e) => {
@@ -663,14 +730,14 @@ function renderCards(searchTerm = '') {
 function getRelationText(code) {
  const relations = {
   '1': "self [स्वतः]",
-  '2': "relative 1 [नातेवाईक 1]",
-  '3': "relative 2 [नातेवाईक 2]",
-  '4': "relative 3 [नातेवाईक 3]",
-  '5': "relative 4 [नातेवाईक 4]",
-  '6': "relative 5 [नातेवाईक 5]",
-  '7': "relative 6 [नातेवाईक 6]",
-  '8': "relative 7 [नातेवाईक 7]",
-  '9': "relative 8 [नातेवाईक 8]"
+  '2': "relative 1 [रिश्तेदार 1]",
+  '3': "relative 2 [रिश्तेदार 2]",
+  '4': "relative 3 [रिश्तेदार 3]",
+  '5': "relative 4 [रिश्तेदार 4]",
+  '6': "relative 5 [रिश्तेदार 5]",
+  '7': "relative 6 [रिश्तेदार 6]",
+  '8': "relative 7 [रिश्तेदार 7]",
+  '9': "relative 8 [रिश्तेदार 8]"
  };
  return relations[code] || 'Unknown';
 }
