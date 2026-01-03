@@ -1637,7 +1637,12 @@ async function showStyleConfigModal(modalElement) {
 
  // Create style config modal
  const { contentElement, modalInstance, modalElement: styleModalElement } = create_modal_dynamically('styleConfigModal');
-
+ styleModalElement.querySelector('.modal-dialog').classList.add('modal-lg');
+ const modalBody = contentElement.querySelector('.modal-body');
+ if (!modalBody) {
+  contentElement.style.maxHeight = '80vh';
+  contentElement.style.overflowY = 'auto';
+ }
  contentElement.innerHTML = `
 <style>
 .style-config-modal .modal-dialog {
@@ -2610,3 +2615,4 @@ ${message}
   }
  };
 }
+
