@@ -239,7 +239,22 @@ function setupAllValidations() {
  validatePDInput('rPd');
  validatePDInput('lPd');
 }
+function updateManualButtonText() {
+ const manualInput = document.getElementById("manual_input");
+ const btnManual = document.getElementById("manual_btn");
 
+ if (!manualInput || !btnManual) return;
+
+ if (manualInput.value && manualInput.value.trim() !== '') {
+  btnManual.textContent = "Set this";
+  btnManual.classList.remove("btn-secondary");
+  btnManual.classList.add("btn-primary");
+ } else {
+  btnManual.textContent = "Clear";
+  btnManual.classList.remove("btn-primary");
+  btnManual.classList.add("btn-secondary");
+ }
+}
 async function set_be_innerHTML(...params) {
  const c_ontainer_blank_main = document.getElementById(params[0]);
  c_ontainer_blank_main.innerHTML = `
@@ -262,7 +277,7 @@ async function set_be_innerHTML(...params) {
 <th class="align-middle text-center fw-bold eye-label">
 Right
 </th>
-<th class="text-center">SPH</th>
+<th class="text-center sph-column">SPH</th>
 <th class="text-center cyl-column">CYL</th>
 <th class="text-center axis-column">AXIS</th>
 <th class="text-center vn-column">V/N</th>
@@ -271,9 +286,8 @@ Right
 <tbody>
 <tr>
 <td class="fw-bold text-center eye-label">DV</td>
-<td>
-<input id="rDvSph" class="form-control form-control-sm to_add" autocomplete="off" type="text" readonly
-tabindex="11" />
+<td class="sph-column">
+<input id="rDvSph" class="form-control form-control-sm to_add" autocomplete="off" type="text" readonly tabindex="11" />
 </td>
 <td class="cyl-column">
 <input id="rDvCyl" class="form-control form-control-sm" autocomplete="off" type="text" readonly
@@ -291,7 +305,7 @@ tabindex="12" />
 </tr>
 <tr>
 <td class="fw-bold text-center eye-label">NV</td>
-<td>
+<td class="sph-column">
 <input id="rNvSph" class="form-control form-control-sm to_add" autocomplete="off" type="text" readonly
 tabindex="15" />
 </td>
@@ -359,7 +373,7 @@ tabindex="16" />
 <th class="align-middle text-center fw-bold eye-label">
 Left
 </th>
-<th class="text-center">SPH</th>
+<th class="text-center sph-column">SPH</th>
 <th class="text-center cyl-column">CYL</th>
 <th class="text-center axis-column">AXIS</th>
 <th class="text-center vn-column">V/N</th>
@@ -368,9 +382,8 @@ Left
 <tbody>
 <tr>
 <td class="fw-bold text-center eye-label">DV</td>
-<td>
-<input id="lDvSph" class="form-control form-control-sm to_add" autocomplete="off" type="text" readonly
-tabindex="1" />
+<td class="sph-column">
+<input id="lDvSph" class="form-control form-control-sm to_add" autocomplete="off" type="text" readonly tabindex="1" />
 </td>
 <td class="cyl-column">
 <input id="lDvCyl" class="form-control form-control-sm" autocomplete="off" type="text" readonly tabindex="2" />
@@ -387,7 +400,7 @@ tabindex="1" />
 </tr>
 <tr>
 <td class="fw-bold text-center eye-label">NV</td>
-<td>
+<td class="sph-column">
 <input id="lNvSph" class="form-control form-control-sm to_add" autocomplete="off" type="text" readonly
 tabindex="5" />
 </td>
@@ -490,6 +503,15 @@ flex: 0 0 auto !important;
 min-width: 0 !important;
 }
 
+/* Column 1: SPH - Light Peach */
+.eye-measurement-table .sph-column {
+background-color: #ffe8e6 !important; /* Very light peach/pink */
+}
+
+.eye-measurement-table th.sph-column {
+background-color: #ffb7b3 !important; /* Slightly darker peach for header */
+}
+
 /* Column 2: CYL - Light Blue */
 .eye-measurement-table .cyl-column {
 background-color: #e7f5ff !important; /* Very light blue */
@@ -517,9 +539,9 @@ background-color: #fff9e6 !important; /* Very light yellow */
 background-color: #ffe89e !important; /* Slightly darker yellow for header */
 }
 
-/* Column 1: SPH - No special color (white/default) */
-.eye-measurement-table th:not(.eye-label):not(.cyl-column):not(.axis-column):not(.vn-column),
-.eye-measurement-table td:not(.eye-label):not(.cyl-column):not(.axis-column):not(.vn-column) {
+/* Default for other cells */
+.eye-measurement-table th:not(.eye-label):not(.sph-column):not(.cyl-column):not(.axis-column):not(.vn-column),
+.eye-measurement-table td:not(.eye-label):not(.sph-column):not(.cyl-column):not(.axis-column):not(.vn-column) {
 background-color: #ffffff !important;
 }
 
@@ -583,32 +605,40 @@ min-width: 18px !important;
 
 <div class="row text-center mb-3">
 <div class="col-3">
-<div class="form-check">
-<input id="positive" class="form-check-input t_radio" type="radio" name="t_radio" />
-<label class="form-check-label" for="positive">Positive</label>
+<div class="form-check p-0" style="background: aquamarine;">
+<input id="positive" class="form-check-input t_radio d-none" type="radio" name="t_radio" />
+<label class="form-check-label btn btn-outline-primary w-100" for="positive" style="cursor: pointer;">
+Plus
+</label>
 </div>
 </div>
 <div class="col-3">
-<div class="form-check">
-<input id="negative" class="form-check-input t_radio" type="radio" name="t_radio" />
-<label class="form-check-label" for="negative">Negative</label>
+<div class="form-check p-0" style="background: lightpink;">
+<input id="negative" class="form-check-input t_radio d-none" type="radio" name="t_radio" />
+<label class="form-check-label btn btn-outline-primary w-100" for="negative" style="cursor: pointer;">
+Minus
+</label>
 </div>
 </div>
 <div class="col-3">
-<div class="form-check">
-<input id="both" class="form-check-input t_radio" type="radio" name="t_radio" checked />
-<label class="form-check-label" for="both">Both</label>
+<div class="form-check p-0" style="background: aqua;">
+<input id="both" class="form-check-input t_radio d-none" type="radio" name="t_radio" checked />
+<label class="form-check-label btn btn-outline-primary w-100" for="both" style="cursor: pointer;">
+Both
+</label>
 </div>
 </div>
 <div class="col-3">
-<div class="form-check">
-<input id="zero" class="form-check-input t_radio" type="radio" name="t_radio" />
-<label class="form-check-label" for="zero">Zero</label>
+<div class="form-check p-0">
+<input id="zero" class="form-check-input t_radio d-none" type="radio" name="t_radio" />
+<label class="form-check-label btn btn-outline-primary w-100" for="zero" style="cursor: pointer;">
+Plain
+</label>
 </div>
 </div>
 </div>
 
-<div id="modal_dvnv_table_div" class="table-responsive">
+<div id="modal_dvnv_table_div" class="table-responsive" style="max-height: 85vh;overflow-y: auto;">
 <table id="dvnv_table_negative" class="modal_dvnv_table table table-bordered table-sm mb-0">
 ${generateNegativeTable()}
 </table>
@@ -638,6 +668,20 @@ ${generatePositiveTable()}
  // Initialize modal and other global elements
  el_modal_dvnv = new bootstrap.Modal(document.getElementById('modal_dvnv'));
  btnManual = document.getElementById("manual_btn");
+ const manualInput = document.getElementById("manual_input");
+
+ // Initial update
+ updateManualButtonText();
+
+ // Update on input change
+ manualInput.addEventListener('input', updateManualButtonText);
+
+ // Update when modal is shown (in case input was pre-filled)
+ const modalElement = document.getElementById('modal_dvnv');
+ if (modalElement) {
+  modalElement.addEventListener('shown.bs.modal', updateManualButtonText);
+ }
+
  elPositiveTable = document.getElementById("dvnv_table_positive");
  elNegativeTable = document.getElementById("dvnv_table_negative");
  elZeroTable = document.getElementById("dvnv_table_zero");
@@ -795,11 +839,17 @@ function setupEventListeners() {
  });
 
  el_modal_dvnv_element.addEventListener('shown.bs.modal', function () {
-  // Apply last state
-  const radioToCheck = document.getElementById(lastModalState.radio);
-  if (radioToCheck) {
-   radioToCheck.checked = true;
-   radioToCheck.dispatchEvent(new Event('change', { bubbles: true }));
+  // Apply last state ONLY if it's not 'zero'
+  if (lastModalState.radio !== 'zero') {
+   const radioToCheck = document.getElementById(lastModalState.radio);
+   if (radioToCheck) {
+    radioToCheck.checked = true;
+    radioToCheck.dispatchEvent(new Event('change', { bubbles: true }));
+   }
+  } else {
+   // If last state was zero, default to 'both'
+   document.getElementById('both').checked = true;
+   document.getElementById('both').dispatchEvent(new Event('change', { bubbles: true }));
   }
 
   // Restore scroll position after a short delay
@@ -990,6 +1040,61 @@ function setupEventListeners() {
   triggerRadioBoth();
  });
 
+ document.getElementById("zero").addEventListener("change", function () {
+  if (this.checked) {
+   // Instead of showing the table, directly set 0.00 based on current 'decide' value
+   if (decide == 1) {
+    document.getElementById("lDvSph").value = "0.00";
+    chkLeftNearToCopy();
+    document.getElementById("lDvCyl").focus();
+    decide = 2;
+    document.getElementById("lDvSph").dispatchEvent(new Event("input"));
+   } else if (decide == 2) {
+    document.getElementById("lDvCyl").value = "0.00";
+    chkLeftNearToCopy();
+    document.getElementById("lDvAxis").focus();
+   } else if (decide == 3) {
+    document.getElementById("lNvSph").value = "0.00";
+    chkLeftNearToCopy();
+    document.getElementById("lNvCyl").focus();
+    decide = 4;
+    document.getElementById("lNvSph").dispatchEvent(new Event("input"));
+   } else if (decide == 4) {
+    document.getElementById("lNvCyl").value = "0.00";
+    document.getElementById("lNvAxis").focus();
+   } else if (decide == 5) {
+    document.getElementById("rDvSph").value = "0.00";
+    chkRightNearToCopy();
+    document.getElementById("rDvCyl").focus();
+    decide = 6;
+    document.getElementById("rDvSph").dispatchEvent(new Event("input"));
+   } else if (decide == 6) {
+    document.getElementById("rDvCyl").value = "0.00";
+    chkRightNearToCopy();
+    document.getElementById("rDvAxis").focus();
+   } else if (decide == 7) {
+    document.getElementById("rNvSph").value = "0.00";
+    chkRightNearToCopy();
+    document.getElementById("rNvCyl").focus();
+    decide = 8;
+    document.getElementById("rNvSph").dispatchEvent(new Event("input"));
+   } else if (decide == 8) {
+    document.getElementById("rNvCyl").value = "0.00";
+    document.getElementById("rNvAxis").focus();
+   } else if (decide == 9) {
+    document.getElementById("rAdd").value = "0.00";
+    document.getElementById("rDvCyl").focus();
+   } else if (decide == 10) {
+    document.getElementById("lAdd").value = "0.00";
+    document.getElementById("lDvCyl").focus();
+   }
+
+   // Hide the modal immediately
+   el_modal_dvnv.hide();
+   eyeMeasurementInfocus = 0;
+  }
+ });
+
  document.getElementById("rNvSph").addEventListener("click", function () {
   decide = 7;
   el_modal_dvnv.show();
@@ -1137,20 +1242,20 @@ function setupEventListeners() {
 
     } else if (event.target.id == "zero") {
      // Show only zero table
-     elPositiveTable.classList.add("d-none");
-     elNegativeTable.classList.add("d-none");
-     elZeroTable.classList.remove("d-none");
-     document.querySelector('.zero-separator').classList.add('d-none');
+     //  elPositiveTable.classList.add("d-none");
+     //  elNegativeTable.classList.add("d-none");
+     //  elZeroTable.classList.remove("d-none");
+     //  document.querySelector('.zero-separator').classList.add('d-none');
 
-     // Scroll to top of zero table
-     setTimeout(() => {
-      if (modalBody && elZeroTable) {
-       modalBody.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-       });
-      }
-     }, 50);
+     //  // Scroll to top of zero table
+     //  setTimeout(() => {
+     //   if (modalBody && elZeroTable) {
+     //   modalBody.scrollTo({
+     //     top: 0,
+     //     behavior: 'smooth'
+     //   });
+     //   }
+     //  }, 50);
     }
    });
   }
@@ -1242,7 +1347,43 @@ function setupEventListeners() {
 
  document.getElementById("manual_btn").addEventListener("click", function (e) {
   e.preventDefault();
+  const manualInput = document.getElementById("manual_input");
   var mValue = document.getElementById("manual_input").value;
+
+  // If button says "Clear", clear the input of clicked element and close dialog
+  if (btnManual.textContent === "Clear") {
+   // Clear the clicked element based on 'decide' value
+   if (decide == 1) {
+    document.getElementById("lDvSph").value = '';
+   } else if (decide == 2) {
+    document.getElementById("lDvCyl").value = '';
+   } else if (decide == 3) {
+    document.getElementById("lNvSph").value = '';
+   } else if (decide == 4) {
+    document.getElementById("lNvCyl").value = '';
+   } else if (decide == 5) {
+    document.getElementById("rDvSph").value = '';
+   } else if (decide == 6) {
+    document.getElementById("rDvCyl").value = '';
+   } else if (decide == 7) {
+    document.getElementById("rNvSph").value = '';
+   } else if (decide == 8) {
+    document.getElementById("rNvCyl").value = '';
+   }
+
+   // Also clear the manual input field
+   manualInput.value = '';
+
+   // Close the modal
+   el_modal_dvnv.hide();
+   eyeMeasurementInfocus = 0;
+
+   // Update button text (though modal will close)
+   updateManualButtonText();
+   return;
+  }
+
+  // Otherwise, set the values based on decide (original logic)
   if (decide == 1) {
    document.getElementById("lDvSph").value = mValue;
   } else if (decide == 2) {
@@ -1260,6 +1401,10 @@ function setupEventListeners() {
   } else if (decide == 8) {
    document.getElementById("rNvCyl").value = mValue;
   }
+
+  // Clear the manual input and update button
+  manualInput.value = '';
+  updateManualButtonText();
   el_modal_dvnv.hide();
   eyeMeasurementInfocus = 0;
  });
