@@ -13,7 +13,7 @@
 {"a":11,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@bc0a572/b/bn.min.js", "c":"set_add_itm_nw_innerHTML", "r":"set_add_itm_nw_innerHTML"},
 {"a":12,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@18ff972/b/bp.min.js", "c":"set_deup_prod_innerHTML", "r":"set_deup_prod_innerHTML"},
 {"a":13,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@a30ac23/b/bPrOp.min.css"},
-{"a":14,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@6170846/cmn/ei.min.js", "c":"open_entind_crud", "r":"open_entind_crud"},
+{"a":14,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@3988bc6/cmn/ei.min.js", "c":"open_entind_crud", "r":"open_entind_crud"},
 {"a":15,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@cd13b93/cmn/my1lp.min.js", "c":"open_shoLgnP", "r":"open_shoLgnP"},
 {"a":16,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@4d95515/cmn/my1ap.min.js"},
 {"a":17,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@880d404/cmn/my1xi.min.js"},
@@ -25,5 +25,6 @@
 ],
 "shoCachInProgressModal" : true
 }
+
 
 
