@@ -380,10 +380,12 @@ function validateEnglishName(input) {
  const errorElement = document.getElementById('englishNameError');
 
  // Allow only English letters, spaces, hyphens, apostrophes
- const isValid = /^[A-Za-z\s\-']+$/.test(value);
+ //  const isValid = /^[A-Za-z\s\-']+$/.test(value);
+ const isValid = /^[A-Za-z0-9\s\-'\/]+$/.test(value);
 
  if (!isValid && value) {
-  errorElement.textContent = "Only English letters, spaces, hyphens (-) and apostrophes (') allowed";
+  //   errorElement.textContent = "Only English letters, spaces, hyphens (-) and apostrophes (') allowed";
+  errorElement.textContent = "Only English letters, numbers, spaces, hyphens (-), apostrophes (') and slashes (/) allowed";
   errorElement.style.display = 'block';
   input.classList.add('is-invalid');
   return false;
