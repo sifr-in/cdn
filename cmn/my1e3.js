@@ -239,22 +239,38 @@ function createDynamicLoader(message = 'Loading...', countdown = null) {
  document.body.appendChild(loader);
  return loader;
 }
-
 function loadPromiseScript(url) {
  return new Promise((resolve, reject) => {
-  // Optional: Check for duplicates (from my version)
-  const existingScript = document.querySelector(`script[src="${url}"]`);
-  if (existingScript) {
-   resolve();
-   return;
-  }
+  // Check if it's a CSS file
+  if (url.endsWith('.css') || url.includes('/css/')) {
+   // Check for duplicates
+   const existingLink = document.querySelector(`link[href="${url}"]`);
+   if (existingLink) {
+    resolve();
+    return;
+   }
 
-  // Your clean implementation
-  const script = document.createElement("script");
-  script.onload = resolve;
-  script.onerror = reject;
-  script.src = url;
-  document.head.appendChild(script);
+   const link = document.createElement("link");
+   link.rel = "stylesheet";
+   link.href = url;
+   link.onload = resolve;
+   link.onerror = reject;
+   document.head.appendChild(link);
+  } else {
+   // It's a JS file
+   // Check for duplicates
+   const existingScript = document.querySelector(`script[src="${url}"]`);
+   if (existingScript) {
+    resolve();
+    return;
+   }
+
+   const script = document.createElement("script");
+   script.onload = resolve;
+   script.onerror = reject;
+   script.src = url;
+   document.head.appendChild(script);
+  }
  });
 }
 async function loadCshScriptsSequentially(...scriptIds) {
