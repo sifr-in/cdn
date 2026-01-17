@@ -2085,7 +2085,7 @@ function create_modal_dynamically(modalId = 'dynamicModal') {
 <div class="modal-dialog modal-dialog-scrollable">
 <div class="modal-content" id="${modalContentId}">
 <!-- Modal body wrapper for scrolling -->
-<div class="modal-body" id="${modalContentId}_body" style="max-height: 70vh; overflow-y: auto;">
+<div class="modal-body" id="${modalContentId}_body" style="max-height: 95vh; overflow-y: auto;">
 <!-- Dynamic content will be inserted here -->
 </div>
 </div>
@@ -2347,3 +2347,4 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
+
