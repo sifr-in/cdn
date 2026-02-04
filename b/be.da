@@ -16,7 +16,7 @@
 {"a":14,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@3988bc6/cmn/ei.min.js", "c":"open_entind_crud", "r":"open_entind_crud"},
 {"a":15,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@cd13b93/cmn/my1lp.min.js", "c":"open_shoLgnP", "r":"open_shoLgnP"},
 {"a":16,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@4d95515/cmn/my1ap.min.js"},
-{"a":17,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@880d404/cmn/my1xi.min.js"},
+{"a":17,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@5eed9c9/cmn/my1xi.min.js"},
 {"a":18,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@24bf6ca/cmn/my1drv.min.js"},
 {"a":19,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@4f0d0e0/cmn/my1e3.min.js", "c":"fileUploadTesting", "r":"fileUploadTesting"},
 {"a":20,"u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@fc84f58/cmn/my1dra.min.js", "c":"upldAnyFile2drv", "r":"upldAnyFile2drv"},
@@ -25,6 +25,7 @@
 ],
 "shoCachInProgressModal" : true
 }
+
 
 
 
