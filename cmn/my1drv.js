@@ -428,7 +428,7 @@ function resizeImageToThumbnail(originalImage, resize2width) {
 }
 
 // Global upload function
-window.upld2drv = function (buttonElement, loaderId, driveFolderIdForOriginalFile, urlInputIdOfOriginalFile, PreviewDvIdForOriginalUrl, fileSizeLimitOfOriginal, driveFolderIdForThumbnailFile, urlInputIdOfThumbnailFile, PreviewDvIdForThumbnailUrl, resize2width) {
+window.upld2drv = function (buttonElement, loaderId, driveFolderIdForOriginalFile, urlInputIdOfOriginalFile, PreviewDvIdForOriginalUrl, fileSizeLimitOfOriginal, driveFolderIdForThumbnailFile, urlInputIdOfThumbnailFile, PreviewDvIdForThumbnailUrl, resize2width, callbackFunctionName = null) {
  // Validate required parameters
  if (!buttonElement || !loaderId || !driveFolderIdForOriginalFile || !urlInputIdOfOriginalFile || !PreviewDvIdForOriginalUrl || fileSizeLimitOfOriginal === undefined) {
   customAlert('Missing required parameters!');
