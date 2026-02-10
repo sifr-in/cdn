@@ -1153,7 +1153,7 @@ function chkIfLoggedIn() {
  });
 }
 
-async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderId = null, timeout = 20000, maxRetries = 0, shoLoginByOas2orByPas1 = 0, registerAtOwnerIfNotRegistered = 1) {
+async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderId = null, timeout = 20000, maxRetries = 0, shoLoginByOas2orByPas1 = 0, registerAtOwnerIfNotRegistered = 1, showLoader = 1) {
  try {
   // Check internet connection first
   if (!navigator.onLine) {
@@ -1188,19 +1188,21 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
 
   const executeRequest = () => {
    return new Promise((resolve, reject) => {
-    // Create loader if loaderId is null
-    if (loaderId === null) {
-     dynamicLoaderId = 'loader-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-     const loaderHtml = `
+    // Create loader if loaderId is null AND showLoader is 1
+    if (showLoader == 1) {
+     if (loaderId === null) {
+      dynamicLoaderId = 'loader-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+      const loaderHtml = `
 <div id="${dynamicLoaderId}" class="d-flex justify-content-center align-items-center" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;">
 <div class="spinner-border text-light" role="status">
 <span class="visually-hidden">Loading...</span>
 </div>
 </div>
 `;
-     document.body.insertAdjacentHTML('beforeend', loaderHtml);
-    } else if (loaderId) {
-     document.getElementById(loaderId).style.display = "flex";
+      document.body.insertAdjacentHTML('beforeend', loaderHtml);
+     } else if (loaderId) {
+      document.getElementById(loaderId).style.display = "flex";
+     }
     }
 
     xhr = new XMLHttpRequest();
@@ -1222,10 +1224,10 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
          registrationPayload.tn = appOwner.tn;
          registrationPayload.fn = 37;
 
-         return fnj3(registrationUrl, registrationPayload, loginRequired_0_1, async_1, loaderId, timeout, maxRetries, 0, 0)
+         return fnj3(registrationUrl, registrationPayload, loginRequired_0_1, async_1, loaderId, timeout, maxRetries, 0, 0, showLoader)
           .then(registrationResponse => {
            if (registrationResponse && registrationResponse.su == 1) {
-            return fnj3(url, jsonPayload, loginRequired_0_1, async_1, loaderId, timeout, maxRetries, 0, 0);
+            return fnj3(url, jsonPayload, loginRequired_0_1, async_1, loaderId, timeout, maxRetries, 0, 0, showLoader);
            } else {
             throw new Error(`Registration failed. contact admin`);
            }
@@ -1282,14 +1284,16 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
 
   // Helper function to cleanup loader
   const cleanupLoader = () => {
-   if (dynamicLoaderId) {
-    const loaderElement = document.getElementById(dynamicLoaderId);
-    if (loaderElement) {
-     loaderElement.remove();
+   if (showLoader == 1) {
+    if (dynamicLoaderId) {
+     const loaderElement = document.getElementById(dynamicLoaderId);
+     if (loaderElement) {
+      loaderElement.remove();
+     }
+     dynamicLoaderId = null;
+    } else if (loaderId) {
+     document.getElementById(loaderId).style.display = "none";
     }
-    dynamicLoaderId = null;
-   } else if (loaderId) {
-    document.getElementById(loaderId).style.display = "none";
    }
   };
 
