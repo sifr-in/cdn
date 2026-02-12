@@ -1,4 +1,3 @@
-// Constants for element IDs and classes
 const number_of_columns = 5;
 const curYr = new Date().getFullYear().toString().slice(-2);
 const c_lass_active = "active";
@@ -858,14 +857,14 @@ async function saveClassInfo() {
      // Get existing saved classes or initialize empty array
      const savedClasses = JSON.parse(localStorage.getItem('classInfo')) || [];
 
-// Check if this class+division+sub+rollStrt+rollEnd combination already exists
-const existingIndex = savedClasses.findIndex(c => 
- c.classId.toString() === classInfo.classId.toString() && 
- c.division.toString() === classInfo.division.toString() &&
- c.subjectId.toString() === classInfo.subjectId.toString() &&
- c.startRoll.toString() === classInfo.startRoll.toString() &&
- c.endRoll.toString() === classInfo.endRoll.toString()
-);
+     // Check if this class+division+sub+rollStrt+rollEnd combination already exists
+     const existingIndex = savedClasses.findIndex(c =>
+      c.classId.toString() === classInfo.classId.toString() &&
+      c.division.toString() === classInfo.division.toString() &&
+      c.subjectId.toString() === classInfo.subjectId.toString() &&
+      c.startRoll.toString() === classInfo.startRoll.toString() &&
+      c.endRoll.toString() === classInfo.endRoll.toString()
+     );
 
      if (existingIndex >= 0) {
       // Update existing entry
@@ -1352,17 +1351,64 @@ function displayReportResults(reportData, classInfo, modal, showDetailedColumns,
  const tableBody = modal.querySelector('.at_report_table tbody');
  const tableFoot = modal.querySelector('.at_report_table tfoot');
 
+ // Make the modal content scrollable
+ const modalContent = modal.querySelector('.at_modal_content');
+ modalContent.style.maxHeight = '90vh';
+ modalContent.style.overflowY = 'auto';
+ modalContent.style.overflowX = 'auto';
+
+ // Remove the fixed max-height from table container
+ const tableContainer = modal.querySelector('.at_report_table_container');
+ if (tableContainer) {
+  tableContainer.style.maxHeight = 'none';
+  tableContainer.style.overflow = 'visible';
+ }
+
+ // Store ignored days in a Set
+ let ignoredDays = new Set();
+
+ // Initialize with Sundays checked by default
+ reportData.summary.allDates.forEach((date, index) => {
+  if (date.getDay() === 0) {
+   const dayKey = getDayOfYear(date);
+   ignoredDays.add(dayKey);
+  }
+ });
+
  // Show results container
  resultsContainer.style.display = 'block';
 
  // Update summary
- summaryContainer.innerHTML = `
-<p><i class="fas fa-calendar-week"></i> <strong>Date Range:</strong> ${reportData.fromDate.toLocaleDateString()} to ${reportData.toDate.toLocaleDateString()}</p>
-<p><i class="fas fa-clock"></i> <strong>Total Days:</strong> ${reportData.summary.totalDays}</p>
-<p><i class="fas fa-calendar-check"></i> <strong>Actual Days (excl. Sundays):</strong> ${reportData.summary.actualDays}</p>
-`;
- // <p><i class="fas fa-check-circle"></i> <strong>Total Present:</strong> ${reportData.summary.presentDays}</p>
- // <p><i class="fas fa-times-circle"></i> <strong>Total Absent:</strong> ${reportData.summary.absentDays}</p>
+ function updateSummary() {
+  // Calculate actual days excluding ignored days
+  const actualDays = reportData.summary.allDates.filter(date =>
+   !ignoredDays.has(getDayOfYear(date))
+  ).length;
+
+  // Recalculate totals based on ignored days
+  let totalPresent = 0;
+  let totalAbsent = 0;
+
+  reportData.students.forEach(student => {
+   reportData.summary.allDates.forEach(date => {
+    const dayOfYear = getDayOfYear(date);
+    if (!ignoredDays.has(dayOfYear)) {
+     const status = student.dailyStatus ? student.dailyStatus[dayOfYear] || 0 : 0;
+     if (status === 1) totalPresent++;
+     else if (status === 2) totalAbsent++;
+    }
+   });
+  });
+
+  summaryContainer.innerHTML = `
+        <p><i class="fas fa-calendar-week"></i> <strong>Date Range:</strong> ${reportData.fromDate.toLocaleDateString()} to ${reportData.toDate.toLocaleDateString()}</p>
+        <p><i class="fas fa-clock"></i> <strong>Total Days:</strong> ${reportData.summary.totalDays}</p>
+        <p><i class="fas fa-calendar-check"></i> <strong>Active Days (excl. ignored):</strong> ${actualDays}</p>
+        <p style="color: #666;"><i class="fas fa-ban"></i> <strong>Ignored Days:</strong> ${ignoredDays.size} (Sundays auto-ignored)</p>
+        `;
+
+  return { actualDays, totalPresent, totalAbsent };
+ }
 
  // Clear previous results
  tableHead.innerHTML = '';
@@ -1370,50 +1416,132 @@ function displayReportResults(reportData, classInfo, modal, showDetailedColumns,
  tableFoot.innerHTML = '';
 
  // Create table header
- const headerRow1 = document.createElement('tr');
- const headerRow2 = document.createElement('tr');
+ const headerRow1 = document.createElement('tr'); // Checkbox row
+ const headerRow2 = document.createElement('tr'); // Weekday letter row
+ const headerRow3 = document.createElement('tr'); // Date row
 
  // Always show basic columns
  headerRow1.innerHTML = `
-<th rowspan="2" style="border: 1px solid #eee; padding: 8px; position: sticky; top: 0; background: white;color:black"><i class="fas fa-hashtag"></i>Ro.</th>
-`;
+    <th rowspan="3" style="border: 1px solid #eee; padding: 8px; position: sticky; top: 0; background: white; color: black; vertical-align: middle;">
+        <i class="fas fa-hashtag"></i>Ro.
+    </th>
+    `;
 
  if (showDetailedColumns) {
-  // Add date columns for all dates, including Sundays
-  reportData.summary.allDates.forEach(date => {
-   // Day number cell (top row)
+  // Add date columns for all dates
+  reportData.summary.allDates.forEach((date, colIndex) => {
+   const dayOfYear = getDayOfYear(date);
+   const isSunday = date.getDay() === 0;
+
+   // Checkbox cell (top row)
+   const checkboxCell = document.createElement('th');
+   checkboxCell.style.border = '1px solid #eee';
+   checkboxCell.style.padding = '4px';
+   checkboxCell.style.position = 'sticky';
+   checkboxCell.style.top = '0';
+   checkboxCell.style.background = isSunday ? '#f9f9f9' : 'white';
+   checkboxCell.style.textAlign = 'center';
+   checkboxCell.style.verticalAlign = 'middle';
+
+   const checkbox = document.createElement('input');
+   checkbox.type = 'checkbox';
+   checkbox.checked = isSunday; // Sundays checked by default
+   checkbox.dataset.dayOfYear = dayOfYear;
+   checkbox.dataset.date = date.toISOString();
+   checkbox.style.cursor = 'pointer';
+
+   // Add tooltip
+   checkbox.title = isSunday ? 'Sunday - auto-ignored' : `Ignore ${date.toLocaleDateString()}`;
+
+   // Add event listener to update ignored days
+   checkbox.addEventListener('change', function (e) {
+    const dayKey = parseInt(this.dataset.dayOfYear);
+    const isChecked = this.checked;
+    const dateStr = new Date(this.dataset.date).toLocaleDateString();
+
+    if (isChecked) {
+     ignoredDays.add(dayKey);
+     showToast(`Ignoring ${dateStr}`);
+    } else {
+     ignoredDays.delete(dayKey);
+     showToast(`Including ${dateStr}`);
+    }
+
+    // Recalculate and update the display
+    const { actualDays, totalPresent, totalAbsent } = updateSummary();
+
+    // Recalculate percentages for all rows
+    const rows = tableBody.querySelectorAll('tr');
+    rows.forEach(row => {
+     const rollCell = row.cells[0];
+     if (rollCell) {
+      const rollNumber = parseInt(rollCell.textContent);
+      const student = reportData.students.find(s => s.rollNumber === rollNumber);
+      if (student) {
+       // Recalculate present/absent counts for this student
+       let presentCount = 0;
+       let absentCount = 0;
+
+       reportData.summary.allDates.forEach(date => {
+        const dayKey = getDayOfYear(date);
+        if (!ignoredDays.has(dayKey)) {
+         const status = student.dailyStatus ? student.dailyStatus[dayKey] || 0 : 0;
+         if (status === 1) presentCount++;
+         else if (status === 2) absentCount++;
+        }
+       });
+
+       // Update the summary columns
+       const presentCell = row.cells[row.cells.length - 3];
+       const absentCell = row.cells[row.cells.length - 2];
+       const percentCell = row.cells[row.cells.length - 1];
+
+       presentCell.textContent = presentCount;
+       absentCell.textContent = absentCount;
+
+       const percentage = actualDays > 0 ? Math.round((presentCount / actualDays) * 100) : 0;
+       percentCell.textContent = `${percentage}${showPercentageSign ? '%' : ''}`;
+      }
+     }
+    });
+   });
+
+   checkboxCell.appendChild(checkbox);
+   headerRow1.appendChild(checkboxCell);
+
+   // Weekday initial cell (middle row)
+   const weekdayCell = document.createElement('th');
+   weekdayCell.style.border = '1px solid #eee';
+   weekdayCell.style.padding = '4px';
+   weekdayCell.style.position = 'sticky';
+   weekdayCell.style.top = '34px';
+   weekdayCell.style.background = isSunday ? '#f9f9f9' : 'white';
+   weekdayCell.style.color = isSunday ? '#999' : 'black';
+   weekdayCell.style.whiteSpace = 'nowrap';
+   weekdayCell.style.fontSize = '12px';
+   weekdayCell.style.textAlign = 'center';
+   const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })[0];
+   weekdayCell.textContent = weekday;
+   headerRow2.appendChild(weekdayCell);
+
+   // Day number cell (bottom row)
    const dayNumCell = document.createElement('th');
    dayNumCell.style.border = '1px solid #eee';
    dayNumCell.style.padding = '8px';
    dayNumCell.style.position = 'sticky';
-   dayNumCell.style.top = '0';
-   dayNumCell.style.background = date.getDay() === 0 ? '#f9f9f9' : 'white';
-   dayNumCell.style.color = 'black';
+   dayNumCell.style.top = '68px';
+   dayNumCell.style.background = isSunday ? '#f9f9f9' : 'white';
+   dayNumCell.style.color = isSunday ? '#999' : 'black';
    dayNumCell.style.whiteSpace = 'nowrap';
-   dayNumCell.textContent = date.getDate(); // Just the day number
-
-   // Weekday initial cell (bottom row)
-   const weekdayCell = document.createElement('th');
-   weekdayCell.style.border = '1px solid #eee';
-   weekdayCell.style.padding = '8px';
-   weekdayCell.style.position = 'sticky';
-   weekdayCell.style.top = '34px'; // Height of first header row
-   weekdayCell.style.background = date.getDay() === 0 ? '#f9f9f9' : 'white';
-   weekdayCell.style.color = date.getDay() === 0 ? '#999' : 'black';
-   weekdayCell.style.whiteSpace = 'nowrap';
-
-   // Get first letter of weekday
-   const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })[0];
-   weekdayCell.textContent = weekday;
-
-   headerRow1.appendChild(dayNumCell);
-   headerRow2.appendChild(weekdayCell);
+   dayNumCell.style.textAlign = 'center';
+   dayNumCell.textContent = date.getDate();
+   headerRow3.appendChild(dayNumCell);
   });
  }
 
- // Add summary columns header
+ // Add summary columns headers
  const presentHeader = document.createElement('th');
- presentHeader.rowSpan = 2;
+ presentHeader.rowSpan = 3;
  presentHeader.textContent = 'P';
  presentHeader.style.border = '1px solid #eee';
  presentHeader.style.padding = '8px';
@@ -1421,10 +1549,11 @@ function displayReportResults(reportData, classInfo, modal, showDetailedColumns,
  presentHeader.style.top = '0';
  presentHeader.style.background = 'white';
  presentHeader.style.color = 'black';
+ presentHeader.style.verticalAlign = 'middle';
  headerRow1.appendChild(presentHeader);
 
  const absentHeader = document.createElement('th');
- absentHeader.rowSpan = 2;
+ absentHeader.rowSpan = 3;
  absentHeader.textContent = 'A';
  absentHeader.style.border = '1px solid #eee';
  absentHeader.style.padding = '8px';
@@ -1432,10 +1561,11 @@ function displayReportResults(reportData, classInfo, modal, showDetailedColumns,
  absentHeader.style.top = '0';
  absentHeader.style.background = 'white';
  absentHeader.style.color = 'black';
+ absentHeader.style.verticalAlign = 'middle';
  headerRow1.appendChild(absentHeader);
 
  const percentHeader = document.createElement('th');
- percentHeader.rowSpan = 2;
+ percentHeader.rowSpan = 3;
  percentHeader.textContent = '%';
  percentHeader.style.border = '1px solid #eee';
  percentHeader.style.padding = '8px';
@@ -1443,19 +1573,59 @@ function displayReportResults(reportData, classInfo, modal, showDetailedColumns,
  percentHeader.style.top = '0';
  percentHeader.style.background = 'white';
  percentHeader.style.color = 'black';
+ percentHeader.style.verticalAlign = 'middle';
  headerRow1.appendChild(percentHeader);
 
  tableHead.appendChild(headerRow1);
- // if (showDetailedColumns) {
  tableHead.appendChild(headerRow2);
- // }
+ tableHead.appendChild(headerRow3);
+
+ // Add "Ignore All Sundays" button to the header
+ const ignoreAllSundaysBtn = document.createElement('button');
+ ignoreAllSundaysBtn.textContent = '⛔ Toggle All Sundays';
+ ignoreAllSundaysBtn.style.marginLeft = '10px';
+ ignoreAllSundaysBtn.style.padding = '4px 8px';
+ ignoreAllSundaysBtn.style.fontSize = '12px';
+ ignoreAllSundaysBtn.style.cursor = 'pointer';
+ ignoreAllSundaysBtn.addEventListener('click', function () {
+  const checkboxes = modal.querySelectorAll('.at_report_table thead input[type="checkbox"]');
+  let allSundaysChecked = true;
+
+  // Check if all Sundays are currently checked
+  checkboxes.forEach(checkbox => {
+   const date = new Date(checkbox.dataset.date);
+   if (date.getDay() === 0 && !checkbox.checked) {
+    allSundaysChecked = false;
+   }
+  });
+
+  // Toggle all Sundays
+  checkboxes.forEach(checkbox => {
+   const date = new Date(checkbox.dataset.date);
+   if (date.getDay() === 0) {
+    checkbox.checked = !allSundaysChecked;
+    // Trigger change event
+    checkbox.dispatchEvent(new Event('change'));
+   }
+  });
+ });
+
+ summaryContainer.appendChild(ignoreAllSundaysBtn);
 
  // Add student rows
  reportData.students.forEach(student => {
   const row = document.createElement('tr');
 
   // Roll number column
-  row.innerHTML = `<td style="border: 1px solid #eee; padding: 8px;">${student.rollNumber}</td>`;
+  const rollCell = document.createElement('td');
+  rollCell.style.border = '1px solid #eee';
+  rollCell.style.padding = '8px';
+  rollCell.style.position = 'sticky';
+  rollCell.style.left = '0';
+  rollCell.style.background = 'white';
+  rollCell.style.zIndex = '1';
+  rollCell.textContent = student.rollNumber;
+  row.appendChild(rollCell);
 
   if (showDetailedColumns) {
    // Add daily status cells for all dates
@@ -1483,10 +1653,23 @@ function displayReportResults(reportData, classInfo, modal, showDetailedColumns,
    });
   }
 
-  // Add summary columns for each student
-  const presentDays = student.presentCount;
-  const absentDays = student.absentCount;
-  const totalDays = reportData.summary.actualDays;
+  // Calculate present/absent counts excluding ignored days
+  let presentDays = 0;
+  let absentDays = 0;
+
+  reportData.summary.allDates.forEach(date => {
+   const dayOfYear = getDayOfYear(date);
+   if (!ignoredDays.has(dayOfYear)) {
+    const status = student.dailyStatus ? student.dailyStatus[dayOfYear] || 0 : 0;
+    if (status === 1) presentDays++;
+    else if (status === 2) absentDays++;
+   }
+  });
+
+  const totalDays = reportData.summary.allDates.filter(date =>
+   !ignoredDays.has(getDayOfYear(date))
+  ).length;
+
   const percentage = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
 
   // Present days cell
@@ -1494,6 +1677,9 @@ function displayReportResults(reportData, classInfo, modal, showDetailedColumns,
   presentCell.style.border = '1px solid #eee';
   presentCell.style.padding = '8px';
   presentCell.style.textAlign = 'center';
+  presentCell.style.right = '0';
+  presentCell.style.background = 'white';
+  presentCell.style.zIndex = '1';
   presentCell.textContent = presentDays;
   row.appendChild(presentCell);
 
@@ -1502,6 +1688,9 @@ function displayReportResults(reportData, classInfo, modal, showDetailedColumns,
   absentCell.style.border = '1px solid #eee';
   absentCell.style.padding = '8px';
   absentCell.style.textAlign = 'center';
+  absentCell.style.right = '40px';
+  absentCell.style.background = 'white';
+  absentCell.style.zIndex = '1';
   absentCell.textContent = absentDays;
   row.appendChild(absentCell);
 
@@ -1510,45 +1699,54 @@ function displayReportResults(reportData, classInfo, modal, showDetailedColumns,
   percentCell.style.border = '1px solid #eee';
   percentCell.style.padding = '8px';
   percentCell.style.textAlign = 'center';
+  percentCell.style.right = '80px';
+  percentCell.style.background = 'white';
+  percentCell.style.zIndex = '1';
   percentCell.textContent = `${percentage}${showPercentageSign ? '%' : ''}`;
   row.appendChild(percentCell);
 
   tableBody.appendChild(row);
  });
 
- // Add footer with totals
- /*const footerRow = document.createElement('tr');
- footerRow.style.fontWeight = 'bold';
- footerRow.style.backgroundColor = '#f5f5f5';
- 
- if (showDetailedColumns) {
- footerRow.innerHTML = `
- <td style="border: 1px solid #eee; padding: 8px;">Total</td>
- <td colspan="${reportData.summary.allDates.length}" style="border: 1px solid #eee; padding: 8px; text-align: center;">
- ${reportData.summary.allDates.length} days
- </td>
- <td style="border: 1px solid #eee; padding: 8px; text-align: center;">
- ${reportData.summary.presentDays}
- </td>
- <td style="border: 1px solid #eee; padding: 8px; text-align: center;">
- ${reportData.summary.absentDays}
- </td>
- <td style="border: 1px solid #eee; padding: 8px; text-align: center;">
- ${Math.round((reportData.summary.presentDays / reportData.summary.actualDays) * 100)}${showPercentageSign ? '%' : ''}
- </td>
- `;
- } else {
- footerRow.innerHTML = `
- <td style="border: 1px solid #eee; padding: 8px;">Total</td>
- <td style="border: 1px solid #eee; padding: 8px;">${reportData.summary.presentDays}</td>
- <td style="border: 1px solid #eee; padding: 8px;">${reportData.summary.absentDays}</td>
- <td style="border: 1px solid #eee; padding: 8px;">
- ${Math.round((reportData.summary.presentDays / reportData.summary.actualDays) * 100)}${showPercentageSign ? '%' : ''}
- </td>
- `;
+ // Initial summary update
+ updateSummary();
+
+ // Add a clear filters button
+ const clearFiltersBtn = document.createElement('button');
+ clearFiltersBtn.textContent = '✓ Include All Days';
+ clearFiltersBtn.style.marginLeft = '10px';
+ clearFiltersBtn.style.padding = '4px 8px';
+ clearFiltersBtn.style.fontSize = '12px';
+ clearFiltersBtn.style.cursor = 'pointer';
+ clearFiltersBtn.addEventListener('click', function () {
+  const checkboxes = modal.querySelectorAll('.at_report_table thead input[type="checkbox"]');
+  checkboxes.forEach(checkbox => {
+   checkbox.checked = false;
+   checkbox.dispatchEvent(new Event('change'));
+  });
+  showToast('All days included');
+ });
+
+ summaryContainer.appendChild(clearFiltersBtn);
+
+ // Add a summary of ignored days
+ const ignoredSummary = document.createElement('div');
+ ignoredSummary.className = 'at_ignored_summary';
+ ignoredSummary.style.marginTop = '10px';
+ ignoredSummary.style.fontSize = '12px';
+ ignoredSummary.style.color = '#666';
+
+ function updateIgnoredSummary() {
+  const ignoredDates = Array.from(ignoredDays).map(dayKey => {
+   const date = reportData.summary.allDates.find(d => getDayOfYear(d) === dayKey);
+   return date ? date.toLocaleDateString() : dayKey;
+  }).join(', ');
+
+  ignoredSummary.innerHTML = `<i class="fas fa-ban"></i> <strong>Ignored days:</strong> ${ignoredDates || 'None'}`;
  }
- 
- tableFoot.appendChild(footerRow);*/
+
+ updateIgnoredSummary();
+ summaryContainer.appendChild(ignoredSummary);
 
  // Set up export buttons
  modal.querySelector('#at_export_pdf').addEventListener('click', () => {
@@ -1606,74 +1804,89 @@ function exportToPDF(reportData, classInfo, showDetailedColumns, showPercentageS
 }
 
 function exportToCSV(reportData, classInfo, showDetailedColumns, showPercentageSign) {
- // Get the table element from the modal
- const table = document.querySelector('#at_report_date_modal .at_report_table');
  let csv = [];
 
- // Get all rows
- const rows = table.querySelectorAll('tr');
+ // Header row 1: Checkbox row (just labels)
+ let headerRow1 = ['Roll No.'];
 
- for (let i = 0; i < rows.length; i++) {
-  const row = [];
-  const cols = rows[i].querySelectorAll('td, th');
+ // Add date columns headers
+ reportData.summary.allDates.forEach(date => {
+  headerRow1.push(''); // Empty for checkbox row
+ });
 
-  // Special handling for header rows
-  if (i === 0) {
+ // Add summary column headers
+ headerRow1.push('Present', 'Absent', 'Percentage');
+ csv.push(headerRow1.join(','));
 
-   // Process date number cells
-   for (let j = 0; j < cols.length; j++) {
-    let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '')
-     .replace(/(\s\s)/gm, ' ');
-    data = data.replace(/"/g, '""');
-    if (data.indexOf(',') >= 0 || data.indexOf('"') >= 0) {
-     data = `"${data}"`;
-    }
-    row.push(data);
+ // Header row 2: Weekday letters
+ let headerRow2 = [''];
+ reportData.summary.allDates.forEach(date => {
+  const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })[0];
+  headerRow2.push(weekday);
+ });
+ headerRow2.push('', '', '');
+ csv.push(headerRow2.join(','));
+
+ // Header row 3: Dates
+ let headerRow3 = [''];
+ reportData.summary.allDates.forEach(date => {
+  headerRow3.push(date.getDate());
+ });
+ headerRow3.push('', '', '');
+ csv.push(headerRow3.join(','));
+
+ // Data rows
+ const actualDays = reportData.summary.allDates.filter(date =>
+  date.getDay() !== 0 // Exclude Sundays by default
+ ).length;
+
+ reportData.students.forEach(student => {
+  let row = [student.rollNumber];
+
+  // Add daily status
+  reportData.summary.allDates.forEach(date => {
+   const dayOfYear = getDayOfYear(date);
+   const status = student.dailyStatus ? student.dailyStatus[dayOfYear] || 0 : 0;
+
+   if (date.getDay() === 0) {
+    row.push(''); // Sunday - blank
+   } else if (status === 1) {
+    row.push('P');
+   } else if (status === 2) {
+    row.push('A');
+   } else {
+    row.push('-');
    }
+  });
 
-   // Add empty cells for summary columns (P, A, %)
-   row.push('', '', '');
-  }
-  else if (i === 1) {
-   // Second header row - include "Roll No." label
-   row.push('Roll No.');
+  // Calculate totals
+  let presentDays = 0;
+  let absentDays = 0;
 
-   // Process weekday cells
-   for (let j = 0; j < cols.length; j++) {
-    let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '')
-     .replace(/(\s\s)/gm, ' ');
-    data = data.replace(/"/g, '""');
-    if (data.indexOf(',') >= 0 || data.indexOf('"') >= 0) {
-     data = `"${data}"`;
-    }
-    row.push(data);
+  reportData.summary.allDates.forEach(date => {
+   if (date.getDay() !== 0) { // Exclude Sundays
+    const dayOfYear = getDayOfYear(date);
+    const status = student.dailyStatus ? student.dailyStatus[dayOfYear] || 0 : 0;
+    if (status === 1) presentDays++;
+    else if (status === 2) absentDays++;
    }
+  });
 
-   // Add summary column headers
-   row.push('P', 'A', '%');
-  }
-  else {
-   // Regular rows (data rows and footer)
-   for (let j = 0; j < cols.length; j++) {
-    let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '')
-     .replace(/(\s\s)/gm, ' ');
-    data = data.replace(/"/g, '""');
-    if (data.indexOf(',') >= 0 || data.indexOf('"') >= 0) {
-     data = `"${data}"`;
-    }
-    row.push(data);
-   }
-  }
+  const percentage = actualDays > 0 ? Math.round((presentDays / actualDays) * 100) : 0;
+
+  row.push(presentDays);
+  row.push(absentDays);
+  row.push(`${percentage}${showPercentageSign ? '%' : ''}`);
 
   csv.push(row.join(','));
- }
+ });
 
  // Download CSV file
  const csvContent = 'data:text/csv;charset=utf-8,' + csv.join('\n');
  const encodedUri = encodeURI(csvContent);
  const link = document.createElement('a');
  link.setAttribute('href', encodedUri);
- link.setAttribute('download', `Attendance_${classInfo.className}_${classInfo.division}_${new Date().toISOString().slice(0, 10)}.csv`);
+ link.setAttribute('download', `Attendance_${classInfo.className}_${classInfo.division}_${classInfo.subjectName}_${new Date().toISOString().slice(0, 10)}.csv`);
  document.body.appendChild(link);
  link.click();
  document.body.removeChild(link);
