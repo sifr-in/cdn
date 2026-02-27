@@ -1190,13 +1190,16 @@ settings are saved if generate button is clicked.
  // Add to document
  document.body.appendChild(modal);
 
- // Set default dates (last 30 days)
- const today = new Date();
- const thirtyDaysAgo = new Date();
- thirtyDaysAgo.setDate(today.getDate() - 30);
-
- modal.querySelector('#at_report_from_date').valueAsDate = thirtyDaysAgo;
- modal.querySelector('#at_report_to_date').valueAsDate = today;
+const today = new Date();
+const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+const formatDateForInput = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+modal.querySelector('#at_report_from_date').value = formatDateForInput(firstDayOfMonth);
+modal.querySelector('#at_report_to_date').value = formatDateForInput(today);
 
  // Set up event listeners
  modal.querySelector('.at_modal_close').addEventListener('click', () => {
@@ -1754,15 +1757,15 @@ function displayReportResults(reportData, classInfo, modal, showDetailedColumns,
   exportToPDF(reportData, classInfo, showDetailedColumns, showPercentageSign);
  });
 
- modal.querySelector('#at_export_csv').addEventListener('click', () => {
+modal.querySelector('#at_export_csv').addEventListener('click', () => {
   playClickSound();
-  exportToCSV(reportData, classInfo, showDetailedColumns, showPercentageSign);
- });
+  exportToCSV(reportData, classInfo, showDetailedColumns, showPercentageSign, ignoredDays);
+});
 
- modal.querySelector('#at_print_report').addEventListener('click', () => {
+modal.querySelector('#at_print_report').addEventListener('click', () => {
   playClickSound();
-  printReport(reportData, classInfo, showDetailedColumns, showPercentageSign);
- });
+  printReport(reportData, classInfo, showDetailedColumns, showPercentageSign, ignoredDays);
+});
 }
 
 function exportToPDF(reportData, classInfo, showDetailedColumns, showPercentageSign) {
@@ -1803,106 +1806,114 @@ function exportToPDF(reportData, classInfo, showDetailedColumns, showPercentageS
  });
 }
 
-function exportToCSV(reportData, classInfo, showDetailedColumns, showPercentageSign) {
- let csv = [];
+function exportToCSV(reportData, classInfo, showDetailedColumns, showPercentageSign, ignoredDays) {
+  let csv = [];
 
- // Header row 1: Checkbox row (just labels)
- let headerRow1 = ['Roll No.'];
+  // Header row 1: Checkbox row (just labels)
+  let headerRow1 = ['Roll No.'];
 
- // Add date columns headers
- reportData.summary.allDates.forEach(date => {
-  headerRow1.push(''); // Empty for checkbox row
- });
-
- // Add summary column headers
- headerRow1.push('Present', 'Absent', 'Percentage');
- csv.push(headerRow1.join(','));
-
- // Header row 2: Weekday letters
- let headerRow2 = [''];
- reportData.summary.allDates.forEach(date => {
-  const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })[0];
-  headerRow2.push(weekday);
- });
- headerRow2.push('', '', '');
- csv.push(headerRow2.join(','));
-
- // Header row 3: Dates
- let headerRow3 = [''];
- reportData.summary.allDates.forEach(date => {
-  headerRow3.push(date.getDate());
- });
- headerRow3.push('', '', '');
- csv.push(headerRow3.join(','));
-
- // Data rows
- const actualDays = reportData.summary.allDates.filter(date =>
-  date.getDay() !== 0 // Exclude Sundays by default
- ).length;
-
- reportData.students.forEach(student => {
-  let row = [student.rollNumber];
-
-  // Add daily status
+  // Add date columns headers
   reportData.summary.allDates.forEach(date => {
-   const dayOfYear = getDayOfYear(date);
-   const status = student.dailyStatus ? student.dailyStatus[dayOfYear] || 0 : 0;
-
-   if (date.getDay() === 0) {
-    row.push(''); // Sunday - blank
-   } else if (status === 1) {
-    row.push('P');
-   } else if (status === 2) {
-    row.push('A');
-   } else {
-    row.push('-');
-   }
+    headerRow1.push(''); // Empty for checkbox row
   });
 
-  // Calculate totals
-  let presentDays = 0;
-  let absentDays = 0;
+  // Add summary column headers
+  headerRow1.push('Present', 'Absent', 'Percentage');
+  csv.push(headerRow1.join(','));
 
+  // Header row 2: Weekday letters
+  let headerRow2 = [''];
   reportData.summary.allDates.forEach(date => {
-   if (date.getDay() !== 0) { // Exclude Sundays
-    const dayOfYear = getDayOfYear(date);
-    const status = student.dailyStatus ? student.dailyStatus[dayOfYear] || 0 : 0;
-    if (status === 1) presentDays++;
-    else if (status === 2) absentDays++;
-   }
+    const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })[0];
+    headerRow2.push(weekday);
+  });
+  headerRow2.push('', '', '');
+  csv.push(headerRow2.join(','));
+
+  // Header row 3: Dates
+  let headerRow3 = [''];
+  reportData.summary.allDates.forEach(date => {
+    headerRow3.push(date.getDate());
+  });
+  headerRow3.push('', '', '');
+  csv.push(headerRow3.join(','));
+
+  // Calculate actual days based on ignored days
+  const actualDays = reportData.summary.allDates.filter(date =>
+    !ignoredDays.has(getDayOfYear(date))
+  ).length;
+
+  // Data rows
+  reportData.students.forEach(student => {
+    let row = [student.rollNumber];
+
+    // Add daily status
+    reportData.summary.allDates.forEach(date => {
+      const dayOfYear = getDayOfYear(date);
+      const status = student.dailyStatus ? student.dailyStatus[dayOfYear] || 0 : 0;
+
+      if (date.getDay() === 0) {
+        row.push(''); // Sunday - blank
+      } else if (status === 1) {
+        row.push('P');
+      } else if (status === 2) {
+        row.push('A');
+      } else {
+        row.push('-');
+      }
+    });
+
+    // Calculate totals EXCLUDING ignored days
+    let presentDays = 0;
+    let absentDays = 0;
+
+    reportData.summary.allDates.forEach(date => {
+      const dayOfYear = getDayOfYear(date);
+      // Only count if not ignored
+      if (!ignoredDays.has(dayOfYear)) {
+        const status = student.dailyStatus ? student.dailyStatus[dayOfYear] || 0 : 0;
+        if (status === 1) presentDays++;
+        else if (status === 2) absentDays++;
+      }
+    });
+
+    const percentage = actualDays > 0 ? Math.round((presentDays / actualDays) * 100) : 0;
+
+    row.push(presentDays);
+    row.push(absentDays);
+    row.push(`${percentage}${showPercentageSign ? '%' : ''}`);
+
+    csv.push(row.join(','));
   });
 
-  const percentage = actualDays > 0 ? Math.round((presentDays / actualDays) * 100) : 0;
-
-  row.push(presentDays);
-  row.push(absentDays);
-  row.push(`${percentage}${showPercentageSign ? '%' : ''}`);
-
-  csv.push(row.join(','));
- });
-
- // Download CSV file
- const csvContent = 'data:text/csv;charset=utf-8,' + csv.join('\n');
- const encodedUri = encodeURI(csvContent);
- const link = document.createElement('a');
- link.setAttribute('href', encodedUri);
- link.setAttribute('download', `Attendance_${classInfo.className}_${classInfo.division}_${classInfo.subjectName}_${new Date().toISOString().slice(0, 10)}.csv`);
- document.body.appendChild(link);
- link.click();
- document.body.removeChild(link);
+  // Download CSV file
+  const csvContent = 'data:text/csv;charset=utf-8,' + csv.join('\n');
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', `Attendance_${classInfo.className}_${classInfo.division}_${classInfo.subjectName}_${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
-function printReport(reportData, classInfo, showDetailedColumns, showPercentageSign) {
- // Get the modal content
- const modalContent = document.querySelector('#at_report_date_modal .at_modal_content').cloneNode(true);
+function printReport(reportData, classInfo, showDetailedColumns, showPercentageSign, ignoredDays) {
+  // Get the modal content - this will already reflect the current UI state
+  // with ignored days visually represented
+  const modalContent = document.querySelector('#at_report_date_modal .at_modal_content').cloneNode(true);
+  
+  // Remove interactive elements we don't want to print
+  modalContent.querySelector('.at_report_actions').remove();
+  modalContent.querySelector('.at_modal_close').remove();
+  
+  // Remove checkboxes from the print version (optional)
+  modalContent.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+    checkbox.remove();
+  });
 
- // Remove buttons we don't want to print
- modalContent.querySelector('.at_report_actions').remove();
- modalContent.querySelector('.at_modal_close').remove();
-
- // Create a print window
- const printWindow = window.open('', '_blank');
- printWindow.document.write(`
+  // Create a print window
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
 <html>
 <head>
 <title>Attendance Report</title>
@@ -1930,11 +1941,10 @@ window.close();
 </body>
 </html>
 `);
- printWindow.document.close();
+  printWindow.document.close();
 }
 
 // Initialize when scripts are loaded
 if (typeof initApp === 'function') {
  initApp();
-
 }
