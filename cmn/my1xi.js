@@ -284,7 +284,7 @@ class DexieDBManager {
 
   // 2. Fetch from remote if not found locally
   try {
-   const response = await fetch("https://cdn.jsdelivr.net/gh/sifr-in/cdn@9be88db/cmn/my1xi.da");
+   const response = await fetch("https://cdn.jsdelivr.net/gh/sifr-in/cdn@de32eef/cmn/my1xi.da");
    if (response.ok) {
     const remoteSchemas = await response.json();
     schema = Array.isArray(remoteSchemas)
