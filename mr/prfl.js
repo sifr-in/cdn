@@ -48,9 +48,9 @@
    // Store references
    window.mraContentArea = contentArea;
    window.mraFooterArea = footerArea;
-   
-if (mraModalElement) { if (window._mraSaveDraft) { mraModalElement.removeEventListener('hidden.bs.modal', window._mraSaveDraft); } window._mraSaveDraft = function() { const formData = {}; if (window.mraFormFields) { for (const [key, field] of Object.entries(window.mraFormFields)) { formData[key] = field.input.value; } } localStorage.setItem(prfix + '_draft', JSON.stringify(formData)); }; mraModalElement.addEventListener('hidden.bs.modal', window._mraSaveDraft); }
-   
+
+   if (mraModalElement) { if (window._mraSaveDraft) { mraModalElement.removeEventListener('hidden.bs.modal', window._mraSaveDraft); } window._mraSaveDraft = function () { const formData = {}; if (window.mraFormFields) { for (const [key, field] of Object.entries(window.mraFormFields)) { formData[key] = field.input.value; } } localStorage.setItem(prfix + '_draft', JSON.stringify(formData)); }; mraModalElement.addEventListener('hidden.bs.modal', window._mraSaveDraft); }
+
   } else {
    // Modal exists, get references
    mraModalElement = modal;
@@ -71,7 +71,7 @@ if (mraModalElement) { if (window._mraSaveDraft) { mraModalElement.removeEventLi
     mraModalInstance = bootstrap.Modal.getInstance(modal);
     if (!mraModalInstance) {
      //mraModalInstance = new bootstrap.Modal(modal);
-     mraModalInstance = new bootstrap.Modal(modal, {backdrop: 'static',keyboard: false});
+     mraModalInstance = new bootstrap.Modal(modal, { backdrop: 'static', keyboard: false });
     }
    }
   }
@@ -110,15 +110,15 @@ if (mraModalElement) { if (window._mraSaveDraft) { mraModalElement.removeEventLi
   backBtn.style.cssText = 'padding: 0; margin: 0; font-size: 1.5rem; line-height: 1; text-decoration: none; color: var(--primary-color, #7B1FA2);';
   backBtn.innerHTML = '←';
   backBtn.onclick = function () {
- // Store all current form values to localStorage before closing
- const formData = {};
- if (window.mraFormFields) {
-  for (const [key, field] of Object.entries(window.mraFormFields)) { formData[key] = field.input.value; }
- }
- const draftKey = prfix + '_draft';
- localStorage.setItem(draftKey, JSON.stringify(formData));
- if (mraModalInstance) { mraModalInstance.hide(); }
-};
+   // Store all current form values to localStorage before closing
+   const formData = {};
+   if (window.mraFormFields) {
+    for (const [key, field] of Object.entries(window.mraFormFields)) { formData[key] = field.input.value; }
+   }
+   const draftKey = prfix + '_draft';
+   localStorage.setItem(draftKey, JSON.stringify(formData));
+   if (mraModalInstance) { mraModalInstance.hide(); }
+  };
 
   // Title (center)
   const title = document.createElement('h5');
@@ -264,31 +264,31 @@ if (mraModalElement) { if (window._mraSaveDraft) { mraModalElement.removeEventLi
 
  // Get ordered keys based on display sequence
  // Get ordered keys based on display sequence
-function getOrderedKeys(labels, displaySequence, hiddenKeys) {
- const allKeys = Object.keys(labels);
+ function getOrderedKeys(labels, displaySequence, hiddenKeys) {
+  const allKeys = Object.keys(labels);
 
- // Parse display sequence (arg[7])
- const sequenceArray = displaySequence ? displaySequence.split(',').map(k => k.trim()) : [];
+  // Parse display sequence (arg[7])
+  const sequenceArray = displaySequence ? displaySequence.split(',').map(k => k.trim()) : [];
 
- // Create ordered list (include ALL keys, hidden keys will be hidden later)
- const orderedKeys = [];
+  // Create ordered list (include ALL keys, hidden keys will be hidden later)
+  const orderedKeys = [];
 
- // First add keys from display sequence (include hidden keys here)
- for (const seqKey of sequenceArray) {
-  if (labels[seqKey] !== undefined && !orderedKeys.includes(seqKey)) {
-   orderedKeys.push(seqKey);
+  // First add keys from display sequence (include hidden keys here)
+  for (const seqKey of sequenceArray) {
+   if (labels[seqKey] !== undefined && !orderedKeys.includes(seqKey)) {
+    orderedKeys.push(seqKey);
+   }
   }
- }
 
- // Then add remaining keys (including hidden ones that weren't in sequence)
- for (const key of allKeys) {
-  if (!orderedKeys.includes(key)) {
-   orderedKeys.push(key);
+  // Then add remaining keys (including hidden ones that weren't in sequence)
+  for (const key of allKeys) {
+   if (!orderedKeys.includes(key)) {
+    orderedKeys.push(key);
+   }
   }
- }
 
- return orderedKeys;
-}
+  return orderedKeys;
+ }
 
  // Display data in modal
  window.disp_mra__data = function (...arg) {
@@ -304,19 +304,19 @@ function getOrderedKeys(labels, displaySequence, hiddenKeys) {
 
 
 
-// draft system must be changed, as it is overwriding existing values;
-// give button to see previous draft;
+  // draft system must be changed, as it is overwriding existing values;
+  // give button to see previous draft;
 
-// const draftKey = prfix + '_draft';
-// const savedDraft = localStorage.getItem(draftKey);
-// let mergedValues = values;
-// if (savedDraft) {
-//  try {
-//   const draftData = JSON.parse(savedDraft);
-//   mergedValues = {...values,...draftData};
-//   values = mergedValues;
-//  } catch (e) { console.error('Error parsing draft:', e); }
-// }
+  // const draftKey = prfix + '_draft';
+  // const savedDraft = localStorage.getItem(draftKey);
+  // let mergedValues = values;
+  // if (savedDraft) {
+  //  try {
+  //   const draftData = JSON.parse(savedDraft);
+  //   mergedValues = {...values,...draftData};
+  //   values = mergedValues;
+  //  } catch (e) { console.error('Error parsing draft:', e); }
+  // }
 
 
 
@@ -587,6 +587,14 @@ function getOrderedKeys(labels, displaySequence, hiddenKeys) {
  window.set_mra__data_vals = function (...arg) {
   const prfix = arg[0];
   const values = arg[3] || {};
+  const defaFieldVals = window[my1uzr.worknOnPg]?.defaFieldVals || '';
+  if (defaFieldVals) {
+   const defaults = {};
+   defaFieldVals.split(',').forEach(pair => { const [key, val] = pair.split('~'); if (key && val) { defaults[key.trim()] = val.trim(); } });
+   if ((!values.k || values.k == 0 || values.k == '0') && defaults.k) { values.k = defaults.k; }
+   if ((!values.k1 || values.k1 == 0 || values.k1 == '0') && defaults.k1) { values.k1 = defaults.k1; }
+   if ((!values.k2 || values.k2 == 0 || values.k2 == '0') && defaults.k2) { values.k2 = defaults.k2; }
+  }
   const specialProcessors = arg[4] || [];
   const clickHandlers = arg[5] || [];
   const hiddenKeys = arg[8] || '';
