@@ -587,14 +587,14 @@
  window.set_mra__data_vals = function (...arg) {
   const prfix = arg[0];
   const values = arg[3] || {};
-  const defaFieldVals = window[my1uzr.worknOnPg]?.defaFieldVals || '';
-  if (defaFieldVals) {
-   const defaults = {};
-   defaFieldVals.split(',').forEach(pair => { const [key, val] = pair.split('~'); if (key && val) { defaults[key.trim()] = val.trim(); } });
-   if ((!values.k || values.k == 0 || values.k == '0') && defaults.k) { values.k = defaults.k; }
-   if ((!values.k1 || values.k1 == 0 || values.k1 == '0') && defaults.k1) { values.k1 = defaults.k1; }
-   if ((!values.k2 || values.k2 == 0 || values.k2 == '0') && defaults.k2) { values.k2 = defaults.k2; }
-  }
+  const defaFieldVals = window[my1uzr.worknOnPg]?.defaFieldVals || [];
+if (defaFieldVals && defaFieldVals.length > 0) {
+ const defaults = {};
+ defaFieldVals.forEach(pair => { const [key, val] = pair.split('~'); if (key && val) { defaults[key.trim()] = val.trim(); } });
+ if ((!values.k || values.k == 0 || values.k == '0') && defaults.k) { values.k = defaults.k; }
+ if ((!values.k1 || values.k1 == 0 || values.k1 == '0') && defaults.k1) { values.k1 = defaults.k1; }
+ if ((!values.k2 || values.k2 == 0 || values.k2 == '0') && defaults.k2) { values.k2 = defaults.k2; }
+}
   const specialProcessors = arg[4] || [];
   const clickHandlers = arg[5] || [];
   const hiddenKeys = arg[8] || '';
