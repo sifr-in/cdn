@@ -78,7 +78,7 @@ function function2runAfter_O_Login(rs16lt) {
   { "a": 30, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@666354f/cmn/degs.da" },
   { "a": 32, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@0208362/cmn/occu.da" },
   { "a": 37, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@3988bc6/cmn/ei.min.js", "c": "open_entind_crud", "r": "open_entind_crud" },
-  { "a": 38, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/prfl.js", "c": "mra__main", "r": "mra__main" },
+  { "a": 38, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@690f254/mr/prfl.js", "c": "mra__main", "r": "mra__main" },
   { "a": 39, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/slkt.js", "c": "openCommonSelectionModal", "r": "openCommonSelectionModal" },
   { "a": 40, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/e.js" },
   { "a": 41, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/vldt.js", "c": "cmnVldet", "r": "cmnVldet" },
@@ -1042,7 +1042,7 @@ async function showProfileDtls(profileId) {
    if (myEinMR && myEinMR.a > 0)
     profileData = myEinMR;
    else
-    profileData = { "d": 0, "e": 0, "g": "", "j": 0, "q": "", "qa": "", "qb": "", "qc": "", "x": "", "z": "", "a2": "", "b4": "", "c6": "", "a9": "", "a5": 0, "a7": 0, "b6": [], "u": "", "k": 13, "k1": 9, "k2": 0, "a3": 97, "b5": 97, "c5": 97 };
+    profileData = { "d": 0, "e": 0, "g": "", "j": 0, "q": "", "qa": "", "qb": "", "qc": "", "x": "", "z": "", "a2": "", "b4": "", "c6": "", "a9": "", "a5": 0, "a7": 0, "b6": [], "u": "", "k": 0, "k1": 0, "k2": 0, "a3": 97, "b5": 97, "c5": 97 };
    addingAllowed = 1;
    addMultAllowd = 2;
    edtingAllowed = 1;
