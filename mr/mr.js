@@ -38,18 +38,6 @@ function function2runAfter_O_Login(rs16lt) {
 
 (function () {
  'use strict';
- //   
- //   { "a": 14, "u": "https://my1.in/0.0000000000/z/mr/mrb.js", "c": "set_mr_profile_innerHTML", "r": "set_mr_profile_innerHTML" },
- //   { "a": 25, "u": "https://my1.in/0.0000000000/z/mr/mrj.js", "c": "set_city_country_innerHTML", "r": "set_city_country_innerHTML" },
- //   { "a": 26, "u": "https://my1.in/0.0000000000/z/mr/mrk.js", "c": "prep_caste_religion_data", "r": "prep_caste_religion_data" },
- //   { "a": 29, "u": "https://my1.in/0.0000000000/z/mr/mrm.js", "c": "prep_languages_innerHTML", "r": "prep_languages_innerHTML" },
- //   { "a": 31, "u": "https://my1.in/0.0000000000/z/mr/mrn.js", "c": "prep_degrees_data", "r": "prep_degrees_data" },
- //   { "a": 33, "u": "https://my1.in/0.0000000000/z/mr/mro.js", "c": "prep_occupations_data", "r": "prep_occupations_data" },
- //   { "a": 34, "u": "https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css" },
- //   { "a": 35, "u": "https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js" },
- //   { "a": 36, "u": "https://my1.in/0.0000000000/z/mr/mrq.js", "c": "set_mrq_disp_prof", "r": "set_mrq_disp_prof" },
- //   { "a": 38, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8a1d5fe/mr/prfl.js", "c": "mra__main", "r": "mra__main" },
-
  window[my1uzr.worknOnPg].csh = [
   { "a": 1, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@92f6756/cmn/my1e3.min.js" },
   { "a": 2, "u": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" },
@@ -63,7 +51,7 @@ function function2runAfter_O_Login(rs16lt) {
   { "a": 10, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@24bf6ca/cmn/my1drv.min.js" },
   { "a": 11, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fc84f58/cmn/my1dra.min.js", "c": "upldAnyFile2drv", "r": "upldAnyFile2drv" },
   { "a": 12, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/fltr.js", "c": "showFilterBox", "r": "showFilterBox" },
-  { "a": 13, "u": "https://my1.in/0.0000000000/z/mr/drwr_delete.js", "c": "showDrawer", "r": "showDrawer" },
+  { "a": 13, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/drwr.js", "c": "showDrawer", "r": "showDrawer" },
   { "a": 15, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/andro.js" },
   { "a": 16, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/noti.js", "c": "showNotifications", "r": "showNotifications" },
   { "a": 17, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/pri.js", "c": "set_marriage_plan_innerHTML", "r": "set_marriage_plan_innerHTML" },
@@ -79,16 +67,16 @@ function function2runAfter_O_Login(rs16lt) {
   { "a": 30, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@666354f/cmn/degs.da" },
   { "a": 32, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@0208362/cmn/occu.da" },
   { "a": 37, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@3988bc6/cmn/ei.min.js", "c": "open_entind_crud", "r": "open_entind_crud" },
-  { "a": 38, "u": "https://my1.in/0.0000000000/z/mr/prfl_delete.js", "c": "mra__main", "r": "mra__main" },
+  { "a": 38, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/prfl_delete.js", "c": "mra__main", "r": "mra__main" },
   { "a": 39, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/slkt.js", "c": "openCommonSelectionModal", "r": "openCommonSelectionModal" },
-  { "a": 40, "u": "https://my1.in/0.0000000000/z/mr/e_delete.js" },
+  { "a": 40, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/e_delete.js" },
   { "a": 41, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/vldt.js", "c": "cmnVldet", "r": "cmnVldet" },
   { "a": 42, "u": "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" },
   { "a": 43, "u": "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js" },
   { "a": 44, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/drvphp.js", "c": "upld2drv", "r": "upld2drv" },
   { "a": 45, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/cmn/intal.da" },
-  { "a": 46, "u": "https://my1.in/0.0000000000/z/mr/prfle_delete.js", "c": "mr_e__main", "r": "mr_e__main" },
-  { "a": 47, "u": "https://my1.in/0.0000000000/z/mr/slkt2.js", "c": "setValByPrprtyDepthToElm", "r": "setValByPrprtyDepthToElm" }
+  { "a": 46, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/prfle_delete.js", "c": "mr_e__main", "r": "mr_e__main" },
+  { "a": 47, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/slkt2.js", "c": "setValByPrprtyDepthToElm", "r": "setValByPrprtyDepthToElm" }
  ]
 
  async function showFlashImage() {
@@ -195,9 +183,9 @@ function function2runAfter_O_Login(rs16lt) {
    let result1 = null;
    // Step 2: Load required scripts sequentially
    if (window[my1uzr.worknOnPg].usdInAndroWv && window[my1uzr.worknOnPg].usdInAndroWv === 1)
-    result1 = await loadCshScriptsSequentially(42, 43, 44, 2, 3, 4, 6, 7, 9, 40, 15, 34, 35, 37, 39,47, 41, 8);
+    result1 = await loadCshScriptsSequentially(42, 43, 44, 2, 3, 4, 6, 7, 9, 40, 15, 34, 35, 37, 39, 47, 41, 8);
    else
-    result1 = await loadCshScriptsSequentially(42, 43, 44, 2, 3, 4, 6, 7, 9, 40, 15, 34, 35, 37, 39,47, 41);
+    result1 = await loadCshScriptsSequentially(42, 43, 44, 2, 3, 4, 6, 7, 9, 40, 15, 34, 35, 37, 39, 47, 41);
 
    if (!result1.success) {
     throw new Error('Failed to load required scripts: ' + result1.error);
@@ -213,11 +201,11 @@ function function2runAfter_O_Login(rs16lt) {
     cmn_prep_data_set_to_var("mr_desig_posis", 1, 32);
     cmn_prep_data_set_to_var("var_caste_rlgns", 1, 18);
     cmn_prep_data_set_to_var("var_degres", 1, 30);
-if (window[my1uzr.worknOnPg]?.fileToUseForSelectingNativeCity) {
- cmn_prep_data_set_to_var("var_ctco", 1, window[my1uzr.worknOnPg].fileToUseForSelectingNativeCity);
-} else {
- cmn_prep_data_set_to_var("var_ctco", 1, 19);
-}
+    if (window[my1uzr.worknOnPg]?.fileToUseForSelectingNativeCity) {
+     cmn_prep_data_set_to_var("var_ctco", 1, window[my1uzr.worknOnPg].fileToUseForSelectingNativeCity);
+    } else {
+     cmn_prep_data_set_to_var("var_ctco", 1, 19);
+    }
     cmn_prep_data_set_to_var("var_lngs", 1, 28);
 
     let initialResult = null;
@@ -505,35 +493,35 @@ if (window[my1uzr.worknOnPg]?.fileToUseForSelectingNativeCity) {
   const qaValue = profile.qa || '';
 
   // Create comma-separated details string
-const fieldsOnCard = window[my1uzr.worknOnPg]?.fieldsOnCard || "m~g,h,k1,b4";
-const fieldLines = fieldsOnCard.split('~');
-const lineValues = fieldLines.map(line => {
- const fields = line.split(',');
- return fields.map(f => {
-  const trimmed = f.trim();
-  if (trimmed.startsWith("'") && trimmed.endsWith("'")) { return trimmed.slice(1, -1); }
-  if (trimmed.startsWith('"') && trimmed.endsWith('"')) { return trimmed.slice(1, -1); }
-  if (trimmed === 'm') return firstName;
-  if (trimmed === 'g') return age !== 'Not specified' ? `${age} yrs` : null;
-  if (trimmed === 'h') return height;
-  if (trimmed === 'i') return packageAmount;
+  const fieldsOnCard = window[my1uzr.worknOnPg]?.fieldsOnCard || "m~g,h,k1,b4";
+  const fieldLines = fieldsOnCard.split('~');
+  const lineValues = fieldLines.map(line => {
+   const fields = line.split(',');
+   return fields.map(f => {
+    const trimmed = f.trim();
+    if (trimmed.startsWith("'") && trimmed.endsWith("'")) { return trimmed.slice(1, -1); }
+    if (trimmed.startsWith('"') && trimmed.endsWith('"')) { return trimmed.slice(1, -1); }
+    if (trimmed === 'm') return firstName;
+    if (trimmed === 'g') return age !== 'Not specified' ? `${age} yrs` : null;
+    if (trimmed === 'h') return height;
+    if (trimmed === 'i') return packageAmount;
 
-// Religion and Caste
-if (trimmed === 'k' || trimmed === 'k1') { const rlgn = window.var_caste_rlgns?.find(item => item.a == profile.k); if (trimmed === 'k') return rlgn ? rlgn.e : null; const caste = rlgn?.castes?.find(item => item.a == profile.k1); return caste ? caste.e : null; }
-// Sub-caste
-if (trimmed === 'k2') { const subCaste = window.var_sub_caste_type?.find(item => item.a == profile.k2); return subCaste ? subCaste.e : null; }
-// Native country and city
-if (trimmed === 'b5' || trimmed === 'b4') { const country = window.var_ctco?.find(item => item.a == profile.b5); if (trimmed === 'b5') return country ? country.n : null; const city = country?.cities?.find(item => item.a == profile.b4); return city ? city.n : null; }
-// Working country and city
-// if (trimmed === 'a3' || trimmed === 'a2') { const country = window.var_ctco?.find(item => item.a == profile.a3); if (trimmed === 'a3') return country ? country.n : null; const city = country?.cities?.find(item => item.a == profile.a2); return city ? city.n : null; }
-// Current living country and city
-// if (trimmed === 'c5' || trimmed === 'c6') { const country = window.var_ctco?.find(item => item.a == profile.c5); if (trimmed === 'c5') return country ? country.n : null; const city = country?.cities?.find(item => item.a == profile.c6); return city ? city.n : null; }
+    // Religion and Caste
+    if (trimmed === 'k' || trimmed === 'k1') { const rlgn = window.var_caste_rlgns?.find(item => item.a == profile.k); if (trimmed === 'k') return rlgn ? rlgn.e : null; const caste = rlgn?.castes?.find(item => item.a == profile.k1); return caste ? caste.e : null; }
+    // Sub-caste
+    if (trimmed === 'k2') { const subCaste = window.var_sub_caste_type?.find(item => item.a == profile.k2); return subCaste ? subCaste.e : null; }
+    // Native country and city
+    if (trimmed === 'b5' || trimmed === 'b4') { const country = window.var_ctco?.find(item => item.a == profile.b5); if (trimmed === 'b5') return country ? country.n : null; const city = country?.cities?.find(item => item.a == profile.b4); return city ? city.n : null; }
+    // Working country and city
+    // if (trimmed === 'a3' || trimmed === 'a2') { const country = window.var_ctco?.find(item => item.a == profile.a3); if (trimmed === 'a3') return country ? country.n : null; const city = country?.cities?.find(item => item.a == profile.a2); return city ? city.n : null; }
+    // Current living country and city
+    // if (trimmed === 'c5' || trimmed === 'c6') { const country = window.var_ctco?.find(item => item.a == profile.c5); if (trimmed === 'c5') return country ? country.n : null; const city = country?.cities?.find(item => item.a == profile.c6); return city ? city.n : null; }
 
-  return profile[trimmed] || null;
- }).filter(v => v !== null && v !== '').join(', ');
-});
+    return profile[trimmed] || null;
+   }).filter(v => v !== null && v !== '').join(', ');
+  });
 
-const detailsString = lineValues.length > 0 ? `<div><div style="font-weight: 600; font-size: 1.1rem;">${lineValues[0] || '—'}</div>${lineValues.length > 1 ? `<div style="font-size: 0.9rem;">${lineValues.slice(1).join(' · ')}</div>` : ''}</div>` : 'Details not available';
+  const detailsString = lineValues.length > 0 ? `<div><div style="font-weight: 600; font-size: 1.1rem;">${lineValues[0] || '—'}</div>${lineValues.length > 1 ? `<div style="font-size: 0.9rem;">${lineValues.slice(1).join(' · ')}</div>` : ''}</div>` : 'Details not available';
 
   const col = document.createElement('div');
   col.className = 'col-12 col-sm-6 col-md-4 col-lg-3 mb-4';
@@ -1024,130 +1012,130 @@ const sibling_input_el_id = "mra__x";
 const sibling_dv_el_id = "mra__x_div";
 
 async function showProfileDtls(profileId) {
-//  const t351mp = await chkIfLoggedIn();
+ //  const t351mp = await chkIfLoggedIn();
  //  if (t351mp.su == 1)
  //   (async () => { await loadExe2Fn(36, [profileId], [1]); })();
  //  else
  //   (async () => { await loadExe2Fn(5, [], [1]); })();
 
-//  if (t351mp.su == 1) {
+ //  if (t351mp.su == 1) {
 
-  //thus below code to create modal every time;
+ //thus below code to create modal every time;
 
-  // Get the modal element
-  const modalElement = document.getElementById("mra_");
-  if (modalElement) {
-   // Get Bootstrap modal instance
-   const modal = bootstrap.Modal.getInstance(modalElement);
-   if (modal) {
-    modal.hide(); // Hide the modal first
-   }
-   // Remove from DOM
-   modalElement.remove();
-   // Remove from modal stack if you're using it
-   if (typeof removeModalFromStack === 'function') {
-    removeModalFromStack("abc");
-   }
+ // Get the modal element
+ const modalElement = document.getElementById("mra_");
+ if (modalElement) {
+  // Get Bootstrap modal instance
+  const modal = bootstrap.Modal.getInstance(modalElement);
+  if (modal) {
+   modal.hide(); // Hide the modal first
   }
-
-
-  let profileData;
-  let showUtilizeProfileButton = 0;
-
-  let addingAllowed = 0;
-  let addMultAllowd = 0;//2
-  let edtingAllowed = 0;
-  let edtOldAllowed = false;
-
-  if (proflFullData == null)
-   proflFullData = await dbDexieManager.getAllRecords(dbnm, "mr") || [];
-  if (profileId == 0) {
-   if (myEinMR && myEinMR.a > 0)
-    profileData = myEinMR;
-   else
-    profileData = { "d": 0, "e": 0, "g": "", "j": 0, "q": "", "qa": "", "qb": "", "qc": "", "x": "", "z": "", "a2": "", "c6": "", "a9": "", "a5": 0, "a7": 0, "b6": [], "u": "", "k": 0, "k1": 0, "k2": 0, "a3": 97, "b4": "27", "b5": 97, "c5": 97 };
-   addingAllowed = 1;
-   addMultAllowd = 2;
-   edtingAllowed = 1;
-   edtOldAllowed = true;
-   showUtilizeProfileButton = 2;
-  } else {
-   profileData = proflFullData.find(item => item.a === profileId);
-   if (profileData == null) {
-    profileData = profilesData.find(item => item.a === profileId);
-    showUtilizeProfileButton = 1;
-   }
+  // Remove from DOM
+  modalElement.remove();
+  // Remove from modal stack if you're using it
+  if (typeof removeModalFromStack === 'function') {
+   removeModalFromStack("abc");
   }
-  let required_data = [];
-  required_data[1] = 1;//display modal;
-  required_data[2] = fieldNameMap;//field labels;
-  required_data[3] = profileData;//json-data
-  let fnToUse = "setValByProprtyToElm";
-  let fnInsdeFileToUse = "fn_setValToGvnInputs('" + required_data[0] + "','b5')";
-  let valOfC = "var_ctco,cities";
-  if (window[my1uzr.worknOnPg]?.fileToUseForSelectingNativeCity){
-      fnToUse = "setValByPrprtyDepthToElm";
-      fnInsdeFileToUse = "fn_setValToGvnInputs('" + required_data[0] + "','b5')";
-      valOfC = "var_ctco,dstrcts,thsls";
+ }
+
+
+ let profileData;
+ let showUtilizeProfileButton = 0;
+
+ let addingAllowed = 0;
+ let addMultAllowd = 0;//2
+ let edtingAllowed = 0;
+ let edtOldAllowed = false;
+
+ if (proflFullData == null)
+  proflFullData = await dbDexieManager.getAllRecords(dbnm, "mr") || [];
+ if (profileId == 0) {
+  if (myEinMR && myEinMR.a > 0)
+   profileData = myEinMR;
+  else
+   profileData = { "d": 0, "e": 0, "g": "", "j": 0, "q": "", "qa": "", "qb": "", "qc": "", "x": "", "z": "", "a2": "", "c6": "", "a9": "", "a5": 0, "a7": 0, "b6": [], "u": "", "k": 0, "k1": 0, "k2": 0, "a3": 97, "b4": "27", "b5": 97, "c5": 97 };
+  addingAllowed = 1;
+  addMultAllowd = 2;
+  edtingAllowed = 1;
+  edtOldAllowed = true;
+  showUtilizeProfileButton = 2;
+ } else {
+  profileData = proflFullData.find(item => item.a === profileId);
+  if (profileData == null) {
+   profileData = profilesData.find(item => item.a === profileId);
+   showUtilizeProfileButton = 1;
   }
-  let dpthComulsoryForNativeAddress = 0;
-  if (window[my1uzr.worknOnPg]?.depthComulsoryForNativeAddress)
-   dpthComulsoryForNativeAddress = window[my1uzr.worknOnPg]?.depthComulsoryForNativeAddress;
-  required_data[4] = [{ "a": "d", "b": "setValByProprtyToElm", "c": "entryStatus", "canAdd": addingAllowed }, { "a": "e", "b": "set_mra_e", "canEdit": edtingAllowed, "params": [mono_fl_csh_no, [mono_loader_id, mono_show_modal, mono_dv_el_id, mono_callBackFn, mono_input_el_id], [1]] }, { "a": "g", "b": "set_dtt", "c": "yyyy-mm-dd HH:MM:SS", "d": window[my1uzr.worknOnPg].bdayFormat }, { "a": "j", "b": "setValByProprtyToElm", "c": "marital_status", "canAdd": addingAllowed }, { "a": "k", "b": "setValByProprtyToElm", "c": "var_caste_rlgns", "canAdd": addingAllowed }, { "a": "k1", "b": "setValByProprtyToElm", "c": "var_caste_rlgns,castes", "e": profileData.k, "g": "fn_setValToGvnInputs('" + required_data[0] + "','k')", "canAdd": addingAllowed }, { "a": "k2", "b": "setValByProprtyToElm", "c": "var_sub_caste_type", "canAdd": addingAllowed }, { "a": "a3", "b": "setValByProprtyToElm", "c": "var_ctco", "canAdd": addingAllowed }, { "a": "a2", "b": "setValByProprtyToElm", "c": "var_ctco,cities", "e": profileData.a3, "g": "fn_setValToGvnInputs('" + required_data[0] + "','a3')", "canAdd": addingAllowed }, { "a": "b5", "b": "setValByProprtyToElm", "c": "var_ctco", "canAdd": addingAllowed }, { "a": "b4", "b": fnToUse, "c": valOfC, "e": profileData.b5, "g": fnInsdeFileToUse, "canAdd": addingAllowed, "depthForNative": dpthComulsoryForNativeAddress }, { "a": "c5", "b": "setValByProprtyToElm", "c": "var_ctco", "canAdd": addingAllowed }, { "a": "c6", "b": "setValByProprtyToElm", "c": "var_ctco,cities", "e": profileData.c5, "g": "fn_setValToGvnInputs('" + required_data[0] + "','c5')", "canAdd": addingAllowed }, { "a": "q", "b": "setValByProprtyToElm", "c": "mr_job_types", "canAdd": addingAllowed }, { "a": "qa", "b": "setValByProprtyToElm", "c": "mr_desig_posis", "canAdd": addingAllowed }, { "a": "qb", "b": "setValByProprtyToElm", "c": "mr_bsns_forms", "canAdd": addingAllowed }, { "a": "qc", "b": "setValByProprtyToElm", "c": "mr_bsns_typs", "canAdd": addingAllowed }, { "a": "s", "b": "setValByProprtyToElm", "c": "var_degres", "canAdd": addMultAllowd }, { "a": "a9", "b": "setValByProprtyToElm", "c": "var_lngs", "canAdd": addMultAllowd }, {
-   "a": "b6", "b": "setGalleryImages", "canAdd": addingAllowed, "driveMl": window[my1uzr.worknOnPg].driveMl,
-   "thumbnailSize": 600,  // Add thumbnail size
-   "resizeBy": 0
-  }, { "a": "x", "b": "setSiblingTags", "canAdd": addingAllowed, "params": [sibling_fl_csh_no, [sibling_loader_id, sibling_dv_el_id, sibling_show_modal, sibling_callBackFn, sibling_input_el_id], [1]] }, { "a": "z", "b": "setValByProprtyToElm", "c": "bloodGroups", "canAdd": addingAllowed }, { "a": "a5", "b": "setValByProprtyToElm", "c": "var_genders", "canAdd": addingAllowed }, { "a": "a7", "b": "setValByProprtyToElm", "c": "relation_with_regr", "d": "string1", "e": -1, "canAdd": addingAllowed }, {
-   "a": "u",
-   "b": "prepImgByURL", "driveMl": window[my1uzr.worknOnPg].driveMl,
-   "canEdit": edtOldAllowed,
-   "thumbnailSize": 600,  // Add thumbnail size
-   "resizeBy": 0         // 0 = resize by width, 1 = resize by height
-   //"folderName": "my1_mr" // optional folder name
-  }];
-  required_data[5] = [];
-  required_data[6] = [];
+ }
+ let required_data = [];
+ required_data[1] = 1;//display modal;
+ required_data[2] = fieldNameMap;//field labels;
+ required_data[3] = profileData;//json-data
+ let fnToUse = "setValByProprtyToElm";
+ let fnInsdeFileToUse = "fn_setValToGvnInputs('" + required_data[0] + "','b5')";
+ let valOfC = "var_ctco,cities";
+ if (window[my1uzr.worknOnPg]?.fileToUseForSelectingNativeCity) {
+  fnToUse = "setValByPrprtyDepthToElm";
+  fnInsdeFileToUse = "fn_setValToGvnInputs('" + required_data[0] + "','b5')";
+  valOfC = "var_ctco,dstrcts,thsls";
+ }
+ let dpthComulsoryForNativeAddress = 0;
+ if (window[my1uzr.worknOnPg]?.depthComulsoryForNativeAddress)
+  dpthComulsoryForNativeAddress = window[my1uzr.worknOnPg]?.depthComulsoryForNativeAddress;
+ required_data[4] = [{ "a": "d", "b": "setValByProprtyToElm", "c": "entryStatus", "canAdd": addingAllowed }, { "a": "e", "b": "set_mra_e", "canEdit": edtingAllowed, "params": [mono_fl_csh_no, [mono_loader_id, mono_show_modal, mono_dv_el_id, mono_callBackFn, mono_input_el_id], [1]] }, { "a": "g", "b": "set_dtt", "c": "yyyy-mm-dd HH:MM:SS", "d": window[my1uzr.worknOnPg].bdayFormat }, { "a": "j", "b": "setValByProprtyToElm", "c": "marital_status", "canAdd": addingAllowed }, { "a": "k", "b": "setValByProprtyToElm", "c": "var_caste_rlgns", "canAdd": addingAllowed }, { "a": "k1", "b": "setValByProprtyToElm", "c": "var_caste_rlgns,castes", "e": profileData.k, "g": "fn_setValToGvnInputs('" + required_data[0] + "','k')", "canAdd": addingAllowed }, { "a": "k2", "b": "setValByProprtyToElm", "c": "var_sub_caste_type", "canAdd": addingAllowed }, { "a": "a3", "b": "setValByProprtyToElm", "c": "var_ctco", "canAdd": addingAllowed }, { "a": "a2", "b": "setValByProprtyToElm", "c": "var_ctco,cities", "e": profileData.a3, "g": "fn_setValToGvnInputs('" + required_data[0] + "','a3')", "canAdd": addingAllowed }, { "a": "b5", "b": "setValByProprtyToElm", "c": "var_ctco", "canAdd": addingAllowed }, { "a": "b4", "b": fnToUse, "c": valOfC, "e": profileData.b5, "g": fnInsdeFileToUse, "canAdd": addingAllowed, "depthForNative": dpthComulsoryForNativeAddress }, { "a": "c5", "b": "setValByProprtyToElm", "c": "var_ctco", "canAdd": addingAllowed }, { "a": "c6", "b": "setValByProprtyToElm", "c": "var_ctco,cities", "e": profileData.c5, "g": "fn_setValToGvnInputs('" + required_data[0] + "','c5')", "canAdd": addingAllowed }, { "a": "q", "b": "setValByProprtyToElm", "c": "mr_job_types", "canAdd": addingAllowed }, { "a": "qa", "b": "setValByProprtyToElm", "c": "mr_desig_posis", "canAdd": addingAllowed }, { "a": "qb", "b": "setValByProprtyToElm", "c": "mr_bsns_forms", "canAdd": addingAllowed }, { "a": "qc", "b": "setValByProprtyToElm", "c": "mr_bsns_typs", "canAdd": addingAllowed }, { "a": "s", "b": "setValByProprtyToElm", "c": "var_degres", "canAdd": addMultAllowd }, { "a": "a9", "b": "setValByProprtyToElm", "c": "var_lngs", "canAdd": addMultAllowd }, {
+  "a": "b6", "b": "setGalleryImages", "canAdd": addingAllowed, "driveMl": window[my1uzr.worknOnPg].driveMl,
+  "thumbnailSize": 600,  // Add thumbnail size
+  "resizeBy": 0
+ }, { "a": "x", "b": "setSiblingTags", "canAdd": addingAllowed, "params": [sibling_fl_csh_no, [sibling_loader_id, sibling_dv_el_id, sibling_show_modal, sibling_callBackFn, sibling_input_el_id], [1]] }, { "a": "z", "b": "setValByProprtyToElm", "c": "bloodGroups", "canAdd": addingAllowed }, { "a": "a5", "b": "setValByProprtyToElm", "c": "var_genders", "canAdd": addingAllowed }, { "a": "a7", "b": "setValByProprtyToElm", "c": "relation_with_regr", "d": "string1", "e": -1, "canAdd": addingAllowed }, {
+  "a": "u",
+  "b": "prepImgByURL", "driveMl": window[my1uzr.worknOnPg].driveMl,
+  "canEdit": edtOldAllowed,
+  "thumbnailSize": 600,  // Add thumbnail size
+  "resizeBy": 0         // 0 = resize by width, 1 = resize by height
+  //"folderName": "my1_mr" // optional folder name
+ }];
+ required_data[5] = [];
+ required_data[6] = [];
+ if (profileData.d > -1) {
+  required_data[6] = [{ "a": "Share profile", "e": "shareProfl" }];
+ }
+ const delSttts = (myEinMR && myEinMR.d) ? myEinMR.d : 0;
+ if (profileId == 0 && delSttts > -1) {
   if (profileData.d > -1) {
-   required_data[6] = [{ "a": "Share profile", "e": "shareProfl" }];
+   const fun2DeleteAsClient = 69;
+   required_data[6].push({ "a": "Delete profile", "e": "confirmLeaveProfile", "runFnOnOk": "useLeaveCount", "runFnOnCancel": "showCancelToastAndCloseModal", "fnNo2Del": fun2DeleteAsClient });
+  } else {
+   required_data[6].push({ "a": "profile already submitted to delete", "e": "functionNotExisting" });
   }
-  const delSttts = (myEinMR && myEinMR.d) ? myEinMR.d : 0;
-  if (profileId == 0 && delSttts > -1) {
-   if (profileData.d > -1) {
-    const fun2DeleteAsClient = 69;
-    required_data[6].push({ "a": "Delete profile", "e": "confirmLeaveProfile", "runFnOnOk": "useLeaveCount", "runFnOnCancel": "showCancelToastAndCloseModal", "fnNo2Del": fun2DeleteAsClient });
-   } else {
-    required_data[6].push({ "a": "profile already submitted to delete", "e": "functionNotExisting" });
-   }
-  }
+ }
 
-  required_data[7] = window[my1uzr.worknOnPg].seqnce;//sequence
-  if (showUtilizeProfileButton == 1) {
-   if (myEinMR?.a !== profileData.a) {
-    const functionNumber = 66;
-    required_data[9] = [{ "a": "Unlock profile", "e": "confirmUnlockProfile", "runFnOnOk": "useOrSetAsideProfile", "runFnOnCancel": "showCancelToastAndCloseModal", "colsToSubmit": "a", "fnNo": functionNumber, "functionParam": "mu" }];
-   } else {
-    //don't give here update, let client update from drawer menu;
-   }
-  } else if (showUtilizeProfileButton == 2) {
-   const functionNumber = 68; const update1New0 = 0;
-   required_data[9] = [{ "a": "Update your profile", "e": "saveProfileChanges", "f": window[my1uzr.worknOnPg].colsToSubmit, "g": functionNumber, "h": update1New0 }];
+ required_data[7] = window[my1uzr.worknOnPg].seqnce;//sequence
+ if (showUtilizeProfileButton == 1) {
+  if (myEinMR?.a !== profileData.a) {
+   const functionNumber = 66;
+   required_data[9] = [{ "a": "Unlock profile", "e": "confirmUnlockProfile", "runFnOnOk": "useOrSetAsideProfile", "runFnOnCancel": "showCancelToastAndCloseModal", "colsToSubmit": "a", "fnNo": functionNumber, "functionParam": "mu" }];
+  } else {
+   //don't give here update, let client update from drawer menu;
   }
-  if (profileId == 0){
-      const t351mp = await chkIfLoggedIn();
-if (t351mp.su == 1) {
+ } else if (showUtilizeProfileButton == 2) {
+  const functionNumber = 68; const update1New0 = 0;
+  required_data[9] = [{ "a": "Update your profile", "e": "saveProfileChanges", "f": window[my1uzr.worknOnPg].colsToSubmit, "g": functionNumber, "h": update1New0 }];
+ }
+ if (profileId == 0) {
+  const t351mp = await chkIfLoggedIn();
+  if (t351mp.su == 1) {
    required_data[0] = "mra_e_";//unique prefix for modal dialogue
    required_data[8] = window[my1uzr.worknOnPg].colsToHide;
    await loadExe2Fn(46, required_data, [1]);
-}else {(async () => { await loadExe2Fn(5, [], [1]); })();}
-  }else{
-   required_data[0] = "mra_";//unique prefix for modal dialogue
-   required_data[8] = window[my1uzr.worknOnPg].colsOfOthersHide;
-   await loadExe2Fn(38, required_data, [1]);
-  }
-//  }
-//  else {
-//   (async () => { await loadExe2Fn(5, [], [1]); })();
-//  }
+  } else { (async () => { await loadExe2Fn(5, [], [1]); })(); }
+ } else {
+  required_data[0] = "mra_";//unique prefix for modal dialogue
+  required_data[8] = window[my1uzr.worknOnPg].colsOfOthersHide;
+  await loadExe2Fn(38, required_data, [1]);
+ }
+ //  }
+ //  else {
+ //   (async () => { await loadExe2Fn(5, [], [1]); })();
+ //  }
 }
 // Global variable to track unlock count (you can adjust as needed)
 let currentUnlockModal = null;
