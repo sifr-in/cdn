@@ -159,10 +159,10 @@ oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\\..*?)\\./g,
 <!-- Specific Profile ID -->
 <div class="mb-3">
 <label class="form-label" style="font-size: 0.8rem; color: #7B1FA2; margin-bottom: 4px;">
-<i class="fas fa-id-card me-1"></i>Specific Profile ID (8 chars)
+<i class="fas fa-id-card me-1"></i>Specific Profile ID (6 to 8 chars)
 </label>
-<input type="text" class="form-control filter-input" name="specific_profile_id" placeholder="Enter 8-char profile ID" pattern="^[0-9a-z]{8}$" maxlength="8" value="${getSavedValue('specific_profile_id')}" style="border-color: #7B1FA2; text-transform: lowercase;" oninput="this.value = this.value.replace(/[^0-9a-z]/g, '').toLowerCase();">
-<div class="invalid-feedback">Profile ID must be exactly 8 characters (0-9, a-z)</div>
+<input type="text" class="form-control filter-input" name="specific_profile_id" placeholder="Enter 6 to 8-char profile ID" pattern="^[0-9a-z]{6,8}$" maxlength="8" value="${getSavedValue('specific_profile_id')}" style="border-color: #7B1FA2; text-transform: lowercase;" oninput="this.value = this.value.replace(/[^0-9a-z]/g, '').toLowerCase();">
+<div class="invalid-feedback">Profile ID must be 6 to 8 characters (0-9, a-z)</div>
 </div>
 
 <!-- Action Buttons -->
@@ -206,7 +206,7 @@ function setupValidationListeners() {
   
   // If specific profile ID is being used, skip other validations
   if (specificProfileId && specificProfileId.value.trim() !== '') {
-   const profileIdPattern = /^[0-9a-z]{8}$/;
+   const profileIdPattern = /^[0-9a-z]{6,8}$/;
    if (!profileIdPattern.test(specificProfileId.value.trim())) {
     isValid = false;
     specificProfileId.classList.add('is-invalid');
@@ -294,7 +294,7 @@ async function applyFilters() {
  const specificProfileId = getInputValue('specific_profile_id');
  
  // If specific profile ID is provided and valid
- if (specificProfileId && /^[0-9a-z]{8}$/.test(specificProfileId)) {
+ if (specificProfileId && /^[0-9a-z]{6,8}$/.test(specificProfileId)) {
   showSpecificProfileConfirmModal(specificProfileId, async (confirmed) => {
    if (confirmed) {
     const filters = {specific_profile_id: specificProfileId};
