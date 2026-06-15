@@ -219,7 +219,7 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
  // Define the exact menu sequence with icons (all icons in grey color, removed Profile Privacy)
  const defaultMenuItems = [
   {
-   title: 'Profile Settings',
+   title: 'Register Profile',
    icon: 'fas fa-user-cog',
    color: '#6c757d', // Grey color
    onClick: () => {
@@ -231,7 +231,7 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
     // })();
    }
   },
-  {
+  /*{
    title: 'Gallery Photos',
    icon: 'fas fa-images',
    color: '#6c757d', // Grey color
@@ -239,7 +239,7 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
     showGalInModal(myEinMR.b6);
    }
   },
-  /*{
+  {
       title: 'Shortlisted Profiles',
       icon: 'fas fa-heart',
       color: '#6c757d', // Grey color

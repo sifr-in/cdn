@@ -263,141 +263,177 @@
  }
 
  // Display data in modal
-window.disp_mra__data = function (...arg) {
- const prfix = arg[0];
- const labels = arg[2] || {};
- let values = arg[3] || {};
- const specialProcessors = arg[4] || [];
- const clickHandlers = arg[5] || [];
- const menuItems = arg[6] || [];
- const displaySequence = arg[7] || '';
- const hiddenKeys = arg[8] || '';
- const actionButtons = arg[9] || [];
+ window.disp_mra__data = function (...arg) {
+  const prfix = arg[0];
+  const labels = arg[2] || {};
+  let values = arg[3] || {};
+  const specialProcessors = arg[4] || [];
+  const clickHandlers = arg[5] || [];
+  const menuItems = arg[6] || [];
+  const displaySequence = arg[7] || '';
+  const hiddenKeys = arg[8] || '';
+  const actionButtons = arg[9] || [];
 
- window.mraMenuItems = menuItems;
 
- const contentArea = window.mraContentArea;
- const footerArea = window.mraFooterArea;
- if (!contentArea) return;
 
- contentArea.innerHTML = '';
- if (footerArea) { footerArea.innerHTML = ''; }
+  // draft system must be changed, as it is overwriding existing values;
+  // give button to see previous draft;
 
- let actionButtonsList = [];
- if (Array.isArray(actionButtons) && actionButtons.length > 0) { actionButtonsList = actionButtons; }
+  // const draftKey = prfix + '_draft';
+  // const savedDraft = localStorage.getItem(draftKey);
+  // let mergedValues = values;
+  // if (savedDraft) {
+  //  try {
+  //   const draftData = JSON.parse(savedDraft);
+  //   mergedValues = {...values,...draftData};
+  //   values = mergedValues;
+  //  } catch (e) { console.error('Error parsing draft:', e); }
+  // }
 
- const orderedKeys = getOrderedKeys(labels, displaySequence, hiddenKeys);
- const hiddenKeysArray = hiddenKeys ? hiddenKeys.split(',').map(k => k.trim()) : [];
 
- const formFields = {};
- window.mraFormFields = formFields;
 
- for (const key of orderedKeys) {
-  const labelText = labels[key];
-  const value = values[key] !== undefined ? values[key] : '';
-  const isHidden = hiddenKeysArray.includes(key);
-  const processor = specialProcessors.find(p => p.a === key);
-  const clickHandler = clickHandlers.find(p => p.a === key);
-  const hasProcessor = processor !== undefined;
-  const hasClickHandler = clickHandler !== undefined;
-  const isImageField = (key === 'u' || key === 'b6' || key === 'ut');
 
-  // Create main container with border
-  const formGroup = document.createElement('div');
-  formGroup.className = 'mra__form-group';
-  formGroup.style.cssText = 'padding: 0.6rem 0.75rem; border: 2px solid black !important; border-radius: 8px; margin-bottom: 0.5rem; background: #fff;';
+  // Store menu items for header rebuild if needed
+  window.mraMenuItems = menuItems;
 
-  if (isHidden) { formGroup.style.display = 'none'; }
+  const contentArea = window.mraContentArea;
+  const footerArea = window.mraFooterArea;
+  if (!contentArea) return;
 
-  // Image fields keep original layout
-  if (isImageField) {
+  // Clear content area
+  contentArea.innerHTML = '';
+  if (footerArea) {
+   footerArea.innerHTML = '';
+  }
+
+  // Parse action buttons - now an array of objects
+  let actionButtonsList = [];
+  if (Array.isArray(actionButtons) && actionButtons.length > 0) {
+   actionButtonsList = actionButtons;
+  }
+
+  // Get ordered keys first (includes all keys, even hidden ones for sequence)
+  const orderedKeys = getOrderedKeys(labels, displaySequence, hiddenKeys);
+
+  // Parse hidden keys array for quick lookup
+  const hiddenKeysArray = hiddenKeys ? hiddenKeys.split(',').map(k => k.trim()) : [];
+
+  // Store all form fields for later collection
+  const formFields = {};
+  window.mraFormFields = formFields;
+
+  // Create form group for each ordered key (including hidden ones)
+  for (const key of orderedKeys) {
+   const labelText = labels[key];
+   const value = values[key] !== undefined ? values[key] : '';
+
+   // Check if this key should be hidden
+   const isHidden = hiddenKeysArray.includes(key);
+
+   // Check if this key has special processor (arg[4])
+   const processor = specialProcessors.find(p => p.a === key);
+   // Check if this key has click handler (arg[5])
+   const clickHandler = clickHandlers.find(p => p.a === key);
+
+   // Determine if key matches processor or clickHandler
+   const hasProcessor = processor !== undefined;
+   const hasClickHandler = clickHandler !== undefined;
+
+   // Create form group div
+   const formGroup = document.createElement('div');
+   formGroup.className = 'mra__form-group';
    formGroup.style.cssText = 'margin-bottom: 1rem;';
-   formGroup.style.border = 'none';
-   formGroup.style.borderRadius = '0';
-   formGroup.style.padding = '0';
-   formGroup.style.background = 'transparent';
-  }
 
-  // Create label
-  const label = document.createElement('label');
-  label.className = 'mra__form-label';
-  label.style.cssText = 'display: block; margin-bottom: 0.25rem; font-weight: 500; font-size: 0.875rem; color: #6c757d;';
-  label.textContent = labelText;
-  label.setAttribute('for', `${prfix}_${key}`);
+   // If hidden, add style to hide the entire form group
+   if (isHidden) {
+    formGroup.style.display = 'none';
+   }
 
-  // Create value container
-  const valueContainer = document.createElement('div');
-  valueContainer.className = 'mra__value-container';
-  valueContainer.style.cssText = 'font-size: 0.875rem; color: #212529; word-break: break-word; white-space: pre-wrap; line-height: 1.4;';
+   // Create label
+   const label = document.createElement('label');
+   label.className = 'mra__form-label';
+   label.style.cssText = 'display: block; margin-bottom: 0.25rem; font-weight: 500; font-size: 0.875rem; color: #6c757d;';
+   label.textContent = labelText;
+   label.setAttribute('for', `${prfix}_${key}`);
 
-  // Create hidden input for form data collection
-  const input = document.createElement('input');
-  input.type = 'hidden';
-  input.id = `${prfix}_${key}`;
-  input.value = value;
+   // Create input container for flex layout
+   const inputContainer = document.createElement('div');
+   inputContainer.className = 'mra__input-container';
+   inputContainer.style.cssText = 'display: flex; align-items: center; gap: 0.5rem;';
 
-  // Create display div for value
-  const valueDisplay = document.createElement('div');
-  valueDisplay.id = `${prfix}_${key}_display`;
-  valueDisplay.textContent = value;
+   // Create input element
+   const input = document.createElement('input');
+   input.type = 'text';
+   input.className = 'form-control mra__form-control';
+   input.id = `${prfix}_${key}`;
+   input.style.cssText = 'flex: 1;';
+   input.value = value;
 
-  // Store field reference
-  formFields[key] = { input: input, label: labelText, value: value, isHidden: isHidden, displayDiv: valueDisplay };
+   // Store field reference (always store, even if hidden)
+   formFields[key] = {
+    input: input,
+    label: labelText,
+    value: value,
+    isHidden: isHidden
+   };
 
-  // Create div element for processed value (if needed)
-  let valueDiv = null;
-  if (hasProcessor || hasClickHandler) {
-   valueDiv = document.createElement('div');
-   valueDiv.id = `${prfix}_${key}_div`;
-   valueDiv.className = 'mra__value-div';
-   valueDisplay.style.display = 'none';
-  }
+   // Create div element for processed value (if needed)
+   let valueDiv = null;
+   if (hasProcessor || hasClickHandler) {
+    valueDiv = document.createElement('div');
+    valueDiv.id = `${prfix}_${key}_div`;
+    valueDiv.className = 'mra__value-div';
+   }
 
-  // Apply styling based on conditions
-  if (hasProcessor) {
-   label.style.cssText += 'color: #00349d;';
-   if (valueDiv) { valueDiv.style.cssText += 'font-size: 0.875rem; color: #00349d; border-radius: 0.22rem;'; }
-  }
-  /*if (hasClickHandler) {
-   label.style.cssText += 'color: #b0006b;';
-   label.innerHTML = `<i class="fas fa-link mra__link-icon" style="margin-right: 0.25rem; font-size: 0.75rem;"></i>${labelText}`;
-   if (valueDiv) { valueDiv.style.cssText += 'font-size: 0.925rem; color: #b0006b; border-radius: 0.35rem; padding: 0.33rem; background: #d4edda; border-left: 3px solid #198754;'; }
-   valueContainer.style.cursor = 'pointer';
-   valueContainer.onclick = (function (inpId, inpVal, divId, keyName, handlerObj) {
-    return function () {
-     if (typeof window[handlerObj.b] === 'function') { window[handlerObj.b](inpId, inpVal, divId, keyName, handlerObj); }
-     else { console.warn(`Function ${handlerObj.b} not found`); }
-    };
-   })(`${prfix}_${key}`, value, valueDiv ? `${prfix}_${key}_div` : null, key, clickHandler);
-  }*/
+   // Apply styling based on conditions
+   if (hasProcessor) {
+    input.style.display = 'none';
+    if (valueDiv) {
+     valueDiv.style.cssText += 'font-size: 0.875rem; color: #00349d; border-radius: 0.22rem;';
+    }
+    label.style.cssText += 'color: #00349d;';
+    label.innerHTML = labelText;
+   }
+   if (hasClickHandler) {
+    if (valueDiv) {
+     valueDiv.style.cssText += 'font-size: 0.925rem; color: #b0006b; border-radius: 0.35rem; padding: 0.33rem';
+    }
+    label.style.cssText += 'color: #b0006b;';
+    // Add solid link icon at beginning of label
+    label.innerHTML = `<i class="fas fa-link mra__link-icon" style="margin-right: 0.25rem; font-size: 0.75rem;"></i>${labelText}`;
 
-  // Assemble components
-  if (!isImageField) {
-   if (valueDiv) { valueContainer.appendChild(valueDiv); }
-   valueContainer.appendChild(valueDisplay);
+    // HIDE the input element completely
+    input.style.display = 'none';
+
+    // Add onclick event to content div
+    const contentDivRef = valueDiv || inputContainer;
+    contentDivRef.style.cursor = 'pointer';
+    contentDivRef.onclick = (function (inpId, inpVal, divId, keyName, handlerObj) {
+     return function () {
+      if (typeof window[handlerObj.b] === 'function') {
+       window[handlerObj.b](inpId, inpVal, divId, keyName, handlerObj);
+      } else {
+       console.warn(`Function ${handlerObj.b} not found`);
+      }
+     };
+    })(`${prfix}_${key}`, value, valueDiv ? `${prfix}_${key}_div` : null, key, clickHandler);
+
+    // Style 3: Show content div with additional styling
+    if (valueDiv) {
+     valueDiv.style.cssText += 'background: #d4edda; border-left: 3px solid #198754;';
+    }
+   }
+
+   // Assemble components
+   inputContainer.appendChild(input);
    formGroup.appendChild(label);
-   formGroup.appendChild(valueContainer);
-  } else {
-   // Image fields keep original input-based layout
-   const imgInput = document.createElement('input');
-   imgInput.type = 'text';
-   imgInput.className = 'form-control mra__form-control';
-   imgInput.id = `${prfix}_${key}`;
-   imgInput.style.cssText = 'flex: 1;';
-   imgInput.value = value;
-   formFields[key].input = imgInput;
-   const imgInputContainer = document.createElement('div');
-   imgInputContainer.className = 'mra__input-container';
-   imgInputContainer.style.cssText = 'display: flex; align-items: center; gap: 0.5rem;';
-   imgInputContainer.appendChild(imgInput);
-   formGroup.appendChild(label);
-   formGroup.appendChild(imgInputContainer);
-   if (valueDiv) { formGroup.appendChild(valueDiv); }
-  }
+   formGroup.appendChild(inputContainer);
+   if (valueDiv) {
+    formGroup.appendChild(valueDiv);
+   }
 
-  formGroup.appendChild(input);
-  contentArea.appendChild(formGroup);
- }
+   contentArea.appendChild(formGroup);
+  }
 
   // Create footer buttons from actionButtons array
   if (footerArea && actionButtonsList.length > 0) {
@@ -523,42 +559,65 @@ if (t351mp.su == 1) {
  };
 
  // Set values to input elements
-window.set_mra__data_vals = function (...arg) {
- const prfix = arg[0];
- const values = arg[3] || {};
- const defaFieldVals = window[my1uzr.worknOnPg]?.defaFieldVals || [];
- if (defaFieldVals && defaFieldVals.length > 0) {
-  const defaults = {};
-  defaFieldVals.forEach(pair => { const [key, val] = pair.split('~'); if (key && val) { defaults[key.trim()] = val.trim(); } });
-  if ((!values.k || values.k == 0 || values.k == '0') && defaults.k) { values.k = defaults.k; }
-  if ((!values.k1 || values.k1 == 0 || values.k1 == '0') && defaults.k1) { values.k1 = defaults.k1; }
-  if ((!values.k2 || values.k2 == 0 || values.k2 == '0') && defaults.k2) { values.k2 = defaults.k2; }
- }
- const specialProcessors = arg[4] || [];
- const clickHandlers = arg[5] || [];
- const hiddenKeys = arg[8] || '';
- const hiddenKeysArray = hiddenKeys ? hiddenKeys.split(',').map(k => k.trim()) : [];
+ window.set_mra__data_vals = function (...arg) {
+  const prfix = arg[0];
+  const values = arg[3] || {};
+  const defaFieldVals = window[my1uzr.worknOnPg]?.defaFieldVals || [];
+if (defaFieldVals && defaFieldVals.length > 0) {
+ const defaults = {};
+ defaFieldVals.forEach(pair => { const [key, val] = pair.split('~'); if (key && val) { defaults[key.trim()] = val.trim(); } });
+ if ((!values.k || values.k == 0 || values.k == '0') && defaults.k) { values.k = defaults.k; }
+ if ((!values.k1 || values.k1 == 0 || values.k1 == '0') && defaults.k1) { values.k1 = defaults.k1; }
+ if ((!values.k2 || values.k2 == 0 || values.k2 == '0') && defaults.k2) { values.k2 = defaults.k2; }
+}
+  const specialProcessors = arg[4] || [];
+  const clickHandlers = arg[5] || [];
+  const hiddenKeys = arg[8] || '';
 
- for (const [key, val] of Object.entries(values)) {
-  if (hiddenKeysArray.includes(key)) continue;
-  const input = document.getElementById(`${prfix}_${key}`);
-  if (input) { input.value = val !== null && val !== undefined ? val : ''; }
-  const displayDiv = document.getElementById(`${prfix}_${key}_display`);
-  if (displayDiv) { displayDiv.textContent = val !== null && val !== undefined ? val : ''; }
+  // Parse hidden keys array
+  const hiddenKeysArray = hiddenKeys ? hiddenKeys.split(',').map(k => k.trim()) : [];
 
-  const processor = specialProcessors.find(p => p.a === key);
-  const clickHandler = clickHandlers.find(p => p.a === key);
-  if (processor) {
-   const divElement = document.getElementById(`${prfix}_${key}_div`);
-   if (divElement && typeof window[processor.b] === 'function') {
-    const processedValue = window[processor.b](`${prfix}_${key}`, val, `${prfix}_${key}_div`, key, processor);
-    if (processedValue !== undefined && divElement) { divElement.textContent = processedValue; }
-   } else if (divElement && processor) { console.warn(`Processor function ${processor.b} not found for key ${key}`); }
-  } else if (clickHandler) {
-   const divElement = document.getElementById(`${prfix}_${key}_div`);
-   if (divElement && val !== null && val !== undefined) { divElement.textContent = val; }
+  // Set values for all inputs
+  for (const [key, val] of Object.entries(values)) {
+   // Skip hidden keys
+   if (hiddenKeysArray.includes(key)) continue;
+
+   const input = document.getElementById(`${prfix}_${key}`);
+   if (input) {
+    input.value = val !== null && val !== undefined ? val : '';
+   }
+
+   // Check if this key has special processor
+   const processor = specialProcessors.find(p => p.a === key);
+   const clickHandler = clickHandlers.find(p => p.a === key);
+
+   // Process with special processor if exists
+   if (processor) {
+    const divElement = document.getElementById(`${prfix}_${key}_div`);
+    if (divElement && typeof window[processor.b] === 'function') {
+     // Call processor function
+     const processedValue = window[processor.b](
+      `${prfix}_${key}`,
+      val,
+      `${prfix}_${key}_div`,
+      key,
+      processor
+     );
+     // If function doesn't return value, assume it sets the div content
+     if (processedValue !== undefined && divElement) {
+      divElement.textContent = processedValue;
+     }
+    } else if (divElement && processor) {
+     console.warn(`Processor function ${processor.b} not found for key ${key}`);
+    }
+   } else if (clickHandler) {
+    // For click handlers, set the div content directly if no processor
+    const divElement = document.getElementById(`${prfix}_${key}_div`);
+    if (divElement && val !== null && val !== undefined) {
+     divElement.textContent = val;
+    }
+   }
   }
- }
-};
+ };
 
 })();

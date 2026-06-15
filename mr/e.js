@@ -117,14 +117,15 @@ async function cmn_prep_data_set_to_var(...arg) {
      type: 'info',
      dismissible: true
     });
-   } else {
+   }
+   /*else {
     showToast(`${varNm}: Data stored`, {
      duration: 2000,
      position: 'top',
      type: 'success',
      dismissible: true
     });
-   }
+   }*/
 
    // Always set to window property
    window[varNm] = data;
@@ -615,7 +616,7 @@ function setGalleryImages(inputId, value, divId, key, fullObject) {
   addButtonContainer.style.cssText = 'display:flex;justify-content:center;margin-top:10px;';
 
   const addButton = document.createElement('button');
-  addButton.innerHTML = '+ Add Image';
+  addButton.innerHTML = '+ Add Image in Gallery';
   addButton.style.cssText = 'background:linear-gradient(135deg, #4CAF50, #45a049);color:white;border:none;border-radius:50px;padding:8px 20px;font-weight:600;cursor:pointer;transition:all 0.3s ease;';
   addButton.onmouseover = () => {
    addButton.style.transform = 'translateY(-2px)';
@@ -640,8 +641,8 @@ function setGalleryImages(inputId, value, divId, key, fullObject) {
 
    isUploading = true;
    // addButton.disabled = true;
-   addButton.style.opacity = '0.6';
-   addButton.style.cursor = 'not-allowed';
+//   addButton.style.opacity = '0.6';
+//   addButton.style.cursor = 'not-allowed';
 
    console.log('Add button clicked - opening file picker');
 
@@ -955,8 +956,8 @@ function prepImgByURL(inputId, value, divId, key, fullObject) {
 
    isUploading = true;
    //   editBtn.disabled = true;
-   editBtn.style.opacity = '0.6';
-   editBtn.style.cursor = 'not-allowed';
+//   editBtn.style.opacity = '0.6';
+//   editBtn.style.cursor = 'not-allowed';
 
    // Create file input
    const fileInput = document.createElement('input');
@@ -2364,3 +2365,29 @@ function cleanNumericProperty(value, propertyKey) {
  const numMatch = str.match(/(\d+\.?\d*)/);
  return numMatch ? numMatch[1] : '0';
 }
+
+ function getOrderedKeys(labels, displaySequence, hiddenKeys) {
+  const allKeys = Object.keys(labels);
+
+  // Parse display sequence (arg[7])
+  const sequenceArray = displaySequence ? displaySequence.split(',').map(k => k.trim()) : [];
+
+  // Create ordered list (include ALL keys, hidden keys will be hidden later)
+  const orderedKeys = [];
+
+  // First add keys from display sequence (include hidden keys here)
+  for (const seqKey of sequenceArray) {
+   if (labels[seqKey] !== undefined && !orderedKeys.includes(seqKey)) {
+    orderedKeys.push(seqKey);
+   }
+  }
+
+  // Then add remaining keys (including hidden ones that weren't in sequence)
+  for (const key of allKeys) {
+   if (!orderedKeys.includes(key)) {
+    orderedKeys.push(key);
+   }
+  }
+
+  return orderedKeys;
+ }
