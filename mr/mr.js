@@ -67,15 +67,15 @@ function function2runAfter_O_Login(rs16lt) {
   { "a": 30, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@666354f/cmn/degs.da" },
   { "a": 32, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@0208362/cmn/occu.da" },
   { "a": 37, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@3988bc6/cmn/ei.min.js", "c": "open_entind_crud", "r": "open_entind_crud" },
-  { "a": 38, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/prfl_delete.js", "c": "mra__main", "r": "mra__main" },
+  { "a": 38, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/prfl.js", "c": "mra__main", "r": "mra__main" },
   { "a": 39, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/slkt.js", "c": "openCommonSelectionModal", "r": "openCommonSelectionModal" },
-  { "a": 40, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/e_delete.js" },
+  { "a": 40, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/e.js" },
   { "a": 41, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/vldt.js", "c": "cmnVldet", "r": "cmnVldet" },
   { "a": 42, "u": "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" },
   { "a": 43, "u": "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js" },
   { "a": 44, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/drvphp.js", "c": "upld2drv", "r": "upld2drv" },
   { "a": 45, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/cmn/intal.da" },
-  { "a": 46, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/prfle_delete.js", "c": "mr_e__main", "r": "mr_e__main" },
+  { "a": 46, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/prfle.js", "c": "mr_e__main", "r": "mr_e__main" },
   { "a": 47, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/slkt2.js", "c": "setValByPrprtyDepthToElm", "r": "setValByPrprtyDepthToElm" }
  ]
 
