@@ -75,10 +75,11 @@ function function2runAfter_O_Login(rs16lt) {
   { "a": 43, "u": "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js" },
   { "a": 44, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/drvphp.js", "c": "upld2drv", "r": "upld2drv" },
   { "a": 45, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/cmn/intal.da" },
-  { "a": 46, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1c9cda9/mr/prfle.js", "c": "mr_e__main", "r": "mr_e__main" },
+  { "a": 46, "u": "https://my1.in/0.0000000000/z/mr/prfle.js", "c": "mr_e__main", "r": "mr_e__main" },
   { "a": 47, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/slkt2.js", "c": "setValByPrprtyDepthToElm", "r": "setValByPrprtyDepthToElm" }
  ]
 
+  // { "a": 46, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1c9cda9/mr/prfle.js", "c": "mr_e__main", "r": "mr_e__main" },
  async function showFlashImage() {
   return new Promise((resolve) => {
    // Get flash image URL and display time
