@@ -1,4 +1,3 @@
-// mra_.js - Modal Record Access utility
 (function () {
  // Store modal instance globally
  let mraModalInstance = null;
@@ -6,10 +5,10 @@
  let mraContentDiv = null;
 
  // Main function
- window.mra__main = function (...arg) {
+ window.mr_e__main = function (...arg) {
   const prfix = arg[0];
   if (!prfix) {
-   console.error('mra__main: prefix is required as first argument');
+   console.error('mr_e__main: prefix is required as first argument');
    return;
   }
 
@@ -26,22 +25,22 @@
    mraContentDiv = modalObj.contentElement;
 
    // Set modal ID for content div
-   mraContentDiv.id = 'mra__content_div';
+   mraContentDiv.id = 'mr_e__content_div';
 
    // Build modal header structure
    buildModalHeader(prfix, arg[6]);
 
    // Add content area
    const contentArea = document.createElement('div');
-   contentArea.id = 'mra__content_area';
-   contentArea.className = 'mra__content-area';
+   contentArea.id = 'mr_e__content_area';
+   contentArea.className = 'mr_e__content-area';
    contentArea.style.cssText = 'padding: 1rem; overflow-y: auto; flex: 1;';
    mraContentDiv.appendChild(contentArea);
 
    // Add footer area for buttons (always visible)
    const footerArea = document.createElement('div');
-   footerArea.id = 'mra__footer_area';
-   footerArea.className = 'mra__footer-area';
+   footerArea.id = 'mr_e__footer_area';
+   footerArea.className = 'mr_e__footer-area';
    footerArea.style.cssText = 'padding: 1rem; border-top: 1px solid #dee2e6; display: flex; justify-content: center; gap: 10px; background: white; position: sticky; bottom: 0; z-index: 5;';
    mraContentDiv.appendChild(footerArea);
 
@@ -54,9 +53,9 @@
   } else {
    // Modal exists, get references
    mraModalElement = modal;
-   mraContentDiv = document.getElementById('mra__content_div');
-   window.mraContentArea = document.getElementById('mra__content_area');
-   window.mraFooterArea = document.getElementById('mra__footer_area');
+   mraContentDiv = document.getElementById('mr_e__content_div');
+   window.mraContentArea = document.getElementById('mr_e__content_area');
+   window.mraFooterArea = document.getElementById('mr_e__footer_area');
 
    // Clear existing content
    if (window.mraContentArea) {
@@ -78,11 +77,11 @@
 
   // Call display function if second arg is 1
   if (arg[1] === 1) {
-   disp_mra__data(...arg);
+   disp_mr_e__data(...arg);
   } else {
    // Just set values if modal exists
    if (window.mraContentArea) {
-    set_mra__data_vals(...arg);
+    set_mr_e__data_vals(...arg);
    }
   }
  };
@@ -94,19 +93,19 @@
   if (!modalBody) return;
 
   // Clear existing header if any
-  const existingHeader = modalBody.querySelector('.mra__modal-header');
+  const existingHeader = modalBody.querySelector('.mr_e__modal-header');
   if (existingHeader) {
    existingHeader.remove();
   }
 
   // Create header container
   const header = document.createElement('div');
-  header.className = 'mra__modal-header';
+  header.className = 'mr_e__modal-header';
   header.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-bottom: 1px solid #dee2e6; position: sticky; top: 0; background: white; z-index: 10;';
 
   // Back button (left)
   const backBtn = document.createElement('button');
-  backBtn.className = 'btn btn-link mra__back-btn';
+  backBtn.className = 'btn btn-link mr_e__back-btn';
   backBtn.style.cssText = 'padding: 0; margin: 0; font-size: 1.5rem; line-height: 1; text-decoration: none; color: var(--primary-color, #7B1FA2);';
   backBtn.innerHTML = '←';
   backBtn.onclick = function () {
@@ -122,7 +121,7 @@
 
   // Title (center)
   const title = document.createElement('h5');
-  title.className = 'mra__modal-title';
+  title.className = 'mr_e__modal-title';
   title.style.cssText = 'margin: 0; flex: 1; text-align: center; font-weight: 600;';
   title.textContent = 'Details';
 
@@ -132,25 +131,25 @@
   if (hasMenuItems) {
    // Ellipsis dropdown (right)
    const dropdownDiv = document.createElement('div');
-   dropdownDiv.className = 'dropdown mra__dropdown';
+   dropdownDiv.className = 'dropdown mr_e__dropdown';
    dropdownDiv.style.cssText = 'position: relative;';
 
    const ellipsisBtn = document.createElement('button');
-   ellipsisBtn.className = 'btn btn-link mra__ellipsis-btn';
+   ellipsisBtn.className = 'btn btn-link mr_e__ellipsis-btn';
    ellipsisBtn.style.cssText = 'padding: 0; margin: 0; font-size: 1.2rem; line-height: 1; color: var(--primary-color, #7B1FA2);';
    ellipsisBtn.innerHTML = '⋮';
    ellipsisBtn.setAttribute('data-bs-toggle', 'dropdown');
    ellipsisBtn.setAttribute('aria-expanded', 'false');
 
    const dropdownMenu = document.createElement('ul');
-   dropdownMenu.className = 'dropdown-menu mra__dropdown-menu';
+   dropdownMenu.className = 'dropdown-menu mr_e__dropdown-menu';
    dropdownMenu.style.cssText = 'min-width: 120px;';
 
    // Add dynamic dropdown items from menuItems array
    menuItems.forEach(item => {
     const menuItem = document.createElement('li');
     const menuLink = document.createElement('a');
-    menuLink.className = 'dropdown-item mra__dropdown-item';
+    menuLink.className = 'dropdown-item mr_e__dropdown-item';
     menuLink.href = '#';
     menuLink.textContent = item.a || 'Menu Item';
 
@@ -263,7 +262,7 @@
  }
 
  // Display data in modal
- window.disp_mra__data = function (...arg) {
+ window.disp_mr_e__data = function (...arg) {
   const prfix = arg[0];
   const labels = arg[2] || {};
   let values = arg[3] || {};
@@ -341,7 +340,7 @@
 
    // Create form group div
    const formGroup = document.createElement('div');
-   formGroup.className = 'mra__form-group';
+   formGroup.className = 'mr_e__form-group';
    formGroup.style.cssText = 'margin-bottom: 1rem;';
 
    // If hidden, add style to hide the entire form group
@@ -351,20 +350,20 @@
 
    // Create label
    const label = document.createElement('label');
-   label.className = 'mra__form-label';
+   label.className = 'mr_e__form-label';
    label.style.cssText = 'display: block; margin-bottom: 0.25rem; font-weight: 500; font-size: 0.875rem; color: #6c757d;';
    label.textContent = labelText;
    label.setAttribute('for', `${prfix}_${key}`);
 
    // Create input container for flex layout
    const inputContainer = document.createElement('div');
-   inputContainer.className = 'mra__input-container';
+   inputContainer.className = 'mr_e__input-container';
    inputContainer.style.cssText = 'display: flex; align-items: center; gap: 0.5rem;';
 
    // Create input element
    const input = document.createElement('input');
    input.type = 'text';
-   input.className = 'form-control mra__form-control';
+   input.className = 'form-control mr_e__form-control';
    input.id = `${prfix}_${key}`;
    input.style.cssText = 'flex: 1;';
    input.value = value;
@@ -382,7 +381,7 @@
    if (hasProcessor || hasClickHandler) {
     valueDiv = document.createElement('div');
     valueDiv.id = `${prfix}_${key}_div`;
-    valueDiv.className = 'mra__value-div';
+    valueDiv.className = 'mr_e__value-div';
    }
 
    // Apply styling based on conditions
@@ -400,7 +399,7 @@
     }
     label.style.cssText += 'color: #b0006b;';
     // Add solid link icon at beginning of label
-    label.innerHTML = `<i class="fas fa-link mra__link-icon" style="margin-right: 0.25rem; font-size: 0.75rem;"></i>${labelText}`;
+    label.innerHTML = `<i class="fas fa-link mr_e__link-icon" style="margin-right: 0.25rem; font-size: 0.75rem;"></i>${labelText}`;
 
     // HIDE the input element completely
     input.style.display = 'none';
@@ -464,8 +463,8 @@
     }
 
     const actionBtn = document.createElement('button');
-    actionBtn.id = `mra__action_btn_${btnText.replace(/\s/g, '_')}`;
-    actionBtn.className = 'btn mra__action-btn';
+    actionBtn.id = `mr_e__action_btn_${btnText.replace(/\s/g, '_')}`;
+    actionBtn.className = 'btn mr_e__action-btn';
     actionBtn.style.cssText = `background: ${btnGradient} !important; color: white; border: none; border-radius: 50px; padding: 10px 24px; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 12px ${btnShadow};`;
     actionBtn.innerHTML = `<i class="fas ${btnText.toLowerCase().includes('add') ? 'fa-plus' : btnText.toLowerCase().includes('update') ? 'fa-edit' : btnText.toLowerCase().includes('delete') ? 'fa-trash' : 'fa-check'} me-2"></i> ${btnText}`;
 
@@ -550,7 +549,7 @@ if (t351mp.su == 1) {
 
   // Set values after creating all elements
   arg[3] = values;
-  set_mra__data_vals(...arg);
+  set_mr_e__data_vals(...arg);
 
   // Show modal
   if (mraModalInstance) {
@@ -559,7 +558,7 @@ if (t351mp.su == 1) {
  };
 
  // Set values to input elements
- window.set_mra__data_vals = function (...arg) {
+ window.set_mr_e__data_vals = function (...arg) {
   const prfix = arg[0];
   const values = arg[3] || {};
   const defaFieldVals = window[my1uzr.worknOnPg]?.defaFieldVals || [];
