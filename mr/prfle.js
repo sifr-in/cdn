@@ -1,3 +1,4 @@
+// mra_.js - Modal Record Access utility
 (function () {
  // Store modal instance globally
  let mraModalInstance = null;
@@ -341,7 +342,7 @@
    // Create form group div
    const formGroup = document.createElement('div');
    formGroup.className = 'mr_e__form-group';
-   formGroup.style.cssText = 'margin-bottom: 1rem;';
+   formGroup.style.cssText = 'margin-bottom: 1rem; padding: 0.75rem; border: 2px solid #000; border-radius: 6px;';
 
    // If hidden, add style to hide the entire form group
    if (isHidden) {
@@ -365,7 +366,7 @@
    input.type = 'text';
    input.className = 'form-control mr_e__form-control';
    input.id = `${prfix}_${key}`;
-   input.style.cssText = 'flex: 1;';
+   input.style.cssText = 'flex: 1; border: 1px solid #ced4da; border-radius: 4px;';
    input.value = value;
 
    // Store field reference (always store, even if hidden)

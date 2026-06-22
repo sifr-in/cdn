@@ -3,7 +3,7 @@ window["vlidFn68"] = { "a": { "cnv": "handleAsString", "patn": "^[1-9]\\d*$", "m
 
 const xtraj_payload = { "fn": 69, "fl": "https://my1.in/2/c.php" };
 
-const fieldNameMap = { "a": "Id", "w": "unique ID", "e": "Mobile of registering customer", "g": "Birth date & time;", "h": "Height in feet . inch;", "i": "Package in lakhs;", "j": "Marital status", "k": "Religious", "k1": "caste;", "k2": "sub caste / type;", "l": "Contact no. to display", "a7": "Diplay contact no. is of:", "m": "First name in eng;", "n": "Surname in eng;", "o": "Father's name in eng;", "p": "Mother's name in eng;", "q": "Job type", "qa": "Designation / Position;", "qb": "Business form;", "qc": "Business type;", "r": "Education 10th, 12th, 15th, 17th", "s": "Degrees;", "t": "Qualifications e.g. Sci, Com, Be, M.tech, ...", "u": "DP Display Picture;", "ut": "Thumbnail;", "va": "Relative surnames (comma separated);", "x": "Siblings;", "z": "Blood group", "a1": "Weight (kg);", "a3": "Country currently working in;", "a2": "City currently working in;", "a4": "Diet", "a5": "Gender Male female", "a8": "No. of own Home / shop", "b1": "No. of own Vehicle", "a9": "Languages known", "b5": "Native country", "b4": "Native city", "b6": "Image Gallery", "b9": "Drinking habit", "c2": "Physically challenged?, blank if not.", "c3": "lives with family 1=yes, 2=no;", "c5": "Currently living in Country", "c6": "Currently living in City;", "c7": "Free profile count;", "c8": "Free chat count;", "c9": "Plan Id;", "d1": "Paid profile count", "d2": "Paid chat count", "h1": "Manglik status: 1=manglik, 2=non-manglik, 3=angshik (partial manglik)", "h2": "horoscope available 1=yes, 2=no;", "i1": "islamic sect 1=sunni,2=shia,127=other;", "i2": "islamic mazhab, school of thought 1=Hanafi,2=Shafi,3=Maliki,4=Hanbali,127=other;", "i3": "namaz practice 1,2,3,4,5,-1=occasional, -2=rarely;", "i4": "quran learning 1=basic,2=intermediate,3=hafiz,4=alim,", "i5": "quraan reciting: 1=daily, 2=occasionally, 3=rarely;", "i6": "burkha 1=yes, 2=no", "i7": "beard 1=yes, 2=no", "i8": "believe in dargah 1=yes, 2=no, 3=strictly yes, 4=strictly no", "x1": "Expectations (eng)", "x2": "Expectations", "x3": "partner's diet must be: 1=all, 2=veg, 3=non-veg, 4=occasion-non-veg, 5=eggetarain, 6=jain, 7=vegan;", "x4": "girl job though: 1=yes interested, 2=will do job compulsory, 3=may be, 4=if required, 5=no-wont do job", "x5": "girl currently doing job 1=yes, 2=no", "v": "relative surnames (comma separated) eng;", "ma": "name lolng;", "na": "surname lolng;", "oa": "fa name lolng;", "pa": "no name lolng;", "f": "Constraint no.;", "b": "Recorded", "c": "fn no", "d": "Status;" };
+const fieldNameMap = { "a": "Id", "w": "unique ID", "e": "Mobile of registering customer", "g": "Birth date", "h": "Height", "i": "Package Lk", "j": "Status", "k": "Religious", "k1": "caste;", "k2": "sub caste / type;", "l": "Contact no. to display", "a7": "Diplay contact no. is of:", "m": "First name", "n": "Surname in eng;", "o": "Father's name in eng;", "p": "Mother's name in eng;", "q": "Job type", "qa": "Position", "qb": "Business", "qc": "Business", "r": "Education 10th, 12th, 15th, 17th", "s": "Degrees", "t": "Qualifications e.g. Sci, Com, Be, M.tech, ...", "u": "DP Display Picture;", "ut": "Thumbnail;", "va": "Relative surnames (comma separated);", "x": "Siblings;", "z": "Blood group", "a1": "Weight (kg);", "a3": "Country currently working in;", "a2": "City currently working in;", "a4": "Diet", "a5": "Gender", "a8": "No. of own Home / shop", "b1": "No. of own Vehicle", "a9": "Languages known", "b5": "Native country", "b4": "Native city", "b6": "Image Gallery", "b9": "Drinking habit", "c2": "Physically challenged?, blank if not.", "c3": "lives with family 1=yes, 2=no;", "c5": "Currently living in Country", "c6": "Currently living in City;", "c7": "Free profile count;", "c8": "Free chat count;", "c9": "Plan Id;", "d1": "Paid profile count", "d2": "Paid chat count", "h1": "Manglik status: 1=manglik, 2=non-manglik, 3=angshik (partial manglik)", "h2": "horoscope available 1=yes, 2=no;", "i1": "islamic sect 1=sunni,2=shia,127=other;", "i2": "islamic mazhab, school of thought 1=Hanafi,2=Shafi,3=Maliki,4=Hanbali,127=other;", "i3": "namaz practice 1,2,3,4,5,-1=occasional, -2=rarely;", "i4": "quran learning 1=basic,2=intermediate,3=hafiz,4=alim,", "i5": "quraan reciting: 1=daily, 2=occasionally, 3=rarely;", "i6": "burkha 1=yes, 2=no", "i7": "beard 1=yes, 2=no", "i8": "believe in dargah 1=yes, 2=no, 3=strictly yes, 4=strictly no", "x1": "Expectations (eng)", "x2": "Expect", "x3": "partner's diet must be: 1=all, 2=veg, 3=non-veg, 4=occasion-non-veg, 5=eggetarain, 6=jain, 7=vegan;", "x4": "girl job though: 1=yes interested, 2=will do job compulsory, 3=may be, 4=if required, 5=no-wont do job", "x5": "girl currently doing job 1=yes, 2=no", "v": "relative surnames (comma separated) eng;", "ma": "name lolng;", "na": "surname lolng;", "oa": "fa name lolng;", "pa": "no name lolng;", "f": "Constraint no.;", "b": "Recorded", "c": "fn no", "d": "Status;" };
 
 window.var_sub_caste_type = [{ "a": 0, "e": "" }, { "a": 1, "e": "Jamati" }, { "a": 2, "e": "Ahle hadees" }, { "a": 3, "e": "Devbandi" }];
 
@@ -62,24 +62,28 @@ function function2runAfter_O_Login(rs16lt) {
   { "a": 22, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/prvc.js", "c": "set_privcy_polc_innerHTML", "r": "set_privcy_polc_innerHTML" },
   { "a": 23, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/trms.js", "c": "set_terms_condi_innerHTML", "r": "set_terms_condi_innerHTML" },
   { "a": 24, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/chldpol.js", "c": "set_child_safety_pol_innerHTML", "r": "set_child_safety_pol_innerHTML" },
-  { "a": 27, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/sbli.js", "c": "set_mr_x_sibling_details", "r": "set_mr_x_sibling_details" },
+  { "a": 27, "u": "https://my1.in/0.0000000000/z/mr/sbli.js", "c": "set_mr_x_sibling_details", "r": "set_mr_x_sibling_details" },
   { "a": 28, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@bd7e9e0/cmn/lng.da" },
   { "a": 30, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@666354f/cmn/degs.da" },
   { "a": 32, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@0208362/cmn/occu.da" },
   { "a": 37, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@3988bc6/cmn/ei.min.js", "c": "open_entind_crud", "r": "open_entind_crud" },
-  { "a": 38, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/prfl.js", "c": "mra__main", "r": "mra__main" },
+  { "a": 38, "u": "https://my1.in/0.0000000000/z/mr/prfl.js", "c": "mra__main", "r": "mra__main" },
   { "a": 39, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/slkt.js", "c": "openCommonSelectionModal", "r": "openCommonSelectionModal" },
-  { "a": 40, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/e.js" },
+  { "a": 40, "u": "https://my1.in/0.0000000000/z/mr/e.js" },
   { "a": 41, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/vldt.js", "c": "cmnVldet", "r": "cmnVldet" },
   { "a": 42, "u": "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" },
   { "a": 43, "u": "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js" },
   { "a": 44, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/drvphp.js", "c": "upld2drv", "r": "upld2drv" },
   { "a": 45, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/cmn/intal.da" },
   { "a": 46, "u": "https://my1.in/0.0000000000/z/mr/prfle.js", "c": "mr_e__main", "r": "mr_e__main" },
-  { "a": 47, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/slkt2.js", "c": "setValByPrprtyDepthToElm", "r": "setValByPrprtyDepthToElm" }
+  { "a": 47, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/slkt2.js", "c": "setValByPrprtyDepthToElm", "r": "setValByPrprtyDepthToElm" },
+  { "a": 48, "u": "https://my1.in/0.0000000000/z/mr/prflt.js", "c": "mr_t__main", "r": "mr_t__main" }
  ]
 
   // { "a": 46, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1c9cda9/mr/prfle.js", "c": "mr_e__main", "r": "mr_e__main" },
+  // { "a": 38, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/prfl.js", "c": "mra__main", "r": "mra__main" },
+  // { "a": 27, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/sbli.js", "c": "set_mr_x_sibling_details", "r": "set_mr_x_sibling_details" },
+  // { "a": 40, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ef526ee/mr/e.js" },
  async function showFlashImage() {
   return new Promise((resolve) => {
    // Get flash image URL and display time
@@ -494,7 +498,7 @@ function function2runAfter_O_Login(rs16lt) {
   const qaValue = profile.qa || '';
 
   // Create comma-separated details string
-  const fieldsOnCard = window[my1uzr.worknOnPg]?.fieldsOnCard || "m~g,h,k1,b4";
+  const fieldsOnCard = window[my1uzr.worknOnPg]?.fieldsOnCard || "m~s~g,h,k1,b4";
   const fieldLines = fieldsOnCard.split('~');
   const lineValues = fieldLines.map(line => {
    const fields = line.split(',');
@@ -511,18 +515,23 @@ function function2runAfter_O_Login(rs16lt) {
     if (trimmed === 'k' || trimmed === 'k1') { const rlgn = window.var_caste_rlgns?.find(item => item.a == profile.k); if (trimmed === 'k') return rlgn ? rlgn.e : null; const caste = rlgn?.castes?.find(item => item.a == profile.k1); return caste ? caste.e : null; }
     // Sub-caste
     if (trimmed === 'k2') { const subCaste = window.var_sub_caste_type?.find(item => item.a == profile.k2); return subCaste ? subCaste.e : null; }
+if (trimmed === 's') {
+ const degreeIds = profile.s ? String(profile.s).split(',').map(id => id.trim()) : [];
+ if (degreeIds.length === 0) return null;
+ const degreeNames = degreeIds.map(id => {
+  const degree = window.var_degres?.find(item => item.a == id);
+  return degree ? degree.e : null;
+ }).filter(name => name !== null);
+ return degreeNames.length > 0 ? degreeNames.join(', ') : null;
+}
     // Native country and city
     if (trimmed === 'b5' || trimmed === 'b4') { const country = window.var_ctco?.find(item => item.a == profile.b5); if (trimmed === 'b5') return country ? country.n : null; const city = country?.cities?.find(item => item.a == profile.b4); return city ? city.n : null; }
-    // Working country and city
-    // if (trimmed === 'a3' || trimmed === 'a2') { const country = window.var_ctco?.find(item => item.a == profile.a3); if (trimmed === 'a3') return country ? country.n : null; const city = country?.cities?.find(item => item.a == profile.a2); return city ? city.n : null; }
-    // Current living country and city
-    // if (trimmed === 'c5' || trimmed === 'c6') { const country = window.var_ctco?.find(item => item.a == profile.c5); if (trimmed === 'c5') return country ? country.n : null; const city = country?.cities?.find(item => item.a == profile.c6); return city ? city.n : null; }
 
     return profile[trimmed] || null;
    }).filter(v => v !== null && v !== '').join(', ');
   });
 
-  const detailsString = lineValues.length > 0 ? `<div><div style="font-weight: 600; font-size: 1.1rem;">${lineValues[0] || '—'}</div>${lineValues.length > 1 ? `<div style="font-size: 0.9rem;">${lineValues.slice(1).join(' · ')}</div>` : ''}</div>` : 'Details not available';
+const detailsString = lineValues.length > 0 ? `<div><div style="font-weight: 600; font-size: 1.1rem;">${lineValues[0] || '—'}</div>${lineValues.length > 1 && lineValues[1] ? `<div style="font-size: 0.9rem; margin-top: 2px;">${lineValues[1]}</div>` : ''}${lineValues.length > 2 && lineValues[2] ? `<div style="font-size: 0.8rem; margin-top: 2px;">${lineValues[2]}</div>` : ''}</div>` : 'Details not available';
 
   const col = document.createElement('div');
   col.className = 'col-12 col-sm-6 col-md-4 col-lg-3 mb-4';
@@ -1082,7 +1091,7 @@ async function showProfileDtls(profileId) {
  let dpthComulsoryForNativeAddress = 0;
  if (window[my1uzr.worknOnPg]?.depthComulsoryForNativeAddress)
   dpthComulsoryForNativeAddress = window[my1uzr.worknOnPg]?.depthComulsoryForNativeAddress;
- required_data[4] = [{ "a": "d", "b": "setValByProprtyToElm", "c": "entryStatus", "canAdd": addingAllowed }, { "a": "e", "b": "set_mra_e", "canEdit": edtingAllowed, "params": [mono_fl_csh_no, [mono_loader_id, mono_show_modal, mono_dv_el_id, mono_callBackFn, mono_input_el_id], [1]] }, { "a": "g", "b": "set_dtt", "c": "yyyy-mm-dd HH:MM:SS", "d": window[my1uzr.worknOnPg].bdayFormat }, { "a": "j", "b": "setValByProprtyToElm", "c": "marital_status", "canAdd": addingAllowed }, { "a": "k", "b": "setValByProprtyToElm", "c": "var_caste_rlgns", "canAdd": addingAllowed }, { "a": "k1", "b": "setValByProprtyToElm", "c": "var_caste_rlgns,castes", "e": profileData.k, "g": "fn_setValToGvnInputs('" + required_data[0] + "','k')", "canAdd": addingAllowed }, { "a": "k2", "b": "setValByProprtyToElm", "c": "var_sub_caste_type", "canAdd": addingAllowed }, { "a": "a3", "b": "setValByProprtyToElm", "c": "var_ctco", "canAdd": addingAllowed }, { "a": "a2", "b": "setValByProprtyToElm", "c": "var_ctco,cities", "e": profileData.a3, "g": "fn_setValToGvnInputs('" + required_data[0] + "','a3')", "canAdd": addingAllowed }, { "a": "b5", "b": "setValByProprtyToElm", "c": "var_ctco", "canAdd": addingAllowed }, { "a": "b4", "b": fnToUse, "c": valOfC, "e": profileData.b5, "g": fnInsdeFileToUse, "canAdd": addingAllowed, "depthForNative": dpthComulsoryForNativeAddress }, { "a": "c5", "b": "setValByProprtyToElm", "c": "var_ctco", "canAdd": addingAllowed }, { "a": "c6", "b": "setValByProprtyToElm", "c": "var_ctco,cities", "e": profileData.c5, "g": "fn_setValToGvnInputs('" + required_data[0] + "','c5')", "canAdd": addingAllowed }, { "a": "q", "b": "setValByProprtyToElm", "c": "mr_job_types", "canAdd": addingAllowed }, { "a": "qa", "b": "setValByProprtyToElm", "c": "mr_desig_posis", "canAdd": addingAllowed }, { "a": "qb", "b": "setValByProprtyToElm", "c": "mr_bsns_forms", "canAdd": addingAllowed }, { "a": "qc", "b": "setValByProprtyToElm", "c": "mr_bsns_typs", "canAdd": addingAllowed }, { "a": "s", "b": "setValByProprtyToElm", "c": "var_degres", "canAdd": addMultAllowd }, { "a": "a9", "b": "setValByProprtyToElm", "c": "var_lngs", "canAdd": addMultAllowd }, {
+ required_data[4] = [{ "a": "e", "b": "set_mra_e", "canEdit": edtingAllowed, "params": [mono_fl_csh_no, [mono_loader_id, mono_show_modal, mono_dv_el_id, mono_callBackFn, mono_input_el_id], [1]] }, { "a": "g", "b": "set_dtt", "c": "yyyy-mm-dd HH:MM:SS", "d": window[my1uzr.worknOnPg].bdayFormat }, { "a": "j", "b": "setValByProprtyToElm", "c": "marital_status", "canAdd": addingAllowed }, { "a": "k", "b": "setValByProprtyToElm", "c": "var_caste_rlgns", "canAdd": addingAllowed }, { "a": "k1", "b": "setValByProprtyToElm", "c": "var_caste_rlgns,castes", "e": profileData.k, "g": "fn_setValToGvnInputs('" + required_data[0] + "','k')", "canAdd": addingAllowed }, { "a": "k2", "b": "setValByProprtyToElm", "c": "var_sub_caste_type", "canAdd": addingAllowed }, { "a": "a3", "b": "setValByProprtyToElm", "c": "var_ctco", "canAdd": addingAllowed }, { "a": "a2", "b": "setValByProprtyToElm", "c": "var_ctco,cities", "e": profileData.a3, "g": "fn_setValToGvnInputs('" + required_data[0] + "','a3')", "canAdd": addingAllowed }, { "a": "b5", "b": "setValByProprtyToElm", "c": "var_ctco", "canAdd": addingAllowed }, { "a": "b4", "b": fnToUse, "c": valOfC, "e": profileData.b5, "g": fnInsdeFileToUse, "canAdd": addingAllowed, "depthForNative": dpthComulsoryForNativeAddress }, { "a": "c5", "b": "setValByProprtyToElm", "c": "var_ctco", "canAdd": addingAllowed }, { "a": "c6", "b": "setValByProprtyToElm", "c": "var_ctco,cities", "e": profileData.c5, "g": "fn_setValToGvnInputs('" + required_data[0] + "','c5')", "canAdd": addingAllowed }, { "a": "q", "b": "setValByProprtyToElm", "c": "mr_job_types", "canAdd": addingAllowed }, { "a": "qa", "b": "setValByProprtyToElm", "c": "mr_desig_posis", "canAdd": addingAllowed }, { "a": "qb", "b": "setValByProprtyToElm", "c": "mr_bsns_forms", "canAdd": addingAllowed }, { "a": "qc", "b": "setValByProprtyToElm", "c": "mr_bsns_typs", "canAdd": addingAllowed }, { "a": "s", "b": "setValByProprtyToElm", "c": "var_degres", "canAdd": addMultAllowd }, { "a": "a9", "b": "setValByProprtyToElm", "c": "var_lngs", "canAdd": addMultAllowd }, {
   "a": "b6", "b": "setGalleryImages", "canAdd": addingAllowed, "driveMl": window[my1uzr.worknOnPg].driveMl,
   "thumbnailSize": 600,  // Add thumbnail size
   "resizeBy": 0
@@ -1131,7 +1140,15 @@ async function showProfileDtls(profileId) {
  } else {
   required_data[0] = "mra_";//unique prefix for modal dialogue
   required_data[8] = window[my1uzr.worknOnPg].colsOfOthersHide;
-  await loadExe2Fn(38, required_data, [1]);
+  if (window[my1uzr.worknOnPg]?.showTableViewOnCardClick != 1)
+   await loadExe2Fn(38, required_data, [1]);
+  else{
+   if (profileData?.l?.length > 0){
+    required_data[8] = window[my1uzr.worknOnPg].colsHideOnFullDetails;
+    await loadExe2Fn(38, required_data, [1]);
+   }else 
+    await loadExe2Fn(48, required_data, [1]);
+  }
  }
  //  }
  //  else {

@@ -1258,7 +1258,7 @@ function setSiblingTags(inputId, value, divId, key, fullObject) {
        typeText = 'Sister';
        icon = '👩';
       } else {
-       typeText = 'Unknown';
+       typeText = '';
        icon = '👤';
       }
 
@@ -1388,7 +1388,7 @@ function setSiblingTags(inputId, value, divId, key, fullObject) {
    '5': 'Separated',
    '6': 'Await Div'
   };
-  return map[value] || 'Unknown';
+  return map[value] || '';
  }
 
  function getLivingTextShort(value) {
@@ -1397,7 +1397,7 @@ function setSiblingTags(inputId, value, divId, key, fullObject) {
    '2': 'Separate',
    '3': 'With spouse'
   };
-  return map[value] || 'Unknown';
+  return map[value] || '';
  }
 }
 function addEditButtonForSiblings(container, inputId, value, divId, key, fullObject, canAddValue, params) {
