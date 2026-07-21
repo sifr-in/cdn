@@ -734,7 +734,8 @@ async function verifyOTP(otp) {
             userData.fnf = result.fnf;
             userData.ffp = result.ffp;
             localStorage.setItem("my1uzr", JSON.stringify(userData));
-            my1uzr = JSON.parse(localStorage.getItem("my1uzr"));
+            const storedData = JSON.parse(localStorage.getItem("my1uzr")) || {};
+            my1uzr = { ...my1uzr, ...storedData };
             payload0.mk = result.uzr.mk;
             nameOfLoggedInPage = `${my1uzr.mo}_${my1uzr.mc}_${appOwner.tn}_${payload0.fi}_${payload0.fk}_${appOwner.pg}`;
             localStorage.setItem(nameOfLoggedInPage, 1);
