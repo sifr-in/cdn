@@ -409,14 +409,12 @@ function validateGetOtpForm() {
     const loginName = document.getElementById("loginName");
     const mobileNumber = getMobileNumberFromDigits();
     const countryCode = document.getElementById("loginCountryCode");
-    const acceptTerms = document.getElementById("acceptTerms");
     const getOtpBtn = document.getElementById("getOtpBtn");
-    if (!loginName || !countryCode || !acceptTerms || !getOtpBtn) return;
+    if (!loginName || !countryCode || !getOtpBtn) return;
     const requiredLength = getRequiredMobileLength(countryCode.value);
     const isNameValid = loginName.value.trim().length >= 2;
     const isMobileValid = mobileNumber.length === requiredLength;
-    const isTermsAccepted = acceptTerms.checked;
-    getOtpBtn.disabled = !(isNameValid && isMobileValid && isTermsAccepted);
+    getOtpBtn.disabled = !(isNameValid && isMobileValid);
 }
 
 function setupL3EventListeners() {
@@ -500,6 +498,8 @@ function setupL3EventListeners() {
 
     if (getOtpBtn) {
         getOtpBtn.addEventListener("click", async function () {
+            const termsLabel = document.querySelector('label[for="acceptTerms"]');
+            if (termsLabel) termsLabel.classList.add("d-none");
             const name = loginName.value.trim();
             const mobile = getMobileNumberFromDigits();
             const countryCode = countryCodeSelect.value;
@@ -519,8 +519,6 @@ function setupL3EventListeners() {
             inputs.forEach((input) => { if (input.value === "") { input.classList.add("is-invalid"); allDigitsFilled = false; } });
             if (!allDigitsFilled) { mobileError.textContent = `Please enter all ${requiredLength} digits`; mobileError.classList.remove("d-none"); return; }
             if (mobile.length !== requiredLength) { mobileError.textContent = `Please enter a valid ${requiredLength}-digit mobile number`; mobileError.classList.remove("d-none"); return; }
-            if (!acceptTerms.checked) { alert("Please accept the Terms & Conditions"); return; }
-
             await playOtpSentSound();
 
             if (typeof confirmMoNo !== 'undefined' && confirmMoNo === 1) {
@@ -581,6 +579,10 @@ function setupL3EventListeners() {
                 clearInterval(resendTimer);
                 resendTimer = null;
                 resendContainer.classList.add("d-none");
+                const resendOtpText = document.getElementById("resendOtpText");
+                const resendOtpLoader = document.getElementById("resendOtpLoader");
+                if (resendOtpText) resendOtpText.classList.remove("d-none");
+                if (resendOtpLoader) resendOtpLoader.classList.add("d-none");
                 resendOtp.classList.remove("d-none");
                 resendOtp.disabled = false;
                 resendOtp.classList.add("btn-warning");
@@ -590,10 +592,10 @@ function setupL3EventListeners() {
         }, 1000);
     }
 
-    function updateResendCountdown() {
-        const resendCountdown = document.getElementById("resendCountdown");
-        if (resendCountdown) { resendCountdown.textContent = `Resend OTP in ${resendTimeLeft} seconds`; }
-    }
+function updateResendCountdown() {
+    const resendCountdown = document.getElementById("resendCountdown");
+    if (resendCountdown) { resendCountdown.innerHTML = `Verify OTP in <span class="blink-text cntrsec">${resendTimeLeft}</span> seconds`; }
+}
 
     if (verifyOtpBtn) {
         verifyOtpBtn.addEventListener("click", async function () {
@@ -643,8 +645,12 @@ function setupL3EventListeners() {
 
     async function resendOTPRequest(countryCode, mobile) {
         const resendOtp = document.getElementById("resendOtp");
+        const resendOtpText = document.getElementById("resendOtpText");
+        const resendOtpLoader = document.getElementById("resendOtpLoader");
         resendOtp.disabled = true;
         resendOtp.classList.remove("btn-warning");
+        if (resendOtpText) resendOtpText.classList.add("d-none");
+        if (resendOtpLoader) resendOtpLoader.classList.remove("d-none");
         showFullScreenLoader();
         try {
             const otpSent = await getOTP(countryCode, mobile);
@@ -660,6 +666,8 @@ function setupL3EventListeners() {
             alert("Please try again.");
             resendOtp.disabled = false;
             resendOtp.classList.add("btn-warning");
+            if (resendOtpText) resendOtpText.classList.remove("d-none");
+            if (resendOtpLoader) resendOtpLoader.classList.add("d-none");
         } finally {
             hideFullScreenLoader();
         }
@@ -734,8 +742,7 @@ async function verifyOTP(otp) {
             userData.fnf = result.fnf;
             userData.ffp = result.ffp;
             localStorage.setItem("my1uzr", JSON.stringify(userData));
-            const storedData = JSON.parse(localStorage.getItem("my1uzr")) || {};
-            my1uzr = { ...my1uzr, ...storedData };
+            my1uzr = JSON.parse(localStorage.getItem("my1uzr"));
             payload0.mk = result.uzr.mk;
             nameOfLoggedInPage = `${my1uzr.mo}_${my1uzr.mc}_${appOwner.tn}_${payload0.fi}_${payload0.fk}_${appOwner.pg}`;
             localStorage.setItem(nameOfLoggedInPage, 1);
@@ -761,8 +768,9 @@ function set_innerHTML_of_shoLgnO() {
     return `
         <div class="container p-0">
             <div class="card">
-                <div class="card-header text-center">
+                <div class="card-header text-center d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Login with <span id="otpTextToggle" style="cursor: pointer; padding: 2px 5px; border-radius: 3px; transition: all 0.3s;">OTP</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="card-body" style="background-color: #33FFCC;">
                     <div class="mb-3">
@@ -779,17 +787,15 @@ function set_innerHTML_of_shoLgnO() {
                         <div id="localNameError" class="invalid-feedback d-none">Name must be in local language characters only, no English letters or numbers</div>
                     </div>
                     <div class="mb-3">
-                        <div class="input-group">
-                            <select id="loginCountryCode" class="form-select" style="max-width: 120px;"></select>
-                            <div id="mobileLengthInfo" class="form-text ms-2"></div>
-                            <div id="mobileDigitsContainer" class="d-flex gap-1 ms-2 flex-wrap"></div>
+                        <div class="input-group flex-nowrap">
+                            <select id="loginCountryCode" class="form-select" style="max-width: 120px; width: auto; flex-shrink: 0;"></select>
+                            <div id="mobileDigitsContainer" class="d-flex gap-1 ms-2 flex-row flex-wrap"></div>
                         </div>
+                        <div id="mobileLengthInfo" class="form-text ms-2"></div>
                         <div id="mobileError" class="invalid-feedback d-none">Please enter a valid mobile number</div>
                     </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="acceptTerms" style="border:3px solid black;">
-                        <label class="form-check-label" for="acceptTerms">I agree to the <a href="#" class="text-primary">Terms & Conditions</a></label>
-                    </div>
+                    <label class="form-check-label mb-4" for="acceptTerms" style="cursor: pointer;">You agree with the <a href="#" class="text-primary">Terms & Conditions</a> when you click on "Get OTP"</label>
+                    <input type="checkbox" class="d-none" id="acceptTerms">
                     <button id="getOtpBtn" class="btn btn-primary w-100 position-relative" disabled>
                         <span id="getOtpText">Get OTP</span>
                         <span id="getOtpLoader" class="spinner-border spinner-border-sm d-none position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%);"></span>
@@ -803,10 +809,13 @@ function set_innerHTML_of_shoLgnO() {
                             <div id="otpDigitsContainer" class="d-flex gap-1 justify-content-center"></div>
                         </div>
                         <div class="text-center mt-2">
-                            <div id="resendContainer" class="d-none">
-                                <span id="resendCountdown" class="text-muted"></span>
+                            <div id="resendContainer" class="d-none ml-3">
+                                <strong><span id="resendCountdown" class="text-primary fw-bold"></span></strong>
                             </div>
-                            <button id="resendOtp" class="btn btn-outline-secondary btn-sm">Resend OTP</button>
+                            <button id="resendOtp" class="btn btn-outline-secondary btn-sm position-relative">
+                                <span id="resendOtpText">Resend OTP</span>
+                                <span id="resendOtpLoader" class="spinner-border spinner-border-sm d-none position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%);"></span>
+                            </button>
                         </div>
                         <button id="verifyOtpBtn" class="btn btn-primary w-100 position-relative">
                             <span id="verifyOtpText">Verify OTP</span>
@@ -843,15 +852,22 @@ function updateOtpTextAppearance() {
 
 function createMobileDigitInputs(requiredLength) {
     const container = document.getElementById("mobileDigitsContainer");
+    if (!container) return;
     container.innerHTML = "";
+    const half = Math.ceil(requiredLength / 2);
+    const row1 = document.createElement('div');
+    row1.className = 'd-flex gap-1 mb-1';
+    const row2 = document.createElement('div');
+    row2.className = 'd-flex gap-1';
     for (let i = 0; i < requiredLength; i++) {
         const input = document.createElement("input");
         input.type = "text";
         input.inputMode = "numeric";
         input.pattern = "[0-9]*";
         input.className = "form-control text-center";
-        input.style.width = "40px";
-        input.style.height = "40px";
+        input.style.setProperty("padding", "1px", "important");
+        input.style.width = "clamp(28px, 7.5vw, 40px)";
+        input.style.height = "clamp(32px, 7.5vw, 40px)";
         input.style.borderColor = "#6c757d";
         input.style.fontSize = "16px";
         input.style.color = "#000";
@@ -861,8 +877,10 @@ function createMobileDigitInputs(requiredLength) {
         input.addEventListener("keydown", handleMobileDigitKeydown);
         input.addEventListener("paste", handleMobilePaste);
         input.addEventListener("focus", function(e) { clearMobileDigitError(e); this.select(); });
-        container.appendChild(input);
+        if (i < half) { row1.appendChild(input); } else { row2.appendChild(input); }
     }
+    container.appendChild(row1);
+    if (row2.children.length > 0) container.appendChild(row2);
     setTimeout(() => { const firstInput = container.querySelector("input"); if (firstInput) firstInput.focus(); }, 100);
 }
 
@@ -896,14 +914,16 @@ function createOtpDigitInputs() {
 
 function addCustomStyles() {
     const style = document.createElement("style");
-    style.textContent = `#mobileDigitsContainer input.form-control {border-color: #6c757d !important;font-size: 16px !important;color: #000 !important;background-color: #fff !important;padding: 0.375rem 0.25rem !important;}#mobileDigitsContainer input.form-control:focus {border-color: #495057 !important;box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;color: #000 !important;background-color: #fff !important;}#otpDigitsContainer input.form-control {border-color: #6c757d !important;font-size: 16px !important;color: #000 !important;background-color: #fff !important;padding: 0.375rem 0.25rem !important;text-transform: uppercase !important;}#otpDigitsContainer input.form-control:focus {border-color: #495057 !important;box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;color: #000 !important;background-color: #fff !important;}#mobileDigitsContainer input,#otpDigitsContainer input {-webkit-text-fill-color: #000 !important;}#fullScreenLoader {background-color: rgba(255, 255, 255, 0.9) !important;z-index: 10000 !important;}#autoVerifyProgress, #manualVerifyMsg {font-size: 0.875rem;padding: 0.5rem;margin-bottom: 0.5rem;}#resendOtp:disabled {cursor: not-allowed;opacity: 0.6;}#resendOtp.btn-warning {background-color: #ffc107 !important;border-color: #ffc107 !important;color: #212529 !important;}#audioErrorMsg {font-size: 0.875rem;padding: 0.5rem;margin-bottom: 0.5rem;}#getOtpBtn:disabled {opacity: 0.6;cursor: not-allowed;}`;
+    style.textContent = `#mobileDigitsContainer input.form-control {border-color: #6c757d !important;font-size: 16px !important;color: #000 !important;background-color: #fff !important;padding: 0.375rem 0.25rem !important;}#mobileDigitsContainer input.form-control:focus {border-color: #495057 !important;box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;color: #000 !important;background-color: #fff !important;}#otpDigitsContainer input.form-control {border-color: #6c757d !important;font-size: 16px !important;color: #000 !important;background-color: #fff !important;padding: 0.375rem 0.25rem !important;text-transform: uppercase !important;}#otpDigitsContainer input.form-control:focus {border-color: #495057 !important;box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;color: #000 !important;background-color: #fff !important;}#mobileDigitsContainer input,#otpDigitsContainer input {-webkit-text-fill-color: #000 !important;}#fullScreenLoader {background-color: rgba(255, 255, 255, 0.9) !important;z-index: 10000 !important;}#autoVerifyProgress, #manualVerifyMsg {font-size: 0.875rem;padding: 0.5rem;margin-bottom: 0.5rem;}#resendOtp:disabled {cursor: not-allowed;opacity: 0.6;}#resendOtp.btn-warning {background-color: #ffc107 !important;border-color: #ffc107 !important;color: #212529 !important;}#audioErrorMsg {font-size: 0.875rem;padding: 0.5rem;margin-bottom: 0.5rem;}#getOtpBtn:disabled {opacity: 0.6;cursor: not-allowed;}.blink-text {animation: blinkAnim 1s step-end infinite;} @keyframes blinkAnim {0%,100%{opacity:1}50%{opacity:0}}`;
     document.head.appendChild(style);
 }
 
 function clearMobileDigitError(e) {
     const input = e.target;
     input.classList.remove("is-invalid");
-    const mobileError = document.getElementById("mobileError");
+    const container = input.closest('[id$="DigitsContainer"]');
+    const errorId = container && container.id === 'mobileDigitsContainer' ? 'mobileError' : 'mobileError';
+    const mobileError = document.getElementById(errorId);
     if (mobileError) { mobileError.classList.add("d-none"); }
 }
 
@@ -921,8 +941,9 @@ function handleMobileDigitInput(e) {
     input.value = value;
     input.classList.remove("is-invalid");
     if (value.length === 1) {
-        const inputs = document.querySelectorAll("#mobileDigitsContainer input");
-        if (index < inputs.length - 1) { inputs[index + 1].focus(); }
+        const container = input.closest('[id$="DigitsContainer"]');
+        const inputs = container ? container.querySelectorAll('input') : [];
+        if (index < inputs.length - 1) { setTimeout(() => { inputs[index + 1].focus(); }, 0); }
     }
 }
 
@@ -944,12 +965,13 @@ function handleOtpDigitInput(e) {
 function handleMobileDigitKeydown(e) {
     const input = e.target;
     const index = parseInt(input.dataset.index);
-    const inputs = document.querySelectorAll("#mobileDigitsContainer input");
+    const container = input.closest('[id$="DigitsContainer"]');
+    const inputs = container ? container.querySelectorAll('input') : [];
     if (e.key === "Backspace") {
-        if (input.value === "" && index > 0) { setTimeout(() => { inputs[index - 1].focus(); inputs[index - 1].value = ""; }, 50); }
+        if (input.value === "" && index > 0) { setTimeout(() => { inputs[index - 1].focus(); inputs[index - 1].value = ""; }, 0); }
         else if (input.value !== "") { input.value = ""; }
-    } else if (e.key === "ArrowLeft" && index > 0) { setTimeout(() => { inputs[index - 1].focus(); }, 50); }
-    else if (e.key === "ArrowRight" && index < inputs.length - 1) { setTimeout(() => { inputs[index + 1].focus(); }, 50); }
+    } else if (e.key === "ArrowLeft" && index > 0) { setTimeout(() => { inputs[index - 1].focus(); }, 0); }
+    else if (e.key === "ArrowRight" && index < inputs.length - 1) { setTimeout(() => { inputs[index + 1].focus(); }, 0); }
 }
 
 function handleOtpDigitKeydown(e) {
@@ -968,13 +990,13 @@ function handleMobilePaste(e) {
     const pastedData = e.clipboardData.getData("text");
     const cleanData = pastedData.replace(/\D/g, "");
     const digits = cleanData.split("");
-    const inputs = document.querySelectorAll("#mobileDigitsContainer input");
-    const startIndex = 0;
+    const container = e.target.closest('[id$="DigitsContainer"]');
+    const inputs = container ? container.querySelectorAll('input') : [];
     inputs.forEach((input) => (input.value = ""));
     for (let i = 0; i < digits.length && i < inputs.length; i++) { inputs[i].value = digits[i]; }
     const nextEmptyIndex = Array.from(inputs).findIndex((input) => input.value === "");
-    if (nextEmptyIndex !== -1) { setTimeout(() => { inputs[nextEmptyIndex].focus(); }, 50); }
-    else { setTimeout(() => { inputs[inputs.length - 1].focus(); }, 50); }
+    if (nextEmptyIndex !== -1) { setTimeout(() => { inputs[nextEmptyIndex].focus(); }, 0); }
+    else { setTimeout(() => { inputs[inputs.length - 1].focus(); }, 0); }
 }
 
 function handleOtpPaste(e) {
@@ -1020,10 +1042,17 @@ async function open_shoLgnO(...args) {
     const modalResult = create_modal_dynamically(id_of_dv_shoLgnO_to_set_processed_dom_object);
     targetElement = modalResult.contentElement;
     window.currentLoginModal = modalResult;
+    const dialog = modalResult.modalElement.querySelector('.modal-dialog');
+    if (dialog) dialog.style.marginTop = '100px';
 
     modalResult.modalElement.addEventListener("hidden.bs.modal", function () {
         restoreL3BodyStyles();
         if (typeof releaseWakeLock === 'function') { releaseWakeLock(); }
+    });
+
+    modalResult.modalElement.addEventListener('shown.bs.modal', function () {
+        const firstInput = modalResult.modalElement.querySelector('#mobileDigitsContainer input');
+        if (firstInput) firstInput.focus();
     });
 
     targetElement.innerHTML = set_innerHTML_of_shoLgnO();
@@ -1034,7 +1063,16 @@ async function open_shoLgnO(...args) {
     const countryCodeSelect = document.getElementById("loginCountryCode");
     if (countryCodeSelect) {
         loadCountryCodes("loginCountryCode");
-        setTimeout(() => { countryCodeSelect.value = "+91"; updateMobileLengthInfo("loginCountryCode", "mobileLengthInfo"); }, 100);
+        setTimeout(() => {
+            countryCodeSelect.value = "+91";
+            updateMobileLengthInfo("loginCountryCode", "mobileLengthInfo");
+            const mobileInputs = document.querySelectorAll("#mobileDigitsContainer input");
+            mobileInputs.forEach(input => {
+                input.addEventListener("input", validateGetOtpForm);
+                input.addEventListener("paste", () => { setTimeout(validateGetOtpForm, 100); });
+            });
+            validateGetOtpForm();
+        }, 100);
     }
 
     createOtpDigitInputs();
