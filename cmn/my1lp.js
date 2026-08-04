@@ -372,7 +372,7 @@ function initializeLoginForm(container) {
          countryCodeSelect.value = '+91';
          updateMobileLengthInfo('loginCountryCode', 'mobileLengthInfo');
          createMobileDigitInputs('mobileDigitsContainer', getRequiredMobileLength('+91'));
-      }, 100);
+      }, 500);
    }
 
    setupLoginEventListeners(container);
@@ -386,7 +386,7 @@ function initializeRegisterForm(container) {
          countryCodeSelect.value = '+91';
          updateMobileLengthInfo('registerCountryCode', 'registerMobileLengthInfo');
          createMobileDigitInputs('registerMobileDigitsContainer', getRequiredMobileLength('+91'));
-      }, 100);
+      }, 500);
    }
 
    createOtpDigitInputs();
@@ -952,7 +952,7 @@ function createMobileDigitInputs(containerId, requiredLength) {
    setTimeout(() => {
       const firstInput = container.querySelector('input');
       if (firstInput) firstInput.focus();
-   }, 100);
+   }, 200);
 }
 
 function createOtpDigitInputs() {
@@ -985,7 +985,7 @@ function createOtpDigitInputs() {
    setTimeout(() => {
       const firstInput = container.querySelector('input');
       if (firstInput) firstInput.focus();
-   }, 100);
+   }, 200);
 }
 
 // Input handling functions
@@ -1009,7 +1009,7 @@ function handleMobileDigitInput(e) {
       if (index < inputs.length - 1) {
          setTimeout(() => {
             inputs[index + 1].focus();
-         }, 0);
+         }, 10);
       }
    }
 }
@@ -1034,7 +1034,7 @@ function handleOtpDigitInput(e) {
       if (index < inputs.length - 1) {
          setTimeout(() => {
             inputs[index + 1].focus();
-         }, 50);
+         }, 80);
       }
    }
 }
@@ -1050,18 +1050,18 @@ function handleMobileDigitKeydown(e) {
          setTimeout(() => {
             inputs[index - 1].focus();
             inputs[index - 1].value = '';
-         }, 0);
+         }, 10);
       } else if (input.value !== '') {
          input.value = '';
       }
    } else if (e.key === 'ArrowLeft' && index > 0) {
       setTimeout(() => {
          inputs[index - 1].focus();
-      }, 0);
+      }, 10);
    } else if (e.key === 'ArrowRight' && index < inputs.length - 1) {
       setTimeout(() => {
          inputs[index + 1].focus();
-      }, 0);
+      }, 10);
    }
 }
 
@@ -1075,18 +1075,18 @@ function handleOtpDigitKeydown(e) {
          setTimeout(() => {
             inputs[index - 1].focus();
             inputs[index - 1].value = '';
-         }, 50);
+         }, 80);
       } else if (input.value !== '') {
          input.value = '';
       }
    } else if (e.key === 'ArrowLeft' && index > 0) {
       setTimeout(() => {
          inputs[index - 1].focus();
-      }, 50);
+      }, 80);
    } else if (e.key === 'ArrowRight' && index < inputs.length - 1) {
       setTimeout(() => {
          inputs[index + 1].focus();
-      }, 50);
+      }, 80);
    }
 }
 
@@ -1109,11 +1109,11 @@ function handleMobilePaste(e) {
    if (nextEmptyIndex !== -1) {
       setTimeout(() => {
          inputs[nextEmptyIndex].focus();
-      }, 0);
+      }, 10);
    } else {
       setTimeout(() => {
          inputs[inputs.length - 1].focus();
-      }, 0);
+      }, 10);
    }
 }
 
@@ -1134,11 +1134,11 @@ function handleOtpPaste(e) {
    if (nextEmptyIndex !== -1) {
       setTimeout(() => {
          inputs[nextEmptyIndex].focus();
-      }, 50);
+      }, 80);
    } else {
       setTimeout(() => {
          inputs[inputs.length - 1].focus();
-      }, 50);
+      }, 80);
    }
 }
 

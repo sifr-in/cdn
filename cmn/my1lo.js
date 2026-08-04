@@ -491,7 +491,7 @@ function setupL3EventListeners() {
     const mobileInputs = document.querySelectorAll("#mobileDigitsContainer input");
     mobileInputs.forEach(input => {
         input.addEventListener("input", validateGetOtpForm);
-        input.addEventListener("paste", () => { setTimeout(validateGetOtpForm, 100); });
+        input.addEventListener("paste", () => { setTimeout(validateGetOtpForm, 200); });
     });
 
     if (getOtpBtn) { getOtpBtn.disabled = true; }
@@ -883,7 +883,7 @@ function createMobileDigitInputs(requiredLength) {
     }
     container.appendChild(row1);
     if (row2.children.length > 0) container.appendChild(row2);
-    setTimeout(() => { const firstInput = container.querySelector("input"); if (firstInput) firstInput.focus(); }, 100);
+    setTimeout(() => { const firstInput = container.querySelector("input"); if (firstInput) firstInput.focus(); }, 200);
 }
 
 // Create OTP digit inputs (6 alphanumeric characters)
@@ -911,7 +911,7 @@ function createOtpDigitInputs() {
         input.addEventListener("focus", function(e) { clearOtpDigitError(e); this.select(); });
         container.appendChild(input);
     }
-    setTimeout(() => { const firstInput = container.querySelector("input"); if (firstInput) firstInput.focus(); }, 100);
+    setTimeout(() => { const firstInput = container.querySelector("input"); if (firstInput) firstInput.focus(); }, 200);
 }
 
 function addCustomStyles() {
@@ -945,7 +945,7 @@ function handleMobileDigitInput(e) {
     if (value.length === 1) {
         const container = input.closest('[id$="DigitsContainer"]');
         const inputs = container ? container.querySelectorAll('input') : [];
-        if (index < inputs.length - 1) { setTimeout(() => { inputs[index + 1].focus(); }, 0); }
+        if (index < inputs.length - 1) { setTimeout(() => { inputs[index + 1].focus(); }, 10); }
     }
 }
 
@@ -970,10 +970,10 @@ function handleMobileDigitKeydown(e) {
     const container = input.closest('[id$="DigitsContainer"]');
     const inputs = container ? container.querySelectorAll('input') : [];
     if (e.key === "Backspace") {
-        if (input.value === "" && index > 0) { setTimeout(() => { inputs[index - 1].focus(); inputs[index - 1].value = ""; }, 0); }
+        if (input.value === "" && index > 0) { setTimeout(() => { inputs[index - 1].focus(); inputs[index - 1].value = ""; }, 10); }
         else if (input.value !== "") { input.value = ""; }
-    } else if (e.key === "ArrowLeft" && index > 0) { setTimeout(() => { inputs[index - 1].focus(); }, 0); }
-    else if (e.key === "ArrowRight" && index < inputs.length - 1) { setTimeout(() => { inputs[index + 1].focus(); }, 0); }
+    } else if (e.key === "ArrowLeft" && index > 0) { setTimeout(() => { inputs[index - 1].focus(); }, 10); }
+    else if (e.key === "ArrowRight" && index < inputs.length - 1) { setTimeout(() => { inputs[index + 1].focus(); }, 10); }
 }
 
 function handleOtpDigitKeydown(e) {
@@ -981,10 +981,10 @@ function handleOtpDigitKeydown(e) {
     const index = parseInt(input.dataset.index);
     const inputs = document.querySelectorAll("#otpDigitsContainer input");
     if (e.key === "Backspace") {
-        if (input.value === "" && index > 0) { setTimeout(() => { inputs[index - 1].focus(); inputs[index - 1].value = ""; }, 50); }
+        if (input.value === "" && index > 0) { setTimeout(() => { inputs[index - 1].focus(); inputs[index - 1].value = ""; }, 80); }
         else if (input.value !== "") { input.value = ""; }
-    } else if (e.key === "ArrowLeft" && index > 0) { setTimeout(() => { inputs[index - 1].focus(); }, 50); }
-    else if (e.key === "ArrowRight" && index < inputs.length - 1) { setTimeout(() => { inputs[index + 1].focus(); }, 50); }
+    } else if (e.key === "ArrowLeft" && index > 0) { setTimeout(() => { inputs[index - 1].focus(); }, 80); }
+    else if (e.key === "ArrowRight" && index < inputs.length - 1) { setTimeout(() => { inputs[index + 1].focus(); }, 80); }
 }
 
 function handleMobilePaste(e) {
@@ -997,8 +997,8 @@ function handleMobilePaste(e) {
     inputs.forEach((input) => (input.value = ""));
     for (let i = 0; i < digits.length && i < inputs.length; i++) { inputs[i].value = digits[i]; }
     const nextEmptyIndex = Array.from(inputs).findIndex((input) => input.value === "");
-    if (nextEmptyIndex !== -1) { setTimeout(() => { inputs[nextEmptyIndex].focus(); }, 0); }
-    else { setTimeout(() => { inputs[inputs.length - 1].focus(); }, 0); }
+    if (nextEmptyIndex !== -1) { setTimeout(() => { inputs[nextEmptyIndex].focus(); }, 10); }
+    else { setTimeout(() => { inputs[inputs.length - 1].focus(); }, 10); }
 }
 
 function handleOtpPaste(e) {
@@ -1011,8 +1011,8 @@ function handleOtpPaste(e) {
     inputs.forEach((input) => (input.value = ""));
     for (let i = 0; i < characters.length && i < inputs.length; i++) { inputs[i].value = characters[i]; }
     const nextEmptyIndex = Array.from(inputs).findIndex((input) => input.value === "");
-    if (nextEmptyIndex !== -1) { setTimeout(() => { inputs[nextEmptyIndex].focus(); }, 50); }
-    else { setTimeout(() => { inputs[inputs.length - 1].focus(); }, 50); }
+    if (nextEmptyIndex !== -1) { setTimeout(() => { inputs[nextEmptyIndex].focus(); }, 80); }
+    else { setTimeout(() => { inputs[inputs.length - 1].focus(); }, 80); }
 }
 
 function getMobileNumberFromDigits() {
@@ -1071,10 +1071,10 @@ async function open_shoLgnO(...args) {
             const mobileInputs = document.querySelectorAll("#mobileDigitsContainer input");
             mobileInputs.forEach(input => {
                 input.addEventListener("input", validateGetOtpForm);
-                input.addEventListener("paste", () => { setTimeout(validateGetOtpForm, 100); });
+                input.addEventListener("paste", () => { setTimeout(validateGetOtpForm, 150); });
             });
             validateGetOtpForm();
-        }, 100);
+        }, 500);
     }
 
     createOtpDigitInputs();
