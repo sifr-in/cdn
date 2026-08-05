@@ -1,3 +1,32 @@
+async function set_owner() {
+ const pathParts = window.location.pathname.split('/').filter(p => p);
+ const eo = pathParts[0] || "0.0000000000";
+ const ec = pathParts[1] || "z";
+
+ window.appOwner = {
+  tn: `${eo}_${ec}`.replace(/\./g, "_"),
+  eo: eo,
+  ec: ec
+ };
+ window.appOwner.pg = window.location.href.split("/").pop().split("?")[0];
+
+ window.payload0 = { "eo": eo, "ec": ec, "fi": 0, "fk": 0 };
+ window.my1uzr = JSON.parse(localStorage.getItem('my1uzr'));
+ window.dbnm = "my1_in_" + window.appOwner.tn;
+
+ if (window.my1uzr != null && window.my1uzr.mk != null) {
+  window.payload0.mk = window.my1uzr.mk;
+ } else {
+  window.my1uzr = {};
+ }
+ window.my1uzr.worknFor = window.appOwner.tn + "_" + window.payload0.fi + "_" + window.payload0.fk + "_" + window.my1uzr.mo + "_" + window.my1uzr.mc;
+ window.my1uzr.worknOnPg = window.my1uzr.worknFor + "_" + window.appOwner.pg;
+ if (window.my1uzr.mo && window.my1uzr.mc) {
+  window.dbnm = "my1_in_" + window.appOwner.tn + "_" + window.my1uzr.mo.replace(/\./g, "_") + "_" + window.my1uzr.mc + "_" + window.payload0.fi + "_" + window.payload0.fk;
+ }
+ window[my1uzr.worknOnPg] = {};
+}
+
 const monthFullNms = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const monthShortNms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -11,6 +40,78 @@ let isWakeLockSupported = 'wakeLock' in navigator;
 // Back button press counter
 let backButtonPressCount = 0;
 let backButtonTimeout = null;
+
+function setVrsn(scriptName) {
+    // Build the localStorage key from path
+    var pathKey = 'my1.in_' + appOwner.tn + '_' + appOwner.ec + '_' + scriptName;
+    
+    // Check localStorage for saved version
+    var savedData = localStorage.getItem(pathKey);
+    var versionHash = null;
+    
+    if (savedData) {
+        try {
+            var parsed = JSON.parse(savedData);
+            if (parsed && parsed.appVrzn) {
+                versionHash = parsed.appVrzn;
+                console.log('Using saved version from localStorage:', versionHash);
+            }
+        } catch (e) {
+            console.warn('Failed to parse localStorage data:', e);
+        }
+    }
+    
+    // If no saved version, get from appVrzns
+    if (!versionHash) {
+        if (typeof appVrzns !== 'undefined' && Array.isArray(appVrzns) && appVrzns.length > 0) {
+            versionHash = appVrzns[0].a;
+            console.log('Using version from appVrzns:', versionHash);
+        } else {
+            console.warn('No version found in localStorage or appVrzns');
+            return;
+        }
+    }
+    
+    // Find and update the script URL in csh array
+    var csh = window[my1uzr.worknOnPg].csh;
+    var found = false;
+    
+    // Handle both .js and .min.js variations
+    var searchNames = [scriptName];
+    if (scriptName.endsWith('.js') && !scriptName.endsWith('.min.js')) {
+        searchNames.push(scriptName.replace('.js', '.min.js'));
+    } else if (scriptName.endsWith('.min.js')) {
+        searchNames.push(scriptName.replace('.min.js', '.js'));
+    }
+    
+    for (var i = 0; i < csh.length; i++) {
+        var url = csh[i].u;
+        
+        // Check if this URL contains the script name
+        for (var j = 0; j < searchNames.length; j++) {
+            if (url.indexOf('/' + searchNames[j]) !== -1 || url.endsWith(searchNames[j])) {
+                // Replace the version hash in the URL
+                // Pattern: cdn@XXXXXXXX/
+                var newUrl = url.replace(/cdn@[^/]+\//, 'cdn@' + versionHash + '/');
+                csh[i].u = newUrl;
+                console.log('Updated:', url, '→', newUrl);
+                found = true;
+                break;
+            }
+        }
+        
+        if (found) break;
+    }
+    
+    if (!found) {
+        console.warn('Script not found in csh:', scriptName);
+    }
+    
+    return found;
+}
+
+// Make it globally accessible
+window.setVrsn = setVrsn;
 
 // Screen Wake Lock functions - Common utility for all scripts
 async function requestWakeLock() {
@@ -1243,10 +1344,10 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
          registrationPayload.tn = appOwner.tn;
          registrationPayload.fn = 37;
 
-         return fnj3(registrationUrl, registrationPayload, loginRequired_0_1, async_1, loaderId, timeout, maxRetries, 0, 0, showLoader)
+         return fnj3(registrationUrl, registrationPayload, loginRequired_0_1, async_1, loaderId, timeout, maxRetries, shoLoginByOas2orByPas1, registerAtOwnerIfNotRegistered, showLoader)
           .then(registrationResponse => {
            if (registrationResponse && registrationResponse.su == 1) {
-            return fnj3(url, jsonPayload, loginRequired_0_1, async_1, loaderId, timeout, maxRetries, 0, 0, showLoader);
+            return fnj3(url, jsonPayload, loginRequired_0_1, async_1, loaderId, timeout, maxRetries, shoLoginByOas2orByPas1, registerAtOwnerIfNotRegistered, showLoader);
            } else {
             throw new Error(`Registration failed. contact admin`);
            }
@@ -2370,3 +2471,4 @@ document.addEventListener('DOMContentLoaded', function () {
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
+window.set_owner = set_owner;

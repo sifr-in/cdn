@@ -259,8 +259,21 @@ async function set_be_innerHTML(...params) {
  const c_ontainer_blank_main = document.getElementById(params[0]);
  c_ontainer_blank_main.innerHTML = `
 <div class="container-fluid" style="--bs-gutter-x: 0rem;">
+<div id="eyeActions" class="text-center mb-2">
+<button type="button" class="btn btn-sm btn-primary d-none" id="editEyeBtn" onclick="toggleEyeEdit()">
+   <i class="fas fa-pen me-1"></i>Edit Eye Measurements
+</button>
+<div class="d-none" id="eyeEditActions">
+<button type="button" class="btn btn-sm btn-success" onclick="updateEyeMeasurements()">
+   <i class="fas fa-save me-1"></i>Update
+</button>
+<button type="button" class="btn btn-sm btn-outline-danger" onclick="cancelEyeEdit()">
+   <i class="fas fa-times"></i>
+</button>
+</div>
+</div>
 <div class="row">
-<div id="table-div-right" class="col-md-6 mb-3">
+<div id="table-div-right" class="col-md-6 mb-0">
 <div class="card">
 <div class="card-body" style="padding: 2px;">
 <button id="copyRightToLeft" class="btn btn-sm btn-outline-secondary ms-2 mb-2">Copy readings to L eye</button>
@@ -294,12 +307,12 @@ Right
 tabindex="12" />
 </td>
 <td class="axis-column">
-<input id="rDvAxis" class="form-control form-control-sm axis-input" autocomplete="off" type="number" tabindex="13" min="0" max="180" step="1"/>
+<input id="rDvAxis" class="form-control form-control-sm axis-input" autocomplete="off" type="number" tabindex="13" min="0" max="180" step="1" readonly/>
 </td>
 <td class="vn-column">
 <div class="input-group input-group-sm vn-input-group">
 <span class="input-group-text vn-prefix">6/</span>
-<input id="rDvV/n" class="form-control vn-input" autocomplete="off" type="number" tabindex="14" min="0" max="20" step="0.1"/>
+<input id="rDvV/n" class="form-control vn-input" autocomplete="off" type="number" tabindex="14" min="0" max="20" step="0.1" readonly/>
 </div>
 </td>
 </tr>
@@ -314,12 +327,12 @@ tabindex="15" />
 tabindex="16" />
 </td>
 <td class="axis-column">
-<input id="rNvAxis" class="form-control form-control-sm axis-input" autocomplete="off" type="number" tabindex="17" min="0" max="180" step="1"/>
+<input id="rNvAxis" class="form-control form-control-sm axis-input" autocomplete="off" type="number" tabindex="17" min="0" max="180" step="1" readonly/>
 </td>
 <td class="vn-column">
 <div class="input-group input-group-sm vn-input-group">
 <span class="input-group-text vn-prefix">N/</span>
-<input id="rNvV/n" class="form-control vn-input" autocomplete="off" type="number" tabindex="18" min="0" max="20" step="0.1"/>
+<input id="rNvV/n" class="form-control vn-input" autocomplete="off" type="number" tabindex="18" min="0" max="20" step="0.1" readonly/>
 </div>
 </td>
 </tr>
@@ -337,7 +350,7 @@ tabindex="16" />
 <tr>
 <td class="text-center fw-bold eye-label">PD</td>
 <td>
-<input id="rPd" class="form-control form-control-sm pd-input" autocomplete="off" type="number" tabindex="20" min="0" max="90" step="0.5"/>
+<input id="rPd" class="form-control form-control-sm pd-input" autocomplete="off" type="number" tabindex="20" min="0" max="90" step="0.5" readonly/>
 </td>
 <td class="cyl-column"></td>
 <td class="axis-column"></td>
@@ -356,7 +369,7 @@ tabindex="16" />
 </div>
 </div>
 
-<div id="table-div-left" class="col-md-6 mb-3">
+<div id="table-div-left" class="col-md-6 mb-0">
 <div class="card">
 <div class="card-body" style="padding: 2px;">
 <button id="copyLeftToRight" class="btn btn-sm btn-outline-secondary ms-2 mb-2">Copy readings to R eye</button>
@@ -389,12 +402,12 @@ Left
 <input id="lDvCyl" class="form-control form-control-sm" autocomplete="off" type="text" readonly tabindex="2" />
 </td>
 <td class="axis-column">
-<input id="lDvAxis" class="form-control form-control-sm axis-input" autocomplete="off" type="number" tabindex="3" min="0" max="180" step="1"/>
+<input id="lDvAxis" class="form-control form-control-sm axis-input" autocomplete="off" type="number" tabindex="3" min="0" max="180" step="1" readonly/>
 </td>
 <td class="vn-column">
 <div class="input-group input-group-sm vn-input-group">
 <span class="input-group-text vn-prefix">6/</span>
-<input id="lDvV/n" class="form-control vn-input" autocomplete="off" type="number" tabindex="4" min="0" max="20" step="0.1"/>
+<input id="lDvV/n" class="form-control vn-input" autocomplete="off" type="number" tabindex="4" min="0" max="20" step="0.1" readonly/>
 </div>
 </td>
 </tr>
@@ -408,12 +421,12 @@ tabindex="5" />
 <input id="lNvCyl" class="form-control form-control-sm" autocomplete="off" type="text" readonly tabindex="6" />
 </td>
 <td class="axis-column">
-<input id="lNvAxis" class="form-control form-control-sm axis-input" autocomplete="off" type="number" tabindex="7" min="0" max="180" step="1"/>
+<input id="lNvAxis" class="form-control form-control-sm axis-input" autocomplete="off" type="number" tabindex="7" min="0" max="180" step="1" readonly/>
 </td>
 <td class="vn-column">
 <div class="input-group input-group-sm vn-input-group">
 <span class="input-group-text vn-prefix">N/</span>
-<input id="lNvV/n" class="form-control vn-input" autocomplete="off" type="number" tabindex="8" min="0" max="20" step="0.1"/>
+<input id="lNvV/n" class="form-control vn-input" autocomplete="off" type="number" tabindex="8" min="0" max="20" step="0.1" readonly/>
 </div>
 </td>
 </tr>
@@ -431,7 +444,7 @@ tabindex="5" />
 <tr>
 <td class="text-center fw-bold eye-label">PD</td>
 <td>
-<input id="lPd" class="form-control form-control-sm pd-input" autocomplete="off" type="number" tabindex="10" min="0" max="90" step="0.5"/>
+<input id="lPd" class="form-control form-control-sm pd-input" autocomplete="off" type="number" tabindex="10" min="0" max="90" step="0.5" readonly/>
 </td>
 <td class="cyl-column"></td>
 <td class="axis-column"></td>
@@ -458,12 +471,14 @@ table-layout: fixed;
 width: 100%;
 border-collapse: separate;
 border-spacing: 0;
+border: 2px solid #343a40 !important;
 }
 
 .eye-measurement-table th,
 .eye-measurement-table td {
 padding: 0.25rem !important;
 vertical-align: middle !important;
+border: 1px solid #495057 !important;
 }
 
 .eye-measurement-table .eye-label {
@@ -481,6 +496,7 @@ padding: 0.2rem 0.3rem !important;
 height: calc(1.5em + 0.4rem + 2px) !important;
 width: 100% !important;
 min-width: 0 !important;
+border: 1px solid #343a40 !important;
 }
 
 .eye-measurement-table .input-group-sm {
@@ -694,6 +710,7 @@ ${generatePositiveTable()}
  setupKeyboardNavigation();
  setupCopyFunctionality();
  setupAllValidations(); // Add this line to set up all validations
+ unlockAllEyeInputs();
 }
 
 // Helper function to generate negative table rows
@@ -1609,14 +1626,15 @@ function getEyeMeasurement() {
  return hasData ? eye_msrmnt : null;
 }
 function setEyeMeasurement(eyeMsrments) {
- if (!eyeMsrments) return;
+ if (!eyeMsrments || Object.keys(eyeMsrments).length === 0) { lockAllEyeInputs(); return; }
 
  function setElementValue(elementId, value) {
   const element = document.getElementById(elementId);
   if (element) {
    if (element.tagName === 'INPUT') {
-    element.value = value;
-   } else {
+     const numValue = parseFloat(value);
+     element.value = (!isNaN(numValue) && numValue > 0) ? '+' + value : value;
+    } else {
     const numValue = parseFloat(value);
 
     // Handle specific prefixes for V/n elements
@@ -1673,6 +1691,72 @@ function setEyeMeasurement(eyeMsrments) {
  if (eyeMsrments.li !== undefined) setElementValue("lAdd", eyeMsrments.li);
  // lj is hardcoded to 0 in get function, so we don't set it
  if (eyeMsrments.lk !== undefined) setElementValue("lPd", eyeMsrments.lk);
+ lockAllEyeInputs();
+}
+function unlockAllEyeInputs() {
+ ['table-div-right','table-div-left'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.querySelectorAll('input[readonly]').forEach(inp => inp.removeAttribute('readonly'));
+ });
+}
+function lockAllEyeInputs() {
+ ['table-div-right','table-div-left'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.querySelectorAll('input').forEach(inp => inp.setAttribute('readonly', true));
+ });
+ document.getElementById('editEyeBtn').classList.remove('d-none');
+ document.getElementById('eyeEditActions').classList.add('d-none');
+}
+function toggleEyeEdit() {
+ document.getElementById('editEyeBtn').classList.add('d-none');
+ document.getElementById('eyeEditActions').classList.remove('d-none');
+ ['table-div-right','table-div-left'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.querySelectorAll('input[readonly]').forEach(inp => inp.removeAttribute('readonly'));
+ });
+}
+function cancelEyeEdit() {
+ lockAllEyeInputs();
+}
+function updateEyeMeasurements() {
+ (async () => {
+  try {
+   const eyeData = getEyeMeasurement();
+   if (!eyeData) { showToast('No eye measurement data to save'); return; }
+
+    if (typeof payload0 === 'undefined') { showToast('Payload not available'); return; }
+
+    const billId = window.billTableRowId || null;
+    if (!billId) { showToast('No bill selected for update'); return; }
+
+   eyeData.ea = billId;
+   const r_eferrerId = parseInt(document.getElementById('referrerId')?.value) || 0;
+   eyeData.ef = r_eferrerId;
+
+   payload0.be = eyeData;
+   payload0.vw = 1;
+   payload0.fn = 102;
+   payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'be', "col": 'eb', "cl": "eb" }]);
+
+   const response = await fnj3("https://my1.in/2/o.php", payload0, 1, true, null, 20000, 0, 2, 1);
+
+   if (response && response.su == 1) {
+    showToast('Eye measurements updated successfully', { type: 'success', duration: 3000 });
+    lockAllEyeInputs();
+    handl_op_rspons(response, 1);
+   //  if (typeof dbDexieManager !== 'undefined' && typeof dbnm !== 'undefined') {
+   //   await dbDexieManager.deleteRecords(dbnm, 'be', { ea: billId }, ['ea']);
+   //   await dbDexieManager.addRecord(dbnm, 'be', eyeData);
+   if (typeof window.refreshStoredEyeMeasurements === 'function') await window.refreshStoredEyeMeasurements();
+   //  }
+
+   } else {
+    window.showelsemodal(response?.ms || 'Update failed');
+   }
+  } catch (er) {
+   window.showelsemodal(er);
+  }
+ })();
 }
 function setupKeyboardNavigation() {
  document.addEventListener('keydown', function (event) {

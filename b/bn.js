@@ -13,9 +13,19 @@ async function set_add_itm_nw_innerHTML(...params) {
 </div>
 <div class="modal-body">
 <form id="addItemForm">
+<div class="row g-0 mb-3">
+<label for="bn_c_dtls_lient" class="form-label">Party Details</label>
+<div class="col-12">
+<div class="input-group">
+<input id="bn_c_dtls_lient" type="text" class="form-control border border-dark" readonly onclick="(async () => { await loadExe2Fn(14, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_bn_PartyCall', 1], [1]); })()" placeholder="Select Party">
+<button class="btn btn-outline-danger border border-dark" type="button" id="bn_clr_party" onclick="document.getElementById('bn_c_dtls_lient').value='';document.getElementById('bn_partyId').value='';" title="Clear Party"><i class="fas fa-times"></i></button>
+<input type="hidden" id="bn_partyId">
+</div>
+</div>
+</div>
 <div class="mb-3">
 <label for="new_item_nm" class="form-label">Item Name</label>
-<textarea class="form-control" id="new_item_nm" style="background-color: bisque;" rows="3" placeholder="Enter item name (multiple lines allowed)"
+<textarea class="form-control border border-dark" id="new_item_nm" style="background-color: bisque;" rows="3" placeholder="Enter item name (multiple lines allowed)"
 maxlength="${maxLength}" required>${params[0] || ""}</textarea>
 <div class="form-text text-end">
 <span id="itemNameCounter">${params[0] ? params[0].length : 0}</span> / ${maxLength} characters
@@ -39,7 +49,7 @@ Ignore from stock checking
 <label for="new_item_prc" class="form-label">Price of single unit</label>
 </div>
 <div class="col-12">
-<input type="number" class="form-control" id="new_item_prc" placeholder="Enter price" step="0.01" min="0" required>
+<input type="number" class="form-control border border-dark" id="new_item_prc" placeholder="Enter price" step="0.01" min="0" required>
 </div>
 </div>
 
@@ -48,7 +58,7 @@ Ignore from stock checking
 <label for="new_item_url" class="form-label">Link of Image of product / service</label>
 </div>
 <div class="col-12">
-<input type="url" class="form-control" id="new_item_url" placeholder="Enter URL (max 256 characters)"
+<input type="url" class="form-control border border-dark" id="new_item_url" placeholder="Enter URL (max 256 characters)"
 maxlength="256" required>
 </div>
 </div>
@@ -166,11 +176,16 @@ async function addItemToAPI() {
  var p = { e: itemName, g: itemUrl };
  var s = {
   d: document.getElementById('exclude_from_stock_chk').checked ? 111 : 0,
-  k: itemPrice
+  e: document.getElementById('bn_partyId').value || 0,
+  k: itemPrice,
  };
  payload0.p = p;
  payload0.s = s;
- payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'c', "col": 'b', "cl": "b" }, { "tb": 'b', "col": 'b', "cl": "b" }, { "tb": 'i', "col": 'b', "cl": "b" }, { "tb": 'r', "col": 'b', "cl": "b" }, { "tb": 'be', "col": 'eb', "cl": "eb" }, { "tb": 'ba', "col": 'b', "cl": "b" }, { "tb": 'p', "col": 'b', "cl": "b" }, { "tb": 's', "col": 'b', "cl": "b" }]);
+ var laTables = [{ "tb": 'c', "col": 'b', "cl": "b" }, { "tb": 'b', "col": 'b', "cl": "b" }, { "tb": 'i', "col": 'b', "cl": "b" }, { "tb": 'r', "col": 'b', "cl": "b" }, { "tb": 'ba', "col": 'b', "cl": "b" }, { "tb": 'p', "col": 'b', "cl": "b" }, { "tb": 's', "col": 'b', "cl": "b" }];
+ if (typeof showEyeMesuremetsTableInBill !== "undefined" && showEyeMesuremetsTableInBill == 1) {
+  laTables.splice(4, 0, { tb: 'be', col: 'eb', cl: 'eb' });
+ }
+ payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, laTables);
  payload0.vw = 1;
  payload0.fn = 2;
  const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
@@ -193,3 +208,10 @@ async function addItemToAPI() {
   alert(response.ms);
  }
 }
+function commonFnToRunAfter_bn_PartyCall(obj, swtch) {
+ if (swtch === 1) {
+  document.getElementById('bn_c_dtls_lient').value = obj.i + " " + obj.h + " " + obj.e;
+  document.getElementById('bn_partyId').value = obj.a;
+ }
+}
+window.commonFnToRunAfter_bn_PartyCall = commonFnToRunAfter_bn_PartyCall;
