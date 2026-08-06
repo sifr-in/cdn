@@ -6,15 +6,6 @@
  // xtraj_payload.chkSuOfFn = -1;
  // xtraj_payload.regme = 1;
 
- function loadScript(url) {
-  return new Promise((resolve, reject) => {
-   const s = document.createElement("script"); s.src = url; s.onload = resolve; s.onerror = reject; document.head.appendChild(s);
-  });
- }
-
- await loadScript("https://cdn.jsdelivr.net/gh/sifr-in/cdn@cc71958/cmn/my1e3.min.js");
- await set_owner();
-
  window[my1uzr.worknOnPg].csh = [
   { "a": 1, "u": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" },
   { "a": 2, "u": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" },
@@ -44,8 +35,6 @@
   { "a": 24, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1236a32/cmn/my1img.js", "c": "open_addimage", "r": "open_addimage" },
   { "a": 25, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1236a32/cmn/clrChe.js", "c": "showClearCacheModal", "r": "showClearCacheModal" }
  ];
-
- const new_url = setVrsn("b.js");
 
  window[my1uzr.worknOnPg].confg = {};
  window[my1uzr.worknOnPg].confg.calcStock = 1;
@@ -86,6 +75,7 @@
   window.showelsemodal(errorMsg);
   return false;
  };
+
  window.showsuccessmodal = function (successMsg, callback) {
   if (typeof create_modal_dynamically === 'function') {
    const successModalId = 'successModal_' + Date.now();
@@ -109,6 +99,7 @@
    }
   }
  };
+
  window.showConfirmModal = function (message) {
   return new Promise((resolve) => {
    if (typeof create_modal_dynamically !== 'function') {
@@ -164,8 +155,9 @@
     console.error('Confirm modal creation failed:', e);
     resolve(confirm(message));
    }
-  });
- };
+   });
+  };
+
  window.allowFloat = function (el, decimals = 2) {
   let v = el.value;
 
@@ -245,7 +237,6 @@
  window.getGoogleDriveImageUrl = getGoogleDriveImageUrl;
 
  async function billingRequisit_be() { await loadExe2Fn(21, ['blankDivSection1'], [1]); }
- //await loadScript("git/my1e3.js");
 
  var cssLinks = [
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css',

@@ -41,78 +41,6 @@ let isWakeLockSupported = 'wakeLock' in navigator;
 let backButtonPressCount = 0;
 let backButtonTimeout = null;
 
-function setVrsn(scriptName) {
-    // Build the localStorage key from path
-    var pathKey = 'my1.in_' + appOwner.tn + '_' + appOwner.ec + '_' + scriptName;
-    
-    // Check localStorage for saved version
-    var savedData = localStorage.getItem(pathKey);
-    var versionHash = null;
-    
-    if (savedData) {
-        try {
-            var parsed = JSON.parse(savedData);
-            if (parsed && parsed.appVrzn) {
-                versionHash = parsed.appVrzn;
-                console.log('Using saved version from localStorage:', versionHash);
-            }
-        } catch (e) {
-            console.warn('Failed to parse localStorage data:', e);
-        }
-    }
-    
-    // If no saved version, get from appVrzns
-    if (!versionHash) {
-        if (typeof appVrzns !== 'undefined' && Array.isArray(appVrzns) && appVrzns.length > 0) {
-            versionHash = appVrzns[0].a;
-            console.log('Using version from appVrzns:', versionHash);
-        } else {
-            console.warn('No version found in localStorage or appVrzns');
-            return;
-        }
-    }
-    
-    // Find and update the script URL in csh array
-    var csh = window[my1uzr.worknOnPg].csh;
-    var found = false;
-    
-    // Handle both .js and .min.js variations
-    var searchNames = [scriptName];
-    if (scriptName.endsWith('.js') && !scriptName.endsWith('.min.js')) {
-        searchNames.push(scriptName.replace('.js', '.min.js'));
-    } else if (scriptName.endsWith('.min.js')) {
-        searchNames.push(scriptName.replace('.min.js', '.js'));
-    }
-    
-    for (var i = 0; i < csh.length; i++) {
-        var url = csh[i].u;
-        
-        // Check if this URL contains the script name
-        for (var j = 0; j < searchNames.length; j++) {
-            if (url.indexOf('/' + searchNames[j]) !== -1 || url.endsWith(searchNames[j])) {
-                // Replace the version hash in the URL
-                // Pattern: cdn@XXXXXXXX/
-                var newUrl = url.replace(/cdn@[^/]+\//, 'cdn@' + versionHash + '/');
-                csh[i].u = newUrl;
-                console.log('Updated:', url, '→', newUrl);
-                found = true;
-                break;
-            }
-        }
-        
-        if (found) break;
-    }
-    
-    if (!found) {
-        console.warn('Script not found in csh:', scriptName);
-    }
-    
-    return found;
-}
-
-// Make it globally accessible
-window.setVrsn = setVrsn;
-
 // Screen Wake Lock functions - Common utility for all scripts
 async function requestWakeLock() {
  if (!isWakeLockSupported) {
@@ -2472,3 +2400,26 @@ document.addEventListener('DOMContentLoaded', function () {
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
 window.set_owner = set_owner;
+
+(function bootLoadAppScr() {
+ const src = document.currentScript ? document.currentScript.src : '';
+ const vMatch = src.match(/[?&]v=([^&]+)/);
+ if (!vMatch) {
+  showOKmodal('No ?v= script path in:' + src);
+  return;
+ }
+
+ let hash = null;
+ if (typeof appVrzns !== 'undefined' && Array.isArray(appVrzns) && appVrzns.length > 0) {
+  hash = appVrzns[0].a;
+ }
+ if (!hash) {
+  showOKmodal('No version hash in appVrzns');
+  return;
+ }
+
+ const appPath = vMatch[1].replace(/\.js$/, '.min.js');
+ const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + hash + '/' + appPath;
+ set_owner();
+ loadPromiseScript(url);
+})();
