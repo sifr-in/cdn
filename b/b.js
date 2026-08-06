@@ -24,7 +24,7 @@
   { "a": 6, "u": "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" },
   { "a": 7, "u": "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" },
   { "a": 8, "u": "https://code.jquery.com/jquery-3.6.0.min.js" },
-  {"a":9, "u":"https://cdn.jsdelivr.net/gh/sifr-in/cdn@asdf/b/b.min.js", "c":"set_bill_innerHTML", "r":"set_bill_innerHTML"},
+  { "a": 9, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@asdf2e1/b/b.min.js", "c": "set_bill_innerHTML", "r": "set_bill_innerHTML" },
   //{ "a": 9, "u": "git/b.js", "c": "set_bill_innerHTML", "r": "set_bill_innerHTML" },
   { "a": 10, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@14002e4/b/ba.min.js", "c": "open_bil_inward", "r": "open_bil_inward" },
   //{ "a": 11, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@bc0a572/b/bn.min.js", "c": "set_add_itm_nw_innerHTML", "r": "set_add_itm_nw_innerHTML" },
@@ -65,16 +65,16 @@
     const errorModalResult = create_modal_dynamically(errorModalId);
     if (errorModalResult) {
      const { contentElement: errorContent, modalInstance: errorModalInstance, modalElement: errorModalElement } = errorModalResult;
-      setTimeout(() => {
-       const md = errorModalElement.querySelector('.modal-dialog');
-       if (md) {
-        md.classList.add('modal-dialog-centered');
-        md.style.maxWidth = 'auto';
-        md.style.zIndex = '9999';
-        md.style.position = 'relative';
-       }
-       errorModalElement.style.zIndex = '99999';
-      }, 50);
+     setTimeout(() => {
+      const md = errorModalElement.querySelector('.modal-dialog');
+      if (md) {
+       md.classList.add('modal-dialog-centered');
+       md.style.maxWidth = 'auto';
+       md.style.zIndex = '9999';
+       md.style.position = 'relative';
+      }
+      errorModalElement.style.zIndex = '99999';
+     }, 50);
      errorContent.innerHTML = `<div class="p-4 text-center"><div class="mb-3"><i class="fas fa-exclamation-triangle text-danger" style="font-size:48px;"></i></div><h5 class="text-danger">No Success</h5><p class="text-muted">${errorMsg}</p><button class="btn btn-primary btn-sm mt-2" data-bs-dismiss="modal"><i class="fas fa-check me-1"></i>OK</button></div>`;
      errorModalInstance.show();
      return false;
@@ -86,54 +86,54 @@
   window.showelsemodal(errorMsg);
   return false;
  };
-  window.showsuccessmodal = function (successMsg, callback) {
-    if (typeof create_modal_dynamically === 'function') {
-      const successModalId = 'successModal_' + Date.now();
-      const successModalResult = create_modal_dynamically(successModalId);
-      if (successModalResult) {
-        const { contentElement: successContent, modalInstance: successModalInstance, modalElement: successModalElement } = successModalResult;
-        setTimeout(() => {
-          const md = successModalElement.querySelector('.modal-dialog');
-          if (md) { md.classList.add('modal-dialog-centered'); md.style.maxWidth = 'auto'; }
-        }, 50);
-        successContent.innerHTML = `<div class="p-4 text-center"><div class="mb-3"><i class="fas fa-check-circle text-success" style="font-size:48px;"></i></div><h5 class="text-success">Success</h5><p class="text-muted">${successMsg}</p><button class="btn btn-success btn-sm mt-2" data-bs-dismiss="modal"><i class="fas fa-check me-1"></i>OK</button></div>`;
+ window.showsuccessmodal = function (successMsg, callback) {
+  if (typeof create_modal_dynamically === 'function') {
+   const successModalId = 'successModal_' + Date.now();
+   const successModalResult = create_modal_dynamically(successModalId);
+   if (successModalResult) {
+    const { contentElement: successContent, modalInstance: successModalInstance, modalElement: successModalElement } = successModalResult;
+    setTimeout(() => {
+     const md = successModalElement.querySelector('.modal-dialog');
+     if (md) { md.classList.add('modal-dialog-centered'); md.style.maxWidth = 'auto'; }
+    }, 50);
+    successContent.innerHTML = `<div class="p-4 text-center"><div class="mb-3"><i class="fas fa-check-circle text-success" style="font-size:48px;"></i></div><h5 class="text-success">Success</h5><p class="text-muted">${successMsg}</p><button class="btn btn-success btn-sm mt-2" data-bs-dismiss="modal"><i class="fas fa-check me-1"></i>OK</button></div>`;
 
-        if (callback) {
-          successModalElement.addEventListener('hidden.bs.modal', function () {
-            callback();
-          }, { once: true });
-        }
-
-        successModalInstance.show();
-        return false;
-      }
+    if (callback) {
+     successModalElement.addEventListener('hidden.bs.modal', function () {
+      callback();
+     }, { once: true });
     }
-  };
-  window.showConfirmModal = function (message) {
-   return new Promise((resolve) => {
-    if (typeof create_modal_dynamically !== 'function') {
+
+    successModalInstance.show();
+    return false;
+   }
+  }
+ };
+ window.showConfirmModal = function (message) {
+  return new Promise((resolve) => {
+   if (typeof create_modal_dynamically !== 'function') {
+    resolve(confirm(message));
+    return;
+   }
+   try {
+    const modalId = 'confirmModal_' + Date.now();
+    const modalResult = create_modal_dynamically(modalId);
+    if (!modalResult) {
      resolve(confirm(message));
      return;
     }
-    try {
-     const modalId = 'confirmModal_' + Date.now();
-     const modalResult = create_modal_dynamically(modalId);
-     if (!modalResult) {
-      resolve(confirm(message));
-      return;
+    const { contentElement, modalInstance, modalElement } = modalResult;
+    setTimeout(() => {
+     const md = modalElement.querySelector('.modal-dialog');
+     if (md) {
+      md.classList.add('modal-dialog-centered');
+      md.style.maxWidth = 'auto';
+      md.style.zIndex = '9999';
      }
-     const { contentElement, modalInstance, modalElement } = modalResult;
-     setTimeout(() => {
-      const md = modalElement.querySelector('.modal-dialog');
-      if (md) {
-       md.classList.add('modal-dialog-centered');
-       md.style.maxWidth = 'auto';
-       md.style.zIndex = '9999';
-      }
-      modalElement.style.zIndex = '99999';
-     }, 50);
-     let settled = false;
-     contentElement.innerHTML = `
+     modalElement.style.zIndex = '99999';
+    }, 50);
+    let settled = false;
+    contentElement.innerHTML = `
 <div class="p-4">
 <div class="text-center mb-3">
 <i class="fas fa-question-circle text-primary" style="font-size:48px;"></i>
@@ -144,49 +144,47 @@
 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Cancel</button>
 </div>
 </div>`;
-      const okBtn = contentElement.querySelector('#' + modalId + '_ok');
-     okBtn.addEventListener('click', function () {
-      if (settled) return;
+    const okBtn = contentElement.querySelector('#' + modalId + '_ok');
+    okBtn.addEventListener('click', function () {
+     if (settled) return;
+     settled = true;
+     resolve(true);
+     modalInstance.hide();
+    });
+    modalElement.addEventListener('hidden.bs.modal', function () {
+     modalInstance.dispose();
+     modalElement.remove();
+     if (!settled) {
       settled = true;
-      resolve(true);
-      modalInstance.hide();
-     });
-     modalElement.addEventListener('hidden.bs.modal', function () {
-      modalInstance.dispose();
-      modalElement.remove();
-      if (!settled) {
-       settled = true;
-       resolve(false);
-      }
-     }, { once: true });
-     modalInstance.show();
-    } catch (e) {
-     console.error('Confirm modal creation failed:', e);
-     resolve(confirm(message));
-    }
-   });
-  };
-  window.allowFloat = function (el, decimals = 2) {
-        let v = el.value;
+      resolve(false);
+     }
+    }, { once: true });
+    modalInstance.show();
+   } catch (e) {
+    console.error('Confirm modal creation failed:', e);
+    resolve(confirm(message));
+   }
+  });
+ };
+ window.allowFloat = function (el, decimals = 2) {
+  let v = el.value;
 
-        // Keep only numbers and .
-        v = v.replace(/[^0-9.]/g, '').slice(0, 11);
+  // Keep only numbers and .
+  v = v.replace(/[^0-9.]/g, '');
 
-        // Allow only one decimal point
-        const parts = v.split('.');
-        if (parts.length > 2) {
-            v = parts.shift() + '.' + parts.join('');
-        }
+  // Allow only one decimal point
+  const dotIndex = v.indexOf('.');
+  if (dotIndex !== -1) {
+   v = v.slice(0, dotIndex + 1) + v.slice(dotIndex + 1).replace(/\./g, '');
+  }
 
-        // Limit digits after decimal
-        if (v.includes('.')) {
-            const p = v.split('.');
-            p[1] = p[1].substring(0, decimals);
-            v = p[0] + '.' + p[1];
-        }
+  // Limit digits before and after the decimal point
+  const parts = v.split('.');
+  const intPart = parts[0].slice(0, 7);
+  const decPart = parts[1] !== undefined ? parts[1].slice(0, decimals) : '';
 
-        el.value = v;
-    };
+  el.value = v.includes('.') ? intPart + '.' + decPart : intPart;
+ };
 
  window.closeModal = function (modalId, modalInstance) {
   if (!modalInstance) {
@@ -466,6 +464,7 @@
    if (shoEyeMsrmntTbl) stored_eye_msrmnt = await dbDexieManager.getAllRecords(dbnm, "be") || [];
    stored_bill_items = await dbDexieManager.getAllRecords(dbnm, "i") || [];
    stored_bill_cash_info = await dbDexieManager.getAllRecords(dbnm, "r") || [];
+   window.billSaved = false;
   } catch (error) {
    console.error("Initialization failed:", error);
    showToast("Initialization error - please refresh");
@@ -602,7 +601,7 @@
 <div class="col">
 <div class="input-group input-group-sm">
 <span class="input-group-text bg-white border-dark p-1">₹</span>
-<input type="number" class="form-control form-control-sm border border-dark" oninput="window.allowFloat(this,2)" placeholder="Amount" id="receivedAmount" min="0" step="1" style="background-color:burlywood;font-size: 1.1rem;">
+<input type="text" class="form-control form-control-sm border border-dark" oninput="window.allowFloat(this,2)" placeholder="Amount" id="receivedAmount" inputmode="decimal" autocomplete="off" style="background-color:burlywood;font-size: 1.1rem;">
 </div>
 </div>
 <div class="col-auto text-center">
@@ -621,7 +620,7 @@
 </div>
 </div>
 <div class="col-auto text-end ml-2">
-<button class="btn btn-primary btn-sm" onclick="addReceivedAmount()">
+<button class="btn btn-primary btn-sm" id="addReceivedAmountBtn" onclick="addReceivedAmount()">
 <i class="fas fa-plus"></i>
 </button>
 </div>
@@ -1424,10 +1423,10 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
   const modal = create_modal_dynamically('bill_cards_container');
   const b_ill_cards_container = modal.contentElement;
   const m_odalInstance = modal.modalInstance;
-   modal.modalElement.querySelector('.modal-dialog').classList.add('modal-xl');
-   // Only the inner bill list should scroll - prevent the outer body from showing a second scrollbar
-   b_ill_cards_container.style.overflowY = 'hidden';
-   b_ill_cards_container.innerHTML = `
+  modal.modalElement.querySelector('.modal-dialog').classList.add('modal-xl');
+  // Only the inner bill list should scroll - prevent the outer body from showing a second scrollbar
+  b_ill_cards_container.style.overflowY = 'hidden';
+  b_ill_cards_container.innerHTML = `
 <div class="modal-header">
 <h5 class="modal-title">Search Bills</h5>
 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1850,8 +1849,7 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
 <!-- Amount - col-4 -->
 <div class="col-4">
 <label class="form-label small text-muted mb-1">Rcvd Amt.</label>
-<input type="number" class="form-control form-control-sm" placeholder="Amount" id="receivedAmountModal" min="0"
-step="1">
+<input type="text" class="form-control form-control-sm" placeholder="Amount" id="receivedAmountModal" inputmode="decimal" autocomplete="off" oninput="window.allowFloat(this,2)">
 </div>
 
 <!-- Payment Type - col-2 -->
@@ -2016,7 +2014,7 @@ ${renderExistingPayments(c594ashInfo)}
    showToast('Error submitting payments: ' + error.message);
   }
  }
-  async function addTempReceivedAmount(billId) {
+ async function addTempReceivedAmount(billId) {
   const dateTime = document.getElementById('receivedDateTimeModal').value;
   const amount = parseFloat(document.getElementById('receivedAmountModal').value) || 0;
   const paymentType = document.getElementById('paymentTypeModal').value;
@@ -2101,7 +2099,7 @@ ${renderExistingPayments(c594ashInfo)}
     message += `Current constraint counters: 0 to ${maxCounter}\n\n`;
    }
 
-   const nextCounter = matchingPayments.length + 1;
+   const nextCounter = maxCounter + 1;
    message += `Do you want to add another payment with constraint counter ${nextCounter}?`;
 
    const userResponse = await showConfirmModal(message);
@@ -2110,13 +2108,13 @@ ${renderExistingPayments(c594ashInfo)}
     return;
    }
 
-    constraintCounter = nextCounter;
-   } else {
-    constraintCounter = 1;
-   }
+   constraintCounter = nextCounter;
+  } else {
+   constraintCounter = 0;
+  }
 
-   // Add to temporary array with constraint counter
-   const tempPayment = {
+  // Add to temporary array with constraint counter
+  const tempPayment = {
    id: Date.now(),
    dateTime: dateTime,
    amount: amount,
@@ -2126,11 +2124,11 @@ ${renderExistingPayments(c594ashInfo)}
    timestamp: new Date().toISOString()
   };
 
-   window.tempReceivedAmounts.push(tempPayment);
-   renumberConstraintCounters(window.tempReceivedAmounts || []);
+  window.tempReceivedAmounts.push(tempPayment);
+  renumberConstraintCounters(window.tempReceivedAmounts || []);
 
-   // Update UI to show temporary payments
-   updateTempPaymentsUI();
+  // Update UI to show temporary payments
+  updateTempPaymentsUI();
 
   // Clear the form
   document.getElementById('receivedAmountModal').value = '';
@@ -2326,6 +2324,13 @@ ${renderExistingPayments(c594ashInfo)}
  }
  function loadBillIntoForm(bill, billItems, cashInfo) {
   try {
+   window.billSaved = false;
+   const addBtn = document.getElementById('addReceivedAmountBtn');
+   if (addBtn) {
+    addBtn.disabled = false;
+    addBtn.classList.remove('btn-secondary');
+    addBtn.classList.add('btn-primary');
+   }
    // Populate basic bill information
    document.getElementById('invoiceNumber').value = bill.g || '';
    receiptCommitted = normalizeFullDateTime(bill.f || '');
@@ -2378,9 +2383,8 @@ ${renderExistingPayments(c594ashInfo)}
       timestamp: payment.b || new Date().toISOString()
      });
     });
-    }
-    renumberConstraintCounters(receivedAmounts);
-    updateNewPaymentsUI();
+   }
+   updateNewPaymentsUI();
 
    // Update bill summary
    updateBillSummary();
@@ -2410,12 +2414,12 @@ ${renderExistingPayments(c594ashInfo)}
   const uniqueItemId = Date.now();
   updateBillSectionsVisibility();
 
-   // Find item details from items array
-   const itemDetails = items.find(i => i.a == item.f) || {};
-   const savedRate = (parseFloat(item.g) || 0) / (parseFloat(item.h) || 1);
-   const rateToShow = savedRate > 0 ? savedRate : (parseFloat(itemDetails.k || 0) || 0);
+  // Find item details from items array
+  const itemDetails = items.find(i => i.a == item.f) || {};
+  const savedRate = (parseFloat(item.g) || 0) / (parseFloat(item.h) || 1);
+  const rateToShow = savedRate > 0 ? savedRate : (parseFloat(itemDetails.k || 0) || 0);
 
-   const itemHTML = `
+  const itemHTML = `
 <div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${item.f}" data-item-rate="${rateToShow}">
 <div class="card-body">
 <div class="row">
@@ -2768,15 +2772,15 @@ class="form-control form-control-sm d-inline-block w-auto"
    const minutes = String(date.getMinutes()).padStart(2, '0');
    return `${year}-${month}-${day} ${hours}:${minutes}`;
   };
-   document.getElementById('receiptDate').value = formatDateTime(now);
-   receiptCommitted = document.getElementById('receiptDate').value;
+  document.getElementById('receiptDate').value = formatDateTime(now);
+  receiptCommitted = document.getElementById('receiptDate').value;
 
-   const tomorrow = new Date(now);
-   tomorrow.setDate(now.getDate() + 1);
-   document.getElementById('deliveryDate').value = formatDateTime(tomorrow);
-   deliveryCommitted = document.getElementById('deliveryDate').value;
-   document.getElementById('receivedDateTime').value = formatDateTime(now);
-  }
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+  document.getElementById('deliveryDate').value = formatDateTime(tomorrow);
+  deliveryCommitted = document.getElementById('deliveryDate').value;
+  document.getElementById('receivedDateTime').value = formatDateTime(now);
+ }
 
  // Validation function that scrolls to invalid field
  function validateAndScrollToField(fieldId, message) {
@@ -2989,6 +2993,21 @@ class="form-control form-control-sm d-inline-block w-auto"
     disableUpdateButton();
     enablePrintButton();
 
+    if (fnNumber == 3) {
+     window.billSaved = true;
+     const addBtn = document.getElementById('addReceivedAmountBtn');
+     if (addBtn) {
+      addBtn.disabled = true;
+      addBtn.classList.remove('btn-primary');
+      addBtn.classList.add('btn-secondary');
+     }
+     updateReceivedAmountsUI();
+     refreshGrandTotals();
+    } else if (fnNumber == 7) {
+     updateNewPaymentsUI();
+     refreshGrandTotals();
+    }
+
     if (response?.b?.l && Array.isArray(response.b.l)) {
      for (let item of response.b.l) {
       if (item?.g.toString() === invoiceNumber) {
@@ -3034,7 +3053,7 @@ class="form-control form-control-sm d-inline-block w-auto"
 
   // No need to set finalAmount element as it doesn't exist
   // Just update grand totals directly
-  updateGrandTotals();
+  refreshGrandTotals();
  }
 
  function calculateDiscountFromAmount() {
@@ -3049,7 +3068,7 @@ class="form-control form-control-sm d-inline-block w-auto"
 
   // No need to set finalAmount element as it doesn't exist
   // Just update grand totals directly
-  updateGrandTotals();
+  refreshGrandTotals();
  }
 
  async function loadQRScanner() {
@@ -3689,9 +3708,9 @@ Continuous mode: Items will be added automatically. Click stop or press back but
   const currentQty = parseInt(qtyInput.value) || 1;
   const currentRate = parseFloat(rateInput.value) || 0;
 
-   // Calculate new values
-   const newQty = currentQty + qtyToAdd;
-   const newPrice = newQty * currentRate;
+  // Calculate new values
+  const newQty = currentQty + qtyToAdd;
+  const newPrice = newQty * currentRate;
 
   // Update the UI
   qtyInput.value = newQty;
@@ -4095,7 +4114,7 @@ ${stockIndicator}
 
   // Recalculate discount and grand totals
   calculateDiscountFromPercentage();
-  updateGrandTotals();
+  refreshGrandTotals();
  }
 
  function calculateLoadedBillTotals() {
@@ -4128,7 +4147,7 @@ ${stockIndicator}
 
   // No need to set finalAmount as it doesn't exist
   // Just update grand totals
-  updateGrandTotals();
+  refreshGrandTotals();
  }
 
  function updateBillSummary() {
@@ -4208,6 +4227,7 @@ ${stockIndicator}
    const validationResult = await validatePaymentUniqueness(clientId, amount, dateTime, paymentType);
 
    let constraintCounter = 0; // Default to 1 for first payment on this date
+   let didCrossBillIncrement = false;
 
    console.log('Validation result:', validationResult);
 
@@ -4221,24 +4241,26 @@ ${stockIndicator}
      message += `Existing constraint counters: 0 to ${validationResult.existingConstraint}`;
     }
 
-    const nextCounter = validationResult.matchingCount + 1;
+    const nextCounter = validationResult.nextConstraint;
     message += `\n\nDo you want to add another payment with constraint counter ${nextCounter}?`;
 
     console.log('Asking user:', message);
 
-   const userResponse = await showConfirmModal(message);
+    const userResponse = await showConfirmModal(message);
 
-   if (!userResponse) {
-    console.log('User cancelled');
-    return;
-   }
+    if (!userResponse) {
+     console.log('User cancelled');
+     return;
+    }
 
-    constraintCounter = nextCounter;
+    // Set constraint counter to the next available one (existing payments untouched)
+    constraintCounter = validationResult.nextConstraint;
+    didCrossBillIncrement = true;
     console.log('Setting constraint counter to:', constraintCounter);
    } else {
     // No matching payments for this date
-    console.log('No matching payments for date', paymentDate, '- using constraint counter 1');
-    constraintCounter = 1;
+    console.log('No matching payments for date', paymentDate, '- using constraint counter 0');
+    constraintCounter = 0;
    }
 
    // Create received amount object with constraint counter
@@ -4256,7 +4278,6 @@ ${stockIndicator}
 
    // Add to array
    receivedAmounts.push(receivedAmount);
-   renumberConstraintCounters(receivedAmounts);
 
    // Update UI
    updateReceivedAmountsUI();
@@ -4265,7 +4286,7 @@ ${stockIndicator}
    clearReceivedAmountForm();
 
    // Update grand totals
-   updateGrandTotals();
+   refreshGrandTotals();
 
    // Show success message with constraint counter info
    if (constraintCounter > 0) {
@@ -4298,16 +4319,8 @@ ${stockIndicator}
    const constraintCounterBadge = payment.constraintCounter > 0 ?
     `<span class="badge bg-${getConstraintCounterColor(payment.constraintCounter)} ms-1" title="Constraint counter: ${payment.constraintCounter}">${payment.constraintCounter}</span>` : '';
 
-   html += `
-<div class="card mb-2 received-amount-card" id="receivedAmount-${payment.id}">
-<div class="card-body py-1">
-<div class="row align-items-center">
-<div class="col-4">
-<small class="text-muted">${formattedDate}</small>
-</div>
-<div class="col-6">
-<strong>${paymentTypeIcon} ₹${payment.amount.toFixed(2)}${constraintCounterBadge}</strong>
-</div>
+   // After saving a new bill, hide the per-payment actions dropdown
+   const actionsHtml = window.billSaved ? '' : `
 <div class="col-2 text-end">
 <div class="dropdown">
 <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -4320,6 +4333,19 @@ ${stockIndicator}
 </ul>
 </div>
 </div>
+`;
+
+   html += `
+<div class="card mb-2 received-amount-card" id="receivedAmount-${payment.id}">
+<div class="card-body py-1">
+<div class="row align-items-center">
+<div class="col-4">
+<small class="text-muted">${formattedDate}</small>
+</div>
+<div class="col-6">
+<strong>${paymentTypeIcon} ₹${payment.amount.toFixed(2)}${constraintCounterBadge}</strong>
+</div>
+${actionsHtml}
 </div>
 </div>
 </div>
@@ -4331,7 +4357,7 @@ ${stockIndicator}
 
  // ===== NEW: update-mode only payments flow (old functions are left untouched) =====
 
-  async function addNewReceivedAmount() {
+ async function addNewReceivedAmount() {
   if (!billSelectedToUpdate) {
    showToast('No bill selected for update');
    return;
@@ -4381,12 +4407,12 @@ ${stockIndicator}
     String(payment.paymentType) === paymentType) {
     matchingPayments.push(payment.constraintCounter || 0);
    }
-   });
+  });
 
-   const existingReceivedIds = new Set(receivedAmounts.map(p => p.id));
-   stored_bill_cash_info.forEach(payment => {
-    if (existingReceivedIds.has(payment.a)) return;
-    const existingDate = payment.k || '';
+  const existingReceivedIds = new Set(receivedAmounts.map(p => p.id));
+  stored_bill_cash_info.forEach(payment => {
+   if (existingReceivedIds.has(payment.a)) return;
+   const existingDate = payment.k || '';
    const existingAmount = parseFloat(payment.j) || 0;
    const existingPaymentType = payment.i || '0';
 
@@ -4401,10 +4427,11 @@ ${stockIndicator}
 
   // Calculate constraint counter
   let constraintCounter = 0;
+  let didCrossBillIncrement = false;
 
   if (matchingPayments.length > 0) {
    const maxCounter = Math.max(...matchingPayments);
-   const nextCounter = matchingPayments.length + 1;
+   const nextCounter = maxCounter + 1;
 
    let message = `Same amount (₹${amount.toFixed(2)}) on same date (${paymentDate}) already exists.\n\n`;
 
@@ -4420,13 +4447,14 @@ ${stockIndicator}
     return;
    }
 
-    constraintCounter = nextCounter;
-   } else {
-    constraintCounter = 1;
-   }
+   constraintCounter = maxCounter + 1;
+   didCrossBillIncrement = true;
+  } else {
+   constraintCounter = 0;
+  }
 
-   // Add to new payments array
-   const tempPayment = {
+  // Add to new payments array
+  const tempPayment = {
    id: Date.now(),
    billId: billId,
    dateTime: dateTime,
@@ -4438,10 +4466,9 @@ ${stockIndicator}
   };
 
    window.newUpdatePayments.push(tempPayment);
-   renumberConstraintCounters(billId, receivedAmounts, window.newUpdatePayments || []);
 
    // Update UI to show new payments + "Update Payments" button
-   updateNewPaymentsUI();
+  updateNewPaymentsUI();
   clearReceivedAmountForm();
   updateGrandTotalsForUpdate();
 
@@ -4506,17 +4533,16 @@ ${stockIndicator}
   container.innerHTML = newSection + container.innerHTML;
  }
 
-  async function removeNewUpdatePayment(paymentId) {
-   window.newUpdatePayments = window.newUpdatePayments || [];
-   const payment = window.newUpdatePayments.find(p => p.id === paymentId);
+ async function removeNewUpdatePayment(paymentId) {
+  window.newUpdatePayments = window.newUpdatePayments || [];
+  const payment = window.newUpdatePayments.find(p => p.id === paymentId);
 
-   if (payment && !(await showConfirmModal(`Remove payment of ₹${payment.amount.toFixed(2)}?`))) {
-    return;
-   }
+  if (payment && !(await showConfirmModal(`Remove payment of ₹${payment.amount.toFixed(2)}?`))) {
+   return;
+  }
 
-  window.newUpdatePayments = window.newUpdatePayments.filter(p => p.id !== paymentId);
-  renumberConstraintCounters(billSelectedToUpdate ? billSelectedToUpdate.a : null, receivedAmounts, window.newUpdatePayments || []);
-  updateNewPaymentsUI();
+   window.newUpdatePayments = window.newUpdatePayments.filter(p => p.id !== paymentId);
+   updateNewPaymentsUI();
   updateGrandTotalsForUpdate();
   showToast('Payment removed from new payments list');
  }
@@ -4589,61 +4615,60 @@ ${stockIndicator}
 
    const response = await fnj3("https://my1.in/2/p.php", payload0, 1, true, null, 20000, 0, 2, 1);
 
-    if (response.su == 1) {
-     await handl_op_rspons(response, 0);
-     stored_bill_cash_info = await dbDexieManager.getAllRecords(dbnm, "r") || [];
-     const freshCashInfo = stored_bill_cash_info.filter(cash => cash.tb == 7 && cash.td == billData.a);
-     receivedAmounts = freshCashInfo.map(payment => {
-      return {
-       id: payment.a,
-       clientId: billData.e,
-       dateTime: payment.k || new Date().toISOString().split('T')[0] + ' 00:00',
-       amount: parseFloat(payment.j) || 0,
-       paymentType: payment.i || '0',
-       constraintCounter: payment.n || 0,
-       timestamp: payment.b || new Date().toISOString()
-      };
-     });
+   if (response.su == 1) {
+    await handl_op_rspons(response, 0);
+    stored_bill_cash_info = await dbDexieManager.getAllRecords(dbnm, "r") || [];
+    const freshCashInfo = stored_bill_cash_info.filter(cash => cash.tb == 7 && cash.td == billData.a);
+    receivedAmounts = freshCashInfo.map(payment => {
+     return {
+      id: payment.a,
+      clientId: billData.e,
+      dateTime: payment.k || new Date().toISOString().split('T')[0] + ' 00:00',
+      amount: parseFloat(payment.j) || 0,
+      paymentType: payment.i || '0',
+      constraintCounter: payment.n || 0,
+      timestamp: payment.b || new Date().toISOString()
+     };
+    });
 
-     const echoPayments = (response.r && Array.isArray(response.r.l)) ? response.r.l.filter(c => String(c.td) === String(billData.a)) : [];
-     const alreadyInHistory = (np) => receivedAmounts.some(ra =>
-      ra.dateTime.split(' ')[0] === np.dateTime.split(' ')[0] &&
-      ra.amount === np.amount &&
-      String(ra.paymentType) === String(np.paymentType)
+    const echoPayments = (response.r && Array.isArray(response.r.l)) ? response.r.l.filter(c => String(c.td) === String(billData.a)) : [];
+    const alreadyInHistory = (np) => receivedAmounts.some(ra =>
+     ra.dateTime.split(' ')[0] === np.dateTime.split(' ')[0] &&
+     ra.amount === np.amount &&
+     String(ra.paymentType) === String(np.paymentType)
+    );
+    newPayments.forEach(np => {
+     if (alreadyInHistory(np)) return;
+     const echo = echoPayments.find(c =>
+      String(c.td) === String(billData.a) &&
+      String(c.i) === String(np.paymentType) &&
+      parseFloat(c.j) === np.amount &&
+      (c.k || '').split(' ')[0] === np.dateTime.split(' ')[0]
      );
-     newPayments.forEach(np => {
-      if (alreadyInHistory(np)) return;
-      const echo = echoPayments.find(c =>
-       String(c.td) === String(billData.a) &&
-       String(c.i) === String(np.paymentType) &&
-       parseFloat(c.j) === np.amount &&
-       (c.k || '').split(' ')[0] === np.dateTime.split(' ')[0]
-      );
-      if (echo) {
-       receivedAmounts.push({
-        id: echo.a,
-        clientId: billData.e,
-        dateTime: echo.k || np.dateTime,
-        amount: parseFloat(echo.j) || 0,
-        paymentType: echo.i || np.paymentType,
-        constraintCounter: np.constraintCounter || 0,
-        timestamp: echo.b || new Date().toISOString()
-       });
-      }
-     });
-
-     window.newUpdatePayments = window.newUpdatePayments.filter(p => p.billId !== billData.a);
-     renumberConstraintCounters(receivedAmounts);
-     updateNewPaymentsUI();
-     updateGrandTotalsForUpdate();
-     const stillMissing = newPayments.filter(np => !alreadyInHistory(np));
-     if (stillMissing.length > 0) {
-      console.log('updateBillPayments: payments missing from history, response=', response);
-      showToast(stillMissing.length + ' payment(s) not visible in history — check console');
-     } else {
-      showToast('Payments updated successfully!');
+     if (echo) {
+      receivedAmounts.push({
+       id: echo.a,
+       clientId: billData.e,
+       dateTime: echo.k || np.dateTime,
+       amount: parseFloat(echo.j) || 0,
+       paymentType: echo.i || np.paymentType,
+       constraintCounter: np.constraintCounter || 0,
+       timestamp: echo.b || new Date().toISOString()
+      });
      }
+    });
+
+    window.newUpdatePayments = window.newUpdatePayments.filter(p => p.billId !== billData.a);
+    updateNewPaymentsUI();
+    updateGrandTotalsForUpdate();
+    const stillMissing = newPayments.filter(np => !alreadyInHistory(np));
+    if (stillMissing.length > 0) {
+     console.log('updateBillPayments: payments missing from history, response=', response);
+     showToast(stillMissing.length + ' payment(s) not visible in history — check console');
     } else {
+     showToast('Payments updated successfully!');
+    }
+   } else {
     const errMsg = extractMessages(response) || response.ms || 'Failed to update payments';
     window.showelsemodal(errMsg);
    }
@@ -4674,9 +4699,9 @@ ${stockIndicator}
   const originalPayment = { ...payment };
 
   // Populate the form with existing payment data
-   document.getElementById('receivedDateTime').value = payment.dateTime;
-   receivedDateTimeCommitted = payment.dateTime;
-   if (receivedDateTimePicker) receivedDateTimePicker.setDate(payment.dateTime, false);
+  document.getElementById('receivedDateTime').value = payment.dateTime;
+  receivedDateTimeCommitted = payment.dateTime;
+  if (receivedDateTimePicker) receivedDateTimePicker.setDate(payment.dateTime, false);
   document.getElementById('receivedAmount').value = payment.amount;
   document.getElementById('paymentType').value = payment.paymentType;
   updatePaymentTypeIcon();
@@ -4769,17 +4794,19 @@ ${stockIndicator}
 
     message += `Do you want to update with constraint counter ${validationResult.nextConstraint}?`;
 
-   const userResponse = await showConfirmModal(message);
+    const userResponse = await showConfirmModal(message);
 
-   if (!userResponse) {
-    // Restore original payment
-    receivedAmounts.push(originalPayment);
+    if (!userResponse) {
+     // Restore original payment
+     receivedAmounts.push(originalPayment);
      updateNewPaymentsUI();
      updateGrandTotalsForUpdate();
      clearReceivedPaymentUpdateBtn();
      return;
     }
-    constraintCounter = validationResult.nextConstraint - 1;
+    constraintCounter = validationResult.nextConstraint;
+   } else {
+    constraintCounter = 0;
    }
   }
 
@@ -4817,63 +4844,68 @@ ${stockIndicator}
    showToast('Payment updated successfully!');
   }
  }
-  async function removeReceivedAmount(id) {
-   // Find the payment to get its details
-   const payment = receivedAmounts.find(p => p.id === id);
+ async function removeReceivedAmount(id) {
+  // Find the payment to get its details
+  const payment = receivedAmounts.find(p => p.id === id);
 
-   if (payment) {
-    // Show confirmation with constraint counter info
-    const constraintInfo = payment.constraintCounter > 0 ?
-     ` (Constraint counter: ${payment.constraintCounter})` : '';
+  if (payment) {
+   // Show confirmation with constraint counter info
+   const constraintInfo = payment.constraintCounter > 0 ?
+    ` (Constraint counter: ${payment.constraintCounter})` : '';
 
-    if (!(await showConfirmModal(`Remove payment of ₹${payment.amount.toFixed(2)}${constraintInfo}?`))) {
-     return;
-    }
-    }
-    if (!billSelectedToUpdate) {
-     receivedAmounts = receivedAmounts.filter(p => p.id !== id);
-     renumberConstraintCounters(receivedAmounts);
-     updateNewPaymentsUI();
-     updateGrandTotalsForUpdate();
-     return;
-    }
-      try {
-       payload0.vw = 1;
-       payload0.fn = 105;
-      payload0.x1 = id;
-      const response = await fnj3("https://my1.in/2/p.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
-      if (response.su == 1) {
-        await dbDexieManager.deleteRecords(dbnm, 'r', id);
-        receivedAmounts = receivedAmounts.filter(payment => payment.id !== id);
-        renumberConstraintCounters(billSelectedToUpdate.a, receivedAmounts, window.newUpdatePayments || []);
-        updateNewPaymentsUI();
-        updateGrandTotalsForUpdate();
-      } else {
-       window.showelsemodal(response.ms);
-      }
-      } catch (error) {
-       window.showelsemodal("failed:" + error);
-      }
-  }
-  function renumberConstraintCounters(...lists) {
-   let billId = null;
-   if (lists.length > 0 && !Array.isArray(lists[0])) {
-    billId = lists.shift();
+   if (!(await showConfirmModal(`Remove payment of ₹${payment.amount.toFixed(2)}${constraintInfo}?`))) {
+    return;
    }
-   const payments = lists.flat().filter(p => p && p.dateTime);
-   const groups = new Map();
-   payments.forEach(p => {
-    const pBill = (p.billId != null ? p.billId : billId);
-    const key = (pBill != null ? String(pBill) : '') + '|' + (p.clientId || '') + '|' + p.dateTime.split(' ')[0] + '|' + (parseFloat(p.amount) || 0);
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(p);
-   });
-   groups.forEach(list => {
-    list.sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''));
-    list.forEach((p, i) => p.constraintCounter = i + 1);
-   });
   }
-  function formatDateTime(dateTimeString) {
+  if (!billSelectedToUpdate) {
+    receivedAmounts = receivedAmounts.filter(p => p.id !== id);
+    updateNewPaymentsUI();
+   updateGrandTotalsForUpdate();
+   return;
+  }
+  try {
+   payload0.vw = 1;
+   payload0.fn = 105;
+   payload0.x1 = id;
+   const response = await fnj3("https://my1.in/2/p.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+   if (response.su == 1) {
+    await dbDexieManager.deleteRecords(dbnm, 'r', id);
+     receivedAmounts = receivedAmounts.filter(payment => payment.id !== id);
+     updateNewPaymentsUI();
+    updateGrandTotalsForUpdate();
+   } else {
+    window.showelsemodal(response.ms);
+   }
+  } catch (error) {
+   window.showelsemodal("failed:" + error);
+  }
+  }
+ function refreshGrandTotals() {
+  if (billSelectedToUpdate) {
+   updateGrandTotalsForUpdate();
+  } else {
+   updateGrandTotals();
+  }
+ }
+ function renumberConstraintCounters(...lists) {
+  let billId = null;
+  if (lists.length > 0 && !Array.isArray(lists[0])) {
+   billId = lists.shift();
+  }
+  const payments = lists.flat().filter(p => p && p.dateTime);
+  const groups = new Map();
+  payments.forEach(p => {
+   const pBill = (p.billId != null ? p.billId : billId);
+   const key = (pBill != null ? String(pBill) : '') + '|' + (p.clientId || '') + '|' + p.dateTime.split(' ')[0] + '|' + (parseFloat(p.amount) || 0);
+   if (!groups.has(key)) groups.set(key, []);
+   groups.get(key).push(p);
+  });
+  groups.forEach(list => {
+   list.sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''));
+   list.forEach((p, i) => p.constraintCounter = i);
+  });
+  }
+ function formatDateTime(dateTimeString) {
   const date = new Date(dateTimeString);
   return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
  }
