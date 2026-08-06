@@ -1,708 +1,554 @@
-function showMyProxyModal() {
- // Create modal container
- const modal = document.createElement('div');
- modal.id = 'myCustomModal';
- modal.style.color = 'black';
- modal.style.position = 'fixed';
- modal.style.top = '0';
- modal.style.left = '0';
- modal.style.width = '100%';
- modal.style.height = '100%';
- modal.style.backgroundColor = '#87c7ff';
- modal.style.display = 'flex';
- modal.style.justifyContent = 'center';
- modal.style.alignItems = 'center';
- modal.style.zIndex = '1000';
+// fn_mng.js - Function Permission Management Modal
+(function () {
+    'use strict';
 
- // Create modal content
- const modalContent = document.createElement('div');
- modalContent.style.backgroundColor = '#fff';
- modalContent.style.padding = '20px';
- modalContent.style.borderRadius = '8px';
- modalContent.style.width = '80%';
- modalContent.style.maxHeight = '85vh';
- modalContent.style.overflow = 'hidden'; // Changed to hidden to contain the scrolling table
+    console.log('fn_mng.js initializing...');
 
- // Create close button
- const closeButton = document.createElement('button');
- closeButton.textContent = '×';
- closeButton.style.position = 'absolute';
- closeButton.style.top = '10px';
- closeButton.style.right = '10px';
- closeButton.style.background = 'none';
- closeButton.style.border = 'none';
- closeButton.style.fontSize = '24px';
- closeButton.style.cursor = 'pointer';
- closeButton.onclick = function () {
-  document.body.removeChild(modal);
- };
+    // Function definitions with names
+    var FUNCTION_NAMES = {
+        1: 'View Dashboard',
+        2: 'Manage Products',
+        3: 'Manage Categories',
+        4: 'View Reports',
+        5: 'Manage Users',
+        7: 'View Orders',
+        8: 'Manage Orders',
+        9: 'View Inventory',
+        10: 'Manage Inventory',
+        11: 'View Customers',
+        12: 'Manage Customers',
+        13: 'View Suppliers',
+        14: 'Manage Suppliers',
+        15: 'View Finance',
+        16: 'Manage Finance',
+        17: 'View Settings',
+        18: 'Manage Settings',
+        23: 'Export Data',
+        25: 'Bulk Operations',
+        26: 'Delete Records',
+        27: 'Archive Data',
+        29: 'View Analytics',
+        30: 'Manage Analytics',
+        31: 'API Access',
+        33: 'Manage Notifications',
+        34: 'View Logs',
+        35: 'Manage Logs',
+        40: 'File Upload',
+        41: 'File Download',
+        43: 'Manage Permissions',
+        44: 'System Config'
+    };
 
- // Create title
- const title = document.createElement('h2');
- title.textContent = 'Functions List';
- title.style.marginTop = '0';
- title.style.color = '#333';
-
- // Create a new container for buttons above the table
- const buttonsContainer = document.createElement('div');
- buttonsContainer.style.marginBottom = '15px';
- buttonsContainer.style.display = 'flex';
- buttonsContainer.style.flexWrap = 'wrap';
- buttonsContainer.style.gap = '10px';
-
- // Create buttons for items where vn.length > 0
- my1uzr.fnf.forEach(item => {
-  let idVws = [1]; if (typeof ids_of_views !== 'undefined') { idVws = ids_of_views; }
-  if (my1uzr.mo.toString() === item.e.toString() && my1uzr.mc.toString() === item.f.toString() && idVws.includes(item.va) && item.vn && item.vn.length > 0) {
-   const button = document.createElement('button');
-   button.textContent = item.vn;
-   button.style.padding = '8px 12px';
-   button.style.backgroundColor = '#4CAF50';
-   button.style.color = 'white';
-   button.style.border = 'none';
-   button.style.borderRadius = '4px';
-   button.style.cursor = 'pointer';
-
-   button.onclick = async function () {
-    try {
-     // Parse the JSON string from item.ve
-     const veData = JSON.parse(item.ve);
-
-     // Extract function name, parameters, and file URL
-     const functionName = veData.f;
-     const parameters = JSON.parse(veData.p.replace(/'/g, '"')); // Convert single quotes to double quotes for valid JSON
-     const fileUrl = "https://" + veData.l;
-
-     // Call the function similar to your test2 example
-     await loadAndExeFn(functionName, parameters, 'loader', fileUrl);
-    } catch (error) {
-     console.error('Error executing function:', error);
-     alert('Error executing function: ' + error.message);
-    }
-   };
-
-   buttonsContainer.appendChild(button);
-  }
- });
-
- // Only add the buttons container if there are buttons to show
- if (buttonsContainer.children.length > 0) {
-  modalContent.appendChild(buttonsContainer);
- }
-
- const tableOuterContainer = document.createElement('div');
- tableOuterContainer.style.width = '100%';
- tableOuterContainer.style.height = 'calc(80vh - 100px)';
- tableOuterContainer.style.overflow = 'auto';
- tableOuterContainer.style.marginTop = '15px';
- tableOuterContainer.style.position = 'relative';
-
- // Create table container with fixed header
- const tableContainer = document.createElement('div');
- tableContainer.style.width = '100%';
- tableContainer.style.overflowX = 'auto';
- tableContainer.style.marginTop = '0';
-
- // Create table
- const table = document.createElement('table');
- table.style.width = '100%';
- table.style.minWidth = '600px';
- table.style.borderCollapse = 'collapse';
- table.style.marginTop = '0';
-
- // Create table header
- const thead = document.createElement('thead');
- const headerRow = document.createElement('tr');
- headerRow.style.backgroundColor = '#f2f2f2';
- headerRow.style.position = 'sticky';
- headerRow.style.top = '0';
- headerRow.style.zIndex = '10';
-
- const headers = ['Expiry', 'Description', 'Actions'];
- headers.forEach(headerText => {
-  const th = document.createElement('th');
-  th.textContent = headerText;
-  th.style.padding = '10px';
-  th.style.textAlign = 'left';
-  th.style.borderBottom = '1px solid #ddd';
-  th.style.backgroundColor = '#f2f2f2'; // Ensure background color is set for sticky header
-  headerRow.appendChild(th);
- });
-
- thead.appendChild(headerRow);
- table.appendChild(thead);
-
- // Create table body
- const tbody = document.createElement('tbody');
-
- my1uzr.fnf.forEach(item => {
-
-  const row = document.createElement('tr');
-  row.style.borderBottom = '1px solid #ddd';
-
-  // Expiry column with progress indicator
-  const expiryCell = document.createElement('td');
-  expiryCell.style.padding = '10px';
-  expiryCell.style.position = 'relative';
-
-  // Display the date
-  const dateText = document.createElement('div');
-  dateText.textContent = item.j;
-  expiryCell.appendChild(dateText);
-
-  // Calculate days remaining
-  const expiryDate = new Date(item.j);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Normalize to start of day
-  const timeDiff = expiryDate.getTime() - today.getTime();
-  let daysRemaining = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-  // Cap the days remaining for display purposes (365 days max for the indicator)
-  const displayDays = Math.min(daysRemaining, 365);
-  const daysPercentage = Math.min(displayDays / 365, 1); // Cap at 1 (100%)
-
-  // Create gradient line container
-  const lineContainer = document.createElement('div');
-  lineContainer.style.width = '100%';
-  lineContainer.style.height = '4px';
-  lineContainer.style.background = 'linear-gradient(to right, red, yellow, green)';
-  lineContainer.style.borderRadius = '2px';
-  lineContainer.style.marginTop = '5px';
-  lineContainer.style.position = 'relative';
-
-  // Create indicator dot
-  const indicatorDot = document.createElement('div');
-  indicatorDot.style.position = 'absolute';
-  indicatorDot.style.left = `${daysPercentage * 100}%`;
-  indicatorDot.style.top = '50%';
-  indicatorDot.style.transform = 'translateY(-50%) translateX(-50%)';
-  indicatorDot.style.width = '8px';
-  indicatorDot.style.height = '8px';
-  indicatorDot.style.borderRadius = '50%';
-  indicatorDot.style.backgroundColor = 'black';
-  indicatorDot.style.border = '1px solid white';
-  indicatorDot.style.boxShadow = '0 0 2px rgba(0,0,0,0.3)';
-
-  lineContainer.appendChild(indicatorDot);
-  expiryCell.appendChild(lineContainer);
-
-  // Add tooltip with days remaining
-  let tooltipText = `${daysRemaining} days remaining`;
-  if (daysRemaining > 365) {
-   tooltipText += ` (display capped at 365 days)`;
-  }
-  lineContainer.title = tooltipText;
-
-  row.appendChild(expiryCell);
-
-  // Description column
-  const nmCell = document.createElement('td');
-  nmCell.innerHTML = item.fn + "<br>a:" + item.a + "; g:" + item.g + "; h:" + item.h + "; i:" + item.i + "; k:" + item.k + "; l:" + item.l;
-  nmCell.style.padding = '10px';
-  row.appendChild(nmCell);
-
-  // Action column
-  const actionCell = document.createElement('td');
-  actionCell.style.padding = '10px';
-
-  const actionButton = document.createElement('button');
-  actionButton.textContent = 'proxy';
-  actionButton.style.padding = '5px 10px';
-  actionButton.style.backgroundColor = '#000f6d';
-  actionButton.style.color = 'white';
-  actionButton.style.border = 'none';
-  actionButton.style.borderRadius = '4px';
-  actionButton.style.cursor = 'pointer';
-  actionButton.onclick = function () {
-   shoProxyMonoModal(item);
-  };
-
-  actionCell.appendChild(actionButton);
-  row.appendChild(actionCell);
-
-  tbody.appendChild(row);
- });
-
- table.appendChild(tbody);
- tableContainer.appendChild(table);
- tableOuterContainer.appendChild(tableContainer);
-
- // Assemble modal
- modalContent.appendChild(closeButton);
- modalContent.appendChild(title);
- modalContent.appendChild(tableOuterContainer);
-
- if (my1uzr.ffp && my1uzr.ffp.length > 0) {
-  const clientLabel = document.createElement('div');
-  clientLabel.className = 'give-permissions';
-  clientLabel.textContent = 'give permissions';
-  clientLabel.style.cursor = 'pointer';
-  clientLabel.style.marginTop = '10px';
-  clientLabel.style.padding = '8px';
-  clientLabel.style.color = '#000000';
-  clientLabel.style.backgroundColor = '#f0f0f0';
-  clientLabel.style.borderRadius = '4px';
-  clientLabel.style.textAlign = 'center';
-
-  clientLabel.addEventListener('click', async function () {
-   await loadAndExeFn(
-    'showGivePermissionsModal',
-    ['loader', 1, 'no-div-gvn-to-set-contnts', 'no-commonFnToRunAfter_do_ViewCall', 1],
-    'loader',
-    'https://cdn.jsdelivr.net/gh/sifr-in/cdn@5552964/cmn/my1prm.js'
-   );
-  });
-
-  modalContent.appendChild(clientLabel);
- }
-
- modal.appendChild(modalContent);
-
- // Add modal to body
- document.body.appendChild(modal);
-
- // Close modal when clicking outside content
- modal.addEventListener('click', function (e) {
-  if (e.target === modal) {
-   document.body.removeChild(modal);
-  }
- });
-}
-
-async function fnAPIforProxy(mo, mc = 1, vwNo, fnNo, dtt, setDTTtoNOW, i202tem) {
- payload0.vw = 0;
- payload0.fn = 46;
- payload0.x0 = mo;
- payload0.x1 = mc;
- payload0.x2 = vwNo;
- payload0.x3 = fnNo;
- payload0.x4 = dtt;
- payload0.x5 = setDTTtoNOW;
-
- try {
-  const response = await fnj3(
-   "https://my1.in/2/c.php",
-   payload0,
-   1,
-   true,
-   "loader",
-   20000,
-   0,
-   2,
-   1
-  );
-
-  if (response) {
-   if (response.su) {
-
-    my1uzr = JSON.parse(localStorage.getItem('my1uzr'));
-    my1uzr.fnf = response.fnf;
-    my1uzr.ffp = response.ffp;
-    localStorage.setItem('my1uzr', JSON.stringify(my1uzr));
-
-    if (i202tem) {
-     shoProxyMonoModal(i202tem);
+    function getFunctionName(funcId) {
+        return FUNCTION_NAMES[funcId] || ('Function #' + funcId);
     }
 
-   } else {
-    alert(response.ms);
-   }
-  }
- } catch (error) {
-  if (error.message.includes("timed out")) {
-   alert("Error: timed out - " + error.message);
-  } else {
-   alert("Error: " + error.message);
-  }
- }
-}
-function shoProxyMonoModal(item) {
- // Find existing permissions for this function
- const existingPermissions = my1uzr.fnf.filter(fnfItem =>
-  fnfItem.l == item.cid && fnfItem.g == item.g && fnfItem.h == item.h
- );
-
- const expiredPermissions = existingPermissions.filter(fnfItem => {
-  if (fnfItem.j === "0000-00-00 00:00:00" || !fnfItem.j) {
-   return true;
-  }
-  try {
-   const permissionDate = new Date(fnfItem.j);
-   if (isNaN(permissionDate.getTime())) {
-    return true;
-   }
-   return permissionDate < new Date();
-  } catch (e) {
-   return true;
-  }
- });
-
- const permsUsedCnt = (existingPermissions.length - expiredPermissions.length);
-
- // Calculate available slots
- const availableSlots = item.k - permsUsedCnt;
-
- // Create modal container
- const modal = document.createElement('div');
- modal.id = 'mobileNumberModal';
- modal.style.position = 'fixed';
- modal.style.top = '0';
- modal.style.left = '0';
- modal.style.width = '100%';
- modal.style.height = '100%';
- modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
- modal.style.display = 'flex';
- modal.style.justifyContent = 'center';
- modal.style.alignItems = 'center';
- modal.style.zIndex = '1001';
-
- // Create modal content
- const modalContent = document.createElement('div');
- modalContent.style.backgroundColor = '#fff';
- modalContent.style.color = '#000';
- modalContent.style.padding = '20px';
- modalContent.style.borderRadius = '8px';
- modalContent.style.width = '90%';
- modalContent.style.maxWidth = '800px';
- modalContent.style.maxHeight = '90vh';
- modalContent.style.overflow = 'auto';
-
- // Create close button
- const closeButton = document.createElement('button');
- closeButton.textContent = '×';
- closeButton.style.position = 'absolute';
- closeButton.style.top = '10px';
- closeButton.style.right = '10px';
- closeButton.style.background = 'none';
- closeButton.style.border = 'none';
- closeButton.style.fontSize = '24px';
- closeButton.style.cursor = 'pointer';
- closeButton.onclick = function () {
-  document.body.removeChild(modal);
- };
-
- // Create title
- const title = document.createElement('h3');
- title.textContent = `Permissions for:`;
- title.style.marginTop = '0';
- title.style.color = '#333';
-
- // Create info section
- const infoContainer = document.createElement('div');
- infoContainer.style.marginBottom = '15px';
- infoContainer.style.padding = '10px';
- infoContainer.style.borderRadius = '4px';
-
- // Get the item's expiry date for validation
- const itemExpiryDate = new Date(item.j);
- const now = new Date();
- const isExpired = itemExpiryDate < now;
-
- if (isExpired) {
-  infoContainer.style.backgroundColor = '#ff8787'; // Red for expired
- } else {
-  infoContainer.style.backgroundColor = '#f5f5f5'; // Default gray
- }
-
- const viewNoLabel = document.createElement('div');
- viewNoLabel.innerHTML = `Xpi: ${item.j}<br>${item.fn}`;
- viewNoLabel.style.marginBottom = '5px';
-
- const slotsLabel = document.createElement('div');
- slotsLabel.textContent = `Vw: ${item.g} / Fu: ${item.h} / tot: ${item.k} / used: ${permsUsedCnt}`;
- slotsLabel.style.fontWeight = 'bold';
-
- infoContainer.appendChild(viewNoLabel);
- infoContainer.appendChild(slotsLabel);
-
- // Create permissions table
- const tableContainer = document.createElement('div');
- tableContainer.style.margin = '15px 0';
-
- const table = document.createElement('table');
- table.style.width = '100%';
- table.style.borderCollapse = 'collapse';
-
- // Create table header
- const thead = document.createElement('thead');
- const headerRow = document.createElement('tr');
- headerRow.style.backgroundColor = '#f2f2f2';
-
- const headers = ['Mobile Number', 'Permission Until', 'Actions'];
- headers.forEach(headerText => {
-  const th = document.createElement('th');
-  th.textContent = headerText;
-  th.style.padding = '10px';
-  th.style.textAlign = 'left';
-  th.style.borderBottom = '1px solid #ddd';
-  headerRow.appendChild(th);
- });
-
- thead.appendChild(headerRow);
- table.appendChild(thead);
-
- // Create table body
- const tbody = document.createElement('tbody');
-
- // Add existing permissions
- existingPermissions.forEach(permission => {
-  const row = document.createElement('tr');
-  row.style.borderBottom = '1px solid #ddd';
-
-  // Mobile number cell
-  const mobileCell = document.createElement('td');
-  mobileCell.textContent = permission.e;
-  mobileCell.style.padding = '10px';
-  row.appendChild(mobileCell);
-
-  // Expiry date cell
-  const expiryCell = document.createElement('td');
-  expiryCell.style.padding = '10px';
-
-  const dateInput = document.createElement('input');
-  dateInput.type = 'datetime-local';
-  dateInput.style.width = '100%';
-  dateInput.style.padding = '8px';
-  dateInput.style.border = '1px solid #ddd';
-  dateInput.style.borderRadius = '4px';
-
-  // Set max date to item.j (expiry date)
-  const maxDateString = convertToDateTimeWithT(itemExpiryDate);
-  dateInput.max = maxDateString;
-
-  // Set current permission date
-  if (permission.j && permission.j !== "0000-00-00 00:00:00") {
-   try {
-    const permissionDate = new Date(permission.j);
-    if (!isNaN(permissionDate.getTime())) {
-     const permissionDateString = convertToDateTimeWithT(permissionDate);
-     dateInput.value = permissionDateString;
+    function formatDateTime(dateStr) {
+        if (!dateStr) return 'N/A';
+        try {
+            var d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            return d.toLocaleString('en-IN', {
+                year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        } catch (e) { return dateStr; }
     }
-   } catch (e) {
-    // Handle date parsing error
-   }
-  }
 
-  expiryCell.appendChild(dateInput);
-  row.appendChild(expiryCell);
+    // Load data from IndexedDB
+    async function loadPermissionsFromDB() {
+        try {
+            var fnfpRecords = await dbDexieManager.getAllRecords(dbnm, 'fn_lst_fp');
+            var fnfRecords = await dbDexieManager.getAllRecords(dbnm, 'fn_lst_f');
 
-  // Actions cell
-  const actionCell = document.createElement('td');
-  actionCell.style.padding = '10px';
+            // Store in global for easy access
+            if (!window[my1uzr.worknOnPg]) window[my1uzr.worknOnPg] = {};
+            window[my1uzr.worknOnPg].fnfp = fnfpRecords || [];
+            window[my1uzr.worknOnPg].fnf = fnfRecords || [];
 
-  // Add update button for existing permissions
-  const updateButton = document.createElement('button');
-  updateButton.textContent = 'update';
-  updateButton.style.padding = '5px 10px';
-  updateButton.style.backgroundColor = '#4c9572';
-  updateButton.style.color = 'white';
-  updateButton.style.border = 'none';
-  updateButton.style.borderRadius = '4px';
-  updateButton.style.cursor = 'pointer';
-  updateButton.style.marginRight = '5px';
-  updateButton.onclick = async function () {
-   const selectedDateTime = dateInput.value;
-
-   if (!selectedDateTime) {
-    alert('Please select a date and time');
-    dateInput.focus();
-    return;
-   }
-
-   const selectedDate = new Date(selectedDateTime);
-   const now = new Date();
-
-   // Validate that selected date is not greater than item's expiry date
-   if (selectedDate > itemExpiryDate) {
-    alert(`date-time cannot be more than your own expiry, date-time: ${item.j}`);
-    return;
-   }
-
-   // Check if the selected date is in the past
-   if (selectedDate <= now) {
-    const confirmStop = confirm('The selected date is in the past. Do you want to stop the permissions for this number?');
-    if (!confirmStop) {
-     return;
+            console.log('Permissions loaded from DB - fnfp:', fnfpRecords.length, 'fnf:', fnfRecords.length);
+            return { fnfp: fnfpRecords || [], fnf: fnfRecords || [] };
+        } catch (e) {
+            console.error('Error loading permissions from DB:', e);
+            return { fnfp: [], fnf: [] };
+        }
     }
-    // Set mode to 2 (stop permission) if date is in the past
-    await fnAPIforProxy(permission.e, 1, item.g, item.h, selectedDateTime, 1, item);
-   } else {
-    // Set mode to 3 (update permission) if date is in the future
-    await fnAPIforProxy(permission.e, 1, item.g, item.h, selectedDateTime, 0, item);
-   }
 
-   // Refresh the modal to show the updated permission
-   //   document.body.removeChild(modal);
-   //   shoProxyMonoModal(item);
-  };
+    function getPermissionCounts() {
+        var fnfp = (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].fnfp) || [];
+        var fnf = (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].fnf) || [];
 
-  actionCell.appendChild(updateButton);
-  row.appendChild(actionCell);
+        var usedCounts = {};
+        fnf.forEach(function (rec) {
+            var h = rec.h;
+            if (!usedCounts[h]) usedCounts[h] = 0;
+            usedCounts[h]++;
+        });
 
-  tbody.appendChild(row);
- });
+        var result = {};
+        fnfp.forEach(function (rec) {
+            var h = rec.h;
+            if (h === 0) return;
+            result[h] = {
+                limit: parseInt(rec.k) || 0,
+                used: usedCounts[h] || 0,
+                remaining: Math.max(0, (parseInt(rec.k) || 0) - (usedCounts[h] || 0)),
+                permittedTill: rec.j || null,
+                fnfpRecord: rec
+            };
+        });
 
- // Add input rows for available slots
- for (let i = 0; i < availableSlots; i++) {
-  const row = document.createElement('tr');
-  row.style.borderBottom = '1px solid #ddd';
+        return result;
+    }
 
-  // Mobile number input cell
-  const mobileCell = document.createElement('td');
-  mobileCell.style.padding = '10px';
+    function getAlreadyPermittedFunctions() {
+        var fnf = (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].fnf) || [];
+        var permitted = {};
+        fnf.forEach(function (rec) {
+            if (!permitted[rec.h]) permitted[rec.h] = [];
+            permitted[rec.h].push(rec);
+        });
+        return permitted;
+    }
 
-  const mobileInput = document.createElement('input');
-  mobileInput.type = 'tel';
-  mobileInput.placeholder = 'Enter 10-digit mobile number';
-  mobileInput.style.width = '100%';
-  mobileInput.style.padding = '8px';
-  mobileInput.style.border = '1px solid #ddd';
-  mobileInput.style.borderRadius = '4px';
-  mobileInput.maxLength = 10;
+    var currentFpId = null;
 
-  // Only allow numbers in mobile input
-  mobileInput.addEventListener('input', function (e) {
-   this.value = this.value.replace(/[^0-9]/g, '');
-  });
+    function removeAllBackdrops() {
+        document.querySelectorAll('.modal-backdrop').forEach(function (b) { b.remove(); });
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    }
 
-  mobileCell.appendChild(mobileInput);
-  row.appendChild(mobileCell);
+    async function showFunctionManager() {
+        if (typeof showToast === 'function') {
+            showToast('Loading permissions...', { type: 'info', duration: 1500 });
+        }
 
-  // Date input cell
-  const dateCell = document.createElement('td');
-  dateCell.style.padding = '10px';
+        await loadPermissionsFromDB();
 
-  const dateInput = document.createElement('input');
-  dateInput.type = 'datetime-local';
-  dateInput.style.width = '100%';
-  dateInput.style.padding = '8px';
-  dateInput.style.border = '1px solid #ddd';
-  dateInput.style.borderRadius = '4px';
+        if (typeof create_fullpage_view !== 'function') {
+            if (typeof showToast === 'function') showToast('View system not available');
+            return;
+        }
 
-  // Set max date to item.j (expiry date)
-  const maxDateString = convertToDateTimeWithT(itemExpiryDate);
-  dateInput.max = maxDateString;
+        currentFpId = 'fnMngModal_' + Date.now();
+        var modalResult = create_fullpage_view(currentFpId);
 
-  // Set default to current date/time
-  dateInput.value = convertToDateTimeWithT(new Date());
+        if (!modalResult) {
+            if (typeof showToast === 'function') showToast('Failed to create view', { type: 'error', duration: 2000 });
+            return;
+        }
 
-  dateCell.appendChild(dateInput);
-  row.appendChild(dateCell);
+        var contentElement = modalResult.contentElement;
+        var modalInstance = modalResult.modalInstance;
+        var modalElement = modalResult.modalElement;
 
-  // Action cell
-  const actionCell = document.createElement('td');
-  actionCell.style.padding = '10px';
+        modalElement.addEventListener('fp-close', function () {
+            currentFpId = null;
+            window._fnMngModalInstance = null;
+            window._fnMngModalElement = null;
+            window._fnMngContentElement = null;
+            removeAllBackdrops();
+        });
 
-  const addButton = document.createElement('button');
-  addButton.textContent = 'giv perm';
-  addButton.style.padding = '5px 10px';
-  addButton.style.backgroundColor = '#5cb85c';
-  addButton.style.color = 'white';
-  addButton.style.border = 'none';
-  addButton.style.borderRadius = '4px';
-  addButton.style.cursor = 'pointer';
+        var titleEl = document.getElementById(currentFpId + '_title');
+        if (titleEl) titleEl.textContent = 'Function Permissions';
 
-  // Function to check if inputs are valid
-  function chkProxyInputsVldt() {
-   const mobileValue = mobileInput.value.trim();
-   const dateValue = dateInput.value;
-   const selectedDate = new Date(dateValue);
-   const now = new Date();
+        window._fnMngModalInstance = modalInstance;
+        window._fnMngModalElement = modalElement;
+        window._fnMngContentElement = contentElement;
 
-   // Check if selected date is not greater than item's expiry date
-   const isDateValid = selectedDate > now && selectedDate <= itemExpiryDate;
-   const isMobileValid = /^\d{10}$/.test(mobileValue);
+        renderFunctionList(contentElement, modalInstance);
+        modalInstance.show();
+    }
 
-   const isValid = isMobileValid && isDateValid;
+    function renderFunctionList(contentElement, modalInstance) {
+        var permissionCounts = getPermissionCounts();
+        var alreadyPermitted = getAlreadyPermittedFunctions();
+        var fnfp = (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].fnfp) || [];
 
-   addButton.disabled = !isValid;
-   addButton.style.backgroundColor = isValid ? '#5cb85c' : '#cccccc';
-   addButton.style.cursor = isValid ? 'pointer' : 'not-allowed';
-  }
+        var uniqueFuncIds = [];
+        var seen = {};
+        fnfp.forEach(function (rec) {
+            if (rec.h !== 0 && !seen[rec.h]) {
+                seen[rec.h] = true;
+                uniqueFuncIds.push(rec.h);
+            }
+        });
+        uniqueFuncIds.sort(function (a, b) { return a - b; });
 
-  // Initial check
-  chkProxyInputsVldt();
+        var tableRows = '';
+        var hasAvailablePerms = false;
 
-  // Add event listeners
-  mobileInput.addEventListener('input', chkProxyInputsVldt);
-  dateInput.addEventListener('change', chkProxyInputsVldt);
-  dateInput.addEventListener('input', chkProxyInputsVldt);
+        uniqueFuncIds.forEach(function (funcId) {
+            var permInfo = permissionCounts[funcId];
+            var existingPerms = alreadyPermitted[funcId] || [];
+            var funcName = getFunctionName(funcId);
+            var limit = permInfo ? permInfo.limit : 0;
+            var used = permInfo ? permInfo.used : 0;
+            var remaining = permInfo ? permInfo.remaining : 0;
+            var permTill = permInfo ? permInfo.permittedTill : null;
+            var isAvailable = remaining > 0;
 
-  addButton.onclick = async function () {
-   const mobileNumber = mobileInput.value.trim();
-   const selectedDateTime = dateInput.value;
+            if (isAvailable) hasAvailablePerms = true;
 
-   // Validate inputs (should already be valid from chkProxyInputsVldt)
-   if (!/^\d{10}$/.test(mobileNumber)) {
-    alert('Please enter a valid 10-digit mobile number');
-    mobileInput.focus();
-    return;
-   }
+            var existingPermsHTML = '';
+            if (existingPerms.length > 0) {
+                existingPermsHTML = '<div style="font-size:11px;color:#6c757d;margin-top:3px;">';
+                existingPerms.forEach(function (ep, epIdx) {
+                    var labelClass = 'bg-light text-dark';
+                    var now = new Date();
+                    var tillDate = new Date(ep.j);
+                    if (tillDate < now) {
+                        labelClass = 'bg-danger text-white';
+                    } else if (tillDate < new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)) {
+                        labelClass = 'bg-warning text-dark';
+                    }
+                    existingPermsHTML += '<span class="badge ' + labelClass + ' me-1 mb-1" style="border:1px solid #ddd;cursor:pointer;" title="ID: ' + ep.a + ' | Given by: ' + ep.l + ' | Till: ' + formatDateTime(ep.j) + '">' +
+                        (ep.e || 'User') + ': till ' + formatDateTime(ep.j) + '</span>';
+                });
+                existingPermsHTML += '</div>';
+            }
 
-   if (!selectedDateTime) {
-    alert('Please select a date and time');
-    dateInput.focus();
-    return;
-   }
+            tableRows += '<div class="card mb-2 fn-card" data-fn-card="' + funcId + '" style="cursor:pointer;' + (!isAvailable ? 'opacity:0.5;' : '') + 'border:2px solid transparent;">' +
+                '<div class="card-body p-2">' +
+                '<div class="d-flex align-items-center justify-content-between">' +
+                '<div class="d-flex align-items-center">' +
+                '<input type="checkbox" class="fn-checkbox me-2" data-func-id="' + funcId + '" ' +
+                'data-remaining="' + remaining + '" data-perm-till="' + (permTill || '') + '" ' +
+                'style="width:18px;height:18px;cursor:pointer;pointer-events:none;" ' +
+                (!isAvailable ? 'disabled' : '') + '>' +
+                '<span class="fw-bold" style="font-size:14px;">' + funcName + '</span>' +
+                '</div>' +
+                '<span class="badge ' + (remaining > 0 ? 'bg-success' : 'bg-danger') + '">' + used + '/' + limit + '</span>' +
+                '</div>' +
+                existingPermsHTML +
+                '<div class="mt-1 d-flex justify-content-between align-items-center">' +
+                '<small class="' + (remaining > 0 ? 'text-success' : 'text-danger') + ' fw-bold">' + remaining + ' remaining</small>' +
+                '<small class="text-muted">' + (permTill ? 'Till: ' + formatDateTime(permTill) : 'N/A') + '</small>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+        });
 
-   const selectedDate = new Date(selectedDateTime);
-   const now = new Date();
+        if (!hasAvailablePerms && uniqueFuncIds.length === 0) {
+            tableRows = '<div class="text-center py-4 text-muted">' +
+                '<i class="fas fa-info-circle fa-2x mb-2"></i>' +
+                '<p class="mb-0">No permissions available to assign</p>' +
+                '<small>Click Refresh to load permissions from server</small>' +
+                '</div>';
+        }
 
-   if (selectedDate <= now) {
-    alert('Please select a future date and time');
-    return;
-   }
+        var bottomControls = '';
+        if (hasAvailablePerms) {
+            bottomControls = '<div class="border-top pt-3">' +
+                '<div class="row g-3 align-items-end">' +
+                '<div class="col-md-6">' +
+                '<label class="form-label fw-bold small mb-1">' +
+                '<i class="fas fa-calendar-alt me-1 text-primary"></i>Permission Valid Till' +
+                '</label>' +
+                '<input type="datetime-local" id="fnPermTill" class="form-control form-control-sm" ' +
+                'min="' + new Date().toISOString().slice(0, 16) + '" ' +
+                'value="' + getDefaultPermTill() + '">' +
+                '<small class="text-muted">Select until when permission should be valid</small>' +
+                '</div>' +
+                '<div class="col-md-6 text-end">' +
+                '<div id="fnSelectedInfo" class="small text-muted mb-2"></div>' +
+                '<button class="btn btn-primary" id="fnAllowBtn">' +
+                '<i class="fas fa-check-circle me-1"></i>Allow Selected' +
+                '</button>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+        }
 
-   // Validate that selected date is not greater than item's expiry date
-   if (selectedDate > itemExpiryDate) {
-    alert(`date-time cannot be more than your own expiry, date-time: ${item.j}`);
-    return;
-   }
+        contentElement.innerHTML = '<div class="p-2">' +
+            '<div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">' +
+            '<h5 class="mb-0">' +
+            '<i class="fas fa-shield-alt me-2 text-primary"></i>Function Permissions' +
+            '</h5>' +
+            '<div class="d-flex gap-2">' +
+            '<button class="btn btn-sm btn-outline-primary" id="fnRefreshBtn" title="Refresh from server">' +
+            '<i class="fas fa-sync-alt"></i>' +
+            '</button>' +
+            '</div>' +
+            '</div>' +
+            '<div class="col-12 mb-2">' +
+            '<label class="form-label fw-bold small mb-1">Select Driver</label>' +
+            '<input id="c_dtls_party" name="stock_party_id" class="form-control inputbox form-control-sm border border-dark" ' +
+            'readonly onclick="(async () => { await loadExe2Fn(22, [\'no-loader-element\', 1, \'modalContentForEntInd\', \'commonFnToRunAfter_DriverSelect\', 1], [1]); })()" ' +
+            'placeholder="Click to select Driver" value="">' +
+            '<input type="hidden" id="partyId" value="">' +
+            '<input type="hidden" id="driverMobile" value="">' +
+            '<div id="dv_for_add_itm_btn" style="display:none;margin-top:5px;">' +
+            '<small class="text-success"><i class="fas fa-check-circle"></i> Driver selected</small>' +
+            '</div>' +
+            '</div>' +
+            '<div id="fnCardsSection" style="display:none;">' +
+            '<div class="alert alert-info py-2 mb-2" style="font-size:13px;">' +
+            '<i class="fas fa-info-circle me-1"></i>' +
+            'Select functions to allow. Green badge = available, Red = exhausted.' +
+            '</div>' +
+            '<div style="max-height:45vh;overflow-y:auto;margin-bottom:15px;">' +
+            tableRows +
+            '</div>' +
+            bottomControls +
+            '</div>' +
+            '</div>';
 
-   // Call the function with all parameters (mode 1 for new permission)
-   await fnAPIforProxy(mobileNumber, 1, item.g, item.h, selectedDateTime, 0, item);
+        attachFunctionManagerEvents(contentElement, modalInstance, permissionCounts);
+    }
 
-   // Refresh the modal to show the new permission
-   document.body.removeChild(modal);
-   shoProxyMonoModal(item);
-  };
+    function getDefaultPermTill() {
+        var d = new Date();
+        d.setDate(d.getDate() + 30);
+        return d.toISOString().slice(0, 16);
+    }
 
-  actionCell.appendChild(addButton);
-  row.appendChild(actionCell);
+    function attachFunctionManagerEvents(contentElement, modalInstance, permissionCounts) {
+        // Refresh button - fetch from server and reload
+        var refreshBtn = contentElement.querySelector('#fnRefreshBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', async function () {
+                var btn = this;
 
-  tbody.appendChild(row);
- }
+                if (typeof showToast === 'function') {
+                    showToast('Fetching permissions from server...', { type: 'info', duration: 1500 });
+                }
 
- table.appendChild(tbody);
- tableContainer.appendChild(table);
+                await window.withRefreshAnimation(btn, async function () {
+                    try {
+                        if (typeof payload0 !== 'undefined') {
+                            payload0.fn = 95;
+                            payload0.vw = 1;
+                            payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'fn_lst_fp' }, { "tb": 'fn_lst_f' }]);
 
- // Add message if no available slots
- if (availableSlots <= 0) {
-  const noSlotsMessage = document.createElement('div');
-  noSlotsMessage.textContent = 'All permission slots are already used.';
-  noSlotsMessage.style.padding = '10px';
-  noSlotsMessage.style.textAlign = 'center';
-  noSlotsMessage.style.fontStyle = 'italic';
-  tableContainer.appendChild(noSlotsMessage);
- }
+                            var _ldId = 'myct_ld_' + Date.now();
+                            var _ldDiv = document.createElement('div');
+                            _ldDiv.id = _ldId;
+                            _ldDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10500;display:flex;justify-content:center;align-items:center;';
+                            _ldDiv.innerHTML = '<div class="spinner-border text-light" role="status"></div>';
+                            document.body.appendChild(_ldDiv);
 
- // Assemble modal
- modalContent.appendChild(closeButton);
- modalContent.appendChild(title);
- modalContent.appendChild(infoContainer);
- modalContent.appendChild(tableContainer);
+                            var response = await fnj3("https://my1.in/3/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
+                            var _ldEl = document.getElementById(_ldId);
+                            if (_ldEl) _ldEl.remove();
 
- modal.appendChild(modalContent);
+                            if (response && response.su == 1) {
+                                handl_o_rspons(response, 1);
+                                await new Promise(function (resolve) { setTimeout(resolve, 500); });
+                                await loadPermissionsFromDB();
+                                renderFunctionList(contentElement, modalInstance);
+                                window.showsuccessmodal('Permissions refreshed from server');
+                            } else {
+                                window.showelsemodal(response.ms || 'No success to refresh');
+                            }
+                        }
+                    } catch (err) {
+                        var _ldEl2 = document.getElementById(_ldId);
+                        if (_ldEl2) _ldEl2.remove();
+                        window.showelsemodal(err);
+                    }
+                });
+            });
+        }
 
- // Add modal to body
- document.body.appendChild(modal);
+        // Checkbox change handlers
+        var checkboxes = contentElement.querySelectorAll('.fn-checkbox');
+        checkboxes.forEach(function (cb) {
+            cb.addEventListener('change', function () {
+                updateCardHighlight(this);
+                updateSelectedInfo(contentElement);
+            });
+        });
 
- // Close modal when clicking outside content
- modal.addEventListener('click', function (e) {
-  if (e.target === modal) {
-   document.body.removeChild(modal);
-  }
- });
-}
-window.showMyProxyModal = showMyProxyModal;
+        // Card click to toggle checkbox
+        var cards = contentElement.querySelectorAll('.fn-card');
+        cards.forEach(function (card) {
+            card.addEventListener('click', function (e) {
+                var cb = card.querySelector('.fn-checkbox');
+                if (!cb || cb.disabled) return;
+                cb.checked = !cb.checked;
+                cb.dispatchEvent(new Event('change'));
+            });
+        });
 
+        // Allow button
+        var allowBtn = contentElement.querySelector('#fnAllowBtn');
+        if (allowBtn) {
+            allowBtn.addEventListener('click', function () {
+                handleAllowPermissions(contentElement, modalInstance, permissionCounts);
+            });
+        }
+
+        // PermTill input - prevent parent card click handlers from interfering
+        var permTillInput = contentElement.querySelector('#fnPermTill');
+        if (permTillInput) {
+            permTillInput.addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+            permTillInput.addEventListener('touchend', function (e) {
+                e.stopPropagation();
+            });
+        }
+
+        updateSelectedInfo(contentElement);
+    }
+
+    function updateSelectedInfo(contentElement) {
+        var selectedInfo = contentElement.querySelector('#fnSelectedInfo');
+        if (!selectedInfo) return;
+
+        var checkedBoxes = contentElement.querySelectorAll('.fn-checkbox:checked');
+        var count = checkedBoxes.length;
+
+        if (count === 0) {
+            selectedInfo.textContent = 'No functions selected';
+        } else {
+            var names = [];
+            checkedBoxes.forEach(function (cb) {
+                names.push(getFunctionName(parseInt(cb.dataset.funcId)));
+            });
+            selectedInfo.innerHTML = '<span class="text-success fw-bold">' + count + '</span> selected: ' + names.join(', ');
+        }
+    }
+
+    function updateCardHighlight(checkbox) {
+        var card = checkbox.closest('.fn-card');
+        if (!card) return;
+        if (checkbox.checked) {
+            card.style.borderColor = '#0d6efd';
+            card.style.background = '#f0f7ff';
+        } else {
+            card.style.borderColor = 'transparent';
+            card.style.background = '';
+        }
+    }
+
+    window.commonFnToRunAfter_DriverSelect = function (obj, swtch) {
+        if (swtch !== 1) {
+            if (typeof showToast === 'function') showToast('Please select a valid driver', { type: 'warning', duration: 2000 });
+            return;
+        }
+        var partyInput = document.getElementById('c_dtls_party');
+        var partyIdInput = document.getElementById('partyId');
+        var mobileInput = document.getElementById('driverMobile');
+        if (partyInput) {
+            var driverName = obj.h || obj.i || 'Unknown';
+            var driverMobile = obj.e || '';
+            partyInput.value = driverName + (driverMobile ? ' (' + driverMobile + ')' : '');
+        }
+        if (partyIdInput) partyIdInput.value = obj.a;
+        if (mobileInput) mobileInput.value = obj.e || '';
+        var dvBtn = document.getElementById('dv_for_add_itm_btn');
+        if (dvBtn) dvBtn.style.display = 'block';
+        var fnSection = document.getElementById('fnCardsSection');
+        if (fnSection) fnSection.style.display = '';
+
+        removeAllBackdrops();
+
+        setTimeout(function () {
+            if (window._fnMngModalInstance) {
+                try { window._fnMngModalInstance.show(); } catch (e) { }
+            }
+            if (window._fnMngModalElement) {
+                window._fnMngModalElement.style.display = '';
+                window._fnMngModalElement.classList.add('show');
+            }
+            document.body.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
+            removeAllBackdrops();
+        }, 300);
+
+        if (typeof showToast === 'function') showToast('Driver selected: ' + (obj.h || obj.i || obj.e), { type: 'success', duration: 2000 });
+    };
+
+    async function handleAllowPermissions(contentElement, modalInstance, permissionCounts) {
+        var mobileInput = document.getElementById('driverMobile');
+        var driverMobile = mobileInput ? mobileInput.value : '';
+        if (!driverMobile) {
+            if (typeof showToast === 'function') {
+                showToast('Please select a driver first', { type: 'warning', duration: 2000 });
+            }
+            return;
+        }
+
+        var checkedBoxes = contentElement.querySelectorAll('.fn-checkbox:checked');
+        var permTillInput = contentElement.querySelector('#fnPermTill');
+        var permTill = permTillInput ? permTillInput.value : '';
+
+        if (checkedBoxes.length === 0) {
+            if (typeof showToast === 'function') {
+                showToast('Please select at least one function', { type: 'warning', duration: 2000 });
+            }
+            return;
+        }
+
+        if (!permTill) {
+            if (typeof showToast === 'function') {
+                showToast('Please select permission validity date', { type: 'warning', duration: 2000 });
+            }
+            return;
+        }
+
+        var selectedDate = new Date(permTill);
+        var now = new Date();
+        if (selectedDate <= now) {
+            if (typeof showToast === 'function') {
+                showToast('Permission date must be in the future', { type: 'warning', duration: 2000 });
+            }
+            return;
+        }
+
+        var funcIds = [];
+        checkedBoxes.forEach(function (cb) {
+            funcIds.push(parseInt(cb.dataset.funcId));
+        });
+
+        if (typeof showToast === 'function') {
+            showToast('Processing ' + funcIds.length + ' permission(s)...', { type: 'info', duration: 2000 });
+        }
+
+        if (typeof payload0 !== 'undefined') {
+            payload0.fn = 97;
+            payload0.vw = 1;
+            payload0.b = driverMobile;
+            payload0.p = funcIds;
+            payload0.d = permTill;
+
+            var _ldId = 'myct2_ld_' + Date.now();
+            var _ldDiv = document.createElement('div');
+            _ldDiv.id = _ldId;
+            _ldDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10500;display:flex;justify-content:center;align-items:center;';
+            _ldDiv.innerHTML = '<div class="spinner-border text-light" role="status"></div>';
+            document.body.appendChild(_ldDiv);
+
+            try {
+                var response = await fnj3("https://my1.in/3/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
+                var _ldEl = document.getElementById(_ldId);
+                if (_ldEl) _ldEl.remove();
+                if (response && response.su == 1) {
+                    window.showsuccessmodal('Permissions granted successfully');
+                    modalInstance.hide();
+                } else {
+                        window.showelsemodal(response.ms || 'No success to grant permissions');
+
+                }
+            } catch (err) {
+                var _ldEl2 = document.getElementById(_ldId);
+                if (_ldEl2) _ldEl2.remove();
+                window.showelsemodal(err);
+            }
+        }
+    }
+
+    // Expose globally
+    window.showFunctionManager = showFunctionManager;
+    window.loadPermissionsFromDB = loadPermissionsFromDB;
+    window.getPermissionCounts = getPermissionCounts;
+    window.getAlreadyPermittedFunctions = getAlreadyPermittedFunctions;
+
+    console.log('fn_mng.js loaded successfully');
+
+})();
