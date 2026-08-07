@@ -2564,7 +2564,7 @@ window.set_owner = set_owner;
   return;
  }
 
- const appPath = vMatch[1].replace(/\.js$/, 'min.js');
+ const appPath = vMatch[1].replace(/\.js$/, '.min.js');
  const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + hash + '/' + appPath;
  //const url = appPath;
  set_owner();
