@@ -85,6 +85,13 @@
     window.UNIT_MAP = {};
     window.UNIT_DATA.forEach(function (unit) { window.UNIT_MAP[unit.a] = unit; });
 
+    window.escapeHTML = function (str) {
+        if (str == null) return '';
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(String(str)));
+        return div.innerHTML;
+    };
+
     // Navigation stack for fullpage views
     if (!window._fpNavStack) window._fpNavStack = [];
 
