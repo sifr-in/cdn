@@ -26,6 +26,169 @@ async function set_owner() {
  }
  window[my1uzr.worknOnPg] = {};
 }
+window.suppressModals = false;
+// Vanilla JS modal functions - no Bootstrap required
+window.showelsemodal = function (errorMsg) {
+ if (window.suppressModals) { window.suppressModals = false; return false; }
+ // Create overlay
+ var overlay = document.createElement('div');
+ overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:flex-start;justify-content:center;';
+
+ // Create modal
+ var modal = document.createElement('div');
+ modal.style.cssText = 'background:white;border-radius:8px;margin-top:120px;max-width:400px;width:90%;box-shadow:0 4px 20px rgba(0,0,0,0.3);animation:fadeIn 0.3s ease;';
+ modal.innerHTML = '<div style="padding:24px;text-align:center;">' +
+  '<div style="margin-bottom:16px;"><i style="font-size:48px;color:#dc3545;">&#9888;</i></div>' +
+  '<h5 style="color:#dc3545;margin-bottom:8px;font-size:18px;">No Success</h5>' +
+  '<p style="color:#6c757d;margin-bottom:16px;font-size:14px;">' + (typeof window.escapeHTML === 'function' ? window.escapeHTML(errorMsg) : errorMsg) + '</p>' +
+  '<button style="background:#0d6efd;color:white;border:none;padding:6px 16px;border-radius:4px;cursor:pointer;font-size:14px;" id="errorOkBtn">&#10003; OK</button>' +
+  '</div>';
+
+ overlay.appendChild(modal);
+ document.body.appendChild(overlay);
+
+ // Add animation style if not exists
+ if (!document.getElementById('modalAnimStyle')) {
+  var style = document.createElement('style');
+  style.id = 'modalAnimStyle';
+  style.textContent = '@keyframes fadeIn{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}';
+  document.head.appendChild(style);
+ }
+
+ // Close handlers
+ var closeModal = function () {
+  document.body.removeChild(overlay);
+ };
+
+ document.getElementById('errorOkBtn').onclick = closeModal;
+ overlay.onclick = function (e) {
+  if (e.target === overlay) closeModal();
+ };
+
+ return false;
+};
+
+window.showsuccessmodal = function (successMsg, callback) {
+ // Create overlay
+ var overlay = document.createElement('div');
+ overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:flex-start;justify-content:center;';
+
+ // Create modal
+ var modal = document.createElement('div');
+ modal.style.cssText = 'background:white;border-radius:8px;margin-top:120px;max-width:400px;width:90%;box-shadow:0 4px 20px rgba(0,0,0,0.3);animation:fadeIn 0.3s ease;';
+ modal.innerHTML = '<div style="padding:24px;text-align:center;">' +
+  '<div style="margin-bottom:16px;"><i style="font-size:48px;color:#198754;">&#10004;</i></div>' +
+  '<h5 style="color:#198754;margin-bottom:8px;font-size:18px;">Success</h5>' +
+  '<p style="color:#6c757d;margin-bottom:16px;font-size:14px;">' + (typeof window.escapeHTML === 'function' ? window.escapeHTML(successMsg) : successMsg) + '</p>' +
+  '<button style="background:#198754;color:white;border:none;padding:6px 16px;border-radius:4px;cursor:pointer;font-size:14px;" id="successOkBtn">&#10003; OK</button>' +
+  '</div>';
+
+ overlay.appendChild(modal);
+ document.body.appendChild(overlay);
+
+ // Add animation style if not exists
+ if (!document.getElementById('modalAnimStyle')) {
+  var style = document.createElement('style');
+  style.id = 'modalAnimStyle';
+  style.textContent = '@keyframes fadeIn{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}';
+  document.head.appendChild(style);
+ }
+
+ // Close handlers
+ var closeModal = function () {
+  document.body.removeChild(overlay);
+  if (typeof callback === 'function') {
+   callback();
+  }
+ };
+
+ document.getElementById('successOkBtn').onclick = closeModal;
+ overlay.onclick = function (e) {
+  if (e.target === overlay) closeModal();
+ };
+
+ return false;
+};
+
+window.showConfirmModal = function (message) {
+ return new Promise((resolve) => {
+  // Check if Bootstrap modal is available
+  if (typeof create_modal_dynamically !== 'function') {
+   // Fallback to vanilla confirm
+   resolve(confirm(message));
+   return;
+  }
+
+  // Check if modals are suppressed
+  if (window.suppressModals) {
+   window.suppressModals = false;
+   resolve(true); // Auto-confirm when suppressed
+   return;
+  }
+
+  try {
+   const modalId = 'confirmModal_' + Date.now();
+   const modalResult = create_modal_dynamically(modalId);
+   if (!modalResult) {
+    resolve(confirm(message));
+    return;
+   }
+   const { contentElement, modalInstance, modalElement } = modalResult;
+
+   setTimeout(() => {
+    const md = modalElement.querySelector('.modal-dialog');
+    if (md) {
+     md.classList.add('modal-dialog-centered');
+     md.style.maxWidth = 'auto';
+     md.style.zIndex = '9999';
+    }
+    modalElement.style.zIndex = '99999';
+   }, 50);
+
+   let settled = false;
+   contentElement.innerHTML = `
+<div class="p-4">
+<div class="text-center mb-3">
+<i class="fas fa-question-circle text-primary" style="font-size:48px;"></i>
+</div>
+<p class="text-center mb-4" style="white-space: pre-line;">${message}</p>
+<div class="d-flex justify-content-center gap-2">
+<button type="button" class="btn btn-success" id="${modalId}_confirm"><i class="fas fa-check me-1"></i>Confirm</button>
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Cancel</button>
+</div>
+</div>`;
+
+   const confirmBtn = contentElement.querySelector('#' + modalId + '_confirm');
+   confirmBtn.addEventListener('click', function () {
+    if (settled) return;
+    settled = true;
+    resolve(true);
+    modalInstance.hide();
+   });
+
+   modalElement.addEventListener('hidden.bs.modal', function () {
+    modalInstance.dispose();
+    modalElement.remove();
+    if (!settled) {
+     settled = true;
+     resolve(false);
+    }
+   }, { once: true });
+
+   modalInstance.show();
+  } catch (e) {
+   console.error('Confirm modal creation failed:', e);
+   resolve(confirm(message));
+  }
+ });
+};
+
+var escapeHTML = function (str) {
+ if (str == null) return '';
+ var div = document.createElement('div');
+ div.appendChild(document.createTextNode(String(str)));
+ return div.innerHTML;
+};
 
 const monthFullNms = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const monthShortNms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -1144,39 +1307,11 @@ function chkIfLoggedIn() {
     localStorage.setItem(my1uzr.worknOnPg, 'true');
     resolve({ su: 0, ms: "u must be logged in" });
    } else {
-    const dialog = document.createElement('div');
-    dialog.style.position = 'fixed';
-    dialog.style.top = '50%';
-    dialog.style.left = '50%';
-    dialog.style.transform = 'translate(-50%, -50%)';
-    dialog.style.backgroundColor = 'white';
-    dialog.style.padding = '20px';
-    dialog.style.borderRadius = '5px';
-    dialog.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
-    dialog.style.zIndex = '1000';
-
-    dialog.innerHTML = `
-<p style="color:black;">Do you want to login on this page?</p>
-<div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
-<button id="dialogYes">Yes</button>
-<button id="dialogNo">No</button>
-</div>
-`;
-
-    document.body.appendChild(dialog);
-
-    document.getElementById('dialogYes').addEventListener('click', () => {
-     if (my1uzr) {
-      localStorage.setItem(my1uzr.worknOnPg, 'true');
-      resolve({ su: 1, ms: "u must be logged in" });
-     }
-     dialog.remove();
-    });
-
-    document.getElementById('dialogNo').addEventListener('click', () => {
-     dialog.remove();
-     resolve({ su: 2, ms: "u must be logged in" });
-    });
+    if (my1uzr) {
+     window.suppressModals = true;
+     localStorage.setItem(my1uzr.worknOnPg, 'true');
+     resolve({ su: 0, ms: "u must be logged in" });
+    }
    }
   }
  });
@@ -1224,7 +1359,18 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
       else
        await loadExecFn('open_shoLgnP', 'open_shoLgnP', ['dv_to_set_open_shoLgnP_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@c68ab18/cmn/my1lp.js', []);
      }
-     return Promise.reject(new Error("Login required"));
+     window.suppressModals = true;
+      return;
+     // Immediately remove any full-screen loaders so they stop the moment the login modal appears
+     document.querySelectorAll('div').forEach(function (el) {
+      var st = el.style;
+      if (st && st.position === 'fixed' && st.top === '0px' && st.left === '0px' &&
+       (st.width === '100%' || st.width === '100vw') &&
+       (st.height === '100%' || st.height === '100vh') && parseInt(st.zIndex || '0', 10) >= 9999) {
+       el.remove();
+      }
+     });
+     //return Promise.reject(new Error("Login required"));
     } else {
      return Promise.reject(new Error(JSON.stringify(t343mp)));
     }
@@ -2418,8 +2564,9 @@ window.set_owner = set_owner;
   return;
  }
 
- const appPath = vMatch[1].replace(/\.js$/, '.min.js');
- const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + hash + '/' + appPath;
+ const appPath = vMatch[1].replace(/\.js$/, '.js');
+ //const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + hash + '/' + appPath;
+ const url = appPath;
  set_owner();
  loadPromiseScript(url);
 })();

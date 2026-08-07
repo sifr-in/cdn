@@ -85,49 +85,6 @@
     window.UNIT_MAP = {};
     window.UNIT_DATA.forEach(function (unit) { window.UNIT_MAP[unit.a] = unit; });
 
-    window.escapeHTML = function (str) {
-        if (str == null) return '';
-        var div = document.createElement('div');
-        div.appendChild(document.createTextNode(String(str)));
-        return div.innerHTML;
-    };
-
-    window.showelsemodal = function (errorMsg) {
-        if (typeof create_modal_dynamically === 'function') {
-            const errorModalId = 'errorModal_' + Date.now();
-            const errorModalResult = create_modal_dynamically(errorModalId);
-            if (errorModalResult) {
-                const { contentElement: errorContent, modalInstance: errorModalInstance, modalElement: errorModalElement } = errorModalResult;
-                setTimeout(() => { const md = errorModalElement.querySelector('.modal-dialog'); if (md) { md.style.marginTop = '120px'; md.style.maxWidth = 'auto'; } }, 50);
-                errorContent.innerHTML = `<div class="p-4 text-center"><div class="mb-3"><i class="fas fa-exclamation-triangle text-danger" style="font-size:48px;"></i></div><h5 class="text-danger">No Success</h5><p class="text-muted">${errorMsg}</p><button class="btn btn-primary btn-sm mt-2" data-bs-dismiss="modal"><i class="fas fa-check me-1"></i>OK</button></div>`;
-                errorModalInstance.show(); return false;
-            }
-        }
-    };
-    window.showsuccessmodal = function (successMsg, callback) {
-        if (typeof create_modal_dynamically === 'function') {
-            const successModalId = 'successModal_' + Date.now();
-            const successModalResult = create_modal_dynamically(successModalId);
-            if (successModalResult) {
-                const { contentElement: successContent, modalInstance: successModalInstance, modalElement: successModalElement } = successModalResult;
-                setTimeout(() => {
-                    const md = successModalElement.querySelector('.modal-dialog');
-                    if (md) { md.style.marginTop = '120px'; md.style.maxWidth = 'auto'; }
-                }, 50);
-                successContent.innerHTML = `<div class="p-4 text-center"><div class="mb-3"><i class="fas fa-check-circle text-success" style="font-size:48px;"></i></div><h5 class="text-success">Success</h5><p class="text-muted">${successMsg}</p><button class="btn btn-success btn-sm mt-2" data-bs-dismiss="modal"><i class="fas fa-check me-1"></i>OK</button></div>`;
-
-                if (callback) {
-                    successModalElement.addEventListener('hidden.bs.modal', function () {
-                        callback();
-                    }, { once: true });
-                }
-
-                successModalInstance.show();
-                return false;
-            }
-        }
-    };
-
     // Navigation stack for fullpage views
     if (!window._fpNavStack) window._fpNavStack = [];
 
