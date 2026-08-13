@@ -17,6 +17,15 @@ window.handleMenuAction = function (action) {
     setTimeout(function () {
       showAllCases();
     }, 300);
+  else if (action === "checkNewData")
+    setTimeout(function () {
+      refreshFromServer();
+    }, 300);
+  else if (action === "clearAllData")
+    setTimeout(function () {
+      showClearCacheModal();
+    }, 300);
+
 };
 
 console.log("📂 sidebar.js loaded");
