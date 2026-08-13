@@ -38,11 +38,11 @@ async function preloadOtpAudio() {
         console.log("audToPlayOnGetOTP not declared, skipping audio preload");
         return;
     }
-    
+
     try {
         console.log("Preloading OTP audio...");
-        await loadExecFn("getDriveFileAsBlob,getMultipleDriveFilesAsBlobs",null,[],"loader","https://cdn.jsdelivr.net/gh/sifr-in/cdn@6a35a4e/cmn/drPrx.js",[]);
-        const audioResults = await window.getMultipleDriveFilesAsBlobs([audToPlayOnGetOTP],"https://my1.in/2/drPrx.php",true);
+        await loadExecFn("getDriveFileAsBlob,getMultipleDriveFilesAsBlobs", null, [], "loader", "https://cdn.jsdelivr.net/gh/sifr-in/cdn@6a35a4e/cmn/drPrx.js", []);
+        const audioResults = await window.getMultipleDriveFilesAsBlobs([audToPlayOnGetOTP], "https://my1.in/2/drPrx.php", true);
 
         if (audioResults.success.length > 0) {
             const audioData = audioResults.success[0];
@@ -107,7 +107,7 @@ function startWebOtpListener() {
     console.log("Starting fresh WebOTP listener...");
     isWebOtpListening = true;
 
-    navigator.credentials.get({otp: { transport: ["sms"] },signal: webOtpAbortController.signal}).then((otp) => {
+    navigator.credentials.get({ otp: { transport: ["sms"] }, signal: webOtpAbortController.signal }).then((otp) => {
         console.log("OTP received via WebOTP:", otp.code);
         clearTimeout(webOtpTimeoutId);
         webOtpTimeoutId = null;
@@ -173,7 +173,7 @@ async function playOtpSentSound() {
         console.log("audToPlayOnGetOTP not declared, skipping audio");
         return;
     }
-    
+
     try {
         if (isAudioPreloaded && otpSentAudio) {
             otpSentAudio.currentTime = 0;
@@ -182,7 +182,7 @@ async function playOtpSentSound() {
             return;
         } else {
             console.log("Preloaded audio not available, loading on-demand...");
-            const audioResults = await getMultipleDriveFilesAsBlobs([audToPlayOnGetOTP],"https://my1.in/2/drPrx.php",true);
+            const audioResults = await getMultipleDriveFilesAsBlobs([audToPlayOnGetOTP], "https://my1.in/2/drPrx.php", true);
             if (audioResults.success.length > 0) {
                 const audioData = audioResults.success[0];
                 const blobUrl = URL.createObjectURL(audioData.blob);
@@ -308,7 +308,7 @@ function showLogoutOption() {
 
 // Save original body styles
 function saveBodyStyles() {
-    originalBodyStyles = {overflow: document.body.style.overflow,position: document.body.style.position,width: document.body.style.width};
+    originalBodyStyles = { overflow: document.body.style.overflow, position: document.body.style.position, width: document.body.style.width };
 }
 
 // Restore body styles
@@ -406,28 +406,29 @@ function removeVerificationMessages() {
 
 // Add validation function
 function validateGetOtpForm() {
-    const loginName = document.getElementById("loginName");
+    //const loginName = document.getElementById("loginName");
     const mobileNumber = getMobileNumberFromDigits();
     const countryCode = document.getElementById("loginCountryCode");
     const getOtpBtn = document.getElementById("getOtpBtn");
-    if (!loginName || !countryCode || !getOtpBtn) return;
+    if (!countryCode || !getOtpBtn) return;
     const requiredLength = getRequiredMobileLength(countryCode.value);
-    const isNameValid = loginName.value.trim().length >= 2;
+    //const isNameValid = loginName.value.trim().length >= 2;
     const isMobileValid = mobileNumber.length === requiredLength;
-    getOtpBtn.disabled = !(isNameValid && isMobileValid);
+    getOtpBtn.disabled = !(isMobileValid);
 }
 
 function setupL3EventListeners() {
-    const loginName = document.getElementById("loginName");
-    const localName = document.getElementById("localName");
+    //const loginName = document.getElementById("loginName");
+    //const localName = document.getElementById("localName");
     const countryCodeSelect = document.getElementById("loginCountryCode");
     const acceptTerms = document.getElementById("acceptTerms");
     const getOtpBtn = document.getElementById("getOtpBtn");
     const verifyOtpBtn = document.getElementById("verifyOtpBtn");
     const resendOtp = document.getElementById("resendOtp");
-    const expandLocalName = document.getElementById("expandLocalName");
-    const localNameSection = document.getElementById("localNameSection");
+    //const expandLocalName = document.getElementById("expandLocalName");
+    //const localNameSection = document.getElementById("localNameSection");
 
+    /*
     if (expandLocalName) {
         expandLocalName.addEventListener("click", function () {
             if (localNameSection.classList.contains("d-none")) {
@@ -479,6 +480,7 @@ function setupL3EventListeners() {
             }
         });
     }
+    */
 
     if (countryCodeSelect) {
         countryCodeSelect.addEventListener("change", function () { updateMobileLengthInfo("loginCountryCode", "mobileLengthInfo"); });
@@ -500,7 +502,7 @@ function setupL3EventListeners() {
         getOtpBtn.addEventListener("click", async function () {
             const termsLabel = document.querySelector('label[for="acceptTerms"]');
             if (termsLabel) termsLabel.classList.add("d-none");
-            const name = loginName.value.trim();
+            //const name = loginName.value.trim();
             const mobile = getMobileNumberFromDigits();
             const countryCode = countryCodeSelect.value;
             const requiredLength = getRequiredMobileLength(countryCode);
@@ -509,11 +511,11 @@ function setupL3EventListeners() {
             const inputs = document.querySelectorAll("#mobileDigitsContainer input");
             inputs.forEach((input) => input.classList.remove("is-invalid"));
 
-            if (name.length < 2) { document.getElementById("nameError").classList.remove("d-none"); loginName.classList.add("is-invalid"); return; }
-            if (!localNameSection.classList.contains("d-none") && localName.value.trim() !== "") {
-                const hasEnglishChars = /[A-Za-z0-9]/.test(localName.value);
-                if (hasEnglishChars) { alert("Local name must not contain English letters or numbers"); document.getElementById("localNameError").classList.remove("d-none"); localName.classList.add("is-invalid"); return; }
-            }
+            //if (name.length < 2) { document.getElementById("nameError").classList.remove("d-none"); loginName.classList.add("is-invalid"); return; }
+            //if (!localNameSection.classList.contains("d-none") && localName.value.trim() !== "") {
+            //    const hasEnglishChars = /[A-Za-z0-9]/.test(localName.value);
+            //    if (hasEnglishChars) { alert("Local name must not contain English letters or numbers"); document.getElementById("localNameError").classList.remove("d-none"); localName.classList.add("is-invalid"); return; }
+            //}
 
             let allDigitsFilled = true;
             inputs.forEach((input) => { if (input.value === "") { input.classList.add("is-invalid"); allDigitsFilled = false; } });
@@ -522,7 +524,7 @@ function setupL3EventListeners() {
             await playOtpSentSound();
 
             if (typeof confirmMoNo !== 'undefined' && confirmMoNo === 1) {
-                showMobileConfirmationModal(countryCode,mobile,async (isConfirmed) => { if (isConfirmed) { await sendOTPRequest(countryCode, mobile); } });
+                showMobileConfirmationModal(countryCode, mobile, async (isConfirmed) => { if (isConfirmed) { await sendOTPRequest(countryCode, mobile); } });
             } else {
                 await sendOTPRequest(countryCode, mobile);
             }
@@ -592,10 +594,10 @@ function setupL3EventListeners() {
         }, 1000);
     }
 
-function updateResendCountdown() {
-    const resendCountdown = document.getElementById("resendCountdown");
-    if (resendCountdown) { resendCountdown.innerHTML = `Verify OTP in <span class="blink-text cntrsec">${resendTimeLeft}</span> seconds`; }
-}
+    function updateResendCountdown() {
+        const resendCountdown = document.getElementById("resendCountdown");
+        if (resendCountdown) { resendCountdown.innerHTML = `Verify OTP in <span class="blink-text cntrsec">${resendTimeLeft}</span> seconds`; }
+    }
 
     if (verifyOtpBtn) {
         verifyOtpBtn.addEventListener("click", async function () {
@@ -636,7 +638,7 @@ function updateResendCountdown() {
             if (mobile.length !== requiredLength) { alert("Please enter a valid mobile number"); return; }
             await playOtpSentSound();
             if (typeof confirmMoNo !== 'undefined' && confirmMoNo === 1) {
-                showMobileConfirmationModal(countryCode,mobile,async (isConfirmed) => { if (isConfirmed) { await resendOTPRequest(countryCode, mobile); } });
+                showMobileConfirmationModal(countryCode, mobile, async (isConfirmed) => { if (isConfirmed) { await resendOTPRequest(countryCode, mobile); } });
             } else {
                 await resendOTPRequest(countryCode, mobile);
             }
@@ -701,7 +703,7 @@ function updateMobileLengthInfo(selectId, lengthInfoId) {
 
 // Get required mobile length based on country code
 function getRequiredMobileLength(countryCode) {
-    const lengthMap = {"+1": 10,"+44": 10,"+91": 10,"+86": 11,"+81": 10,"+33": 9,"+49": 10,"+7": 10,"+55": 11,"+61": 9};
+    const lengthMap = { "+1": 10, "+44": 10, "+91": 10, "+86": 11, "+81": 10, "+33": 9, "+49": 10, "+7": 10, "+55": 11, "+61": 9 };
     return lengthMap[countryCode] || 10;
 }
 
@@ -712,9 +714,9 @@ async function getOTP(countryCode, mobileNumber) {
     const data = { yo: mobileNumber, yc: countryCode };
     if (isOtpSuppressed) { data.supress = 1; }
     try {
-        const response = await fetch("https://my1.in/5z/o.php", {method: "POST",headers: {"Content-Type": "application/json"},body: JSON.stringify(data)});
+        const response = await fetch("https://my1.in/5z/o.php", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
         const result = await response.json();
-        if (result.su == 1) { return {success: true,waitTime: result.wait || 30}; }
+        if (result.su == 1) { return { success: true, waitTime: result.wait || 30 }; }
         else { alert(JSON.stringify(result)); return { success: false }; }
     } catch (error) {
         console.error("Error sending OTP:", error);
@@ -729,12 +731,20 @@ async function verifyOTP(otp) {
     const mobileNumber = getMobileNumberFromDigits();
     const requiredLength = getRequiredMobileLength(countryCode);
     if (mobileNumber.length !== requiredLength) { alert(`Please enter a valid ${requiredLength}-digit mobile number`); return; }
-    const l_oginName = document.getElementById("loginName").value.trim();
-    const l_oginLocalName = document.getElementById("localName").value.trim();
-    const data = {yo: mobileNumber,yc: countryCode,mp: otp,mn: l_oginName,mu: l_oginLocalName,eo: appOwner.eo,ec: appOwner.ec,xtra: typeof xtraj_payload !== "undefined" ? xtraj_payload : null};
+    const l_oginName = document.getElementById("loginName") ? document.getElementById("loginName").value.trim() : "";
+    const l_oginLocalName = document.getElementById("localName") ? document.getElementById("localName").value.trim() : "";
+    // const data = {yo: mobileNumber,yc: countryCode,mp: otp,mn: l_oginName,mu: l_oginLocalName,eo: appOwner.eo,ec: appOwner.ec,xtra: typeof xtraj_payload !== "undefined" ? xtraj_payload : null};
+    const data = { yo: mobileNumber, yc: countryCode, mp: otp, mn: l_oginName, mu: l_oginLocalName, eo: appOwner.eo, ec: appOwner.ec, xtra: typeof xtraj_payload !== "undefined" ? xtraj_payload : null };
     try {
-        const response = await fetch("https://my1.in/5z/k2.php", {method: "POST",headers: {"Content-Type": "application/json"},body: JSON.stringify(data)});
+        const response = await fetch("https://my1.in/5z/k2.php", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
         const result = await response.json();
+        const verifyOtpText = document.getElementById("verifyOtpText");
+        const verifyOtpLoader = document.getElementById("verifyOtpLoader");
+        const verifyOtpBtn = document.getElementById("verifyOtpBtn");
+        if (verifyOtpText) verifyOtpText.classList.remove("d-none");
+        if (verifyOtpLoader) verifyOtpLoader.classList.add("d-none");
+        if (verifyOtpBtn) verifyOtpBtn.disabled = false;
+        hideFullScreenLoader();
         removeVerificationMessages();
         if (result && result.su == 1 && result.uzr.mk.length > 10) {
             localStorage.setItem(my1uzr.worknOnPg, true);
@@ -752,16 +762,25 @@ async function verifyOTP(otp) {
             localStorage.setItem(tmp741, true);
             if (typeof releaseWakeLock === 'function') { releaseWakeLock(); }
             if (typeof function2runAfter_O_Login !== "undefined") { function2runAfter_O_Login(result); }
-            else { alert("Login successful; refresh the page!"); }
+            else {
+                if (!result.xtra)
+                    window.showsuccessmodal("Login successful: " + result.xtra?.ms);
+            }
             const modal = bootstrap.Modal.getInstance(document.getElementById(id_of_dv_shoLgnO_to_set_processed_dom_object));
             if (modal) { modal.hide(); }
+            if (result.xtra && result.xtra.fn) {
+                const fnName = "hndlRspo" + result.xtra.fn;
+                const handler = window[fnName];
+                if (typeof handler === 'function') { handler(result.xtra); }
+                else { console.log("0000"); }
+            }
         } else {
-            alert("Verification failed. Please try again;");
+            window.showelsemodal("Verification failed. Please try again;");
         }
     } catch (error) {
         console.error("Error verifying OTP:", error);
         removeVerificationMessages();
-        alert("Failed to verify OTP. Please try again.");
+        window.showelsemodal("Failed to verify OTP. Please try again.");
     }
 }
 
@@ -775,6 +794,7 @@ function set_innerHTML_of_shoLgnO() {
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="card-body" style="background-color: #33FFCC;">
+                    <!--
                     <div class="mb-3">
                         <label for="loginName" class="form-label">
                             Name in English 
@@ -788,6 +808,7 @@ function set_innerHTML_of_shoLgnO() {
                         <input type="text" id="localName" class="form-control" placeholder="Name in local language (non-English characters only)">
                         <div id="localNameError" class="invalid-feedback d-none">Name must be in local language characters only, no English letters or numbers</div>
                     </div>
+                    -->
                     <div class="mb-3">
                         <div class="input-group flex-nowrap">
                             <select id="loginCountryCode" class="form-select" style="max-width: 120px; width: auto; flex-shrink: 0;"></select>
@@ -796,7 +817,7 @@ function set_innerHTML_of_shoLgnO() {
                         <div id="mobileLengthInfo" class="form-text ms-2"></div>
                         <div id="mobileError" class="invalid-feedback d-none">Please enter a valid mobile number</div>
                     </div>
-                    <label class="form-check-label mb-4" for="acceptTerms" style="cursor: pointer;">You agree with the <a href="#" class="text-primary">Terms & Conditions</a> when you click on "Get OTP"</label>
+                    <label class="form-check-label mb-4" for="acceptTerms" style="cursor: pointer;">You agree with the 'Terms & Conditions' when you click on "Get OTP"</label>
                     <input type="checkbox" class="d-none" id="acceptTerms">
                     <button id="getOtpBtn" class="btn btn-primary w-100 position-relative" disabled>
                         <span id="getOtpText">Get OTP</span>
@@ -878,7 +899,7 @@ function createMobileDigitInputs(requiredLength) {
         input.addEventListener("input", handleMobileDigitInput);
         input.addEventListener("keydown", handleMobileDigitKeydown);
         input.addEventListener("paste", handleMobilePaste);
-        input.addEventListener("focus", function(e) { clearMobileDigitError(e); this.select(); });
+        input.addEventListener("focus", function (e) { clearMobileDigitError(e); this.select(); });
         if (i < half) { row1.appendChild(input); } else { row2.appendChild(input); }
     }
     container.appendChild(row1);
@@ -908,7 +929,7 @@ function createOtpDigitInputs() {
         input.addEventListener("input", handleOtpDigitInput);
         input.addEventListener("keydown", handleOtpDigitKeydown);
         input.addEventListener("paste", handleOtpPaste);
-        input.addEventListener("focus", function(e) { clearOtpDigitError(e); this.select(); });
+        input.addEventListener("focus", function (e) { clearOtpDigitError(e); this.select(); });
         container.appendChild(input);
     }
     setTimeout(() => { const firstInput = container.querySelector("input"); if (firstInput) firstInput.focus(); }, 200);
@@ -918,6 +939,353 @@ function addCustomStyles() {
     const style = document.createElement("style");
     style.textContent = `#mobileDigitsContainer input.form-control {border-color: #6c757d !important;font-size: 16px !important;color: #000 !important;background-color: #fff !important;padding: 0.375rem 0.25rem !important;}#mobileDigitsContainer input.form-control:focus {border-color: #495057 !important;box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;color: #000 !important;background-color: #fff !important;}#otpDigitsContainer input.form-control {border-color: #6c757d !important;font-size: 16px !important;color: #000 !important;background-color: #fff !important;padding: 0.375rem 0.25rem !important;text-transform: uppercase !important;}#otpDigitsContainer input.form-control:focus {border-color: #495057 !important;box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;color: #000 !important;background-color: #fff !important;}#mobileDigitsContainer input,#otpDigitsContainer input {-webkit-text-fill-color: #000 !important;}#fullScreenLoader {background-color: rgba(255, 255, 255, 0.9) !important;z-index: 10000 !important;}#autoVerifyProgress, #manualVerifyMsg {font-size: 0.875rem;padding: 0.5rem;margin-bottom: 0.5rem;}#resendOtp:disabled {cursor: not-allowed;opacity: 0.6;}#resendOtp.btn-warning {background-color: #ffc107 !important;border-color: #ffc107 !important;color: #212529 !important;}#audioErrorMsg {font-size: 0.875rem;padding: 0.5rem;margin-bottom: 0.5rem;}#getOtpBtn:disabled {opacity: 0.6;cursor: not-allowed;}.blink-text {animation: blinkAnim 1s step-end infinite;} @keyframes blinkAnim {0%,100%{opacity:1}50%{opacity:0}}`;
     document.head.appendChild(style);
+}
+
+function my1loNormColor(value) {
+    if (!value) return null;
+    value = value.trim();
+    if (!value || value === "transparent" || value === "none" || value === "initial" || value === "inherit") return null;
+    if (value.indexOf("var(") !== -1 || value.indexOf("linear-gradient") !== -1 || value.indexOf("url(") !== -1) return null;
+    return value;
+}
+
+function my1loParseRgb(value) {
+    if (!value) return null;
+    value = value.trim();
+    let m = value.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if (m) {
+        let hex = m[1];
+        if (hex.length === 3) hex = hex.split("").map(function (c) { return c + c; }).join("");
+        return { r: parseInt(hex.slice(0, 2), 16), g: parseInt(hex.slice(2, 4), 16), b: parseInt(hex.slice(4, 6), 16) };
+    }
+    m = value.match(/^rgba?\(\s*([\d.]+)\s*[, ]\s*([\d.]+)\s*[, ]\s*([\d.]+)/i);
+    if (m) return { r: Math.round(+m[1]), g: Math.round(+m[2]), b: Math.round(+m[3]) };
+    m = value.match(/^rgb\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
+    if (m) return { r: Math.round(+m[1]), g: Math.round(+m[2]), b: Math.round(+m[3]) };
+    return null;
+}
+
+function my1loToHex(rgb) {
+    if (!rgb) return null;
+    const to2 = function (n) { n = Math.max(0, Math.min(255, Math.round(n))); return ("0" + n.toString(16)).slice(-2); };
+    return "#" + to2(rgb.r) + to2(rgb.g) + to2(rgb.b);
+}
+
+function my1loShift(rgb, amt) {
+    if (!rgb) return null;
+    const f = function (c) { return c + Math.round(255 * amt); };
+    return { r: f(rgb.r), g: f(rgb.g), b: f(rgb.b) };
+}
+
+function my1loLuminance(rgb) {
+    if (!rgb) return 0;
+    const f = function (c) { c = c / 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(rgb.r) + 0.7152 * f(rgb.g) + 0.0722 * f(rgb.b);
+}
+
+function my1loTextOn(rgb) {
+    if (!rgb) return "#ffffff";
+    return my1loLuminance(rgb) > 0.5 ? "#212529" : "#ffffff";
+}
+
+function my1loToRgba(value, alpha) {
+    const rgb = my1loParseRgb(value);
+    if (!rgb) return null;
+    return "rgba(" + rgb.r + ", " + rgb.g + ", " + rgb.b + ", " + alpha + ")";
+}
+
+function my1loBlockProp(cssText, selector, prop) {
+    const re = new RegExp("(?:^|[;{}]\\s*)" + selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*\\{([^}]*)\\}", "i");
+    const m = cssText.match(re);
+    if (!m) return null;
+    const pm = m[1].match(new RegExp("(?:^|;)\\s*" + prop + "\\s*:\\s*([^;]+)", "i"));
+    return pm ? pm[1].trim() : null;
+}
+
+function my1loParseCss(cssText) {
+    const rules = [];
+    if (!cssText || typeof cssText !== "string") return rules;
+    const text = cssText.replace(/\/\*[\s\S]*?\*\//g, "");
+    const len = text.length;
+    let i = 0;
+    while (i < len) {
+        const brace = text.indexOf("{", i);
+        if (brace === -1) break;
+        const selector = text.slice(i, brace).trim();
+        let depth = 1;
+        let j = brace + 1;
+        while (j < len && depth > 0) {
+            if (text.charAt(j) === "{") depth++;
+            else if (text.charAt(j) === "}") depth--;
+            j++;
+        }
+        const block = text.slice(brace + 1, j - 1);
+        if (selector && selector.charAt(0) !== "@") {
+            rules.push({ selector: selector, block: block });
+        } else if (/^@media/i.test(selector)) {
+            const nested = my1loParseCss(block);
+            for (let k = 0; k < nested.length; k++) { rules.push(nested[k]); }
+        }
+        i = j;
+    }
+    return rules;
+}
+
+function my1loSplitDecls(block) {
+    const parts = [];
+    if (!block) return parts;
+    let cur = "", depth = 0;
+    for (let i = 0; i < block.length; i++) {
+        const ch = block.charAt(i);
+        if (ch === "(") depth++;
+        else if (ch === ")") depth--;
+        if (ch === ";" && depth === 0) { parts.push(cur); cur = ""; }
+        else cur += ch;
+    }
+    if (cur.trim()) parts.push(cur);
+    return parts;
+}
+
+function my1loHslToRgb(h, s, l) {
+    h = ((h % 360) + 360) % 360;
+    s = Math.max(0, Math.min(100, s)) / 100;
+    l = Math.max(0, Math.min(100, l)) / 100;
+    const f = function (n) {
+        const k = (n + h / 30) % 12;
+        const a = s * Math.min(l, 1 - l);
+        return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+    };
+    return { r: Math.round(255 * f(0)), g: Math.round(255 * f(8)), b: Math.round(255 * f(4)) };
+}
+
+function my1loExtractColors(value) {
+    const out = [];
+    if (!value || typeof value !== "string") return out;
+    let m;
+    const hexRe = /#([0-9a-fA-F]{3,8})\b/g;
+    while ((m = hexRe.exec(value)) !== null) {
+        let hex = m[1];
+        if (hex.length === 3 || hex.length === 4) hex = hex.split("").map(function (c) { return c + c; }).join("");
+        if (hex.length === 6 || hex.length === 8) {
+            hex = hex.slice(0, 6).toLowerCase();
+            const rgb = { r: parseInt(hex.slice(0, 2), 16), g: parseInt(hex.slice(2, 4), 16), b: parseInt(hex.slice(4, 6), 16) };
+            out.push({ hex: "#" + hex, rgb: rgb });
+        }
+    }
+    const rgbRe = /rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:\s*[,\/]\s*[\d.%]+)?\s*\)/gi;
+    while ((m = rgbRe.exec(value)) !== null) {
+        const r = Math.round(+m[1]), g = Math.round(+m[2]), b = Math.round(+m[3]);
+        if (r >= 0 && r <= 255 && g >= 0 && g <= 255 && b >= 0 && b <= 255) {
+            out.push({ hex: my1loToHex({ r: r, g: g, b: b }), rgb: { r: r, g: g, b: b } });
+        }
+    }
+    const hslRe = /hsla?\(\s*([\d.]+)(?:deg)?\s*[,\s]+([\d.]+)%\s*[,\s]+([\d.]+)%(?:\s*[,\/]\s*[\d.%]+)?\s*\)/gi;
+    while ((m = hslRe.exec(value)) !== null) {
+        const rgb = my1loHslToRgb(+m[1], +m[2], +m[3]);
+        if (rgb) out.push({ hex: my1loToHex(rgb), rgb: rgb });
+    }
+    return out;
+}
+
+function my1loCssVars(cssText) {
+    const vars = {};
+    const re = /(--[a-zA-Z0-9_-]+\s*:\s*[^;]+;)/g;
+    let m;
+    while ((m = re.exec(cssText)) !== null) {
+        const idx = m[1].indexOf(":");
+        const name = m[1].slice(0, idx).trim();
+        const val = m[1].slice(idx + 1).replace(/;$/, "").trim();
+        vars[name] = val;
+    }
+    return vars;
+}
+
+function my1loResolveVar(value, vars, depth) {
+    if (!value || typeof value !== "string" || value.indexOf("var(") === -1) return value;
+    depth = depth || 0;
+    if (depth > 6) return value;
+    return value.replace(/var\(\s*(--[a-zA-Z0-9_-]+)\s*(?:,\s*([^)]*))?\)/g, function (m, name, fallback) {
+        if (vars[name] !== undefined) return my1loResolveVar(vars[name], vars, depth + 1);
+        if (fallback !== undefined) return fallback.trim();
+        return m;
+    });
+}
+
+function my1loAnalyzeTheme(cssText) {
+    const report = { brand: null, brandHex: null, brandDark: null, onBrand: "#ffffff", glow: null, lightBg: null, ink: null, secondary: null, matches: [] };
+    if (!cssText || typeof cssText !== "string") return report;
+    const rules = my1loParseCss(cssText);
+    const vars = my1loCssVars(cssText);
+    const usage = {};
+    const addUsage = function (hex, rgb) {
+        if (!usage[hex]) usage[hex] = { hex: hex, rgb: rgb, count: 0, textCount: 0, accentText: 0, bgCount: 0, bodyBg: 0, sectionBg: 0, btnBg: 0, selBg: 0, borderCount: 0, borderTop: 0, varSem: 0, sources: [] };
+        return usage[hex];
+    };
+    let firstColorVar = true;
+    for (const vname in vars) {
+        const resolved = my1loResolveVar(vars[vname], vars, 0);
+        const colors = my1loExtractColors(resolved);
+        if (!colors.length) continue;
+        const nl = vname.toLowerCase();
+        let sem = 0;
+        if (/(ember|brand|primary|accent|main|theme|cta|color1|c1|b1|saffron|maroon|brick)/.test(nl)) sem += 3;
+        if (/(gold|amber|orange|copper)/.test(nl)) sem += 1;
+        if (/(bg|background|surface|cream|light|page|paper|card|body|sheet|paper)/.test(nl)) sem += 2;
+        if (/(ink|text|muted|dark|charcoal|brown)/.test(nl)) sem += 1;
+        if (firstColorVar) { sem += 2; firstColorVar = false; }
+        for (const c of colors) {
+            const u = addUsage(c.hex, c.rgb);
+            u.count += 0.5;
+            u.varSem = Math.max(u.varSem, sem);
+            u.sources.push("--" + vname);
+        }
+    }
+    for (let r = 0; r < rules.length; r++) {
+        const rule = rules[r];
+        const decls = my1loSplitDecls(rule.block);
+        const selL = rule.selector.toLowerCase();
+        const isBody = /(^|\s)(body|html)([\s,:>{]|$)/.test(selL);
+        const isBtn = /(^|[\s.#>])ht?-?btn|\.btn|button/i.test(selL);
+        const isAccentText = /price|total|amt|active|back|bill-title|ribbon|kicker|\.pr|cta|emphas|selected/i.test(selL);
+        const isSection = /card|section|modal|surface|summary|room|bill|sheet|page|container|hero|filter|panel|wrap|box|listing/i.test(selL);
+        const isSelection = /selection/i.test(selL);
+        for (let d = 0; d < decls.length; d++) {
+            const item = decls[d];
+            const ci = item.indexOf(":");
+            if (ci === -1) continue;
+            const prop = item.slice(0, ci).trim().toLowerCase();
+            const value = my1loResolveVar(item.slice(ci + 1).trim(), vars, 0);
+            const colors = my1loExtractColors(value);
+            if (!colors.length) continue;
+            const isBorder = prop.indexOf("border") === 0;
+            const isBg = prop.indexOf("background") === 0;
+            const isText = prop === "color";
+            for (const c of colors) {
+                const u = addUsage(c.hex, c.rgb);
+                u.count++;
+                if (isText) { u.textCount++; if (isAccentText) u.accentText++; }
+                if (isBg) { u.bgCount++; if (isBody) u.bodyBg++; if (isSection) u.sectionBg++; if (isBtn) u.btnBg++; if (isSelection) u.selBg++; }
+                if (isBorder) { u.borderCount++; if (prop === "border-top" || prop === "border-top-color") u.borderTop++; }
+                u.sources.push(rule.selector + " " + prop);
+            }
+        }
+    }
+    const hexes = Object.keys(usage);
+    let lightBest = null, lightScore = -1, brandBest = null, brandScore = -1, inkBest = null, inkScore = -1;
+    for (const hex of hexes) {
+        const u = usage[hex];
+        const lum = my1loLuminance(u.rgb);
+        const sat = (Math.max(u.rgb.r, u.rgb.g, u.rgb.b) - Math.min(u.rgb.r, u.rgb.g, u.rgb.b)) / 255;
+        if (lum > 0.72 && sat < 0.4) {
+            let s = u.count + u.bodyBg * 8 + u.sectionBg * 1.5 + u.bgCount * 0.5;
+            if (u.varSem >= 2) s += 2;
+            if (hex === "#ffffff") s -= 5;
+            if (s > lightScore) { lightScore = s; lightBest = hex; }
+        }
+        if (lum < 0.42 && sat < 0.3 && u.textCount > 0) {
+            let s = u.textCount * 2 + u.count * 0.5;
+            if (u.varSem) s += 1;
+            if (s > inkScore) { inkScore = s; inkBest = hex; }
+        }
+        if (sat >= 0.18 && lum > 0.05 && lum < 0.95) {
+            let s = u.count * 0.5 + u.textCount * 0.3 + u.accentText * 4 + u.btnBg * 3 + u.borderTop * 1.5 + u.selBg * 1 + (u.varSem >= 3 ? 5 : u.varSem >= 2 ? 1 : 0);
+            if (s > brandScore) { brandScore = s; brandBest = hex; }
+            else if (s === brandScore && brandBest && lum < my1loLuminance(usage[brandBest].rgb)) { brandBest = hex; }
+        }
+    }
+    let secondScore = -1, secondHex = null;
+    for (const hex of hexes) {
+        if (hex === brandBest) continue;
+        const u = usage[hex];
+        const lum = my1loLuminance(u.rgb);
+        const sat = (Math.max(u.rgb.r, u.rgb.g, u.rgb.b) - Math.min(u.rgb.r, u.rgb.g, u.rgb.b)) / 255;
+        if (sat >= 0.18 && lum > 0.05 && lum < 0.95) {
+            let s = u.count * 0.5 + u.accentText * 3 + u.btnBg * 3 + (u.varSem ? u.varSem : 0);
+            if (s > secondScore) { secondScore = s; secondHex = hex; }
+        }
+    }
+    report.brand = brandBest;
+    report.lightBg = lightBest;
+    report.ink = inkBest;
+    report.secondary = secondHex;
+    if (brandBest) {
+        const rgb = usage[brandBest].rgb;
+        report.brandHex = brandBest;
+        report.brandDark = my1loToHex(my1loShift(rgb, -0.14));
+        report.onBrand = my1loTextOn(rgb);
+        report.glow = my1loToRgba(brandBest, 0.25);
+    }
+    const matches = [];
+    if (brandBest) matches.push({ role: "brand", hex: brandBest, score: Math.round(brandScore * 100) / 100, sources: usage[brandBest].sources.slice(0, 12) });
+    if (secondHex) matches.push({ role: "secondary", hex: secondHex, score: Math.round(secondScore * 100) / 100, sources: usage[secondHex].sources.slice(0, 8) });
+    if (lightBest) matches.push({ role: "lightBg", hex: lightBest, score: Math.round(lightScore * 100) / 100, sources: usage[lightBest].sources.slice(0, 8) });
+    if (inkBest) matches.push({ role: "ink", hex: inkBest, score: Math.round(inkScore * 100) / 100, sources: usage[inkBest].sources.slice(0, 8) });
+    const accentCands = [];
+    for (const hex of hexes) {
+        const u = usage[hex];
+        const lum = my1loLuminance(u.rgb);
+        const sat = (Math.max(u.rgb.r, u.rgb.g, u.rgb.b) - Math.min(u.rgb.r, u.rgb.g, u.rgb.b)) / 255;
+        if (sat >= 0.18 && lum > 0.05 && lum < 0.95) {
+            let s = u.count * 0.5 + u.accentText * 3 + u.btnBg * 3 + (u.varSem >= 3 ? 3 : u.varSem >= 2 ? 1 : 0);
+            accentCands.push({ hex: hex, score: s, count: u.count });
+        }
+    }
+    accentCands.sort(function (a, b) { return b.score - a.score; });
+    matches.push({ role: "accentCandidates", list: accentCands.slice(0, 6).map(function (c) { return { hex: c.hex, score: Math.round(c.score * 100) / 100, count: c.count }; }) });
+    report.matches = matches;
+    return report;
+}
+
+function generateLognTheme(cssText) {
+    if (!cssText || typeof cssText !== 'string') return "";
+    let report = null;
+    try {
+        report = my1loAnalyzeTheme(cssText);
+        if (typeof window !== "undefined") { window.my1loThemeReport = report; }
+    } catch (e) {
+        console.log("[my1lo.theme] analysis error:", e);
+    }
+    if (report && report.brand) {
+        console.log("[my1lo.theme]", report.matches);
+    } else {
+        console.log("[my1lo.theme] no brand color detected");
+    }
+    if (!report || !report.brand) return "";
+    const brand = report.brand;
+    const brandHex = report.brandHex || brand;
+    const brandDark = report.brandDark || brand;
+    const onBrand = report.onBrand || "#ffffff";
+    const lightBg = report.lightBg || "#ffffff";
+    const glow = report.glow || my1loToRgba(brand, 0.25);
+    let css = "";
+    css += ".modal .card-header { background-color: " + brandHex + " !important; border-color: " + brandHex + " !important; }\n";
+    css += ".modal .card-header .card-title { color: " + onBrand + " !important; }\n";
+    css += ".modal .card-header .btn-close { filter: " + (onBrand === "#ffffff" ? "invert(1)" : "none") + "; }\n";
+    css += ".modal .card-body { background-color: " + lightBg + " !important; }\n";
+    css += "#getOtpBtn, #verifyOtpBtn { background-color: " + brandHex + " !important; border-color: " + brandHex + " !important; color: " + onBrand + " !important; }\n";
+    css += "#getOtpBtn:hover, #getOtpBtn:focus, #verifyOtpBtn:hover, #verifyOtpBtn:focus { background-color: " + brandDark + " !important; border-color: " + brandDark + " !important; color: " + onBrand + " !important; }\n";
+    css += "#getOtpBtn:disabled { background-color: " + brandHex + " !important; border-color: " + brandHex + " !important; opacity: 0.55; }\n";
+    css += "#resendOtp { border-color: " + brandHex + " !important; color: " + brandHex + " !important; }\n";
+    css += "#resendOtp:hover { background-color: " + brandHex + " !important; color: " + onBrand + " !important; }\n";
+    css += ".modal .text-primary, .modal a.text-primary { color: " + brandHex + " !important; }\n";
+    css += "#mobileDigitsContainer input.form-control, #otpDigitsContainer input.form-control, #loginCountryCode.form-select, #loginName.form-control, #localName.form-control { border-color: #495057 !important; }\n";
+    if (glow) {
+        css += "#mobileDigitsContainer input.form-control:focus, #otpDigitsContainer input.form-control:focus, #loginCountryCode.form-select:focus, #loginName.form-control:focus, #localName.form-control:focus { border-color: #495057 !important; box-shadow: 0 0 0 0.2rem " + glow + " !important; }\n";
+    } else {
+        css += "#mobileDigitsContainer input.form-control:focus, #otpDigitsContainer input.form-control:focus, #loginCountryCode.form-select:focus, #loginName.form-control:focus, #localName.form-control:focus { border-color: #495057 !important; }\n";
+    }
+    return css;
+}
+
+function injectMy1loTheme(css) {
+    if (!css) return;
+    let styleEl = document.getElementById("my1lo_project_style");
+    if (!styleEl) {
+        styleEl = document.createElement("style");
+        styleEl.id = "my1lo_project_style";
+        document.head.appendChild(styleEl);
+    }
+    styleEl.textContent = css;
 }
 
 function clearMobileDigitError(e) {
@@ -1027,6 +1395,7 @@ function getOtpFromInputs() {
 
 // Main function to open the login modal
 async function open_shoLgnO(...args) {
+
     if (typeof requestWakeLock === 'function') { await requestWakeLock(); }
     id_of_dv_shoLgnO_to_set_processed_dom_object = "dv_to_set_open_shoLgnO_processed";
     switch_shoLgnO_create_nw_modal = args[1] || 0;
@@ -1081,6 +1450,9 @@ async function open_shoLgnO(...args) {
     setupL3EventListeners();
     saveBodyStyles();
     document.body.style.overflow = "hidden";
+    if (appcss) { injectMy1loTheme(generateLognTheme(appcss)); }
+    //let my1lo_style = null;
+    //if (my1lo_style) { injectMy1loTheme(generateLognTheme(my1lo_style)); }
     window.currentLoginModal.modalInstance.show();
     setupOtpTextToggle();
 }

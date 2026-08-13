@@ -1,7 +1,9 @@
 async function set_owner() {
+ let appcss = null;
  const pathParts = window.location.pathname.split('/').filter(p => p);
  const eo = pathParts[0] || "0.0000000000";
  const ec = pathParts[1] || "z";
+ let xtraj_payload = null;
 
  window.appOwner = {
   tn: `${eo}_${ec}`.replace(/\./g, "_"),
@@ -1345,6 +1347,8 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
    if (t343mp.su == 2) {
     return Promise.reject(new Error("first accept login"));
    } else if (t343mp.su == 0) {
+    xtraj_payload = jsonPayload;
+    xtraj_payload.endP = url;
     if (shoLoginByOas2orByPas1 > 0) {
      if (shoLoginByOas2orByPas1 == 2) {
       const t1170 = getCacheId("my1lo.js");
@@ -1360,7 +1364,7 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
        await loadExecFn('open_shoLgnP', 'open_shoLgnP', ['dv_to_set_open_shoLgnP_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@c68ab18/cmn/my1lp.js', []);
      }
      window.suppressModals = true;
-      return;
+     return;
      // Immediately remove any full-screen loaders so they stop the moment the login modal appears
      document.querySelectorAll('div').forEach(function (el) {
       var st = el.style;
@@ -2566,7 +2570,7 @@ window.set_owner = set_owner;
 
  const appPath = vMatch[1].replace(/\.js$/, '.min.js');
  const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + hash + '/' + appPath;
- //const url = appPath;
+ //const url = 'git/o.js';
  set_owner();
  loadPromiseScript(url);
 })();
