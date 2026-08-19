@@ -98,7 +98,7 @@
         var parts = value.split(/\s+/);
         if (parts.length >= 1 && /^[A-Za-z0-9_-]{20,}$/.test(parts[0])) {
             var fileId = thumbnail && parts[1] ? parts[1] : parts[0];
-            return 'https://lh3.googleusercontent.com/d/' + fileId + '=s0?authuser=0';
+            return 'https://lh3.googleusercontent.com/d/' + fileId + '=w300?authuser=0';
         }
         return value;
     }
@@ -370,7 +370,7 @@
         return packageIndex;
     }
 
-    var BATCH_SIZE = 14;
+    var BATCH_SIZE = 15;
     var _scrollObserver = null;
     var _scrollSentinel = null;
 
@@ -395,7 +395,7 @@
         const minQty = priceInfo ? priceInfo.min : "";
         const maxQty = priceInfo ? priceInfo.max : "";
         const increment = priceInfo ? priceInfo.increment : "";
-        const imgUrl = getGoogleDriveImageUrl(product.thumb) || getGoogleDriveImageUrl(product.image) || PLACEHOLDER_IMG;
+        const imgUrl = getGoogleDriveImageUrl(product.thumb);// || PLACEHOLDER_IMG;//getGoogleDriveImageUrl(product.image) || PLACEHOLDER_IMG;
         var unitShort = "";
         var unitFull = "";
         if (selectedUnitId && window.UNIT_DATA) {
@@ -446,7 +446,7 @@
 
         var card = '<div class="sp-card" onclick="window.showProductDetailModal(\'' + productId + '\')">';
         if (discount > 0) card += '<span class="sp-discount">Margin ' + discount + '%</span>';
-        card += '<div class="sp-img-wrap position-relative overflow-hidden"><img class="sp-qimg" data-src="' + imgUrl + '" alt="' + window.escapeHTML(productName) + '" onerror="this.src=\'' + PLACEHOLDER_IMG + '\'"></div>';
+        card += '<div class="sp-img-wrap position-relative overflow-hidden"><img class="sp-qimg" data-src="' + imgUrl + '" alt="' + window.escapeHTML(productName) + '" loading="lazy" onerror="this.src=\'' + PLACEHOLDER_IMG + '\'"></div>';
         card += '<h6 class="sp-name" title="' + window.escapeHTML(productName) + '">' + window.escapeHTML(productName) + '</h6>';
         card += '<div class="sp-info-row"><span class="sp-pkg" id="size_' + productId + '">' + (packageSize ? packageSize + ' ' + unitShort.toUpperCase() : '') + '</span><span class="sp-price-wrap" id="price_' + productId + '"><span class="sp-price">₹ ' + sellingPrice + '</span>' + (mrp > sellingPrice ? '<span class="text-secondary mrp-text fw-bold">MRP </span><span class="sp-mrp">₹ ' + mrp + '</span>' : '') + '</span></div>';
         card += selectorsRow;

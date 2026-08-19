@@ -6,24 +6,24 @@
 
     // Menu items configuration
     window.burgerMenuItems = [
-        //{ "icon": "fa-home", "label": "Home", "action": "home", "color": "#0d6efd" },
         //{ "icon": "fa-home", "label": "Manage Category", "action": "newproductcate", "color": "#0d6efd" },
         //{ "icon": "fa-plus-circle", "label": "Manage Products", "action": "mn_prods", "color": "#198754" },
         //{ "icon": "fa-users", "label": "Manage Parties", "action": "parties", "color": "#6f42c1" },
         //{ "icon": "fa-percent", "label": "Manage Orders", "action": "mn_or", "color": "#dc3545" },
         //{ "icon": "fa-star", "label": "Best Sellers", "action": "bestsellers", "color": "#ffc107" },
-        { "icon": "fa-clock", "label": "Recent Orders", "action": "recent", "color": "#0dcaf0" },
+        //{ "icon": "fa-clock", "label": "Recent Orders", "action": "recent", "color": "#0dcaf0" },
         //{ "icon": "fa-heart", "label": "Favorites", "action": "favorites", "color": "#d63384" },
         { "icon": "fa-broom", "label": "Clear Cache", "action": "clr_cache", "color": "#dc3545" },
         { "icon": "fa-cog", "label": "Settings", "action": "settings", "color": "#6c757d" },
         { "icon": "fa-info-circle", "label": "About", "action": "about", "color": "#6610f2" },
         { "icon": "fa-phone", "label": "Contact", "action": "contact", "color": "#fd7e14" },
+        { "icon": "fa-sign-in-alt", "label": "Special Login", "action": "home", "color": "#0d6efd" },
     ];
 
     // Add admin menu items from config if they exist (at the top)
     if (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].adminMenuItems && Array.isArray(window[my1uzr.worknOnPg].adminMenuItems)) {
-        window[my1uzr.worknOnPg].adminMenuItems.reverse().forEach(function (item) {
-            window.burgerMenuItems.unshift(item);
+        window[my1uzr.worknOnPg].adminMenuItems.forEach(function (item) {
+            window.burgerMenuItems.push(item);
         });
     }
 
@@ -214,46 +214,21 @@
         setTimeout(async () => {
             // Handle different actions
             switch (action) {
-                // case 'home':
-                //     if (typeof showToast === 'function') {
-                //         showToast('You are already on Home page', { type: 'info', duration: 2000 });
-                //     }
-                //     window.scrollTo({ top: 0, behavior: 'smooth' });
-                //     break;
 
-                // case 'newproductcate':
-                //     try {
-                //         if (typeof loadExe2Fn !== 'function') {
-                //             if (typeof showToast === 'function') {
-                //                 showToast('Loader function not available', { type: 'error', duration: 2000 });
-                //             }
-                //             return;
-                //         }
-                //         (async () => { await loadExe2Fn(17, ['category'], [1]); })();
-                //         // The ed_prod.js will automatically show the product list
-                //         if (typeof showProductList === 'function') {
-                //             //showProductList('category');
-                //         } else {
-                //             if (typeof showToast === 'function') {
-                //                 showToast('Category management loading...', { type: 'info', duration: 2000 });
-                //             }
-                //         }
-                //     } catch (error) {
-                //         console.error('Failed to load ed_prod.js:', error);
-                //         if (typeof showToast === 'function') {
-                //             showToast('Failed to load product management. Please try again.', { type: 'error', duration: 3000 });
-                //         }
-                //     }
-                //     break;
+                case 'home':
+                    const t351mp = await chkIfLoggedIn();
+                    if (t351mp.su == 1)
+                        window.showsuccessmodal("Massage:" + t351mp.ms);
+                    else
+                        (async () => { await loadExe2Fn(31, [], [1]); })();
+                    break;
 
                 case 'mn_prods':
                     try {
 
                         (async () => { await loadExe2Fn(17, ['product'], [1]); })();
 
-                        // The ed_prod.js will automatically show the product list
                         if (typeof showProductList === 'function') {
-                            //showProductList('product');
 
                         } else {
                             if (typeof showToast === 'function') {
@@ -269,19 +244,12 @@
                     }
                     break;
 
-                // case 'parties':
-                //     if (typeof showToast === 'function') {
-                //         showToast('Loading Parties...', { type: 'info', duration: 2000 });
-                //     }
-                //     break;
-
                 case 'mn_or':
                     try {
 
                         (async () => { await loadExe2Fn(26, ['product'], [1]); })();
-                        // The ed_prod.js will automatically show the product list
+
                         if (typeof showProductList === 'function') {
-                            //showProductList('product');
 
                         } else {
                             if (typeof showToast === 'function') {
@@ -293,12 +261,6 @@
                         window.showelsemodal(error || "500");
                     }
                     break;
-
-                // case 'bestsellers':
-                //     if (typeof showToast === 'function') {
-                //         showToast('Showing best sellers', { type: 'success', duration: 2000 });
-                //     }
-                //     break;
 
                 case 'recent':
                     try {
@@ -317,12 +279,6 @@
                         window.showelsemodal(error || "500");
                     }
                     break;
-
-                // case 'favorites':
-                //     if (typeof showToast === 'function') {
-                //         showToast('Loading your favorites...', { type: 'info', duration: 2000 });
-                //     }
-                //     break;
 
                 case 'settings':
                     if (typeof showToast === 'function') {
@@ -351,6 +307,14 @@
                 case 'driver_panel':
                     try {
                         (async () => { await loadExe2Fn(29, [], [1]); })();
+                    } catch (error) {
+                        window.showelsemodal(error || "500");
+                    }
+                    break;
+
+                case 'showMyDrvPanel':
+                    try {
+                        (async () => { await loadExe2Fn(32, [], [1]); })();
                     } catch (error) {
                         window.showelsemodal(error || "500");
                     }

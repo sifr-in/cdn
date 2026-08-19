@@ -58,8 +58,8 @@
     // Load data from IndexedDB
     async function loadPermissionsFromDB() {
         try {
-            var fnfpRecords = await dbDexieManager.getAllRecords(dbnm, 'fn_lst_fp');
-            var fnfRecords = await dbDexieManager.getAllRecords(dbnm, 'fn_lst_f');
+            var fnfpRecords = await dbDexieManager.getAllRecords(dbnm, 'f');
+            var fnfRecords = await dbDexieManager.getAllRecords(dbnm, 'fp');
 
             // Store in global for easy access
             if (!window[my1uzr.worknOnPg]) window[my1uzr.worknOnPg] = {};
@@ -322,7 +322,7 @@
                         if (typeof payload0 !== 'undefined') {
                             payload0.fn = 95;
                             payload0.vw = 1;
-                            payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'fn_lst_fp' }, { "tb": 'fn_lst_f' }]);
+                            payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'fp' }, { "tb": 'f' }]);
 
                             var _ldId = 'myct_ld_' + Date.now();
                             var _ldDiv = document.createElement('div');
@@ -331,7 +331,7 @@
                             _ldDiv.innerHTML = '<div class="spinner-border text-light" role="status"></div>';
                             document.body.appendChild(_ldDiv);
 
-                            var response = await fnj3("https://my1.in/3/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
+                            var response = await fnj3("https://my1.in/3/c.php", payload0, 1, true, null, 20000, 0, 2, 1);
                             var _ldEl = document.getElementById(_ldId);
                             if (_ldEl) _ldEl.remove();
 

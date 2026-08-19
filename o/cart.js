@@ -112,6 +112,11 @@
         return (qty / increment) * selling;
     }
 
+    function customRound(value) {
+        if (value % 1 >= 0.40) return Math.ceil(value);
+        return Math.floor(value);
+    }
+
     function normalizeCartKeys() {
         var newCart = {};
         var newItems = {};
@@ -301,7 +306,7 @@
     window.getCartTotal = function () {
         let total = 0;
         for (const key in window.CART) { const item = window.CART_ITEMS[key]; if (item && item.priceInfo) total += getItemTotal(window.CART[key], item.priceInfo); }
-        return total;
+        return customRound(total);
     };
 
     // Open cart modal - using create_fullpage_view
@@ -410,13 +415,13 @@
             });
 
             html += `</div>`;
-            const totalAfterDiscount = grandTotal;
+            const totalAfterDiscount = customRound(grandTotal);
             const showCstInput = window[my1uzr.worknOnPg]?.showInputCst === 1;
             html += `
                 <div class="border-top pt-3 mt-3">
                     <div class="d-flex justify-content-between mb-3">
                         <span class="fw-bold">Total</span>
-                        <span class="fw-bold text-primary fs-5">₹${totalAfterDiscount.toFixed(2)}</span>
+                        <span class="fw-bold text-primary fs-5">₹${totalAfterDiscount}</span>
                     </div>
                     ${showCstInput ? `
                     <div class="mb-3" style="background:#f0f7fa;padding:10px;border-radius:8px;border:1px solid #b8daff;">
@@ -478,33 +483,34 @@
     // Checkout - unchanged logic, just close via fp-close
     window.checkoutCart = async function () {
         try {
-                if (Object.keys(window.CART).length === 0) return;
-                var confirmMessage = 'Confirm your order:\n\n';
-                var totalItems = 0; var grandTotal = 0;
-                Object.keys(window.CART).forEach(function (cartKey) {
-                    var qty = window.CART[cartKey] || 0;
-                    var item = window.CART_ITEMS[cartKey];
-                    if (!item || qty <= 0) return;
-                    var product = item.product; var productName = product.name || 'Product';
-                    var unitId = item.unitId; var packageSize = item.packageSize || '';
-                    var unitShort = '';
-                    if (window.UNIT_DATA) { var foundUnit = window.UNIT_DATA.find(function (u) { return String(u.a) === String(unitId); }); if (foundUnit) unitShort = foundUnit.f || ''; }
-                    var packageText = packageSize ? packageSize + ' ' + unitShort : '';
-                    confirmMessage += '• ' + productName + ' - Qty: ' + qty + (packageText ? ' (' + packageText + ')' : '') + '\n';
-                    totalItems += qty;
-                    var priceInfo = item.priceInfo;
-                    if (priceInfo) { var increment = Number(priceInfo.increment || 1); var selling = Number(priceInfo.selling || 0); grandTotal += (qty / increment) * selling; }
-                });
-                confirmMessage += '\nTotal Items: ' + totalItems + '\nTotal Amount: ₹' + grandTotal.toFixed(2) + '\n\nNeeds any thing else?, Proceed with order?';
+            if (Object.keys(window.CART).length === 0) return;
+            var confirmMessage = 'Confirm your order:\n\n';
+            var totalItems = 0; var grandTotal = 0;
+            Object.keys(window.CART).forEach(function (cartKey) {
+                var qty = window.CART[cartKey] || 0;
+                var item = window.CART_ITEMS[cartKey];
+                if (!item || qty <= 0) return;
+                var product = item.product; var productName = product.name || 'Product';
+                var unitId = item.unitId; var packageSize = item.packageSize || '';
+                var unitShort = '';
+                if (window.UNIT_DATA) { var foundUnit = window.UNIT_DATA.find(function (u) { return String(u.a) === String(unitId); }); if (foundUnit) unitShort = foundUnit.f || ''; }
+                var packageText = packageSize ? packageSize + ' ' + unitShort : '';
+                confirmMessage += '• ' + productName + ' - Qty: ' + qty + (packageText ? ' (' + packageText + ')' : '') + '\n';
+                totalItems += qty;
+                var priceInfo = item.priceInfo;
+                if (priceInfo) { var increment = Number(priceInfo.increment || 1); var selling = Number(priceInfo.selling || 0); grandTotal += (qty / increment) * selling; }
+            });
+            grandTotal = customRound(grandTotal);
+            confirmMessage += '\nTotal Items: ' + totalItems + '\nTotal Amount: ₹' + grandTotal + '\n\nNeeds any thing else?, Proceed with order?';
 
-                if (typeof create_modal_dynamically === 'function') {
-                    var modalId = 'confirmOrderModal_' + Date.now();
-                    var modalResult = create_modal_dynamically(modalId);
-                    if (modalResult) {
-                        var contentElement = modalResult.contentElement;
-                        var modalInstance = modalResult.modalInstance;
-                        var modalElement = document.getElementById(modalId);
-                        contentElement.innerHTML = `
+            if (typeof create_modal_dynamically === 'function') {
+                var modalId = 'confirmOrderModal_' + Date.now();
+                var modalResult = create_modal_dynamically(modalId);
+                if (modalResult) {
+                    var contentElement = modalResult.contentElement;
+                    var modalInstance = modalResult.modalInstance;
+                    var modalElement = document.getElementById(modalId);
+                    contentElement.innerHTML = `
                             <div class="p-2">
                                 <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                                     <h5 class="mb-0"><i class="fas fa-check-circle me-2 text-success"></i>Confirm Order</h5>
@@ -515,24 +521,24 @@
                                     <button class="btn btn-success" id="confirmOrderBtn_${modalId}"><i class="fas fa-check me-1"></i>Confirm Order</button>
                                 </div>
                             </div>`;
-                        setTimeout(function () {
-                            var dialog = modalElement.querySelector('.modal-dialog');
-                            if (dialog) { dialog.style.marginTop = '60px'; dialog.style.maxWidth = 'auto'; }
-                        }, 50);
-                        var confirmBtn = document.getElementById('confirmOrderBtn_' + modalId);
-                        if (confirmBtn) {
-                            confirmBtn.addEventListener('click', function () {
-                                modalInstance.hide();
-                                if (window._cartViewInstance) window._cartViewInstance.hide();
-                                isCartModalOpen = false;
-                                processOrder();
-                            });
-                        }
-                        modalInstance.show();
-                        return;
+                    setTimeout(function () {
+                        var dialog = modalElement.querySelector('.modal-dialog');
+                        if (dialog) { dialog.style.marginTop = '60px'; dialog.style.maxWidth = 'auto'; }
+                    }, 50);
+                    var confirmBtn = document.getElementById('confirmOrderBtn_' + modalId);
+                    if (confirmBtn) {
+                        confirmBtn.addEventListener('click', function () {
+                            modalInstance.hide();
+                            if (window._cartViewInstance) window._cartViewInstance.hide();
+                            isCartModalOpen = false;
+                            processOrder();
+                        });
                     }
+                    modalInstance.show();
+                    return;
                 }
-                if (confirm(confirmMessage)) processOrder();
+            }
+            if (confirm(confirmMessage)) processOrder();
         } catch (error) { window.showelsemodal(error || "500"); }
     };
 
@@ -550,8 +556,8 @@
                 var stockId = product.S?.a || product.sid || '';
                 items.push({ f: stockId, g: qty, h: item.unitId || '', i: item.packageSize || '', j: item.priceInfo?.selling || '', s: window._checkoutCustomerId || '' });
             });
-                payload0.p = items;
-                payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'o'},{ "tb": 'os'}]);
+            payload0.p = items;
+            payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'o' }, { "tb": 'os' }]);
 
             var _ldId = 'cart_ld_' + Date.now();
             var _ldDiv = document.createElement('div');
@@ -564,17 +570,20 @@
                 const response = await fnj3("https://my1.in/3/a.php", payload0, 1, true, null, 20000, 0, 2, 1);
                 var _ldEl = document.getElementById(_ldId);
                 if (_ldEl) _ldEl.remove();
+
                 if (response && response.su == 1) {
-                    handl_o_rspons(response, 1); //handle la in backend
-                    if (typeof create_modal_dynamically === 'function') showResponseModal('success', response.ms || 'Order placed successfully! 🎉', response);
-                    else if (typeof showToast === 'function') showToast(response.ms || 'Order placed successfully!', { type: 'success', duration: 3000 });
-                    setTimeout(function () { window.clearCart(); window._checkoutCustomerId = ''; window._checkoutCustomerName = ''; }, 500);
-                    setTimeout(function () { location.reload(); }, 2000);
+                    hndlRspo77(response);
                 } else { window.showelsemodal(response?.ms || 'Failed to save.'); }
             } catch (error) { var _ldEl2 = document.getElementById(_ldId); if (_ldEl2) _ldEl2.remove(); window.showelsemodal(error || '404'); }
         }
     }
-
+    async function hndlRspo77(response) {
+        await handl_o_rspons(response, 1); //handle la in backend
+        if (typeof create_modal_dynamically === 'function') showResponseModal('success', response.ms || 'Order placed successfully! 🎉', response);
+        else if (typeof showToast === 'function') showToast(response.ms || 'Order placed successfully!', { type: 'success', duration: 3000 });
+        setTimeout(function () { window.clearCart(); window._checkoutCustomerId = ''; window._checkoutCustomerName = ''; }, 500);
+        //setTimeout(function () { location.reload(); }, 2000);
+    }
     function showResponseModal(type, message, data) {
         var modalId = 'responseModal_' + Date.now();
         var modalResult = create_modal_dynamically(modalId);
@@ -635,6 +644,7 @@
     window.createCartIcon = createCartIcon;
     window.getCartKey = getCartKey;
     window.saveCart = saveCart;
+    window.hndlRspo77 = hndlRspo77;
 
     console.log('cart.js loaded successfully');
 

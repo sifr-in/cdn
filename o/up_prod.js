@@ -244,10 +244,7 @@
                         var _ldEl = document.getElementById(_ldId);
                         if (_ldEl) _ldEl.remove();
                         if (response && response.su == 1) {
-                            if (typeof handl_o_rspons === 'function') handl_o_rspons(response, 1);
-                            window.showsuccessmodal(response.ms || 'Product updated');
-                            modalInstance.hide();
-                            setTimeout(() => location.reload(), 300);
+                            hndlRspo83(response);
                         } else {
                             isProcessing = false;
                             if (sb) { sb.disabled = false; sb.innerHTML = '<i class="fas fa-save me-1"></i>Update Product'; }
@@ -319,5 +316,12 @@
     document.head.appendChild(st);
 
     console.log('up_prod.js loaded successfully');
+    function hndlRspo83(response) {
+        handl_o_rspons(response, 1);
+        window.showsuccessmodal(response.ms || 'Product updated');
+        modalInstance.hide();
+        //setTimeout(() => location.reload(), 300);
+    }
+    window.hndlRspo83 = hndlRspo83;
 
 })();

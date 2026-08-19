@@ -283,7 +283,6 @@ function decodeSoldIn(str) {
 
     var result = {};
     var groups = str.split(';').map(function (g) { return g.trim(); }).filter(Boolean);
-
     groups.forEach(function (group) {
         var dashIndex = group.indexOf('-');
         if (dashIndex === -1) return;
@@ -310,7 +309,6 @@ function decodeSoldIn(str) {
             result[unitId] = prices;
         }
     });
-
     if (Object.keys(result).length === 0) {
         return {
             "30": [
@@ -325,7 +323,5 @@ function decodeSoldIn(str) {
             ]
         };
     }
-
     return result;
 }
-

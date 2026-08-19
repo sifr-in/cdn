@@ -91,11 +91,7 @@
             if (_ldEl) _ldEl.remove();
 
             if (response && response.su == 1) {
-                if (typeof handl_o_rspons === 'function') {
-                    handl_o_rspons(response, 1);
-                }
-                window.showsuccessmodal('Orders fetched successfully');
-                return true;
+                await hndlRspo81(response);
             } else {
                 window.showelsemodal(response?.ms || 'Failed to fetch orders. Please try again.');
                 return false;
@@ -107,7 +103,11 @@
             return false;
         }
     }
-
+    async function hndlRspo81(response) {
+        await handl_o_rspons(response, 1);
+        window.showsuccessmodal('Orders fetched successfully');
+        return true;
+    }
     async function getGroupedOrders() {
         try {
             const allOrders = await dbDexieManager.getAllRecords(dbnm, 'o');
@@ -508,6 +508,7 @@
     addStyles();
 
     // Expose functions globally
+    window.hndlRspo81 = hndlRspo81;
     window.showManageOrders = showManageOrders;
     window.showOrderHistoryForCustomer = window.showOrderHistoryForCustomer;
     window.filterOrdersByStatus = window.filterOrdersByStatus;

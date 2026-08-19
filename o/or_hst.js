@@ -622,7 +622,7 @@
         payload0.fn = 88;
         payload0.o = selectedItemIds.map(id => ({ e: id, d: selectedChosenStatus }));
         if (selectedDriverId) payload0.drvr = selectedDriverId;
-        payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'os' },{ "tb": 'od' }]);
+        payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'os' }, { "tb": 'od' }]);
 
         console.log('Status update payload:', payload0);
 
@@ -638,23 +638,7 @@
             var _ld = document.getElementById(_ohLoaderId);
             if (_ld) _ld.remove();
             if (response && response.su == 1) {
-                handl_o_rspons(response, 1);
-                selectedItemIds = [];
-                selectedChosenStatus = null;
-                window.showsuccessmodal(response.ms || "Status updated successfully!", function () {
-                    var idx = (window._fpNavStack || []).indexOf(modalId);
-                    if (idx >= 0) {
-                        window._fpNavStack.splice(idx, 1);
-                        var el = document.getElementById(modalId);
-                        if (el) {
-                            el.dispatchEvent(new Event('fp-close'));
-                            el.remove();
-                        }
-                    }
-                    setTimeout(function () {
-                        if (window[my1uzr.worknOnPg]) window.showOrderHistoryForCustomer(window[my1uzr.worknOnPg].showHstfrmMO);
-                    }, 300);
-                });
+                hndlRspo88(response);
             } else {
                 window.showelsemodal(response?.ms || 'Failed to update status.');
             }
@@ -664,6 +648,26 @@
             window.showelsemodal(error || 'Network Error');
         }
     };
+
+    async function hndlRspo88(response) {
+        await handl_o_rspons(response, 1);
+        selectedItemIds = [];
+        selectedChosenStatus = null;
+        window.showsuccessmodal(response.ms || "Status updated successfully!", function () {
+            var idx = (window._fpNavStack || []).indexOf(modalId);
+            if (idx >= 0) {
+                window._fpNavStack.splice(idx, 1);
+                var el = document.getElementById(modalId);
+                if (el) {
+                    el.dispatchEvent(new Event('fp-close'));
+                    el.remove();
+                }
+            }
+            setTimeout(function () {
+                if (window[my1uzr.worknOnPg]) window.showOrderHistoryForCustomer(window[my1uzr.worknOnPg].showHstfrmMO);
+            }, 300);
+        });
+    }
 
     window.toggleCancelItem = function (orderIndex, itemIndex, modalId, uniqueItemId) {
         const modalEl = document.getElementById(modalId);
@@ -746,32 +750,7 @@
                 var _ldEl = document.getElementById(_ldId);
                 if (_ldEl) _ldEl.remove();
                 if (response && response.su == 1) {
-                    handl_o_rspons(response, 0);//backen la must be handled
-                    const deletedCount = await deleteOrderItemsFromDB(response.ok || []);
-                    itemsToCancel = [];
-
-                    const modalEl = document.getElementById(modalId);
-                    if (modalEl) {
-                        const bsModal = bootstrap.Modal.getInstance(modalEl);
-                        if (bsModal) bsModal.hide();
-                    }
-
-                    setTimeout(() => {
-                        window.showsuccessmodal("Deleted Successfully: " + deletedCount, function () {
-                            var idx = window._fpNavStack ? window._fpNavStack.indexOf(modalId) : -1;
-                            if (idx >= 0) {
-                                window._fpNavStack.splice(idx, 1);
-                                var el = document.getElementById(modalId);
-                                if (el) {
-                                    el.dispatchEvent(new Event('fp-close'));
-                                    el.remove();
-                                }
-                            }
-                            setTimeout(function () {
-                                window.howOrderHistoryModal(filterCustomerId);
-                            }, 300);
-                        });
-                    }, 500);
+                    hndlRspo84(response, modalId);
                 } else {
                     window.showelsemodal(response?.ms || 'Failed to save.');
                 }
@@ -782,6 +761,35 @@
             }
         }
     };
+
+    async function hndlRspo84(response, modalId) {
+        await handl_o_rspons(response, 0);//backen la must be handled
+        const deletedCount = await deleteOrderItemsFromDB(response.ok || []);
+        itemsToCancel = [];
+
+        const modalEl = document.getElementById(modalId);
+        if (modalEl) {
+            const bsModal = bootstrap.Modal.getInstance(modalEl);
+            if (bsModal) bsModal.hide();
+        }
+
+        setTimeout(() => {
+            window.showsuccessmodal("Deleted Successfully: " + deletedCount, function () {
+                var idx = window._fpNavStack ? window._fpNavStack.indexOf(modalId) : -1;
+                if (idx >= 0) {
+                    window._fpNavStack.splice(idx, 1);
+                    var el = document.getElementById(modalId);
+                    if (el) {
+                        el.dispatchEvent(new Event('fp-close'));
+                        el.remove();
+                    }
+                }
+                setTimeout(function () {
+                    window.howOrderHistoryModal(filterCustomerId);
+                }, 300);
+            });
+        }, 500);
+    }
 
     function addStyles() {
         if (document.getElementById('orderHistoryStyles')) return;
@@ -804,5 +812,7 @@
 
     addStyles();
     console.log('orders_history.js loaded successfully');
+    window.hndlRspo88 = hndlRspo88;
+    window.hndlRspo84 = hndlRspo84;
 
 })();

@@ -192,6 +192,36 @@ var escapeHTML = function (str) {
  return div.innerHTML;
 };
 
+async function chkModuLstAgainstFNF(moduLst) {
+    let temp11 = [];
+    if (
+        typeof dbDexieManager === "undefined" ||
+        typeof dbDexieManager.getAllRecords !== "function"
+    ) {
+        return temp11;
+    }
+    const tableHandal_f = await dbDexieManager.getAllRecords(dbnm, 'f');
+    moduLst.forEach(module => {
+        // Convert ",82,72,86," → ["82", "72", "86"]
+        const moduleIds = module.a
+            .split(',')
+            .filter(id => id !== '');
+        // Check whether ANY module ID matches record.h
+        const isMatched = tableHandal_f.some(record =>
+            moduleIds.includes(String(record.h))
+        );
+        if (isMatched) {
+            // Remove "a" before adding
+            const { a, ...moduleWithoutA } = module;
+            temp11.push(moduleWithoutA);
+        }
+    });
+    if(temp11.length === 0)
+      window.showelsemodal("Not Allowed");
+    temp11.hook = moduLst.hook || "onModuLstAllowed";
+    return temp11;
+}
+
 const monthFullNms = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const monthShortNms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -1330,7 +1360,7 @@ function getCacheId(fileName) {
 
  return item ? item.a : null;
 }
-async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderId = null, timeout = 20000, maxRetries = 0, shoLoginByOas2orByPas1 = 0, registerAtOwnerIfNotRegistered = 1, showLoader = 1) {
+async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderId = null, timeout = 20000, maxRetries = 0, shoLoginByOas2orByPas1 = 0, registerAtOwnerIfNotRegistered = 1, showLoader = 1, isPubFN = false) {
  try {
   // Check internet connection first
   if (!navigator.onLine) {
@@ -1341,7 +1371,9 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
   if (!isConnected) {
    return Promise.reject(new Error("No stable internet connection"));
   }
-
+  // if (typeof publicFunctions === "string" && publicFunctions && !publicFunctions.includes(`,${jsonPayload.fn},`)) {
+  //     return Promise.reject(new Error("Not allowed to use this Funtion!"));
+  // }
   if (loginRequired_0_1 == 1) {
    const t343mp = await chkIfLoggedIn();
    if (t343mp.su == 2) {
@@ -2550,6 +2582,7 @@ document.addEventListener('DOMContentLoaded', function () {
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
 window.set_owner = set_owner;
+window.chkModuLstAgainstFNF = chkModuLstAgainstFNF;
 
 (function bootLoadAppScr() {
  const src = document.currentScript ? document.currentScript.src : '';
