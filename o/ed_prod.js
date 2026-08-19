@@ -1,11 +1,13 @@
 // ed_prod.js - Product & Category CRUD Management with Bootstrap styling
+let _delMode = null;
+let isCategoryMode = false; // false = product mode, true = category mode
+let _saveCtx = null;
 (function () {
     'use strict';
 
     // Global flags
     let isProcessing = false;
     let currentModalId = null;
-    let isCategoryMode = false; // false = product mode, true = category mode
     let _fpListModalId = null;
 
     const PLACEHOLDER_IMG = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50"><rect width="50" height="50" fill="#f0f0f0"/><text x="25" y="25" text-anchor="middle" dy=".3em" font-size="12" fill="#999" font-family="Arial">No</text></svg>');
@@ -811,296 +813,279 @@
                     form.onsubmit = async function (e) {
                         console.log('Form submit triggered!'); // ADD THIS DEBUG
                         e.preventDefault();
-                        
-                            if (isProcessing) return;
-                            isProcessing = true;
-                            const sb = this.querySelector('#cataPopSubmitBtn');
-                            if (sb) { sb.disabled = true; sb.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...'; }
-                            try {
-                                const fd2 = new FormData(this);
-                                let nm = (fd2.get('e') || '').trim();
 
-                                if (!nm && isEdit) {
-                                    nm = item.e || '';
-                                }
-                                if (!nm) {
-                                    if (typeof showToast === 'function') showToast((isCategoryMode ? 'Category' : 'Product') + ' name required', { type: 'error', duration: 2000 });
-                                    isProcessing = false;
-                                    if (sb) { sb.disabled = false; sb.innerHTML = '<i class="fas fa-save me-1"></i>' + btnText; }
-                                    return;
-                                }
+                        if (isProcessing) return;
+                        isProcessing = true;
+                        const sb = this.querySelector('#cataPopSubmitBtn');
+                        if (sb) { sb.disabled = true; sb.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...'; }
+                        try {
+                            const fd2 = new FormData(this);
+                            let nm = (fd2.get('e') || '').trim();
 
-                                // Image handling
-                                const imageUrlInput = document.getElementById('cataPopImageUrlInput');
-                                const finalImageInput = document.getElementById('cataPopFinalImageUrl');
-                                const g1Input = document.getElementById('cataPopG1Input');
-                                const g2Input = document.getElementById('cataPopG2Input');
-                                const fileInput = document.getElementById('cataPopFileInput');
-                                const urlInput = document.getElementById('cataPopImageUrlInput');
+                            if (!nm && isEdit) {
+                                nm = item.e || '';
+                            }
+                            if (!nm) {
+                                if (typeof showToast === 'function') showToast((isCategoryMode ? 'Category' : 'Product') + ' name required', { type: 'error', duration: 2000 });
+                                isProcessing = false;
+                                if (sb) { sb.disabled = false; sb.innerHTML = '<i class="fas fa-save me-1"></i>' + btnText; }
+                                return;
+                            }
 
-                                // Check if we have file upload or URL
-                                const isFileUpload = fileInput && fileInput.files && fileInput.files.length > 0;
-                                const isUrlInput = urlInput && urlInput.value && urlInput.value.trim() !== '';
+                            // Image handling
+                            const imageUrlInput = document.getElementById('cataPopImageUrlInput');
+                            const finalImageInput = document.getElementById('cataPopFinalImageUrl');
+                            const g1Input = document.getElementById('cataPopG1Input');
+                            const g2Input = document.getElementById('cataPopG2Input');
+                            const fileInput = document.getElementById('cataPopFileInput');
+                            const urlInput = document.getElementById('cataPopImageUrlInput');
 
-                                let gValue = '';
-                                let goValue = '';
-                                let hoValue = '';
+                            // Check if we have file upload or URL
+                            const isFileUpload = fileInput && fileInput.files && fileInput.files.length > 0;
+                            const isUrlInput = urlInput && urlInput.value && urlInput.value.trim() !== '';
 
-                                if (isFileUpload) {
-                                    // File upload: g stays empty, g1 has display image, g2 has thumbnail
-                                    gValue = '';
-                                    goValue = g1Input ? (g1Input.value || '') : '';
-                                    hoValue = g2Input ? (g2Input.value || '') : '';
-                                    console.log('File upload mode - g1 length:', goValue.length, 'g2 length:', hoValue.length);
-                                } else if (isUrlInput) {
-                                    // URL input: g has URL, g1 has display, g2 has thumbnail
-                                    const originalUrl = urlInput.value.trim();
-                                    gValue = finalImageInput ? (finalImageInput.value || originalUrl) : originalUrl;
+                            let gValue = '';
+                            let goValue = '';
+                            let hoValue = '';
 
-                                    // If g1/g2 are empty (processing failed), store the original URL in g1 as fallback
-                                    goValue = g1Input ? (g1Input.value || originalUrl) : originalUrl;
-                                    hoValue = g2Input ? (g2Input.value || originalUrl) : originalUrl;
+                            if (isFileUpload) {
+                                // File upload: g stays empty, g1 has display image, g2 has thumbnail
+                                gValue = '';
+                                goValue = g1Input ? (g1Input.value || '') : '';
+                                hoValue = g2Input ? (g2Input.value || '') : '';
+                                console.log('File upload mode - g1 length:', goValue.length, 'g2 length:', hoValue.length);
+                            } else if (isUrlInput) {
+                                // URL input: g has URL, g1 has display, g2 has thumbnail
+                                const originalUrl = urlInput.value.trim();
+                                gValue = finalImageInput ? (finalImageInput.value || originalUrl) : originalUrl;
 
-                                    console.log('URL mode - g:', gValue.substring(0, 50), 'g1 length:', goValue.length, 'g2 length:', hoValue.length);
-                                } else if (isEdit && fd.g) {
-                                    // Edit mode: keep existing values
-                                    gValue = fd.g || '';
-                                    goValue = fd.g1 || fd.g || '';
-                                    hoValue = fd.g2 || fd.g || '';
-                                    console.log('Keep existing images - g:', gValue.substring(0, 50));
-                                } else {
-                                    // No image provided
-                                    gValue = '';
-                                    goValue = '';
-                                    hoValue = '';
-                                    console.log('No image provided');
-                                }
+                                // If g1/g2 are empty (processing failed), store the original URL in g1 as fallback
+                                goValue = g1Input ? (g1Input.value || originalUrl) : originalUrl;
+                                hoValue = g2Input ? (g2Input.value || originalUrl) : originalUrl;
 
-                                // Build p object with proper image values
-                                var p = {
-                                    e: nm
-                                };
+                                console.log('URL mode - g:', gValue.substring(0, 50), 'g1 length:', goValue.length, 'g2 length:', hoValue.length);
+                            } else if (isEdit && fd.g) {
+                                // Edit mode: keep existing values
+                                gValue = fd.g || '';
+                                goValue = fd.g1 || fd.g || '';
+                                hoValue = fd.g2 || fd.g || '';
+                                console.log('Keep existing images - g:', gValue.substring(0, 50));
+                            } else {
+                                // No image provided
+                                gValue = '';
+                                goValue = '';
+                                hoValue = '';
+                                console.log('No image provided');
+                            }
 
-                                // Only include image data for new items or if values changed
-                                if (!isEdit) {
+                            // Build p object with proper image values
+                            var p = {
+                                e: nm
+                            };
+
+                            // Only include image data for new items or if values changed
+                            if (!isEdit) {
+                                p.g = gValue;
+                                p.g1 = goValue;
+                                p.g2 = hoValue;
+                            } else {
+                                // For edit, only include if changed
+                                if (gValue && gValue !== fd.g) {
                                     p.g = gValue;
+                                }
+                                if (goValue && goValue !== fd.g1) {
                                     p.g1 = goValue;
+                                }
+                                if (hoValue && hoValue !== fd.g2) {
                                     p.g2 = hoValue;
+                                }
+                            }
+
+                            // Set category for non-category mode
+                            if (!isCategoryMode) {
+                                p.f = fd2.get('f') || '0';
+                            }
+
+                            // For update, include the ID
+                            if (isEdit && item && item.a) {
+                                p.a = item.a;
+                            }
+
+                            console.log('P object being sent:', {
+                                e: p.e,
+                                g: p.g ? p.g.substring(0, 30) + '...' : '(empty)',
+                                g1: p.g1 ? p.g1.substring(0, 30) + '...' : '(empty)',
+                                g2: p.g2 ? p.g2.substring(0, 30) + '...' : '(empty)',
+                                f: p.f,
+                                a: p.a
+                            });
+                            // Build new item object
+                            const newItem = {
+                                a: isEdit && item ? item.a : (isCategoryMode ? getNextCategoryId() : getNextProductId()),
+                                b: fd2.get('b') || getCurrentDateTime(),
+                                c: fd2.get('c') || '0',
+                                d: fd2.get('d') || '0',
+                                e: nm,
+                                f: isCategoryMode ? "0" : (fd2.get('f') || '0'),
+                                g: gValue,
+                                h: gValue,
+                                g1: goValue,
+                                g2: hoValue
+                            };
+
+                            // Prepare payload
+                            if (typeof payload0 !== 'undefined') {
+                                payload0.vw = 1;
+
+                                // For edit/update, use different endpoint and fn
+                                if (isEdit && !isCategoryMode) {
+                                    payload0.fn = 82;
+                                    // Don't send p for product updates - p is not needed for fn=82
+                                    delete payload0.p; // Ensure p is removed if it exists from previous calls
                                 } else {
-                                    // For edit, only include if changed
-                                    if (gValue && gValue !== fd.g) {
-                                        p.g = gValue;
-                                    }
-                                    if (goValue && goValue !== fd.g1) {
-                                        p.g1 = goValue;
-                                    }
-                                    if (hoValue && hoValue !== fd.g2) {
-                                        p.g2 = hoValue;
-                                    }
+                                    payload0.p = p;
+                                    payload0.fn = 72;
                                 }
 
-                                // Set category for non-category mode
+                                console.log('Submitting - isEdit:', isEdit, 'isCategoryMode:', isCategoryMode, 'fn:', payload0.fn);
+
+                                if (!isCategoryMode) {
+                                    // Product mode: include S object
+                                    const stockPartyId = document.getElementById('partyId')?.value || fd2.get('stock_party_id') || '';
+                                    const billId = fd2.get('bill_id') || '0';
+                                    const productId = fd2.get('product_id') || '0';
+                                    const purchasePrice = parseFloat(fd2.get('purchase_price')) || 0;
+                                    const quantityReceived = parseInt(fd2.get('quantity_received')) || 0;
+                                    const salesPrice = parseFloat(fd2.get('sales_price')) || 0;
+                                    const measuredInId = document.getElementById('measured_in_select')?.value || fd2.get('measured_in') || '';
+                                    const soldIn = generateSoldInString();
+                                    if (soldIn && soldIn.length > 256) {
+                                        showToast('Sold in value is too long', { duration: 2000 });
+                                        return;
+                                    }
+                                    const notes = fd2.get('notes') || '';
+                                    const globalProductId = fd2.get('global_product_id') || '0';
+
+                                    // For update, include S record ID
+                                    let sRecordId = 0;
+                                    if (isEdit && item && item.sid) {
+                                        sRecordId = item.sid;
+                                    }
+
+                                    payload0.s = {
+                                        e: parseInt(stockPartyId) || 0,
+                                        f: parseInt(billId) || 0,
+                                        g: parseInt(productId) || 0,
+                                        h: purchasePrice,
+                                        i: quantityReceived,
+                                        j: parseInt(measuredInId) || 0,
+                                        k: salesPrice,
+                                        l: soldIn,
+                                        m: notes || '',
+                                        n: parseInt(globalProductId) || 0
+                                    };
+
+                                    // For update, include S record ID (stockDetails.a is the stock ID from s table)
+                                    if (isEdit && stockDetails && stockDetails.a) {
+                                        payload0.s.a = parseInt(stockDetails.a) || 0;
+                                    }
+
+                                    // Add product-specific fields to newItem
+                                    newItem.stock_party_id = stockPartyId || '';
+                                    newItem.stock_party_name = document.getElementById('c_dtls_party')?.value || '';
+                                    newItem.bill_id = billId;
+                                    newItem.product_id = productId;
+                                    newItem.purchase_price = purchasePrice;
+                                    newItem.quantity_received = quantityReceived;
+                                    newItem.measured_in = measuredInId;
+                                    newItem.sales_price = salesPrice;
+                                    newItem.sold_in = soldIn;
+                                    newItem.notes = notes;
+                                    newItem.n = globalProductId;
+                                    // Store S ID for update
+                                    if (isEdit && item && item.sid) {
+                                        newItem.sid = item.sid;
+                                    }
+                                } else {
+                                    // Category mode: S is minimal
+                                    const quantityReceived = parseInt(fd2.get('quantity_received')) || 0;
+                                    payload0.s = {
+                                        e: 0, f: 0, g: 0, h: 0,
+                                        i: quantityReceived,
+                                        j: 0, k: 0, l: '', m: '', n: 0
+                                    };
+                                    newItem.f = quantityReceived;
+                                }
                                 if (!isCategoryMode) {
                                     p.f = fd2.get('f') || '0';
                                 }
+                                payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [
+                                    { "tb": 'c', "col": 'b', "cl": "b" },
+                                    { "tb": 'p', "col": 'b', "cl": "b" },
+                                    { "tb": 's', "col": 'b', "cl": "b" }
+                                ]);
+                                payload0.drml = "sambodhisarang.in";
 
-                                // For update, include the ID
-                                if (isEdit && item && item.a) {
-                                    p.a = item.a;
-                                }
+                                console.log('Payload:', payload0);
 
-                                console.log('P object being sent:', {
-                                    e: p.e,
-                                    g: p.g ? p.g.substring(0, 30) + '...' : '(empty)',
-                                    g1: p.g1 ? p.g1.substring(0, 30) + '...' : '(empty)',
-                                    g2: p.g2 ? p.g2.substring(0, 30) + '...' : '(empty)',
-                                    f: p.f,
-                                    a: p.a
-                                });
-                                // Build new item object
-                                const newItem = {
-                                    a: isEdit && item ? item.a : (isCategoryMode ? getNextCategoryId() : getNextProductId()),
-                                    b: fd2.get('b') || getCurrentDateTime(),
-                                    c: fd2.get('c') || '0',
-                                    d: fd2.get('d') || '0',
-                                    e: nm,
-                                    f: isCategoryMode ? "0" : (fd2.get('f') || '0'),
-                                    g: gValue,
-                                    h: gValue,
-                                    g1: goValue,
-                                    g2: hoValue
-                                };
+                                var _ldId = 'edpr_ld_' + Date.now();
+                                var _ldDiv = document.createElement('div');
+                                _ldDiv.id = _ldId;
+                                _ldDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10500;display:flex;justify-content:center;align-items:center;';
+                                _ldDiv.innerHTML = '<div class="spinner-border text-light" role="status"></div>';
+                                document.body.appendChild(_ldDiv);
 
-                                // Prepare payload
-                                if (typeof payload0 !== 'undefined') {
-                                    payload0.vw = 1;
+                                try {
+                                    // Use different endpoint for updates
+                                    const endpoint = (isEdit && !isCategoryMode) ? "https://my1.in/2/k.php" : "https://my1.in/2/i.php";
+                                    const response = await fnj3(endpoint, payload0, 1, true, null, 20000, 0, 2, 1);
+                                    var _ldEl = document.getElementById(_ldId);
+                                    if (_ldEl) _ldEl.remove();
 
-                                    // For edit/update, use different endpoint and fn
-                                    if (isEdit && !isCategoryMode) {
-                                        payload0.fn = 82;
-                                        // Don't send p for product updates - p is not needed for fn=82
-                                        delete payload0.p; // Ensure p is removed if it exists from previous calls
+                                    // Check if response is successful
+                                    if (response && response.su == 1) {
+                                        _saveCtx = { isEdit, index, newItem, modalInstance, nm };
+                                        if (payload0.fn == 72)
+                                            hndlRspo72(response);
+                                        else
+                                            hndlRspo82(response);
                                     } else {
-                                        payload0.p = p;
-                                        payload0.fn = 72;
-                                    }
-
-                                    console.log('Submitting - isEdit:', isEdit, 'isCategoryMode:', isCategoryMode, 'fn:', payload0.fn);
-
-                                    if (!isCategoryMode) {
-                                        // Product mode: include S object
-                                        const stockPartyId = document.getElementById('partyId')?.value || fd2.get('stock_party_id') || '';
-                                        const billId = fd2.get('bill_id') || '0';
-                                        const productId = fd2.get('product_id') || '0';
-                                        const purchasePrice = parseFloat(fd2.get('purchase_price')) || 0;
-                                        const quantityReceived = parseInt(fd2.get('quantity_received')) || 0;
-                                        const salesPrice = parseFloat(fd2.get('sales_price')) || 0;
-                                        const measuredInId = document.getElementById('measured_in_select')?.value || fd2.get('measured_in') || '';
-                                        const soldIn = generateSoldInString();
-                                        if (soldIn && soldIn.length > 256) {
-                                            showToast('Sold in value is too long', { duration: 2000 });
-                                            return;
-                                        }
-                                        const notes = fd2.get('notes') || '';
-                                        const globalProductId = fd2.get('global_product_id') || '0';
-
-                                        // For update, include S record ID
-                                        let sRecordId = 0;
-                                        if (isEdit && item && item.sid) {
-                                            sRecordId = item.sid;
-                                        }
-
-                                        payload0.s = {
-                                            e: parseInt(stockPartyId) || 0,
-                                            f: parseInt(billId) || 0,
-                                            g: parseInt(productId) || 0,
-                                            h: purchasePrice,
-                                            i: quantityReceived,
-                                            j: parseInt(measuredInId) || 0,
-                                            k: salesPrice,
-                                            l: soldIn,
-                                            m: notes || '',
-                                            n: parseInt(globalProductId) || 0
-                                        };
-
-                                        // For update, include S record ID (stockDetails.a is the stock ID from s table)
-                                        if (isEdit && stockDetails && stockDetails.a) {
-                                            payload0.s.a = parseInt(stockDetails.a) || 0;
-                                        }
-
-                                        // Add product-specific fields to newItem
-                                        newItem.stock_party_id = stockPartyId || '';
-                                        newItem.stock_party_name = document.getElementById('c_dtls_party')?.value || '';
-                                        newItem.bill_id = billId;
-                                        newItem.product_id = productId;
-                                        newItem.purchase_price = purchasePrice;
-                                        newItem.quantity_received = quantityReceived;
-                                        newItem.measured_in = measuredInId;
-                                        newItem.sales_price = salesPrice;
-                                        newItem.sold_in = soldIn;
-                                        newItem.notes = notes;
-                                        newItem.n = globalProductId;
-                                        // Store S ID for update
-                                        if (isEdit && item && item.sid) {
-                                            newItem.sid = item.sid;
-                                        }
-                                    } else {
-                                        // Category mode: S is minimal
-                                        const quantityReceived = parseInt(fd2.get('quantity_received')) || 0;
-                                        payload0.s = {
-                                            e: 0, f: 0, g: 0, h: 0,
-                                            i: quantityReceived,
-                                            j: 0, k: 0, l: '', m: '', n: 0
-                                        };
-                                        newItem.f = quantityReceived;
-                                    }
-                                    if (!isCategoryMode) {
-                                        p.f = fd2.get('f') || '0';
-                                    }
-                                    payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [
-                                        { "tb": 'c', "col": 'b', "cl": "b" },
-                                        { "tb": 'p', "col": 'b', "cl": "b" },
-                                        { "tb": 's', "col": 'b', "cl": "b" }
-                                    ]);
-                                    payload0.drml = "sambodhisarang.in";
-
-                                    console.log('Payload:', payload0);
-
-                                    var _ldId = 'edpr_ld_' + Date.now();
-                                    var _ldDiv = document.createElement('div');
-                                    _ldDiv.id = _ldId;
-                                    _ldDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10500;display:flex;justify-content:center;align-items:center;';
-                                    _ldDiv.innerHTML = '<div class="spinner-border text-light" role="status"></div>';
-                                    document.body.appendChild(_ldDiv);
-
-                                    try {
-                                        // Use different endpoint for updates
-                                        const endpoint = (isEdit && !isCategoryMode) ? "https://my1.in/2/k.php" : "https://my1.in/2/i.php";
-                                        const response = await fnj3(endpoint, payload0, 1, true, null, 20000, 0, 2, 1);
-                                        var _ldEl = document.getElementById(_ldId);
-                                        if (_ldEl) _ldEl.remove();
-
-                                        // Check if response is successful
-                                        if (response && response.su == 1) {
-                                            if (!isCategoryMode) {
-                                                handl_o_rspons(response, 1);
-                                            }
-                                            window.showsuccessmodal(response.ms || (isEdit ? 'Updated' : 'Saved'));
-
-                                            // Save locally only on success
-                                            if (isCategoryMode) {
-                                                if (isEdit && index !== null) window.prod_cata[index] = newItem;
-                                                else window.prod_cata.push(newItem);
-                                            } else {
-                                                if (isEdit && index !== null && window.prod_list[index]) {
-                                                    window.prod_list[index] = { ...window.prod_list[index], ...newItem };
-                                                } else {
-                                                    window.prod_list.push(newItem);
-                                                }
-                                            }
-
-                                            modalInstance.hide();
-                                            refreshUI();
-                                            if (typeof showToast === 'function') showToast(`"${nm}" ${isEdit ? 'updated' : 'added'}`, { type: 'success', duration: 2000 });
-                                            //setTimeout(function () { location.reload(); }, 300);
-
-                                        } else {
-                                            // Re-enable submit button
-                                            if (sb) { sb.disabled = false; sb.innerHTML = '<i class="fas fa-save me-1"></i>' + btnText; }
-                                            isProcessing = false;
-                                            // API returned error (su=0)
-                                            window.showelsemodal(response?.ms || 'Failed to save. Please try again.');
-                                            return;
-                                        }
-
-                                    } catch (apiErr) {
-                                        var _ldEl4 = document.getElementById(_ldId);
-                                        if (_ldEl4) _ldEl4.remove();
                                         // Re-enable submit button
                                         if (sb) { sb.disabled = false; sb.innerHTML = '<i class="fas fa-save me-1"></i>' + btnText; }
                                         isProcessing = false;
-                                        window.showelsemodal(apiErr || '404');
+                                        // API returned error (su=0)
+                                        window.showelsemodal(response?.ms || 'Failed to save. Please try again.');
                                         return;
                                     }
-                                }
 
-                            } catch (er) {
-                                var _ldEl5 = document.getElementById(_ldId);
-                                if (_ldEl5) _ldEl5.remove();
-                                console.error(er);
-                                if (typeof showToast === 'function') showToast('Error saving', { type: 'error', duration: 2000 });
-                            }
-                            finally {
-                                isProcessing = false;
-                                if (sb) {
-                                    // Only re-enable if not already re-enabled by error flow
-                                    if (!sb.disabled) {
-                                        sb.disabled = false;
-                                        sb.innerHTML = '<i class="fas fa-save me-1"></i>' + btnText;
-                                    }
+                                } catch (apiErr) {
+                                    var _ldEl4 = document.getElementById(_ldId);
+                                    if (_ldEl4) _ldEl4.remove();
+                                    // Re-enable submit button
+                                    if (sb) { sb.disabled = false; sb.innerHTML = '<i class="fas fa-save me-1"></i>' + btnText; }
+                                    isProcessing = false;
+                                    window.showelsemodal(apiErr || '404');
+                                    return;
                                 }
                             }
-                        
+
+                        } catch (er) {
+                            var _ldEl5 = document.getElementById(_ldId);
+                            if (_ldEl5) _ldEl5.remove();
+                            console.error(er);
+                            if (typeof showToast === 'function') showToast('Error saving', { type: 'error', duration: 2000 });
+                        }
+                        finally {
+                            isProcessing = false;
+                            if (sb) {
+                                // Only re-enable if not already re-enabled by error flow
+                                if (!sb.disabled) {
+                                    sb.disabled = false;
+                                    sb.innerHTML = '<i class="fas fa-save me-1"></i>' + btnText;
+                                }
+                            }
+                        }
+
                     };
                 }
             })(); // END of loadCategories IIFE
@@ -1376,7 +1361,7 @@
     </div>`;
     }
 
-    function showProductList(mode = 'product') {
+    async function showProductList(mode = 'product') {
         isCategoryMode = (mode === 'category');
         try {
             const modalId = 'cataPopEdProdListModal_' + Date.now();
@@ -1518,7 +1503,7 @@
         </div>`;
     }
 
-    function refreshEd_prods(){
+    function refreshEd_prods() {
         if (_fpListModalId) {
             var el = document.getElementById(_fpListModalId);
             if (el) {
@@ -1696,39 +1681,14 @@
             _ldDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10500;display:flex;justify-content:center;align-items:center;';
             _ldDiv.innerHTML = '<div class="spinner-border text-light" role="status"></div>';
             document.body.appendChild(_ldDiv);
+            _delMode = mode;
 
             const response = await fnj3("https://my1.in/2/l.php", payload0, 1, true, null, 20000, 0, 2, 1);
             var _ldEl = document.getElementById(_ldId);
             if (_ldEl) _ldEl.remove();
 
             if (response && response.su == 1) {
-                const deletedCount = await deleteStockFromDB([{ a: stockId }]);
-
-                // Update in-memory prod_stock to remove deleted record
-                if (window.prod_stock && window.prod_stock.length > 0) {
-                    window.prod_stock = window.prod_stock.filter(function (s) {
-                        return String(s.a) !== String(stockId);
-                    });
-                }
-
-                // Rebuild PRODUCT_MAP from updated prod_stock so hasStock check works
-                if (typeof refreshProductsCache === 'function') {
-                    await refreshProductsCache(window.prod_cata, window.prod_stock);
-                }
-
-                window.showsuccessmodal("Deleted Successfully: " + deletedCount);
-
-                const fpEl = _fpListModalId ? document.getElementById(_fpListModalId) : null;
-                if (fpEl) {
-                    const modalBody = fpEl.querySelector('.modal-body');
-                    if (modalBody) {
-                        const html = await buildProductListHTML(mode);
-                        modalBody.innerHTML = html;
-                        attachListEventHandlers(modalBody, null, mode);
-                    }
-                }
-
-                refreshUI();
+                hndlRspo86(response, 's', parseInt(stockId), mode);
             } else {
                 window.showelsemodal(response?.ms || 'Failed to delete stock. Please try again.');
             }
@@ -1876,28 +1836,14 @@
             _ldDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10500;display:flex;justify-content:center;align-items:center;';
             _ldDiv.innerHTML = '<div class="spinner-border text-light" role="status"></div>';
             document.body.appendChild(_ldDiv);
+            _delMode = mode;
 
             const response = await fnj3("https://my1.in/2/l.php", payload0, 1, true, null, 20000, 0, 2, 1);
             var _ldEl = document.getElementById(_ldId);
             if (_ldEl) _ldEl.remove();
 
             if (response && response.su == 1) {
-
-                const deletedCount = await deleteProductFromDB([{ a: productId }]);
-                window.showsuccessmodal("Deleted Successfully: " + deletedCount);
-
-                const fpEl = _fpListModalId ? document.getElementById(_fpListModalId) : null;
-                if (fpEl) {
-                    const modalBody = fpEl.querySelector('.modal-body');
-                    if (modalBody) {
-                        const html = await buildProductListHTML(mode);
-                        modalBody.innerHTML = html;
-                        attachListEventHandlers(modalBody, null, mode);
-                    }
-                }
-
-                refreshUI();
-                setTimeout(function () { location.reload(); }, 500);
+                hndlRspo86(response, 'p', parseInt(productId), mode);
             } else {
                 window.showelsemodal(response?.ms || 'Failed to delete. Please try again.');
             }
@@ -2408,131 +2354,131 @@
         setTimeout(checkFormValidity, 200);
     }
 
-    // Delete product records from p table after successful API response
-    async function deleteProductFromDB(productIds) {
-        try {
-            let deletedCount = 0;
+    // // Delete product records from p table after successful API response
+    // async function deleteProductFromDB(productIds) {
+    //     try {
+    //         let deletedCount = 0;
 
-            // Ensure productIds is an array
-            if (!Array.isArray(productIds)) {
-                productIds = [productIds];
-            }
+    //         // Ensure productIds is an array
+    //         if (!Array.isArray(productIds)) {
+    //             productIds = [productIds];
+    //         }
 
-            const db = await new Promise((resolve, reject) => {
-                const request = indexedDB.open(dbnm);
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
-            });
+    //         const db = await new Promise((resolve, reject) => {
+    //             const request = indexedDB.open(dbnm);
+    //             request.onsuccess = () => resolve(request.result);
+    //             request.onerror = () => reject(request.error);
+    //         });
 
-            const transaction = db.transaction(['p'], 'readwrite');
-            const store = transaction.objectStore('p');
+    //         const transaction = db.transaction(['p'], 'readwrite');
+    //         const store = transaction.objectStore('p');
 
-            // Get all keys and records
-            const allKeys = await new Promise((resolve) => {
-                const keyRequest = store.getAllKeys();
-                keyRequest.onsuccess = () => resolve(keyRequest.result);
-                keyRequest.onerror = () => resolve([]);
-            });
+    //         // Get all keys and records
+    //         const allKeys = await new Promise((resolve) => {
+    //             const keyRequest = store.getAllKeys();
+    //             keyRequest.onsuccess = () => resolve(keyRequest.result);
+    //             keyRequest.onerror = () => resolve([]);
+    //         });
 
-            const allRecords = await new Promise((resolve) => {
-                const req = store.getAll();
-                req.onsuccess = () => resolve(req.result);
-                req.onerror = () => resolve([]);
-            });
+    //         const allRecords = await new Promise((resolve) => {
+    //             const req = store.getAll();
+    //             req.onsuccess = () => resolve(req.result);
+    //             req.onerror = () => resolve([]);
+    //         });
 
-            for (const productId of productIds) {
-                const idToDelete = typeof productId === 'object' ? productId.a : productId;
-                const index = allRecords.findIndex(r => String(r.a) === String(idToDelete));
+    //         for (const productId of productIds) {
+    //             const idToDelete = typeof productId === 'object' ? productId.a : productId;
+    //             const index = allRecords.findIndex(r => String(r.a) === String(idToDelete));
 
-                if (index >= 0 && allKeys[index] !== undefined) {
-                    await new Promise((resolve) => {
-                        const deleteRequest = store.delete(allKeys[index]);
-                        deleteRequest.onsuccess = () => {
-                            deletedCount++;
-                            console.log('Deleted product from p table:', idToDelete);
-                            resolve();
-                        };
-                        deleteRequest.onerror = () => {
-                            console.warn('Failed to delete product:', idToDelete);
-                            resolve();
-                        };
-                    });
-                } else {
-                    console.warn('Product not found in p table:', idToDelete);
-                }
-            }
+    //             if (index >= 0 && allKeys[index] !== undefined) {
+    //                 await new Promise((resolve) => {
+    //                     const deleteRequest = store.delete(allKeys[index]);
+    //                     deleteRequest.onsuccess = () => {
+    //                         deletedCount++;
+    //                         console.log('Deleted product from p table:', idToDelete);
+    //                         resolve();
+    //                     };
+    //                     deleteRequest.onerror = () => {
+    //                         console.warn('Failed to delete product:', idToDelete);
+    //                         resolve();
+    //                     };
+    //                 });
+    //             } else {
+    //                 console.warn('Product not found in p table:', idToDelete);
+    //             }
+    //         }
 
-            db.close();
-            console.log('Total products deleted from p table:', deletedCount);
-            return deletedCount;
-        } catch (e) {
-            console.error('Error deleting products from p table:', e);
-            return 0;
-        }
-    }
+    //         db.close();
+    //         console.log('Total products deleted from p table:', deletedCount);
+    //         return deletedCount;
+    //     } catch (e) {
+    //         console.error('Error deleting products from p table:', e);
+    //         return 0;
+    //     }
+    // }
 
-    // Delete stock records from s table after successful API response
-    async function deleteStockFromDB(stockIds) {
-        try {
-            let deletedCount = 0;
+    // // Delete stock records from s table after successful API response
+    // async function deleteStockFromDB(stockIds) {
+    //     try {
+    //         let deletedCount = 0;
 
-            // Ensure stockIds is an array
-            if (!Array.isArray(stockIds)) {
-                stockIds = [stockIds];
-            }
+    //         // Ensure stockIds is an array
+    //         if (!Array.isArray(stockIds)) {
+    //             stockIds = [stockIds];
+    //         }
 
-            const db = await new Promise((resolve, reject) => {
-                const request = indexedDB.open(dbnm);
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
-            });
+    //         const db = await new Promise((resolve, reject) => {
+    //             const request = indexedDB.open(dbnm);
+    //             request.onsuccess = () => resolve(request.result);
+    //             request.onerror = () => reject(request.error);
+    //         });
 
-            const transaction = db.transaction(['s'], 'readwrite');
-            const store = transaction.objectStore('s');
+    //         const transaction = db.transaction(['s'], 'readwrite');
+    //         const store = transaction.objectStore('s');
 
-            // Get all keys and records
-            const allKeys = await new Promise((resolve) => {
-                const keyRequest = store.getAllKeys();
-                keyRequest.onsuccess = () => resolve(keyRequest.result);
-                keyRequest.onerror = () => resolve([]);
-            });
+    //         // Get all keys and records
+    //         const allKeys = await new Promise((resolve) => {
+    //             const keyRequest = store.getAllKeys();
+    //             keyRequest.onsuccess = () => resolve(keyRequest.result);
+    //             keyRequest.onerror = () => resolve([]);
+    //         });
 
-            const allRecords = await new Promise((resolve) => {
-                const req = store.getAll();
-                req.onsuccess = () => resolve(req.result);
-                req.onerror = () => resolve([]);
-            });
+    //         const allRecords = await new Promise((resolve) => {
+    //             const req = store.getAll();
+    //             req.onsuccess = () => resolve(req.result);
+    //             req.onerror = () => resolve([]);
+    //         });
 
-            for (const stockId of stockIds) {
-                const idToDelete = typeof stockId === 'object' ? stockId.a : stockId;
-                const index = allRecords.findIndex(r => String(r.a) === String(idToDelete));
+    //         for (const stockId of stockIds) {
+    //             const idToDelete = typeof stockId === 'object' ? stockId.a : stockId;
+    //             const index = allRecords.findIndex(r => String(r.a) === String(idToDelete));
 
-                if (index >= 0 && allKeys[index] !== undefined) {
-                    await new Promise((resolve) => {
-                        const deleteRequest = store.delete(allKeys[index]);
-                        deleteRequest.onsuccess = () => {
-                            deletedCount++;
-                            console.log('Deleted stock from s table:', idToDelete);
-                            resolve();
-                        };
-                        deleteRequest.onerror = () => {
-                            console.warn('Failed to delete stock:', idToDelete);
-                            resolve();
-                        };
-                    });
-                } else {
-                    console.warn('Stock not found in s table:', idToDelete);
-                }
-            }
+    //             if (index >= 0 && allKeys[index] !== undefined) {
+    //                 await new Promise((resolve) => {
+    //                     const deleteRequest = store.delete(allKeys[index]);
+    //                     deleteRequest.onsuccess = () => {
+    //                         deletedCount++;
+    //                         console.log('Deleted stock from s table:', idToDelete);
+    //                         resolve();
+    //                     };
+    //                     deleteRequest.onerror = () => {
+    //                         console.warn('Failed to delete stock:', idToDelete);
+    //                         resolve();
+    //                     };
+    //                 });
+    //             } else {
+    //                 console.warn('Stock not found in s table:', idToDelete);
+    //             }
+    //         }
 
-            db.close();
-            console.log('Total stocks deleted from s table:', deletedCount);
-            return deletedCount;
-        } catch (e) {
-            console.error('Error deleting stocks from s table:', e);
-            return 0;
-        }
-    }
+    //         db.close();
+    //         console.log('Total stocks deleted from s table:', deletedCount);
+    //         return deletedCount;
+    //     } catch (e) {
+    //         console.error('Error deleting stocks from s table:', e);
+    //         return 0;
+    //     }
+    // }
 
     window.showProductList = showProductList;
     window.showItemForm = showItemForm;
@@ -2551,6 +2497,16 @@
     window.clearPricingItems = clearPricingItems;
     window.commonFnToRunAfter_op_ViewCall = commonFnToRunAfter_op_ViewCall;
     window.refreshEd_prods = refreshEd_prods;
+    window._refreshOpenEdProdList = async function (mode) {
+        if (!_fpListModalId) return;
+        var el = document.getElementById(_fpListModalId);
+        if (!el) return;
+        var modalBody = el.querySelector('.modal-body');
+        if (!modalBody) return;
+        var html = await buildProductListHTML(mode);
+        modalBody.innerHTML = html;
+        attachListEventHandlers(modalBody, null, mode);
+    };
 
     function commonFnToRunAfter_op_ViewCall(obj, swtch) {
         if (swtch === 1) {
@@ -2598,3 +2554,86 @@
     document.head.appendChild(uploadStyles);
 
 })();
+
+async function hndlRspo86(response, x1, x2, mode) {
+    x1 = x1 ?? response?.x1 ?? response?.xtra?.x1;
+    x2 = x2 ?? response?.x2 ?? response?.xtra?.x2;
+    mode = mode || _delMode || 'product';
+
+    try {
+        if (x1 && x2 !== undefined && x2 !== null) {
+            const deleteResult = await dbDexieManager.deleteRecords(dbnm, x1, { a: x2 });
+            console.log('Delete result:', deleteResult);
+        }
+        if (x1 === 's' && window.prod_stock) {
+            window.prod_stock = window.prod_stock.filter(s => String(s.a) !== String(x2));
+        }
+        if (x1 === 'p' && window.prod_list) {
+            window.prod_list = window.prod_list.filter(p => String(p.a) !== String(x2));
+            if (window.prod_stock) {
+                window.prod_stock = window.prod_stock.filter(s => String(s.g) !== String(x2));
+            }
+            if (mode === 'category' && window.prod_cata) {
+                window.prod_cata = window.prod_cata.filter(c => String(c.a) !== String(x2));
+            }
+        }
+        if (typeof refreshProductsCache === 'function') {
+            await refreshProductsCache(window.prod_cata, window.prod_stock);
+        }
+        if (typeof window._refreshOpenEdProdList === 'function') {
+            await window._refreshOpenEdProdList(mode);
+        }
+        refreshUI();
+    } catch (error) {
+        console.error('Delete error:', error);
+        window.showelsemodal("Delete failed: " + error.message);
+    }
+}
+
+async function hndlRspo82(response) {
+        if (!isCategoryMode) {
+            await handl_o_rspons(response, 1);
+        }
+        window.showsuccessmodal(response.ms || (_saveCtx.isEdit ? 'Updated' : 'Saved'));
+
+        // Save locally only on success
+        if (isCategoryMode) {
+            if (_saveCtx.isEdit && _saveCtx.index !== null) window.prod_cata[_saveCtx.index] = _saveCtx.newItem;
+            else window.prod_cata.push(_saveCtx.newItem);
+        } else {
+            if (_saveCtx.isEdit && _saveCtx.index !== null && window.prod_list[_saveCtx.index]) {
+                window.prod_list[_saveCtx.index] = { ...window.prod_list[_saveCtx.index], ..._saveCtx.newItem };
+            } else {
+                window.prod_list.push(_saveCtx.newItem);
+            }
+        }
+
+        _saveCtx.modalInstance.hide();
+        refreshUI();
+        if (typeof showToast === 'function') showToast(`"${_saveCtx.nm}" ${_saveCtx.isEdit ? 'updated' : 'added'}`, { type: 'success', duration: 2000 });
+        //setTimeout(function () { location.reload(); }, 300);
+    }
+
+async function hndlRspo72(response) {
+        if (!isCategoryMode) {
+            await handl_o_rspons(response, 1);
+        }
+        window.showsuccessmodal(response.ms || (_saveCtx.isEdit ? 'Updated' : 'Saved'));
+
+        // Save locally only on success
+        if (isCategoryMode) {
+            if (_saveCtx.isEdit && _saveCtx.index !== null) window.prod_cata[_saveCtx.index] = _saveCtx.newItem;
+            else window.prod_cata.push(_saveCtx.newItem);
+        } else {
+            if (_saveCtx.isEdit && _saveCtx.index !== null && window.prod_list[_saveCtx.index]) {
+                window.prod_list[_saveCtx.index] = { ...window.prod_list[_saveCtx.index], ..._saveCtx.newItem };
+            } else {
+                window.prod_list.push(_saveCtx.newItem);
+            }
+        }
+
+        _saveCtx.modalInstance.hide();
+        refreshUI();
+        if (typeof showToast === 'function') showToast(`"${_saveCtx.nm}" ${_saveCtx.isEdit ? 'updated' : 'added'}`, { type: 'success', duration: 2000 });
+        //setTimeout(function () { location.reload(); }, 300);
+    }
