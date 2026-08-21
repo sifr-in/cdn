@@ -1363,7 +1363,8 @@ async function performLogin(countryCode, mobileNumber, password) {
    yo: mobileNumber,
    pw: password,
    eo: appOwner.eo,
-   ec: appOwner.ec
+   ec: appOwner.ec,
+   xtra: typeof xtraj_payload !== "undefined" ? xtraj_payload : null
   };
 
   if (data.yo != null && data.yo.length == 10) {
