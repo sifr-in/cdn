@@ -178,7 +178,7 @@ function showAddCaseModal(editRecord) {
     '<input type="text" id="caseCourtName" placeholder="Enter judge or court name" maxlength="12" class="form-control-premium">' +
     "</div></div>" +
     // ======== PARTY INFORMATION ========
-    '<div style="border-bottom:2px solid var(--gray-bg);padding:14px 18px;">' +
+    '<div id="partyInfoSection" style="border-bottom:2px solid var(--gray-bg);padding:14px 18px;">' +
     '<div class="d-flex align-items-center gap-2 mb-3">' +
     '<i class="fas fa-users text-gold" style="font-size:16px;"></i>' +
     '<span class="fw-bold text-navy" style="font-size:14px;">Party Information</span></div>' +
@@ -578,7 +578,9 @@ window.checkCustomCaseType = function (input, tagId) {
 };
 
 function extractCs91Records(text) {
-  text = String(text || "").replace(/^\uFEFF/, "").trim();
+  text = String(text || "")
+    .replace(/^\uFEFF/, "")
+    .trim();
   var records = [];
   var items = [];
 
@@ -599,8 +601,24 @@ function extractCs91Records(text) {
     reg_no: "t",
   };
   var directKeys = [
-    "c", "d", "f", "g", "h", "i", "j", "k", "l", "m", "n",
-    "o", "p", "q", "r", "s", "t", "u",
+    "c",
+    "d",
+    "f",
+    "g",
+    "h",
+    "i",
+    "j",
+    "k",
+    "l",
+    "m",
+    "n",
+    "o",
+    "p",
+    "q",
+    "r",
+    "s",
+    "t",
+    "u",
   ];
 
   function tryParse(s) {
@@ -643,7 +661,9 @@ function extractCs91Records(text) {
   }
 
   function isFilled(rec, key) {
-    return Object.prototype.hasOwnProperty.call(rec, key) && !isEmptyVal(rec[key]);
+    return (
+      Object.prototype.hasOwnProperty.call(rec, key) && !isEmptyVal(rec[key])
+    );
   }
 
   for (var i = 0; i < items.length; i++) {
@@ -766,23 +786,7 @@ window.importCasesFromFile = function () {
           console.log("📥 E-Court Import:", response);
 
           if (response && response.su == 1) {
-            await handl_ks_rspons(response);
-            await loadDataFromDB();
-            renderTable();
-            if (
-              (response.cs91 && response.cs91.l) ||
-              (response.cs && response.cs.l) ||
-              (response.c && response.c.l) ||
-              (response.a && response.a.l)
-            ) {
-              showImportResultModal(response);
-            } else {
-              showMessageModal(
-                "Success",
-                (response?.ms || "Import completed.").trim(),
-                false,
-              );
-            }
+            hndlRspo108(response);
           } else {
             showMessageModal("Error", response?.ms || "Import failed", true);
           }
@@ -806,6 +810,26 @@ window.importCasesFromFile = function () {
   input.click();
 };
 
+window.hndlRspo108 = function (response) {
+  handl_ks_rspons(response);
+  loadDataFromDB();
+  renderTable();
+  if (
+    (response.cs91 && response.cs91.l) ||
+    (response.cs && response.cs.l) ||
+    (response.c && response.c.l) ||
+    (response.a && response.a.l)
+  ) {
+    showImportResultModal(response);
+  } else {
+    showMessageModal(
+      "Success",
+      (response?.ms || "Import completed.").trim(),
+      false,
+    );
+  }
+};
+
 function buildImportTableRows(list, type) {
   var rows = "";
   if (!list || !list.length) return "";
@@ -818,7 +842,7 @@ function buildImportTableRows(list, type) {
         escHtml(r.e || "-") +
         "</td>" +
         '<td class="fw-semibold font-mono text-navy" style="white-space:nowrap;">' +
-        escHtml((r.h && r.i ? r.h + "/" + r.i : r.h || r.i || "-")) +
+        escHtml(r.h && r.i ? r.h + "/" + r.i : r.h || r.i || "-") +
         "</td>" +
         "<td>" +
         escHtml(r.g || "-") +
@@ -843,7 +867,7 @@ function buildImportTableRows(list, type) {
       rows +=
         "<tr>" +
         '<td class="fw-semibold font-mono text-navy" style="white-space:nowrap;">' +
-        escHtml((r.h && r.i ? r.h + "/" + r.i : r.h || r.i || "-")) +
+        escHtml(r.h && r.i ? r.h + "/" + r.i : r.h || r.i || "-") +
         "</td>" +
         "<td>" +
         escHtml(r.g || "-") +
@@ -953,18 +977,16 @@ function showImportResultModal(response) {
     "cs",
     ["Case No", "Type", "Filer", "Respondent", "Court"],
   );
-  sections += buildImportTableSection(
-    "Contacts (c)",
-    response?.c?.l,
-    "c",
-    ["Name", "Mobile", "Address"],
-  );
-  sections += buildImportTableSection(
-    "Case Dates (a)",
-    response?.a?.l,
-    "a",
-    ["Case ID", "Date", "Stage"],
-  );
+  sections += buildImportTableSection("Contacts (c)", response?.c?.l, "c", [
+    "Name",
+    "Mobile",
+    "Address",
+  ]);
+  sections += buildImportTableSection("Case Dates (a)", response?.a?.l, "a", [
+    "Case ID",
+    "Date",
+    "Stage",
+  ]);
   if (!sections) sections = "<div class='text-gray'>No records returned.</div>";
 
   var html =
@@ -1019,15 +1041,15 @@ window.syncCaseFromECourt = async function () {
     btn.innerHTML = '<span class="spinner"></span> Syncing...';
   }
 
-    payload0.x1 = cnr;
-    payload0.fn = 107;
-    payload0.vw = 1;
-    payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [
-      { tb: "cs" },
-      { tb: "cs91" },
-      { tb: "c" },
-      { tb: "a" },
-    ]);
+  payload0.x1 = cnr;
+  payload0.fn = 107;
+  payload0.vw = 1;
+  payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [
+    { tb: "cs" },
+    { tb: "cs91" },
+    { tb: "c" },
+    { tb: "a" },
+  ]);
 
   try {
     if (typeof fnj3 !== "function") {
@@ -1058,6 +1080,11 @@ window.syncCaseFromECourt = async function () {
   }
 };
 
+window.hndlRspo107 = function (response) {
+    window._ecourtSyncData = response || null;
+    showECourtSyncResult(response, !!(response && response.su == 1));
+};
+
 var ecourtSyncModalId = null;
 
 function showECourtSyncResult(response, valid) {
@@ -1074,10 +1101,7 @@ function showECourtSyncResult(response, valid) {
   var petAdv = obj.pet_adv || "-";
   var resAdv = obj.res_adv || "-";
   var cnr =
-    obj.cino ||
-    response?.x1 ||
-    document.getElementById("caseCNR")?.value ||
-    "";
+    obj.cino || response?.x1 || document.getElementById("caseCNR")?.value || "";
   var title = petAdv + " vs " + resAdv;
 
   var saveBtnHtml =
@@ -1150,6 +1174,7 @@ window.saveECourtSync = async function () {
     payload0.x3 = encry;
   } else {
     delete payload0.x3;
+    payload0.x4 = 1;
   }
 
   try {
@@ -1251,6 +1276,7 @@ function applyCaseFieldVisibility(modalId, isECourt) {
     setShow("partySideFilerLabel", !hideFr);
     setShow("partySideAnswererLabel", !hideRp);
     setShow("datesSection", !(hideDd && hideNd));
+    setShow("partyInfoSection", !(hideFpn && hideRpn && hideFr && hideRp));
     setShow("partySideGroup", !(hideFpn && hideRpn && hideFr && hideRp));
     setShow(modalId + "_moreBtn", !hideMore);
     setShow(modalId + "_moreSection", !hideMore);
@@ -1272,6 +1298,7 @@ function applyCaseFieldVisibility(modalId, isECourt) {
     setShow("partySideFilerLabel", true);
     setShow("partySideAnswererLabel", true);
     setShow("datesSection", true);
+    setShow("partyInfoSection", true);
     setShow("partySideGroup", true);
     setShow(modalId + "_moreBtn", true);
     setShow(modalId + "_moreSection", false);
@@ -1660,24 +1687,14 @@ window.updateCaseRecord = async function () {
       console.log("📥 Server:", response);
 
       if (response && response.su == 1) {
-        await handl_ks_rspons(response);
-        var modalEl = document.getElementById(modalId);
-        if (modalEl) {
-          var inst = bootstrap.Modal.getInstance(modalEl);
-          if (inst) inst.hide();
-        }
-        await loadDataFromDB();
-        renderTable();
-        showMessageModal(
-          "Success",
-          "✅ Case updated successfully!\n\n" +
-            (isECourt
-              ? "CNR: " + cnrNumber
-              : "Number: " + caseNumber + "/" + caseYear) +
-            "\nCourt: " +
-            courtName,
-          false,
-        );
+        await hndlRspo98(response, {
+          modalId: modalId,
+          isECourt: isECourt,
+          cnrNumber: cnrNumber,
+          caseNumber: caseNumber,
+          caseYear: caseYear,
+          courtName: courtName,
+        });
       } else {
         showMessageModal("Info", response?.ms || "Record not updated", false);
       }
@@ -1692,6 +1709,28 @@ window.updateCaseRecord = async function () {
     saveBtn.disabled = false;
     saveBtn.innerHTML = '<i class="fas fa-edit me-1"></i> Update Case';
   }
+};
+
+window.hndlRspo98 = async function (response, ctx) {
+  ctx = ctx || {};
+  await handl_ks_rspons(response);
+  var modalEl = document.getElementById(ctx.modalId);
+  if (modalEl) {
+    var inst = bootstrap.Modal.getInstance(modalEl);
+    if (inst) inst.hide();
+  }
+  await loadDataFromDB();
+  renderTable();
+  showMessageModal(
+    "Success",
+    "✅ Case updated successfully!\n\n" +
+      (ctx.isECourt
+        ? "CNR: " + ctx.cnrNumber
+        : "Number: " + ctx.caseNumber + "/" + ctx.caseYear) +
+      "\nCourt: " +
+      ctx.courtName,
+    false,
+  );
 };
 
 window.saveCase = async function (modalId) {
@@ -1946,24 +1985,14 @@ window.saveCase = async function (modalId) {
       console.log("📥 Server:", response);
 
       if (response && response.su == 1) {
-        await handl_ks_rspons(response);
-        var modalEl = document.getElementById(modalId);
-        if (modalEl) {
-          var inst = bootstrap.Modal.getInstance(modalEl);
-          if (inst) inst.hide();
-        }
-        await loadDataFromDB();
-        renderTable();
-        showMessageModal(
-          "Success",
-          "✅ Case saved successfully!\n\n" +
-            (isECourt
-              ? "CNR: " + cnrNumber
-              : "Number: " + caseNumber + "/" + caseYear) +
-            "\nCourt: " +
-            courtName,
-          false,
-        );
+        await hndlRspo92(response, {
+          modalId: modalId,
+          isECourt: isECourt,
+          cnrNumber: cnrNumber,
+          caseNumber: caseNumber,
+          caseYear: caseYear,
+          courtName: courtName,
+        });
       } else {
         showMessageModal("Error", response?.ms || "Failed to save", true);
       }
@@ -1979,6 +2008,28 @@ window.saveCase = async function (modalId) {
     saveBtn.disabled = false;
     saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save Case';
   }
+};
+
+window.hndlRspo92 = async function (response, ctx) {
+  ctx = ctx || {};
+  await handl_ks_rspons(response);
+  var modalEl = document.getElementById(ctx.modalId);
+  if (modalEl) {
+    var inst = bootstrap.Modal.getInstance(modalEl);
+    if (inst) inst.hide();
+  }
+  await loadDataFromDB();
+  renderTable();
+  showMessageModal(
+    "Success",
+    "✅ Case saved successfully!\n\n" +
+      (ctx.isECourt
+        ? "CNR: " + ctx.cnrNumber
+        : "Number: " + ctx.caseNumber + "/" + ctx.caseYear) +
+      "\nCourt: " +
+      ctx.courtName,
+    false,
+  );
 };
 
 window.openMemberSelector = function (type) {
@@ -2258,21 +2309,7 @@ async function sendDeleteWithDltd(recordA, dldt) {
     );
 
     if (resp && resp.su == 1) {
-      var db = dbDexieManager.dbCache.get(dbnm);
-      if (db) {
-        await db.table("cs").where("a").equals(recordA).delete();
-        await db.table("cs91").where("a").equals(recordA).delete();
-        await db
-          .table("a")
-          .filter(function (d) {
-            return d.td == recordA;
-          })
-          .delete();
-      }
-      showMessageModal("Success", "Your case is deleted", false);
-      setTimeout(function () {
-        location.reload();
-      }, 1500);
+      await hndlRspo101(resp, recordA);
     } else {
       showMessageModal("Error", resp?.ms || "Failed to delete case", true);
     }
@@ -2280,5 +2317,24 @@ async function sendDeleteWithDltd(recordA, dldt) {
     showMessageModal("Info", "Error: " + err.message, false);
   }
 }
+
+window.hndlRspo101 = async function (response, recordA) {
+  await handl_ks_rspons(response);
+  var db = dbDexieManager.dbCache.get(dbnm);
+  if (db) {
+    await db.table("cs").where("a").equals(recordA).delete();
+    await db.table("cs91").where("a").equals(recordA).delete();
+    await db
+      .table("a")
+      .filter(function (d) {
+        return d.td == recordA;
+      })
+      .delete();
+  }
+  showMessageModal("Success", "Your case is deleted", false);
+  setTimeout(function () {
+    location.reload();
+  }, 1500);
+};
 
 console.log("📂 addNewCase.js loaded");

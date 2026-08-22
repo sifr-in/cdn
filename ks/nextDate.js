@@ -127,14 +127,108 @@ window.openNextHearingModal = function (recordData, caseDateEntry) {
     .getElementById(mid + "_saveBtn")
     .addEventListener("click", function () {
       if (isUpdate) {
-        window.updateNextDateRecord();
+        window.updateNhEntry(mid);
       } else {
         window.saveNextHearing(mid);
       }
     });
   modalEl.addEventListener("hidden.bs.modal", function () {
+    window._nhMode = null;
+    window._nhRecordData = null;
+    window._nhCaseDateEntry = null;
     this.remove();
   });
+};
+
+window.updateNhEntry = async function (modalId) {
+  var record = window._nhRecordData;
+  var caseDateEntry = window._nhCaseDateEntry;
+  if (!record || !caseDateEntry || !caseDateEntry.a) {
+    showMessageModal("Info", "No date entry selected for update.", false);
+    return;
+  }
+  var mustDo = (document.getElementById("nhMustDo")?.value || "").trim();
+  var done = (document.getElementById("nhDone")?.value || "").trim();
+  var importantLevel =
+    parseInt(document.getElementById("nhImportant")?.value) || 1;
+  var selectedStage = parseInt(document.getElementById("nhStage")?.value) || 1;
+  var newDate = document.getElementById("nhDate")?.value;
+  if (!newDate) {
+    showMessageModal("Info", "Please select a date!", false);
+    return;
+  }
+  var displayDate = getCaseDisplayDate(record.a);
+  if (displayDate && newDate <= displayDate) {
+    showMessageModal(
+      "Info",
+      "Next date must be after the display date (" +
+        formatDate(displayDate) +
+        ")!",
+      false,
+    );
+    return;
+  }
+
+  var btn = document.getElementById(modalId + "_saveBtn");
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Updating...';
+  }
+
+  payload0.p = {
+    a: caseDateEntry.a,
+    e: newDate,
+    f: caseDateEntry.f || 0,
+    g: 0,
+    h: 0,
+    k: importantLevel,
+    n:
+      mustDo || selectedStage
+        ? { n: mustDo, stg: selectedStage, w: done }
+        : null,
+    tb: 36,
+    td: record.a,
+  };
+  payload0.fn = 99;
+  payload0.vw = 1;
+  payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "a" }]);
+
+  try {
+    if (typeof fnj3 === "function") {
+      var resp = await fnj3(
+        "https://my1.in/2/o.php",
+        payload0,
+        1,
+        true,
+        null,
+        20000,
+        0,
+        1,
+        1,
+      );
+      if (resp && resp.su == 1) {
+        await hndlRspo99(resp, {
+          modalId: modalId,
+          newDate: newDate,
+          selectedStage: selectedStage,
+        });
+      } else {
+        showMessageModal("Info", resp?.ms || "Record not updated", false);
+      }
+    } else {
+      showMessageModal("Info", "Server communication not available", false);
+    }
+  } catch (err) {
+    showMessageModal(
+      "Error",
+      err?.message || "Failed to update next hearing date",
+      true,
+    );
+  }
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-save me-1"></i> Save';
+  }
 };
 
 function getCaseDisplayDate(recordA) {
@@ -146,7 +240,10 @@ function getCaseDisplayDate(recordA) {
   if (!earliest) {
     var rec = null;
     for (var j = 0; j < caseRecords.length; j++) {
-      if (caseRecords[j].a == recordA) { rec = caseRecords[j]; break; }
+      if (caseRecords[j].a == recordA) {
+        rec = caseRecords[j];
+        break;
+      }
     }
     var cr = rec ? getCaseCs91Record(rec) : null;
     if (cr && cr.p) return cr.p;
@@ -271,30 +368,11 @@ window.updateNextDateRecord = async function (mid = 0) {
       console.log("📥 Server:", response);
 
       if (response && response.su == 1) {
-        await handl_ks_rspons(response);
-        var modalEl = document.getElementById(modalId);
-        if (modalEl) {
-          var inst = bootstrap.Modal.getInstance(modalEl);
-          if (inst) inst.hide();
-        }
-        await loadDataFromDB();
-        var editRec = null;
-        for (var ei = 0; ei < caseRecords.length; ei++) {
-          if (caseRecords[ei].a == editingRecordId) {
-            editRec = caseRecords[ei];
-            break;
-          }
-        }
-        await ensureCaseIntact(editRec);
-        renderTable();
-        showMessageModal(
-          "Success",
-          "Next hearing date updated successfully!\n\nDate: " +
-            newDate +
-            "\nStage: " +
-            selectedStage,
-          false,
-        );
+        await hndlRspo99(response, {
+          modalId: modalId,
+          newDate: newDate,
+          selectedStage: selectedStage,
+        });
       } else {
         showMessageModal("Info", response?.ms || "Record not updated", false);
       }
@@ -310,6 +388,34 @@ window.updateNextDateRecord = async function (mid = 0) {
     saveNextBtn.innerHTML =
       '<i class="fas fa-calendar-check me-1"></i> Update Next Date';
   }
+};
+
+window.hndlRspo99 = async function (response, ctx) {
+  ctx = ctx || {};
+  await handl_ks_rspons(response);
+  var modalEl = document.getElementById(ctx.modalId);
+  if (modalEl) {
+    var inst = bootstrap.Modal.getInstance(modalEl);
+    if (inst) inst.hide();
+  }
+  await loadDataFromDB();
+  var editRec = null;
+  for (var ei = 0; ei < caseRecords.length; ei++) {
+    if (caseRecords[ei].a == editingRecordId) {
+      editRec = caseRecords[ei];
+      break;
+    }
+  }
+  await ensureCaseIntact(editRec);
+  renderTable();
+  showMessageModal(
+    "Success",
+    "Next hearing date updated successfully!\n\nDate: " +
+      ctx.newDate +
+      "\nStage: " +
+      ctx.selectedStage,
+    false,
+  );
 };
 
 window.saveNextHearing = async function (modalId) {
@@ -338,15 +444,82 @@ window.saveNextHearing = async function (modalId) {
     return;
   }
 
+  var fLink = (caseDateEntry && caseDateEntry.a) || 0;
+  if (!fLink && typeof getCaseDatesForRecord === "function") {
+    var curChain = getCaseDatesForRecord(record.a);
+    if (curChain && curChain.current && curChain.current.a)
+      fLink = curChain.current.a;
+  }
+
   var btn = document.getElementById(modalId + "_saveBtn");
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Saving...';
   }
 
+  // Chain-root seed: first manual next date on an E-Court case whose
+  // schedule lives only in cs91.p/o - persist the old p as an anchor row
+  // so the new date links to it instead of starting an orphan chain.
+  if (!fLink && typeof fnj3 === "function") {
+    var crSeed =
+      typeof isCs91Record === "function" && isCs91Record(record)
+        ? record
+        : typeof getCaseCs91Record === "function"
+          ? getCaseCs91Record(record)
+          : null;
+    var anchorDate =
+      crSeed && crSeed.p && crSeed.p < newDate ? crSeed.p : null;
+    if (anchorDate) {
+      try {
+        payload0.p = {
+          e: anchorDate,
+          f: 0,
+          g: 0,
+          h: 0,
+          k: importantLevel,
+          n:
+            done || selectedStage
+              ? { n: "", stg: selectedStage, w: done }
+              : null,
+          tb: 36,
+          td: record.a,
+        };
+        payload0.fn = 91;
+        payload0.vw = 1;
+        payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [
+          { tb: "a" },
+        ]);
+        var anchorResp = await fnj3(
+          "https://my1.in/2/m.php",
+          payload0,
+          1,
+          true,
+          null,
+          20000,
+          0,
+          1,
+          1,
+        );
+        if (
+          anchorResp &&
+          anchorResp.su == 1 &&
+          anchorResp.a &&
+          anchorResp.a.l &&
+          anchorResp.a.l.length > 0 &&
+          anchorResp.a.l[0].a
+        ) {
+          await handl_ks_rspons(anchorResp);
+          fLink = anchorResp.a.l[0].a;
+        }
+      } catch (anchorErr) {
+        console.warn("Anchor date row could not be created:", anchorErr);
+      }
+    }
+  }
+
   payload0.p = {
     e: newDate,
-    f: (caseDateEntry && caseDateEntry.a) || 0,
+    f: fLink,
     g: 0,
     h: 0,
     k: importantLevel,
@@ -375,50 +548,19 @@ window.saveNextHearing = async function (modalId) {
         1,
       );
       if (resp && resp.su == 1) {
-        await handl_ks_rspons(resp);
-        var modalEl = document.getElementById(modalId);
-        if (modalEl) {
-          var inst = bootstrap.Modal.getInstance(modalEl);
-          if (inst) inst.hide();
-        }
-        //await loadDataFromDB();
-        // var restored = await ensureCaseIntact(
-        //   window._nhRecordSnapshot || record,
-        // );
-        // if (
-        //   caseDateEntry &&
-        //   !caseDates.some(function (cd) {
-        //     return cd.a == caseDateEntry.a;
-        //   })
-        // ) {
-        //   await dbDexieManager.insertToDexie(
-        //     dbnm,
-        //     "a",
-        //     [caseDateEntry],
-        //     true,
-        //     ["a"],
-        //   );
-        // }
-        await loadDataFromDB();
-        renderTable();
-        showMessageModal(
-          "Success",
-          "Next hearing date updated successfully!",
-          false,
-        );
+        await hndlRspo91(resp, modalId);
       } else {
         showMessageModal("Error", resp?.ms || "Failed to save", true);
       }
+    } else {
+      showMessageModal("Info", "Server communication not available", false);
     }
   } catch (err) {
-    var modalEl = document.getElementById(modalId);
-    if (modalEl) {
-      var inst = bootstrap.Modal.getInstance(modalEl);
-      if (inst) inst.hide();
-    }
-    await loadDataFromDB();
-    renderTable();
-    showMessageModal("Info", "Saved locally", false);
+    showMessageModal(
+      "Error",
+      err?.message || "Failed to save next hearing date",
+      true,
+    );
   }
   if (btn) {
     btn.disabled = false;
@@ -426,123 +568,16 @@ window.saveNextHearing = async function (modalId) {
   }
 };
 
-// window.updateNextHearingDashboard = async function (modalId) {
-//   var record = window._nhRecordData;
-//   var caseDateEntry = window._nhCaseDateEntry;
-//   if (!record || !caseDateEntry) {
-//     showMessageModal("Info", "No next date record found.", false);
-//     return;
-//   }
-
-//   var today = getLocalToday();
-//   var newDate = document.getElementById("nhDate")?.value || "";
-//   var importantLevel =
-//     parseInt(document.getElementById("nhImportant")?.value) || 1;
-//   var selectedStage = parseInt(document.getElementById("nhStage")?.value) || 1;
-//   var mustDo = (document.getElementById("nhMustDo")?.value || "").trim();
-//   var done = (document.getElementById("nhDone")?.value || "").trim();
-
-//   if (!newDate) {
-//     showMessageModal("Info", "Please select a Next Date!", false);
-//     return;
-//   }
-//   if (newDate <= today) {
-//     showMessageModal("Info", "Next date must be tomorrow or later!", false);
-//     return;
-//   }
-//   var displayDate = getCaseDisplayDate(record.a);
-//   if (displayDate && newDate <= displayDate) {
-//     showMessageModal(
-//       "Info",
-//       "Next date must be after the display date (" +
-//         formatDate(displayDate) +
-//         ")!",
-//       false,
-//     );
-//     return;
-//   }
-
-//   var saveBtn = document.getElementById(modalId + "_saveBtn");
-//   if (saveBtn) {
-//     saveBtn.disabled = true;
-//     saveBtn.innerHTML = '<span class="spinner"></span> Updating...';
-//   }
-
-//   delete payload0.x1;
-//   delete payload0.cs91;
-//   delete payload0.c;
-//   delete payload0.dldt;
-
-//   payload0.p = {
-//     a: caseDateEntry.a || 0,
-//     e: newDate,
-//     f: caseDateEntry.f || 0,
-//     g: 0,
-//     h: 0,
-//     k: importantLevel,
-//     n:
-//       mustDo || selectedStage
-//         ? { n: mustDo, stg: selectedStage, w: done }
-//         : null,
-//     tb: 36,
-//     td: record.a,
-//   };
-//   payload0.fn = 99;
-//   payload0.vw = 1;
-//   payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "a" }]);
-
-//   console.log(
-//     "📤 Update Next Date (Dashboard):",
-//     JSON.stringify(payload0.p, null, 2),
-//   );
-
-//   try {
-//     if (typeof fnj3 === "function") {
-//       var response = await fnj3(
-//         "https://my1.in/2/o.php",
-//         payload0,
-//         1,
-//         true,
-//         null,
-//         20000,
-//         0,
-//         1,
-//         1,
-//       );
-//       console.log("📥 Server:", response);
-
-//       if (response && response.su == 1) {
-//         await handl_ks_rspons(response);
-//         var modalEl = document.getElementById(modalId);
-//         if (modalEl) {
-//           var inst = bootstrap.Modal.getInstance(modalEl);
-//           if (inst) inst.hide();
-//         }
-//         await loadDataFromDB();
-//         await ensureCaseIntact(window._nhRecordSnapshot || record);
-//         renderTable();
-//         showMessageModal(
-//           "Success",
-//           "Next hearing date updated successfully!\n\nDate: " +
-//             newDate +
-//             "\nStage: " +
-//             selectedStage,
-//           false,
-//         );
-//       } else {
-//         showMessageModal("Info", response?.ms || "Record not updated", false);
-//       }
-//     } else {
-//       showMessageModal("Info", "Server communication not available", false);
-//     }
-//   } catch (err) {
-//     showMessageModal("Info", "Error: " + err.message, false);
-//   }
-
-//   if (saveBtn) {
-//     saveBtn.disabled = false;
-//     saveBtn.innerHTML = '<i class="fas fa-calendar-check me-1"></i> Update';
-//   }
-// };
+window.hndlRspo91 = async function (response, modalId) {
+  await handl_ks_rspons(response);
+  var modalEl = document.getElementById(modalId);
+  if (modalEl) {
+    var inst = bootstrap.Modal.getInstance(modalEl);
+    if (inst) inst.hide();
+  }
+  await loadDataFromDB();
+  renderTable();
+  showMessageModal("Success", "Next hearing date updated successfully!", false);
+};
 
 console.log("nextDate.js loaded");

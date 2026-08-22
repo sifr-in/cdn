@@ -32,7 +32,11 @@ var stageMap = {
 function getCaseDateN(nField) {
   if (!nField) return { n: "", stg: 0 };
   if (typeof nField === "string") {
-    try { return JSON.parse(nField); } catch (e) { return { n: nField, stg: 0 }; }
+    try {
+      return JSON.parse(nField);
+    } catch (e) {
+      return { n: nField, stg: 0 };
+    }
   }
   return nField;
 }
@@ -90,25 +94,53 @@ function getCaseDisplayRecord(record) {
 function getCaseDatesForRecord(recordA) {
   var rec = null;
   for (var i = 0; i < caseRecords.length; i++) {
-    if (caseRecords[i].a == recordA) { rec = caseRecords[i]; break; }
+    if (caseRecords[i].a == recordA) {
+      rec = caseRecords[i];
+      break;
+    }
   }
-  var all = caseDates.filter(function (cd) { return cd.td === recordA; });
+  var all = caseDates.filter(function (cd) {
+    return cd.td === recordA;
+  });
   if (all.length === 0) {
     var cs91Dates = getCaseCs91DatesForRecord(rec);
     if (cs91Dates) {
-      return { current: cs91Dates.current, previous: cs91Dates.previous, cs91: cs91Dates.cs91 };
+      return {
+        current: cs91Dates.current,
+        previous: cs91Dates.previous,
+        cs91: cs91Dates.cs91,
+      };
     }
     return { current: null, previous: null };
   }
-  all.sort(function (a, b) { return a.e > b.e ? -1 : a.e < b.e ? 1 : 0; });
+  all.sort(function (a, b) {
+    return a.e > b.e ? -1 : a.e < b.e ? 1 : 0;
+  });
   var current = all[0];
   var previous = null;
   if (current.f) {
     for (var i = 0; i < caseDates.length; i++) {
-      if (caseDates[i].a == current.f) { previous = caseDates[i]; break; }
+      if (caseDates[i].a == current.f) {
+        previous = caseDates[i];
+        break;
+      }
+    }
+  }
+  if (!previous) {
+    var crRoot = getCaseCs91Fallback(rec);
+    if (crRoot && current.e && crRoot.o && crRoot.o < current.e) {
+      previous = { e: crRoot.o };
     }
   }
   return { current: current, previous: previous, cs91: null };
+}
+
+function caseHasDateRows(caseA) {
+  if (caseA == null) return false;
+  for (var i = 0; i < caseDates.length; i++) {
+    if (caseDates[i].td == caseA) return true;
+  }
+  return false;
 }
 
 function getCaseNextDate(caseId, today) {
@@ -133,7 +165,12 @@ function matchesSearch(x, s) {
 }
 
 function hasCaseData(x) {
-  return (x.q && String(x.q).trim()) || (x.n && String(x.n).trim()) || (x.g && String(x.g).trim()) || (x.h && String(x.h).trim());
+  return (
+    (x.q && String(x.q).trim()) ||
+    (x.n && String(x.n).trim()) ||
+    (x.g && String(x.g).trim()) ||
+    (x.h && String(x.h).trim())
+  );
 }
 
 function getLocalToday() {
@@ -161,10 +198,14 @@ function renderFlatTable() {
   var container = document.getElementById("casesContainer");
   var bdg = document.getElementById("totalBadge");
   if (!container) return;
-  var s = (document.getElementById("searchBox")?.value || "").toLowerCase().trim();
+  var s = (document.getElementById("searchBox")?.value || "")
+    .toLowerCase()
+    .trim();
   var r = caseRecords.filter(hasCaseData);
   if (s) {
-    r = r.filter(function (x) { return matchesSearch(x, s); });
+    r = r.filter(function (x) {
+      return matchesSearch(x, s);
+    });
   }
   if (bdg) bdg.textContent = r.length;
   if (r.length === 0) {
@@ -172,27 +213,28 @@ function renderFlatTable() {
       '<div class="text-center py-4">' +
       '<i class="fas fa-check-circle text-gold" style="font-size:28px;"></i><br>' +
       '<span class="fw-bold text-navy" style="font-size:14px;">No records found</span>' +
-      '</div>';
+      "</div>";
     return;
   }
-  var h = '<div class="table-container-premium animate-fade-in-up">' +
+  var h =
+    '<div class="table-container-premium animate-fade-in-up">' +
     '<div class="table-scroll-premium">' +
     '<table class="table-premium table table-bordered table-sm mb-0">' +
-    '<thead><tr>' +
-    (isColVisible("sr") ? '<th>SR</th>' : '') +
-    (isColVisible("pdate") ? '<th>PDate</th>' : '') +
-    (isColVisible("court") ? '<th>Court</th>' : '') +
-    (isColVisible("adv") ? '<th>Adv</th>' : '') +
-    (isColVisible("brief") ? '<th>Brief</th>' : '') +
-    (isColVisible("caseType") ? '<th>Case Type</th>' : '') +
-    (isColVisible("caseNo") ? '<th>Case No.</th>' : '') +
-    (isColVisible("stg") ? '<th>STG</th>' : '') +
-    (isColVisible("ndate") ? '<th>NDate</th>' : '') +
-    (isColVisible("filer") ? '<th>Filer</th>' : '') +
-    (isColVisible("answerer") ? '<th>Answerer</th>' : '') +
-    (isColVisible("edit") ? '<th>Edit</th>' : '') +
-    (isColVisible("del") ? '<th>Del</th>' : '') +
-    '</tr></thead><tbody>';
+    "<thead><tr>" +
+    (isColVisible("sr") ? "<th>SR</th>" : "") +
+    (isColVisible("pdate") ? "<th>PDate</th>" : "") +
+    (isColVisible("court") ? "<th>Court</th>" : "") +
+    (isColVisible("adv") ? "<th>Adv</th>" : "") +
+    (isColVisible("brief") ? "<th>Brief</th>" : "") +
+    (isColVisible("caseType") ? "<th>Case Type</th>" : "") +
+    (isColVisible("caseNo") ? "<th>Case No.</th>" : "") +
+    (isColVisible("stg") ? "<th>STG</th>" : "") +
+    (isColVisible("ndate") ? "<th>NDate</th>" : "") +
+    (isColVisible("filer") ? "<th>Filer</th>" : "") +
+    (isColVisible("answerer") ? "<th>Answerer</th>" : "") +
+    (isColVisible("edit") ? "<th>Edit</th>" : "") +
+    (isColVisible("del") ? "<th>Del</th>" : "") +
+    "</tr></thead><tbody>";
   for (var i = 0; i < r.length; i++) {
     var x = r[i];
     var dv = getCaseDisplayRecord(x);
@@ -202,38 +244,125 @@ function renderFlatTable() {
     var today = getLocalToday();
     var hasNextDate = nDate && nDate > today;
     var cdN = getCaseDateN(cd.current ? cd.current.n : null);
-    var stgName = stageMap[cdN.stg] || '-';
-    h += '<tr class="animate-fade-in' + (cd.cs91 ? ' cs91-date-row' : '') + '" style="animation-delay:' + i * 30 + 'ms;' + (hasNextDate ? 'background:#D4EDDA;' : '') + '">' +
-      (isColVisible("sr") ? '<td class="fw-bold text-navy">' + x.a + '</td>' : '') +
-      (isColVisible("pdate") ? '<td class="fw-semibold" style="color:#c62828;">' + escHtml(formatDateShort(pDate)) + '</td>' : '') +
-      (isColVisible("court") ? '<td class="text-navy fw-semibold text-start truncate" style="max-width:180px;" title="' + escAttr(dv.q) + '">' + escHtml(dv.q) + '</td>' : '') +
-      (isColVisible("adv") ? '<td class="text-gray">' + escHtml(x.k || '-') + '</td>' : '') +
-      (isColVisible("brief") ? '<td class="text-start">' + escHtml(x.l || '-') + '</td>' : '') +
-      (isColVisible("caseType") ? '<td>' + escHtml(dv.g) + '</td>' : '') +
-      (isColVisible("caseNo") ? '<td class="fw-semibold font-mono text-navy">' + escHtml(dv.h + '/' + dv.i) + '</td>' : '') +
-      (isColVisible("stg") ? '<td class="text-start text-gray-dark truncate" style="max-width:120px;" title="' + escAttr(stgName) + '">' + escHtml(stgName) + '</td>' : '') +
-      (isColVisible("ndate") ? '<td style="text-align:center;cursor:pointer;' + (hasNextDate ? 'background:#C8E6C9;' : '') + '"' +
-  ' onclick=\'' + (hasNextDate
-    ? 'openEditCaseModal(' + JSON.stringify(x).replace(/'/g, "\\'") + ',' + JSON.stringify(cd.current).replace(/'/g, "\\'") + ')'
-    : 'openNextHearingModal(' + JSON.stringify(x).replace(/'/g, "\\'") + ',' + (cd.current ? JSON.stringify(cd.current).replace(/'/g, "\\'") : 'null') + ')') + ')\'' +
-  ' title="' + (hasNextDate ? escHtml(formatDateShort(nDate)) : 'Click to add') + '">' +
-  (hasNextDate ? escHtml(formatDateShort(nDate)) : '+') + '</td>' : '') +
-      (isColVisible("filer") ? '<td class="text-start text-gray-dark truncate" style="max-width:150px;" title="' + escAttr(dv.n) + '">' + escHtml(dv.n) + '</td>' : '') +
-      (isColVisible("answerer") ? '<td class="text-start text-gray-dark truncate" style="max-width:150px;" title="' + escAttr(dv.o) + '">' + escHtml(dv.o) + '</td>' : '') +
-      (isColVisible("edit") ? '<td><button class="btn btn-sm" style="color:var(--gold);border:1px solid var(--gold);padding:2px 8px;font-size:12px;cursor:pointer;" onclick=\'openEditCaseModal(' + JSON.stringify(x).replace(/'/g, "&#39;") + ',' + JSON.stringify(cd.current).replace(/'/g, "&#39;") + ')\' title="Edit Case">✏️</button></td>' : '') +
-      (isColVisible("del") ? '<td><button class="btn btn-sm" style="color:#dc3545;border:1px solid #dc3545;padding:2px 8px;font-size:12px;cursor:pointer;" onclick=\'deleteCaseRecord(' + JSON.stringify(x).replace(/'/g, "&#39;") + ')\' title="Delete Case"><i class="fas fa-trash-alt"></i></button></td>' : '') +
-      '</tr>';
+    var stgName = stageMap[cdN.stg] || "-";
+    h +=
+      '<tr class="animate-fade-in' +
+      (cd.cs91 ? " cs91-date-row" : "") +
+      '" style="animation-delay:' +
+      i * 30 +
+      "ms;" +
+      (hasNextDate ? "background:#D4EDDA;" : "") +
+      '">' +
+      (isColVisible("sr")
+        ? '<td class="fw-bold text-navy">' + x.a + "</td>"
+        : "") +
+      (isColVisible("pdate")
+        ? '<td class="fw-semibold" style="color:#c62828;">' +
+          escHtml(formatDateShort(pDate)) +
+          "</td>"
+        : "") +
+      (isColVisible("court")
+        ? '<td class="text-navy fw-semibold text-start truncate" style="max-width:180px;" title="' +
+          escAttr(dv.q) +
+          '">' +
+          escHtml(dv.q) +
+          "</td>"
+        : "") +
+      (isColVisible("adv")
+        ? '<td class="text-gray">' + escHtml(x.k || "-") + "</td>"
+        : "") +
+      (isColVisible("brief")
+        ? '<td class="text-start">' + escHtml(x.l || "-") + "</td>"
+        : "") +
+      (isColVisible("caseType") ? "<td>" + escHtml(dv.g) + "</td>" : "") +
+      (isColVisible("caseNo")
+        ? '<td class="fw-semibold font-mono text-navy">' +
+          escHtml(dv.h + "/" + dv.i) +
+          "</td>"
+        : "") +
+      (isColVisible("stg")
+        ? '<td class="text-start text-gray-dark truncate" style="max-width:120px;" title="' +
+          escAttr(stgName) +
+          '">' +
+          escHtml(stgName) +
+          "</td>"
+        : "") +
+      (isColVisible("ndate")
+        ? '<td style="text-align:center;cursor:pointer;' +
+          (hasNextDate ? "background:#C8E6C9;" : "") +
+          '"' +
+          " onclick='" +
+          (hasNextDate
+            ? "openEditCaseModal(" +
+              JSON.stringify(x).replace(/'/g, "\\'") +
+              "," +
+              JSON.stringify(cd.current).replace(/'/g, "\\'") +
+              ")"
+            : "openNextHearingModal(" +
+              JSON.stringify(x).replace(/'/g, "\\'") +
+              "," +
+              (cd.current
+                ? JSON.stringify(cd.current).replace(/'/g, "\\'")
+                : "null") +
+              ")") +
+          ")'" +
+          ' title="' +
+          (hasNextDate ? escHtml(formatDateShort(nDate)) : "Click to add") +
+          '">' +
+          (hasNextDate ? escHtml(formatDateShort(nDate)) : "+") +
+          "</td>"
+        : "") +
+      (isColVisible("filer")
+        ? '<td class="text-start text-gray-dark truncate" style="max-width:150px;" title="' +
+          escAttr(dv.n) +
+          '">' +
+          escHtml(dv.n) +
+          "</td>"
+        : "") +
+      (isColVisible("answerer")
+        ? '<td class="text-start text-gray-dark truncate" style="max-width:150px;" title="' +
+          escAttr(dv.o) +
+          '">' +
+          escHtml(dv.o) +
+          "</td>"
+        : "") +
+      (isColVisible("edit")
+        ? '<td><button class="btn btn-sm" style="color:var(--gold);border:1px solid var(--gold);padding:2px 8px;font-size:12px;cursor:pointer;" onclick=\'openEditCaseModal(' +
+          JSON.stringify(x).replace(/'/g, "&#39;") +
+          "," +
+          JSON.stringify(cd.current).replace(/'/g, "&#39;") +
+          ')\' title="Edit Case">✏️</button></td>'
+        : "") +
+      (isColVisible("del")
+        ? '<td><button class="btn btn-sm" style="color:#dc3545;border:1px solid #dc3545;padding:2px 8px;font-size:12px;cursor:pointer;" onclick=\'deleteCaseRecord(' +
+          JSON.stringify(x).replace(/'/g, "&#39;") +
+          ')\' title="Delete Case"><i class="fas fa-trash-alt"></i></button></td>'
+        : "") +
+      "</tr>";
   }
-  h += '</tbody></table></div></div>';
+  h += "</tbody></table></div></div>";
   container.innerHTML = h;
 }
 
-function buildHomeRow(x, disp, hasNextDate, ndDate, stgName, j, nxt, pDateOverride, rowClass) {
+function buildHomeRow(
+  x,
+  disp,
+  hasNextDate,
+  ndDate,
+  stgName,
+  j,
+  nxt,
+  pDateOverride,
+  rowClass,
+) {
   var dv = getCaseDisplayRecord(x);
   var pDate = pDateOverride || "";
   if (!pDate && disp && disp.f) {
     for (var k = 0; k < caseDates.length; k++) {
-      if (caseDates[k].a == disp.f) { pDate = caseDates[k].e; break; }
+      if (caseDates[k].a == disp.f) {
+        pDate = caseDates[k].e;
+        break;
+      }
     }
   }
   return (
@@ -244,73 +373,89 @@ function buildHomeRow(x, disp, hasNextDate, ndDate, stgName, j, nxt, pDateOverri
     "ms;" +
     (hasNextDate ? "background:#D4EDDA;" : "") +
     '">' +
-    (isColVisible("sr") ? '<td class="fw-bold text-navy">' +
-    x.a +
-    "</td>" : '') +
-    (isColVisible("pdate") ? '<td class="fw-semibold" style="color:#c62828;">' +
-    escHtml(formatDateShort(pDate)) +
-    "</td>" : '') +
-    (isColVisible("court") ? '<td class="text-navy fw-semibold text-start truncate" style="max-width:180px;" title="' +
-    escAttr(dv.q) +
-    '">' +
-    escHtml(dv.q) +
-    "</td>" : '') +
-    (isColVisible("adv") ? '<td class="text-gray">' +
-    escHtml(x.k || "-") +
-    "</td>" : '') +
-    (isColVisible("brief") ? '<td class="text-start">' +
-    escHtml(x.l || "-") +
-    "</td>" : '') +
-    (isColVisible("caseType") ? "<td>" +
-    escHtml(dv.g) +
-    "</td>" : '') +
-    (isColVisible("caseNo") ? '<td class="fw-semibold font-mono text-navy">' +
-    escHtml(dv.h + "/" + dv.i) +
-    "</td>" : '') +
-    (isColVisible("stg") ? '<td class="text-start text-gray-dark truncate" style="max-width:120px;" title="' +
-    escAttr(stgName) +
-    '">' +
-    escHtml(stgName) +
-    "</td>" : '') +
-    (isColVisible("ndate") ? '<td style="text-align:center;cursor:pointer;' +
-    (hasNextDate ? "background:#9bea9d;" : "") +
-    '"' +
-    " onclick='" +
-    (hasNextDate
-      ? "openEditCaseModal(" +
-        JSON.stringify(x).replace(/'/g, "\\'") +
+    (isColVisible("sr")
+      ? '<td class="fw-bold text-navy">' + x.a + "</td>"
+      : "") +
+    (isColVisible("pdate")
+      ? '<td class="fw-semibold" style="color:#c62828;">' +
+        escHtml(formatDateShort(pDate)) +
+        "</td>"
+      : "") +
+    (isColVisible("court")
+      ? '<td class="text-navy fw-semibold text-start truncate" style="max-width:180px;" title="' +
+        escAttr(dv.q) +
+        '">' +
+        escHtml(dv.q) +
+        "</td>"
+      : "") +
+    (isColVisible("adv")
+      ? '<td class="text-gray">' + escHtml(x.k || "-") + "</td>"
+      : "") +
+    (isColVisible("brief")
+      ? '<td class="text-start">' + escHtml(x.l || "-") + "</td>"
+      : "") +
+    (isColVisible("caseType") ? "<td>" + escHtml(dv.g) + "</td>" : "") +
+    (isColVisible("caseNo")
+      ? '<td class="fw-semibold font-mono text-navy">' +
+        escHtml(dv.h + "/" + dv.i) +
+        "</td>"
+      : "") +
+    (isColVisible("stg")
+      ? '<td class="text-start text-gray-dark truncate" style="max-width:120px;" title="' +
+        escAttr(stgName) +
+        '">' +
+        escHtml(stgName) +
+        "</td>"
+      : "") +
+    (isColVisible("ndate")
+      ? '<td style="text-align:center;cursor:pointer;' +
+        (hasNextDate ? "background:#9bea9d;" : "") +
+        '"' +
+        " onclick='" +
+        (hasNextDate
+          ? "openEditCaseModal(" +
+            JSON.stringify(x).replace(/'/g, "\\'") +
+            "," +
+            JSON.stringify(nxt).replace(/'/g, "\\'") +
+            ")"
+          : "openNextHearingModal(" +
+            JSON.stringify(x).replace(/'/g, "\\'") +
+            "," +
+            JSON.stringify(disp).replace(/'/g, "\\'") +
+            ")") +
+        "'" +
+        ' title="' +
+        (hasNextDate ? escHtml(formatDateShort(ndDate)) : "Click to add") +
+        '">' +
+        (hasNextDate ? escHtml(formatDateShort(ndDate)) : "+") +
+        "</td>"
+      : "") +
+    (isColVisible("filer")
+      ? '<td class="text-start text-gray-dark truncate" style="max-width:150px;" title="' +
+        escAttr(dv.n) +
+        '">' +
+        escHtml(dv.n) +
+        "</td>"
+      : "") +
+    (isColVisible("answerer")
+      ? '<td class="text-start text-gray-dark truncate" style="max-width:150px;" title="' +
+        escAttr(dv.o) +
+        '">' +
+        escHtml(dv.o) +
+        "</td>"
+      : "") +
+    (isColVisible("edit")
+      ? '<td><button class="btn btn-sm" style="color:var(--gold);border:1px solid var(--gold);padding:2px 8px;font-size:12px;cursor:pointer;" onclick=\'openEditCaseModal(' +
+        JSON.stringify(x).replace(/'/g, "&#39;") +
         "," +
-        JSON.stringify(nxt).replace(/'/g, "\\'") +
-        ")"
-      : "openNextHearingModal(" +
-        JSON.stringify(x).replace(/'/g, "\\'") +
-        "," +
-        JSON.stringify(disp).replace(/'/g, "\\'") +
-        ")") +
-    "'" +
-    ' title="' +
-    (hasNextDate ? escHtml(formatDateShort(ndDate)) : "Click to add") +
-    '">' +
-    (hasNextDate ? escHtml(formatDateShort(ndDate)) : "+") +
-    "</td>" : '') +
-    (isColVisible("filer") ? '<td class="text-start text-gray-dark truncate" style="max-width:150px;" title="' +
-    escAttr(dv.n) +
-    '">' +
-    escHtml(dv.n) +
-    "</td>" : '') +
-    (isColVisible("answerer") ? '<td class="text-start text-gray-dark truncate" style="max-width:150px;" title="' +
-    escAttr(dv.o) +
-    '">' +
-    escHtml(dv.o) +
-    "</td>" : '') +
-    (isColVisible("edit") ? '<td><button class="btn btn-sm" style="color:var(--gold);border:1px solid var(--gold);padding:2px 8px;font-size:12px;cursor:pointer;" onclick=\'openEditCaseModal(' +
-    JSON.stringify(x).replace(/'/g, "&#39;") +
-    "," +
-    JSON.stringify(disp).replace(/'/g, "&#39;") +
-    ')\' title="Edit Case">✏️</button></td>' : '') +
-    (isColVisible("del") ? '<td><button class="btn btn-sm" style="color:#dc3545;border:1px solid #dc3545;padding:2px 8px;font-size:12px;cursor:pointer;" onclick=\'deleteCaseRecord(' +
-    JSON.stringify(x).replace(/'/g, "&#39;") +
-    ')\' title="Delete Case"><i class="fas fa-trash-alt"></i></button></td>' : '') +
+        JSON.stringify(disp).replace(/'/g, "&#39;") +
+        ')\' title="Edit Case">✏️</button></td>'
+      : "") +
+    (isColVisible("del")
+      ? '<td><button class="btn btn-sm" style="color:#dc3545;border:1px solid #dc3545;padding:2px 8px;font-size:12px;cursor:pointer;" onclick=\'deleteCaseRecord(' +
+        JSON.stringify(x).replace(/'/g, "&#39;") +
+        ')\' title="Delete Case"><i class="fas fa-trash-alt"></i></button></td>'
+      : "") +
     "</tr>"
   );
 }
@@ -335,7 +480,9 @@ function renderTable() {
     return cd.e >= f && cd.e <= t;
   });
 
-  filteredCaseDates.sort(function (a, b) { return a.e < b.e ? -1 : a.e > b.e ? 1 : 0; });
+  filteredCaseDates.sort(function (a, b) {
+    return a.e < b.e ? -1 : a.e > b.e ? 1 : 0;
+  });
 
   var dateGroups = {};
   var dateOrder = [];
@@ -344,13 +491,19 @@ function renderTable() {
     var cd = filteredCaseDates[i];
     var rec = null;
     for (var j = 0; j < caseRecords.length; j++) {
-      if (caseRecords[j].a === cd.td) { rec = caseRecords[j]; break; }
+      if (caseRecords[j].a == cd.td) {
+        rec = caseRecords[j];
+        break;
+      }
     }
     if (!rec) {
       continue;
     }
     if (s && !matchesSearch(rec, s)) continue;
-    if (!dateGroups[cd.e]) { dateGroups[cd.e] = []; dateOrder.push(cd.e); }
+    if (!dateGroups[cd.e]) {
+      dateGroups[cd.e] = [];
+      dateOrder.push(cd.e);
+    }
     dateGroups[cd.e].push({ record: rec, caseDate: cd });
   }
 
@@ -358,9 +511,13 @@ function renderTable() {
     var rec2 = caseRecords[ci];
     var cr91 = getCaseCs91Record(rec2);
     if (!cr91 || !cr91.p) continue;
+    if (caseHasDateRows(rec2.a) || caseHasDateRows(cr91.a)) continue;
     if (cr91.p < f || cr91.p > t) continue;
     if (s && !matchesSearch(rec2, s)) continue;
-    if (!dateGroups[cr91.p]) { dateGroups[cr91.p] = []; dateOrder.push(cr91.p); }
+    if (!dateGroups[cr91.p]) {
+      dateGroups[cr91.p] = [];
+      dateOrder.push(cr91.p);
+    }
     dateGroups[cr91.p].push({
       record: rec2,
       caseDate: { td: rec2.a, e: cr91.p },
@@ -372,7 +529,20 @@ function renderTable() {
   dateOrder.sort();
 
   var totalRecords = 0;
-  var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
   var h = "";
 
   for (var i = 0; i < dateOrder.length; i++) {
@@ -384,56 +554,59 @@ function renderTable() {
     var dp = d.split("-");
     var displayDate = dp[2] + " " + months[parseInt(dp[1]) - 1] + " " + dp[0];
 
-    h += '<div class="table-container-premium mb-3" style="border-left:3px solid var(--gold);">' +
+    h +=
+      '<div class="table-container-premium mb-3" style="border-left:3px solid var(--gold);">' +
       '<div class="p-2" style="background:var(--gold-bg);border-bottom:1px solid var(--gold);">' +
       '<i class="fas fa-calendar-day text-gold me-2"></i>' +
-      '<span class="fw-bold text-navy" style="font-size:13px;">' + displayDate + '</span>' +
-      '<span class="badge-premium badge-premium-gold ms-2" style="font-size:11px;">' + items.length + '</span>' +
-      '</div>' +
+      '<span class="fw-bold text-navy" style="font-size:13px;">' +
+      displayDate +
+      "</span>" +
+      '<span class="badge-premium badge-premium-gold ms-2" style="font-size:11px;">' +
+      items.length +
+      "</span>" +
+      "</div>" +
       '<div class="table-scroll-premium">' +
       '<table class="table-premium table table-bordered table-sm mb-0">' +
-      '<thead><tr>' +
-      (isColVisible("sr") ? '<th>SR</th>' : '') +
-      (isColVisible("pdate") ? '<th>PDate</th>' : '') +
-      (isColVisible("court") ? '<th>Court</th>' : '') +
-      (isColVisible("adv") ? '<th>Adv</th>' : '') +
-      (isColVisible("brief") ? '<th>Brief</th>' : '') +
-      (isColVisible("caseType") ? '<th>Case Type</th>' : '') +
-      (isColVisible("caseNo") ? '<th>Case No.</th>' : '') +
-      (isColVisible("stg") ? '<th>STG</th>' : '') +
-      (isColVisible("ndate") ? '<th>NDate</th>' : '') +
-      (isColVisible("filer") ? '<th>Filer</th>' : '') +
-      (isColVisible("answerer") ? '<th>Answerer</th>' : '') +
-      (isColVisible("edit") ? '<th>Edit</th>' : '') +
-      (isColVisible("del") ? '<th>Del</th>' : '') +
-      '</tr></thead><tbody>';
+      "<thead><tr>" +
+      (isColVisible("sr") ? "<th>SR</th>" : "") +
+      (isColVisible("pdate") ? "<th>PDate</th>" : "") +
+      (isColVisible("court") ? "<th>Court</th>" : "") +
+      (isColVisible("adv") ? "<th>Adv</th>" : "") +
+      (isColVisible("brief") ? "<th>Brief</th>" : "") +
+      (isColVisible("caseType") ? "<th>Case Type</th>" : "") +
+      (isColVisible("caseNo") ? "<th>Case No.</th>" : "") +
+      (isColVisible("stg") ? "<th>STG</th>" : "") +
+      (isColVisible("ndate") ? "<th>NDate</th>" : "") +
+      (isColVisible("filer") ? "<th>Filer</th>" : "") +
+      (isColVisible("answerer") ? "<th>Answerer</th>" : "") +
+      (isColVisible("edit") ? "<th>Edit</th>" : "") +
+      (isColVisible("del") ? "<th>Del</th>" : "") +
+      "</tr></thead><tbody>";
 
     for (var j = 0; j < items.length; j++) {
       var x = items[j].record;
       var cd = items[j].caseDate;
-      var disp = cd;
-      var nxt = null;
-      for (var k = 0; k < caseDates.length; k++) {
-        var c2 = caseDates[k];
-        if (c2.td === cd.td && c2.f == cd.a && (!nxt || c2.e > nxt.e)) nxt = c2;
-      }
-      var hasNextDate = nxt != null;
-      var ndDate = nxt ? nxt.e : cd.e;
-      var cdN = getCaseDateN(cd.n);
-      var stgName = stageMap[cdN.stg] || '-';
+      var eff = getCaseDatesForRecord(x.a);
+      var effCur = eff.current;
+      var target =
+        effCur && effCur.a ? effCur : cd && cd.a ? cd : effCur || null;
+      var hasNextDate = !!(effCur && effCur.e && effCur.e > today);
+      var ndDate = hasNextDate ? effCur.e : "";
+      var cdN = getCaseDateN((hasNextDate && effCur && effCur.n) || cd.n || null);
+      var stgName = stageMap[cdN.stg] || "-";
       h += buildHomeRow(
         x,
-        disp,
+        target,
         hasNextDate,
         ndDate,
         stgName,
         j,
-        nxt,
-        items[j].cs91Prev,
-        items[j].cs91 ? "cs91-date-row" : ""
+        target,
+        eff.previous ? eff.previous.e : "",
+        items[j].cs91 ? "cs91-date-row" : "",
       );
     }
-    h += '</tbody></table></div></div>';
+    h += "</tbody></table></div></div>";
   }
 
   if (bdg) bdg.textContent = totalRecords;
@@ -444,7 +617,7 @@ function renderTable() {
       '<i class="fas fa-check-circle text-gold" style="font-size:28px;"></i><br>' +
       '<span class="fw-bold text-navy" style="font-size:14px;">No cases for today</span><br>' +
       '<span class="text-sm text-gray">Enjoy your free day!</span>' +
-      '</div>';
+      "</div>";
     return;
   }
   container.innerHTML = h;
