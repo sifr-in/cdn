@@ -1,6 +1,35 @@
 // allCases.js - Table rendering, search, date formatting, view switching
 // Extracted from ks.js for modular loading
 
+// Advocate dashboard filter (list sourced from ks.da advOnBoard)
+window._ksAdvFilter = null;
+try {
+  var _savedAdvFilter = JSON.parse(
+    localStorage.getItem("ks_advFilter") || "null",
+  );
+  if (_savedAdvFilter && _savedAdvFilter.id != null)
+    window._ksAdvFilter = {
+      id: Number(_savedAdvFilter.id),
+      name: String(_savedAdvFilter.name || ""),
+    };
+} catch (e) {}
+
+function recordMatchesAdvFilter(rec) {
+  if (!window._ksAdvFilter) return true;
+  var fid = String(window._ksAdvFilter.id);
+  var s = String((rec && rec.k) == null ? "" : rec.k).trim();
+  if (s) {
+    var tokens = s.split(/[|,]/);
+    for (var i = 0; i < tokens.length; i++) {
+      var t = tokens[i].trim();
+      if (/^\d+$/.test(t)) return t === fid;
+    }
+    if (/^\d+$/.test(s)) return s === fid;
+  }
+  if (rec && rec.x2 != null && String(rec.x2) === fid) return true;
+  return false;
+}
+
 var caseTypeMap = {
   1: "Civil",
   2: "Commercial",
@@ -82,6 +111,11 @@ function getCaseDisplayRecord(record) {
   for (var key in record) {
     if (Object.prototype.hasOwnProperty.call(record, key)) r[key] = record[key];
   }
+  if (Number(record.f) > 0) {
+    r.g = cr.k;
+    r.h = cr.g;
+    r.i = cr.s;
+  }
   if (!r.q) r.q = cr.j;
   if (!r.g) r.g = cr.k;
   if (!r.h) r.h = cr.g;
@@ -155,12 +189,13 @@ function getCaseNextDate(caseId, today) {
 }
 
 function matchesSearch(x, s) {
+  var d = getCaseDisplayRecord(x) || x;
   return (
-    (x.q && x.q.toLowerCase().includes(s)) ||
-    (x.g && x.g.toLowerCase().includes(s)) ||
-    (x.n && x.n.toLowerCase().includes(s)) ||
-    (x.o && x.o.toLowerCase().includes(s)) ||
-    (x.h + "/" + x.i).toLowerCase().includes(s)
+    (d.q && d.q.toLowerCase().includes(s)) ||
+    (d.g && d.g.toLowerCase().includes(s)) ||
+    (d.n && d.n.toLowerCase().includes(s)) ||
+    (d.o && d.o.toLowerCase().includes(s)) ||
+    ((d.h + "/" + d.i).toLowerCase().includes(s))
   );
 }
 
@@ -202,6 +237,9 @@ function renderFlatTable() {
     .toLowerCase()
     .trim();
   var r = caseRecords.filter(hasCaseData);
+  r = r.filter(function (x) {
+    return recordMatchesAdvFilter(x);
+  });
   if (s) {
     r = r.filter(function (x) {
       return matchesSearch(x, s);
@@ -461,6 +499,7 @@ function buildHomeRow(
 }
 
 function renderTable() {
+  updateAdvFilterLabel();
   if (currentView === "allCases") {
     renderFlatTable();
     return;
@@ -500,6 +539,7 @@ function renderTable() {
       continue;
     }
     if (s && !matchesSearch(rec, s)) continue;
+    if (!recordMatchesAdvFilter(rec)) continue;
     if (!dateGroups[cd.e]) {
       dateGroups[cd.e] = [];
       dateOrder.push(cd.e);
@@ -514,6 +554,7 @@ function renderTable() {
     if (caseHasDateRows(rec2.a) || caseHasDateRows(cr91.a)) continue;
     if (cr91.p < f || cr91.p > t) continue;
     if (s && !matchesSearch(rec2, s)) continue;
+    if (!recordMatchesAdvFilter(rec2)) continue;
     if (!dateGroups[cr91.p]) {
       dateGroups[cr91.p] = [];
       dateOrder.push(cr91.p);
@@ -592,7 +633,9 @@ function renderTable() {
         effCur && effCur.a ? effCur : cd && cd.a ? cd : effCur || null;
       var hasNextDate = !!(effCur && effCur.e && effCur.e > today);
       var ndDate = hasNextDate ? effCur.e : "";
-      var cdN = getCaseDateN((hasNextDate && effCur && effCur.n) || cd.n || null);
+      var cdN = getCaseDateN(
+        (hasNextDate && effCur && effCur.n) || cd.n || null,
+      );
       var stgName = stageMap[cdN.stg] || "-";
       h += buildHomeRow(
         x,
@@ -655,5 +698,117 @@ window.showHome = function () {
   }
   renderTable();
 };
+
+window.toggleAdvFilterMenu = function () {
+  var menu = document.getElementById("advFilterMenu");
+  if (!menu) return;
+  if (menu.style.display === "block") {
+    menu.style.display = "none";
+    return;
+  }
+  buildAdvFilterMenu();
+  menu.style.display = "block";
+};
+
+async function buildAdvFilterMenu() {
+  var menu = document.getElementById("advFilterMenu");
+  if (!menu) return;
+  var items = [{ id: null, name: "All Advocates" }];
+  try {
+    var da = JSON.parse(await (await fetch("ks.da")).text());
+    var ids = ((da && da.advOnBoard) || [])
+      .map(Number)
+      .filter(function (v) {
+        return !isNaN(v);
+      });
+    var persons =
+      typeof dbDexieManager !== "undefined" && typeof dbnm !== "undefined"
+        ? await dbDexieManager.getAllRecords(dbnm, "c")
+        : [];
+    var seenNames = {};
+    for (var i = 0; i < ids.length; i++) {
+      var p = null;
+      for (var j = 0; j < persons.length; j++) {
+        if (Number(persons[j].a) === ids[i]) {
+          p = persons[j];
+          break;
+        }
+      }
+      var nm = p ? String(p.h || p.i || "").trim() : "";
+      if (!nm || seenNames[nm.toLowerCase()]) continue;
+      seenNames[nm.toLowerCase()] = 1;
+      items.push({ id: ids[i], name: nm });
+    }
+  } catch (e) {
+    console.warn("Advocate filter list load failed:", e);
+  }
+  window._ksAdvFilterItems = items;
+  var h = "";
+  for (var k = 0; k < items.length; k++) {
+    var active =
+      items[k].id == null
+        ? !window._ksAdvFilter
+        : window._ksAdvFilter &&
+          Number(window._ksAdvFilter.id) === Number(items[k].id);
+    h +=
+      '<div onclick="setAdvFilterItem(' +
+      k +
+      ')" style="padding:8px 12px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;' +
+      (active
+        ? "background:var(--gold-bg);font-weight:600;color:var(--navy);"
+        : "") +
+      '" data-act="' +
+      (active ? "1" : "") +
+      '" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="if(!this.dataset.act)this.style.background=\'\'">' +
+      '<i class="fas fa-' +
+      (items[k].id == null ? "list-ul" : "user-tie") +
+      '" style="color:var(--gold);width:14px;"></i>' +
+      '<span style="flex:1;">' +
+      escHtml(items[k].name) +
+      "</span>" +
+      (active ? '<i class="fas fa-check" style="color:var(--gold);"></i>' : "") +
+      "</div>";
+  }
+  menu.innerHTML = h;
+}
+
+function setAdvFilterItem(idx) {
+  var it = (window._ksAdvFilterItems || [])[idx];
+  if (!it) return;
+  if (it.id == null) {
+    window._ksAdvFilter = null;
+    localStorage.removeItem("ks_advFilter");
+  } else {
+    window._ksAdvFilter = { id: Number(it.id), name: String(it.name || "") };
+    localStorage.setItem("ks_advFilter", JSON.stringify(window._ksAdvFilter));
+  }
+  updateAdvFilterLabel();
+  var menu = document.getElementById("advFilterMenu");
+  if (menu) menu.style.display = "none";
+  renderTable();
+}
+
+function updateAdvFilterLabel() {
+  var lbl = document.getElementById("advFilterLabel");
+  var btn = document.getElementById("advFilterBtn");
+  var txt = window._ksAdvFilter ? window._ksAdvFilter.name : "All Advocates";
+  if (lbl) lbl.textContent = txt;
+  if (btn) {
+    btn.title = txt;
+    btn.style.borderColor = window._ksAdvFilter ? "var(--gold)" : "";
+    btn.style.background = window._ksAdvFilter
+      ? "var(--gold-bg)"
+      : "#FFFFFF";
+  }
+}
+
+document.addEventListener("click", function (e) {
+  var menu = document.getElementById("advFilterMenu");
+  if (!menu || menu.style.display !== "block") return;
+  if (menu.contains(e.target)) return;
+  var btn = e.target.closest ? e.target.closest("#advFilterBtn") : null;
+  if (btn) return;
+  menu.style.display = "none";
+});
 
 console.log("📊 allCases.js loaded");

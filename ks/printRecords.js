@@ -12,21 +12,29 @@ function printDashboard() {
     return true;
   });
 
-  filteredCaseDates.sort(function (a, b) { return a.e < b.e ? -1 : a.e > b.e ? 1 : 0; });
+  filteredCaseDates.sort(function (a, b) {
+    return a.e < b.e ? -1 : a.e > b.e ? 1 : 0;
+  });
 
   var items = [];
   for (var i = 0; i < filteredCaseDates.length; i++) {
     var cd = filteredCaseDates[i];
     var rec = null;
     for (var j = 0; j < caseRecords.length; j++) {
-      if (caseRecords[j].a === cd.td) { rec = caseRecords[j]; break; }
+      if (caseRecords[j].a === cd.td) {
+        rec = caseRecords[j];
+        break;
+      }
     }
     if (!rec) continue;
     if (searchTerm && !matchesSearch(rec, searchTerm)) continue;
     var pDate = "";
     if (cd.f) {
       for (var k = 0; k < caseDates.length; k++) {
-        if (caseDates[k].a == cd.f) { pDate = caseDates[k].e; break; }
+        if (caseDates[k].a == cd.f) {
+          pDate = caseDates[k].e;
+          break;
+        }
       }
     }
     items.push({ record: rec, caseDate: cd, pDate: pDate });
@@ -50,7 +58,11 @@ function printDashboard() {
   }
 
   items.sort(function (a, b) {
-    return a.caseDate.e < b.caseDate.e ? -1 : a.caseDate.e > b.caseDate.e ? 1 : 0;
+    return a.caseDate.e < b.caseDate.e
+      ? -1
+      : a.caseDate.e > b.caseDate.e
+        ? 1
+        : 0;
   });
 
   if (items.length === 0) {
@@ -61,11 +73,12 @@ function printDashboard() {
   var rowsHtml = "";
   for (var j = 0; j < items.length; j++) {
     var r = items[j].record;
-    var rv = typeof getCaseDisplayRecord === "function" ? getCaseDisplayRecord(r) : r;
+    var rv =
+      typeof getCaseDisplayRecord === "function" ? getCaseDisplayRecord(r) : r;
     var cd = items[j].caseDate;
     var pd = items[j].pDate;
     var cdN = getCaseDateN(cd.n);
-    var stgName = stageMap[cdN.stg] || '-';
+    var stgName = stageMap[cdN.stg] || "-";
     rowsHtml +=
       "<tr" +
       (items[j].cs91 ? ' style="background:#D5E2F2;"' : "") +
@@ -76,7 +89,9 @@ function printDashboard() {
       (isColVisible("adv") ? "<td>" + escHtml(r.k || "-") + "</td>" : "") +
       (isColVisible("brief") ? "<td>" + escHtml(r.l || "-") + "</td>" : "") +
       (isColVisible("caseType") ? "<td>" + escHtml(rv.g) + "</td>" : "") +
-      (isColVisible("caseNo") ? "<td>" + escHtml(rv.h + "/" + rv.i) + "</td>" : "") +
+      (isColVisible("caseNo")
+        ? "<td>" + escHtml(rv.h + "/" + rv.i) + "</td>"
+        : "") +
       (isColVisible("stg") ? "<td>" + escHtml(stgName) + "</td>" : "") +
       (isColVisible("ndate") ? "<td>" + formatDate(cd.e) + "</td>" : "") +
       (isColVisible("filer") ? "<td>" + escHtml(rv.n) + "</td>" : "") +

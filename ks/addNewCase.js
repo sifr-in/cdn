@@ -5,7 +5,92 @@ var editingRecordId = null;
 var addCaseModalId = null;
 window._editingCaseDateEntry = null;
 
-function showAddCaseModal(editRecord) {
+function advocateIdFromRecordKey(k) {
+  var s = String(k == null ? "" : k).trim();
+  if (!s) return "";
+  var tokens = s.split(/[|,]/);
+  for (var i = 0; i < tokens.length; i++) {
+    var t = tokens[i].trim();
+    if (t && /^\d+$/.test(t)) return t;
+  }
+  return "";
+}
+
+function caseDisplayRec(record) {
+  if (!record) return record;
+  if (typeof getCaseDisplayRecord === "function")
+    return getCaseDisplayRecord(record) || record;
+  return record;
+}
+
+// Populates the caseAdvocate select from ks.da advOnBoard (max 9, no duplicate names)
+async function populateCaseAdvocateOptions(mid) {
+  var sel = document.getElementById("caseAdvocate");
+  if (!sel) return;
+  var ids = [];
+  try {
+    var da = JSON.parse(await (await fetch("ks.da")).text());
+    ids = ((da && da.advOnBoard) || [])
+      .map(Number)
+      .filter(function (v) {
+        return !isNaN(v);
+      });
+  } catch (e) {
+    console.warn("ks.da load failed:", e);
+  }
+  var seen = {};
+  var count = 0;
+  var html = '<option value="">Select advocate</option>';
+  if (
+    ids.length &&
+    typeof dbDexieManager !== "undefined" &&
+    typeof dbnm !== "undefined"
+  ) {
+    try {
+      var persons = await dbDexieManager.getAllRecords(dbnm, "c");
+      var boardCap =
+        typeof maxNoOfAdvOnBoard !== "undefined"
+          ? Number(maxNoOfAdvOnBoard) || 9
+          : 9;
+      var missed = [];
+      for (var i = 0; i < ids.length && count < boardCap; i++) {
+        var p = null;
+        for (var j = 0; j < persons.length; j++) {
+          if (Number(persons[j].a) === ids[i]) {
+            p = persons[j];
+            break;
+          }
+        }
+        if (!p) {
+          missed.push(ids[i]);
+          continue;
+        }
+        var nm = String(p.h || p.i || "").trim();
+        if (!nm) continue;
+        var key = nm.toLowerCase();
+        if (seen[key]) continue;
+        seen[key] = 1;
+        html +=
+          '<option value="' + ids[i] + "|" + escAttr(nm) + '">' +
+          escHtml(nm) +
+          "</option>";
+        count++;
+      }
+      if (missed.length)
+        console.warn(
+          "advOnBoard ids not found in contacts table 'c':",
+          missed.join(", "),
+        );
+    } catch (e) {
+      console.warn("Advocate persons load failed:", e);
+    }
+  }
+  if (!count)
+    html += '<option value="" disabled>No advocates on board</option>';
+  sel.innerHTML = html;
+}
+
+async function showAddCaseModal(editRecord) {
   editingRecordId = editRecord ? editRecord.a : null;
   var isEditMode = editingRecordId !== null;
   var mid = "addCaseModal_" + Date.now();
@@ -309,11 +394,6 @@ function showAddCaseModal(editRecord) {
     '<label class="form-label-premium">Advocate</label>' +
     '<select id="caseAdvocate" class="form-select-premium">' +
     '<option value="">Select advocate</option>' +
-    '<option value="1|Adv. Sharma">Adv. Sharma</option>' +
-    '<option value="2|Adv. Patil">Adv. Patil</option>' +
-    '<option value="3|Adv. Joshi">Adv. Joshi</option>' +
-    '<option value="4|Adv. Deshmukh">Adv. Deshmukh</option>' +
-    '<option value="5|Adv. Kulkarni">Adv. Kulkarni</option>' +
     "</select></div>" +
     '<div class="form-group-premium mb-0">' +
     '<label class="form-label-premium">Case Category</label>' +
@@ -423,7 +503,8 @@ function showAddCaseModal(editRecord) {
       ndStageLabels[si] +
       "</option>";
   }
-  var ndCaseNo = editRecord ? editRecord.h + "/" + editRecord.i : "";
+  var ndDisp = caseDisplayRec(editRecord);
+  var ndCaseNo = editRecord ? (ndDisp.h || "") + "/" + (ndDisp.i || "") : "";
   var nextDateTabHtml = isEditMode
     ? '<div class="p-3" style="border-bottom:2px solid var(--gray-bg);">' +
       '<div class="text-sm text-gray">Case: <strong class="text-navy" style="font-size:14px;">' +
@@ -533,6 +614,8 @@ function showAddCaseModal(editRecord) {
   var modalEl = document.getElementById(mid);
   addCaseModalId = mid;
   var m = new bootstrap.Modal(modalEl);
+
+  await populateCaseAdvocateOptions(mid);
 
   if (isEditMode && editRecord) {
     prefillsAddCaseForm(editRecord, mid);
@@ -810,9 +893,9 @@ window.importCasesFromFile = function () {
   input.click();
 };
 
-window.hndlRspo108 = function (response) {
-  handl_ks_rspons(response);
-  loadDataFromDB();
+window.hndlRspo108 = async function (response) {
+  await handl_ks_rspons(response);
+  await loadDataFromDB();
   renderTable();
   if (
     (response.cs91 && response.cs91.l) ||
@@ -1081,8 +1164,8 @@ window.syncCaseFromECourt = async function () {
 };
 
 window.hndlRspo107 = function (response) {
-    window._ecourtSyncData = response || null;
-    showECourtSyncResult(response, !!(response && response.su == 1));
+  window._ecourtSyncData = response || null;
+  showECourtSyncResult(response, !!(response && response.su == 1));
 };
 
 var ecourtSyncModalId = null;
@@ -1176,6 +1259,12 @@ window.saveECourtSync = async function () {
     delete payload0.x3;
     payload0.x4 = 1;
   }
+  payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [
+    { tb: "cs" },
+    { tb: "cs91" },
+    { tb: "c" },
+    { tb: "a" },
+  ]);
 
   try {
     if (typeof fnj3 !== "function") {
@@ -1390,6 +1479,7 @@ window.switchEditTab = function (modalId, tab) {
 };
 
 function prefillsAddCaseForm(record, mid) {
+  var drec = caseDisplayRec(record);
   var isECourt =
     record.f === 0 && record.g === "" && record.h === "" && record.i === 0;
 
@@ -1430,11 +1520,11 @@ function prefillsAddCaseForm(record, mid) {
       cnrInput.value = cnrVal;
     }
     var ecCt = document.getElementById("ec_caseType");
-    if (ecCt) ecCt.value = record.g || "";
+    if (ecCt) ecCt.value = drec.g || "";
     var ecCn = document.getElementById("ec_caseNumber");
-    if (ecCn) ecCn.value = record.h || "";
+    if (ecCn) ecCn.value = drec.h || "";
     var ecCy = document.getElementById("ec_caseYear");
-    if (ecCy) ecCy.value = record.i || "";
+    if (ecCy) ecCy.value = drec.i || "";
     if (ecCt && ecCt.value) checkCustomCaseType(ecCt, "ec_caseTypeCustom");
     var briefCNR = document.getElementById("caseBriefNumberCNR");
     if (briefCNR) briefCNR.value = record.l || "";
@@ -1447,11 +1537,11 @@ function prefillsAddCaseForm(record, mid) {
       nRadio.dispatchEvent(new Event("change"));
     }
     var cn = document.getElementById("caseNumber");
-    if (cn) cn.value = record.h || "";
+    if (cn) cn.value = drec.h || "";
     var ct = document.getElementById("caseType");
-    if (ct) ct.value = record.g || "";
+    if (ct) ct.value = drec.g || "";
     var cy = document.getElementById("caseYear");
-    if (cy) cy.value = record.i || "";
+    if (cy) cy.value = drec.i || "";
     var brief = document.getElementById("caseBriefNumber");
     if (brief) brief.value = record.l || "";
   }
@@ -1473,10 +1563,16 @@ function prefillsAddCaseForm(record, mid) {
   var adv = document.getElementById("caseAdvocate");
   if (adv) {
     var opts = adv.options;
-    for (var i = 0; i < opts.length; i++) {
-      if (opts[i].value && opts[i].value.split("|")[0] === String(record.k)) {
-        adv.selectedIndex = i;
-        break;
+    var savedAdvId = advocateIdFromRecordKey(record.k);
+    if (savedAdvId) {
+      for (var i = 0; i < opts.length; i++) {
+        if (
+          opts[i].value &&
+          opts[i].value.split("|")[0] === savedAdvId
+        ) {
+          adv.selectedIndex = i;
+          break;
+        }
       }
     }
   }
@@ -1637,6 +1733,19 @@ window.updateCaseRecord = async function () {
     t: caseCategory || 0,
     u: notes ? JSON.stringify({ n: notes }) : null,
   };
+
+  var origCaseRec = null;
+  for (var ocri = 0; ocri < caseRecords.length; ocri++) {
+    if (caseRecords[ocri].a == editingRecordId) {
+      origCaseRec = caseRecords[ocri];
+      break;
+    }
+  }
+  if (origCaseRec && Number(origCaseRec.f) > 0) {
+    payload0.p.f = origCaseRec.f;
+  }
+
+  payload0.x2 = advocateId;
 
   if (isECourt) {
     if (hideCols.indexOf("bf") >= 0 || hideCols.indexOf("bn") >= 0)
@@ -1937,6 +2046,8 @@ window.saveCase = async function (modalId) {
     u: notes ? JSON.stringify({ n: notes }) : null,
   };
 
+  payload0.x2 = advocateId; // Advocate person id selected from caseAdvocate (board members of ks.da advOnBoard) - sent as additional key alongside p.k for fn 92 insert
+
   if (isECourt) {
     if (hideCols.indexOf("bf") >= 0 || hideCols.indexOf("bn") >= 0)
       delete payload0.p.l;
@@ -2093,7 +2204,11 @@ window.deleteCaseRecord = function (record) {
       '<tr><td colspan="2" style="padding:8px;font-size:12px;color:#999;text-align:center;">No dates found</td></tr>';
   }
 
-  var caseNo = record.h && record.i ? record.h + "/" + record.i : "-";
+  var ddRec = caseDisplayRec(record);
+  var caseNo =
+    ddRec.h != null && ddRec.i != null && ddRec.h !== "" && ddRec.i !== ""
+      ? ddRec.h + "/" + ddRec.i
+      : "-";
   var cdMain = getCaseDatesForRecord(record.a);
   var cdMainN = getCaseDateN(cdMain.current ? cdMain.current.n : null);
   var stgName = stageMap[cdMainN.stg] || "-";
@@ -2125,7 +2240,7 @@ window.deleteCaseRecord = function (record) {
     escHtml(record.o || "-") +
     "</td></tr>" +
     '<tr><td style="padding:3px 8px;color:#666;">Case Type:</td><td style="padding:3px 8px;color:#333;font-weight:500;">' +
-    escHtml(record.g || "-") +
+    escHtml(ddRec.g || "-") +
     "</td></tr>" +
     '<tr><td style="padding:3px 8px;color:#666;">Stage:</td><td style="padding:3px 8px;color:#333;font-weight:500;">' +
     escHtml(stgName) +
