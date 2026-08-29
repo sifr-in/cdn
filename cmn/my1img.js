@@ -711,13 +711,141 @@
   draw();
  };
 
+ // ==================== Camera capture support ====================
+ window._upCamStream = null;
+ window._upCamFacing = 'environment';
+
+ function upCamStop() {
+  if (window._upCamStream) {
+   window._upCamStream.getTracks().forEach(function (t) { t.stop(); });
+   window._upCamStream = null;
+  }
+    const video = document.getElementById('upCameraVideo');
+    if (video) {
+     video.srcObject = null;
+     video.style.transform = 'none';
+    }
+   window._upCamMirrored = false;
+   const stBtn = document.getElementById('upCameraStartBtn');
+   const capBtn = document.getElementById('upCameraCaptureBtn');
+   const stopBtn = document.getElementById('upCameraStopBtn');
+   const flipBtn = document.getElementById('upCameraFlipBtn');
+   const sel = document.getElementById('upCameraDeviceSel');
+   if (stBtn) stBtn.disabled = false;
+   if (capBtn) capBtn.disabled = true;
+   if (stopBtn) stopBtn.disabled = true;
+   if (flipBtn) flipBtn.disabled = true;
+   if (sel) { sel.style.display = 'none'; sel.innerHTML = ''; }
+ }
+
+ async function upCamStart(deviceId, facingMode) {
+  const msgEl = document.getElementById('upCameraMsg');
+  function showMsg(m) {
+   if (msgEl) { msgEl.textContent = m || ''; msgEl.style.display = m ? 'block' : 'none'; }
+  }
+  try {
+   showMsg('');
+   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showMsg('Camera not supported (HTTPS required)');
+    return;
+   }
+   const face = facingMode || window._upCamFacing || 'environment';
+   upCamStop();
+   const constraints = deviceId
+    ? { video: { deviceId: { exact: deviceId } } }
+    : { video: { facingMode: face } };
+   const stream = await navigator.mediaDevices.getUserMedia(constraints);
+   window._upCamStream = stream;
+   if (!deviceId) window._upCamFacing = face;
+   const video = document.getElementById('upCameraVideo');
+   const mirrored = !deviceId && face === 'user';
+   window._upCamMirrored = mirrored;
+   if (video) {
+    video.srcObject = stream;
+    video.style.transform = mirrored ? 'scaleX(-1)' : 'none';
+    video.play().catch(function () {});
+   }
+   document.getElementById('upCameraStartBtn').disabled = true;
+   document.getElementById('upCameraCaptureBtn').disabled = false;
+   document.getElementById('upCameraStopBtn').disabled = false;
+   const flipBtn = document.getElementById('upCameraFlipBtn');
+   if (flipBtn) flipBtn.disabled = false;
+   try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cams = devices.filter(function (d) { return d.kind === 'videoinput'; });
+    const sel = document.getElementById('upCameraDeviceSel');
+    if (sel && cams.length > 1) {
+     sel.innerHTML = cams.map(function (c, i) {
+      return '<option value="' + c.deviceId + '">' + (c.label || ('Camera ' + (i + 1))) + '</option>';
+     }).join('');
+     if (deviceId) sel.value = deviceId;
+     sel.style.display = 'block';
+    }
+   } catch (e) { /* device list optional */ }
+  } catch (err) {
+   console.error('Camera error:', err);
+   const name = err && err.name;
+   showMsg(name === 'NotAllowedError' ? 'Camera permission denied'
+    : name === 'NotFoundError' ? 'No camera found'
+    : name === 'NotReadableError' ? 'Camera is in use by another app'
+    : 'Failed to open camera');
+   upCamStop();
+  }
+ }
+
+ async function upCamFlip() {
+  if (!window._upCamStream) return;
+  window._upCamFacing = window._upCamFacing === 'user' ? 'environment' : 'user';
+  await upCamStart(null);
+ }
+
+  function upCamCapture() {
+   const video = document.getElementById('upCameraVideo');
+   if (!video || !window._upCamStream || !video.videoWidth) return;
+   const canvas = document.getElementById('upCameraCanvas');
+   canvas.width = video.videoWidth;
+   canvas.height = video.videoHeight;
+   const ctx = canvas.getContext('2d');
+   if (window._upCamMirrored) {
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+   }
+   ctx.drawImage(video, 0, 0);
+   const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+   upCamStop();
+   window.handleImageUrlInput(dataUrl, 'up');
+  }
+
+ if (!window.__adImgCamWired) {
+  window.__adImgCamWired = true;
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('#upCameraStartBtn')) upCamStart();
+    else if (e.target.closest('#upCameraCaptureBtn')) upCamCapture();
+    else if (e.target.closest('#upCameraStopBtn')) upCamStop();
+    else if (e.target.closest('#upCameraFlipBtn')) upCamFlip();
+  });
+  document.addEventListener('change', function (e) {
+   if (e.target && e.target.id === 'upCameraDeviceSel') upCamStart(e.target.value);
+  });
+  document.addEventListener('shown.bs.tab', function (e) {
+   if (e.target && e.target.id === 'upCameraTab') {
+    upCamStart();
+   } else if (e.target && (e.target.id === 'upUrlTab' || e.target.id === 'upUploadTab')) {
+    upCamStop();
+   }
+  });
+  document.addEventListener('hidden.bs.modal', function (e) {
+   if (e.target && e.target.id === 'addImageModal') upCamStop();
+  });
+ }
+
  // Open add image modal
- window.open_addimage = function (arg, arg2) {
+ window.open_addimage = function (...arg) {
   console.log('open_addimage called');
 
-  window._afterImageSet = typeof arg === 'function' ? arg : null;
-  window._imgObjDimensRqd = Array.isArray(arg2) ? arg2.slice() : null;
-
+  window._afterImageSet = typeof arg === 'function' ? arg[0] : null;
+  window._imgObjDimensRqd = typeof arg !== 'undefined' && Array.isArray(arg[1]) ? arg[1].slice() : ["500x500"];
+  window._showOnOpenThis = typeof arg !== 'undefined' ? arg[2] : 0;
   // Remove existing modal if any
   const existingModal = document.getElementById('addImageModal');
   if (existingModal) {
@@ -808,6 +936,11 @@
                                         <i class="fas fa-cloud-upload-alt me-1"></i>Upload File
                                     </button>
                                 </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="upCameraTab" data-bs-toggle="pill" data-bs-target="#upCameraPane" type="button" role="tab">
+                                        <i class="fas fa-camera me-1"></i>Camera
+                                    </button>
+                                </li>
                             </ul>
                             <div class="tab-content">
                                 <div class="tab-pane fade show active" id="upUrlPane" role="tabpanel">
@@ -840,6 +973,18 @@
                                                 <i class="fas fa-exchange-alt me-1"></i> Change Image
                                             </button>
                                         </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade border border-dark" id="upCameraPane" role="tabpanel" style="padding:10px;">
+                                    <video id="upCameraVideo" autoplay playsinline muted style="width:100%;max-height:240px;background:#000;border-radius:6px;object-fit:contain;"></video>
+                                    <canvas id="upCameraCanvas" style="display:none;"></canvas>
+                                    <p id="upCameraMsg" class="small text-danger text-center mt-2 mb-0" style="display:none;"></p>
+                                    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mt-2">
+                                        <select id="upCameraDeviceSel" class="form-select form-select-sm w-auto" style="display:none;"></select>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" id="upCameraStartBtn"><i class="fas fa-camera me-1"></i>Retake</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="upCameraFlipBtn" disabled><i class="fas fa-sync-alt me-1"></i>Flip</button>
+                                        <button type="button" class="btn btn-sm btn-success" id="upCameraCaptureBtn" disabled><i class="fas fa-camera me-1"></i>Capture</button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" id="upCameraStopBtn" disabled><i class="fas fa-times"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -982,8 +1127,16 @@
    // Process existing image if present
    if (existingImgUrl && existingImgUrl !== '') {
     setTimeout(() => {
-     window.handleImageUrlInput(existingImgUrl, 'up');
+     Promise.resolve(window.handleImageUrlInput(existingImgUrl, 'up')).then(() => {
+      if (String(window._showOnOpenThis) === '1') {
+       const camTabBtn = document.getElementById('upCameraTab');
+       if (camTabBtn) camTabBtn.click();
+      }
+     });
     }, 300);
+   } else if (String(window._showOnOpenThis) === '1') {
+    const camTabBtn = document.getElementById('upCameraTab');
+    if (camTabBtn) camTabBtn.click();
    }
   });
 

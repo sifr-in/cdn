@@ -42,50 +42,50 @@ function showAlertModal(message, type = 'error') {
  modalInstance.show();
 }
 
-function showUserInfoModal() {
- if (!my1uzr) return;
+// function showUserInfoModal() {
+//  if (!my1uzr) return;
 
- const { contentElement, modalInstance } = create_modal_dynamically('user_info');
+//  const { contentElement, modalInstance } = create_modal_dynamically('user_info');
 
- contentElement.innerHTML = `
-<div class="modal-header">
-<h5 class="modal-title">User <span style="color: red; cursor: pointer; margin-left: 5px;" onclick="logPout()">_</span> Information</h5>
-<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-</div>
-<div class="modal-body">
-<div class="text-center mb-4">
-<div class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-${my1uzr.ml ?
-   `<img src="${my1uzr.ml}" alt="Profile Picture" class="rounded-circle w-100 h-100" style="object-fit: cover;">` :
-   '<i class="fas fa-user text-white" style="font-size: 2rem;"></i>'
-  }
-</div>
-<h6 class="mb-1">${my1uzr.mn || "No Name"}</h6>
-${my1uzr.mu ? `<p class="text-muted small mb-2">${my1uzr.mu}</p>` : ''}
-</div>
+//  contentElement.innerHTML = `
+// <div class="modal-header">
+// <h5 class="modal-title">User <span style="color: red; cursor: pointer; margin-left: 5px;" onclick="logPout()">_</span> Information</h5>
+// <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+// </div>
+// <div class="modal-body">
+// <div class="text-center mb-4">
+// <div class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+// ${my1uzr.ml ?
+//    `<img src="${my1uzr.ml}" alt="Profile Picture" class="rounded-circle w-100 h-100" style="object-fit: cover;">` :
+//    '<i class="fas fa-user text-white" style="font-size: 2rem;"></i>'
+//   }
+// </div>
+// <h6 class="mb-1">${my1uzr.mn || "No Name"}</h6>
+// ${my1uzr.mu ? `<p class="text-muted small mb-2">${my1uzr.mu}</p>` : ''}
+// </div>
 
-<div class="border-top pt-3">
-<div class="row mb-2">
-<div class="col-4 text-muted">Mobile Number</div>
-<div class="col-8">${my1uzr.mo || "Not available"}</div>
-</div>
-<div class="row mb-2">
-<div class="col-4 text-muted">Constraint</div>
-<div class="col-8">${my1uzr.mc || "Not available"}</div>
-</div>
-<div class="row mb-2">
-<div class="col-4 text-muted">Relation ID</div>
-<div class="col-8">${my1uzr.mr || "Not available"}</div>
-</div>
-</div>
-</div>
-<div class="modal-footer">
-<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-</div>
-`;
+// <div class="border-top pt-3">
+// <div class="row mb-2">
+// <div class="col-4 text-muted">Mobile Number</div>
+// <div class="col-8">${my1uzr.mo || "Not available"}</div>
+// </div>
+// <div class="row mb-2">
+// <div class="col-4 text-muted">Constraint</div>
+// <div class="col-8">${my1uzr.mc || "Not available"}</div>
+// </div>
+// <div class="row mb-2">
+// <div class="col-4 text-muted">Relation ID</div>
+// <div class="col-8">${my1uzr.mr || "Not available"}</div>
+// </div>
+// </div>
+// </div>
+// <div class="modal-footer">
+// <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+// </div>
+// `;
 
- modalInstance.show();
-}
+//  modalInstance.show();
+// }
 
 // Show logout option modal
 function showLogoutOption() {
@@ -263,6 +263,8 @@ function set_innerHTML_of_register() {
 You agree with the <a href="#" class="text-primary">Terms & Conditions</a> when you click on "Send OTP"
 </label>
 
+<div id="my1lpXtraFields"></div>
+
 <button id="sendOtpBtn" class="btn btn-primary w-100 position-relative">
 <span id="sendOtpText">Send OTP</span>
 <span id="sendOtpLoader" class="spinner-border spinner-border-sm d-none position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%);"></span>
@@ -289,15 +291,6 @@ You agree with the <a href="#" class="text-primary">Terms & Conditions</a> when 
 </div>
 
 <div id="registrationForm" class="d-none mt-3">
-<div class="mb-3">
-<label for="englishName" class="form-label">
-Name in English 
-<i class="fas fa-expand-alt ms-1 text-muted" id="expandLocalName" style="cursor: pointer; font-size: 0.8rem;" title="Add name in local language"></i>
-</label>
-<input type="text" id="englishName" class="form-control" placeholder="Enter your name in English (min 2 chars)">
-<div id="englishNameError" class="invalid-feedback d-none">Name must be at least 2 characters and contain only English letters</div>
-</div>
-
 <div class="mb-3 d-none" id="localNameSection">
 <label for="localName" class="form-label">Name in Local Language</label>
 <input type="text" id="localName" class="form-control" placeholder="Name in local language (non-English characters only)">
@@ -339,6 +332,315 @@ Name in English
 </div>
 </div>
 `;
+}
+
+// ========== Dynamic extra fields for register (b.da.xtraEiFlds_forLoginP) ==========
+// Mirrors the ei.js/my1lo.js dynamic-extra-fields engine, self-contained with a "my1lpX"
+// prefix to avoid global-name collisions when ei.js and/or my1lo.js are present.
+function my1lpXtraGet() {
+ try {
+  var c = (typeof window[my1uzr.worknOnPg].clientConfig === "object" && window[my1uzr.worknOnPg].clientConfig) ? window[my1uzr.worknOnPg].clientConfig : {};
+  var defs = c && c.xtraEiFlds_forLoginP;
+  return (defs && typeof defs === "object" && Object.keys(defs).length > 0) ? defs : null;
+ } catch (e) { return null; }
+}
+function my1lpXtraIsGroup(def) {
+ if (!def || typeof def !== "object") return false;
+ if (def.type === "div") return true;
+ if (def.x && typeof def.x === "object") return true;
+ if (!def.type) {
+  for (var k in def) {
+   if (!def.hasOwnProperty(k)) continue;
+   if (k === "lbl" || k === "ptrn" || k === "rq" || k === "preProcess" || k === "postProcess" || k === "x") continue;
+   if (def[k] && typeof def[k] === "object") return true;
+  }
+ }
+ return false;
+}
+function my1lpXtraChildren(def) {
+ return (def.x && typeof def.x === "object") ? def.x : def;
+}
+function my1lpXtraQuery(sel, path) {
+ return document.querySelector("." + sel + '[data-path="' + path + '"]');
+}
+function my1lpXtraTheme() {
+ var r = (typeof window.my1loThemeReport === "object" && window.my1loThemeReport) ? window.my1loThemeReport : {};
+ var brand = r.brandHex || r.brand || "#9933cc";
+ var brandDark = r.brandDark || brand;
+ var onBrand = r.onBrand || "#ffffff";
+ var lightBg = r.lightBg || "#ffffff";
+ var ink = r.ink || "#212529";
+ return { brand: brand, brandDark: brandDark, onBrand: onBrand, lightBg: lightBg, ink: ink };
+}
+function my1lpXtraRender() {
+ var wrap = document.getElementById("my1lpXtraFields");
+ if (!wrap) return;
+ var xtra = my1lpXtraGet();
+ if (!xtra) { wrap.innerHTML = ""; wrap.style.display = "none"; return; }
+ wrap.style.display = "";
+ var p = my1lpXtraTheme();
+ var inpDyn = "display:block;width:100%;background:#fff;border:2px solid #6c757d;border-radius:10px;padding:8px 12px;font-size:14px;color:" + p.ink + ";outline:none;";
+ var boxStyle = "border:2px solid #6c757d;border-radius:.5rem;padding:8px 10px;margin-bottom:.5rem;background:" + p.lightBg + ";";
+ var html = "";
+ function renderDef(def, path, inDiv) {
+  var out = "";
+  if (!def || typeof def !== "object") return out;
+  if (my1lpXtraIsGroup(def)) {
+   var children = my1lpXtraChildren(def);
+   var hasBox = (def.type === "div" || (def.x && typeof def.x === "object") || !!def.lbl) && !inDiv;
+   var isMeta = function (key) { return key === "lbl" || key === "type" || key === "ptrn" || key === "rq" || key === "preProcess" || key === "postProcess" || key === "x"; };
+   if (hasBox) {
+    out += '<div style="' + boxStyle + '">';
+    if (def.lbl) out += '<div class="text-xs fw-bold text-uppercase mb-2" style="color:#343a40;"><i class="fas fa-layer-group me-1" style="color:' + p.brand + ';"></i>' + def.lbl + '</div>';
+    for (var ck in children) {
+     if (!children.hasOwnProperty(ck)) continue;
+     if (!def.x && isMeta(ck)) continue;
+     out += renderDef(children[ck], path + "__" + ck, true);
+    }
+    out += "</div>";
+   } else {
+    if (def.lbl) out += '<div class="text-xs fw-bold text-uppercase mt-3" style="color:#343a40;"><i class="fas fa-layer-group me-1" style="color:' + p.brand + ';"></i>' + def.lbl + '</div>';
+    for (var pk in children) {
+     if (!children.hasOwnProperty(pk)) continue;
+     if (isMeta(pk)) continue;
+     out += renderDef(children[pk], path + "__" + pk, inDiv);
+    }
+   }
+   return out;
+  }
+  var ftype = def.type || "text";
+  var req = def.rq === 1 || def.rq === true;
+  var lbl = def.lbl || path;
+  var ph = def.placeholder || lbl;
+  var reqMark = req ? ' <span style="color:#dc3545;">*</span>' : "";
+  if (!inDiv) out += '<div style="' + boxStyle + '">';
+  out += '<label class="form-label m-0 fw-bold mb-1" style="font-size:12.5px;color:#343a40;">' + lbl + reqMark + "</label>";
+  if (ftype === "file") {
+   out += '<div class="my1lpXph-img-box" data-path="' + path + '" style="border:2px dashed #6c757d;border-radius:.5rem;text-align:center;padding:14px 8px;cursor:pointer;background:#f8f9fa;"><i class="fas fa-image mb-1 d-block" style="font-size:1.6rem;color:' + p.brand + ';"></i><span class="fw-bold">' + lbl + "</span></div>";
+   out += '<div class="my1lpXph-img-prev" data-path="' + path + '" style="display:none;margin-top:6px;border:2px solid #6c757d;border-radius:.5rem;padding:6px;text-align:center;"><img class="my1lpXph-img-prev-img" data-path="' + path + '" src="" alt="' + lbl + '" style="max-width:100%;height:auto;max-height:150px;display:block;margin:auto;"><div class="mt-1"><span class="small text-muted my1lpXph-img-prev-name" data-path="' + path + '"></span><button type="button" class="btn btn-sm btn-outline-danger my1lpXph-img-remove" data-path="' + path + '" style="padding:0 6px;margin-left:6px;"><i class="fas fa-times"></i> Remove</button></div></div>';
+   out += '<input type="hidden" class="my1lpXph-val" data-path="' + path + '">';
+  } else if (ftype === "textarea") {
+   out += '<textarea class="my1lpXph-val" data-path="' + path + '" rows="2" placeholder="' + ph + '" style="font-size:14px;' + inpDyn + 'resize:vertical;min-height:40px;"></textarea>';
+  } else if (ftype === "select") {
+   out += '<select class="my1lpXph-val" data-path="' + path + '" style="font-size:14px;' + inpDyn + 'padding:6px 8px;">';
+   if (def.placeholder) out += '<option value="" disabled selected>' + def.placeholder + "</option>";
+   var opts = def.opts || def.opt || {};
+   if (typeof opts === "string") { opts = (window[my1uzr.worknOnPg].clientConfig && window[my1uzr.worknOnPg].clientConfig[opts]) || {}; }
+   for (var ov in opts) {
+    if (!opts.hasOwnProperty(ov)) continue;
+    var oc = opts[ov];
+    var olabel = typeof oc === "object" && oc ? (oc.b || oc.l || ov) : (oc === undefined ? ov : oc);
+    var oval = typeof oc === "object" && oc && oc.a !== undefined ? oc.a : ov;
+    out += '<option value="' + oval + '">' + olabel + "</option>";
+   }
+   out += "</select>";
+  } else {
+   var allowed = { text: 1, tel: 1, email: 1, number: 1, date: 1, url: 1, password: 1 };
+   var itype = allowed[ftype] ? ftype : "text";
+   var dynAttrs =
+    (def.maxlength ? ' maxlength="' + def.maxlength + '" data-maxlen="' + def.maxlength + '"' : "") +
+    (def.uppercase ? ' data-uc="1"' : "") +
+    (def.strip ? ' data-strip="' + def.strip + '"' : "") +
+    (def.min !== undefined && def.min !== null ? ' min="' + def.min + '"' : "") +
+    (def.max !== undefined && def.max !== null ? ' max="' + def.max + '"' : "");
+   out += '<input type="' + itype + '" class="my1lpXph-val" data-path="' + path + '" placeholder="' + ph + '" style="font-size:14px;' + inpDyn + '"' + dynAttrs + ">";
+  }
+  out += '<span class="my1lpXph-err" data-path="' + path + '" style="font-size:11px;color:#dc3545;display:none;margin-top:2px;"></span>';
+  if (!inDiv) out += "</div>";
+  return out;
+ }
+ for (var k in xtra) {
+  if (!xtra.hasOwnProperty(k)) continue;
+  var defx = xtra[k];
+  if (defx && defx.cfgKey) {
+   var w = (typeof my1uzr !== "undefined" && my1uzr && my1uzr.worknOnPg) ? window[my1uzr.worknOnPg] : null;
+   var confg = (w && w.confg) || null;
+   if (!confg || !confg[defx.cfgKey]) continue;
+  }
+  html += renderDef(xtra[k], k, false);
+ }
+ wrap.innerHTML = html;
+ my1lpXtraBind();
+}
+function my1lpXtraSetImg(path, url) {
+ var val = my1lpXtraQuery("my1lpXph-val", path);
+ var box = my1lpXtraQuery("my1lpXph-img-box", path);
+ var prev = my1lpXtraQuery("my1lpXph-img-prev", path);
+ var img = my1lpXtraQuery("my1lpXph-img-prev-img", path);
+ var nameEl = my1lpXtraQuery("my1lpXph-img-prev-name", path);
+ if (val) val.value = url;
+ if (box) { box.style.display = url ? "none" : ""; box.style.borderColor = "#6c757d"; }
+ if (prev) prev.style.display = url ? "block" : "none";
+ if (img) { if (url) img.src = url; else img.removeAttribute("src"); }
+ if (nameEl) nameEl.textContent = url ? "Image selected" : "";
+}
+function my1lpXtraBind() {
+ document.querySelectorAll(".my1lpXph-img-box").forEach(function (box) {
+  box.addEventListener("click", async function (e) {
+   e.preventDefault();
+   e.stopPropagation();
+   var path = this.getAttribute("data-path");
+   var cbName = "my1lpXtraImgCb_" + path.replace(/[^a-zA-Z0-9]/g, "_");
+   window[cbName] = function (obj) {
+    var url = (obj && (obj.g1 || obj.url)) || "";
+    my1lpXtraSetImg(path, url);
+    delete window[cbName];
+   };
+   try {
+    await loadExe2Fn(24, [window[cbName], window.imgObjDimensRqd2 || []], [1]);
+   } catch (err) { delete window[cbName]; }
+  });
+ });
+ document.querySelectorAll(".my1lpXph-img-remove").forEach(function (btn) {
+  btn.addEventListener("click", function (e) {
+   e.stopPropagation();
+   my1lpXtraSetImg(this.getAttribute("data-path"), "");
+  });
+ });
+ document.querySelectorAll(".my1lpXph-val[data-uc], .my1lpXph-val[data-strip], .my1lpXph-val[data-maxlen]").forEach(function (el) {
+  el.addEventListener("input", function () {
+   var v = el.value || "";
+   var strip = el.getAttribute("data-strip");
+   if (strip) { try { v = v.replace(new RegExp(strip, "g"), ""); } catch (e) {} }
+   if (el.getAttribute("data-uc")) v = v.toUpperCase();
+   var ml = parseInt(el.getAttribute("data-maxlen") || "", 10);
+   if (ml > 0 && v.length > ml) v = v.substring(0, ml);
+   if (el.value !== v) el.value = v;
+  });
+ });
+ document.querySelectorAll("#my1lpXtraFields .my1lpXph-val").forEach(function (el) {
+  el.addEventListener("input", function () { my1lpXtraLiveCheck(this); });
+  el.addEventListener("change", function () { my1lpXtraLiveCheck(this); });
+ });
+}
+function my1lpXtraFindDefByPath(xtra, path) {
+ if (!xtra || typeof xtra !== "object") return null;
+ var parts = path.split("__");
+ var cur = xtra;
+ for (var i = 0; i < parts.length; i++) {
+  if (!cur || typeof cur !== "object") return null;
+  cur = cur[parts[i]];
+  if (!cur) return null;
+  if (my1lpXtraIsGroup(cur)) { cur = my1lpXtraChildren(cur); }
+  else if (i < parts.length - 1) return null;
+ }
+ return cur;
+}
+function my1lpXtraCheckField(def, path, focusOnFail) {
+ if (!def || typeof def !== "object") return true;
+ var el = my1lpXtraQuery("my1lpXph-val", path);
+ if (!el) return true;
+ var isFile = def.type === "file";
+ var req = def.rq === 1 || def.rq === true;
+ var errEl = my1lpXtraQuery("my1lpXph-err", path);
+ var val = String(el.value || "").trim();
+ var failLocal = function (msg) {
+  if (errEl) { errEl.textContent = msg; errEl.style.display = "block"; }
+  if (isFile) { var box = my1lpXtraQuery("my1lpXph-img-box", path); if (box) box.style.borderColor = "#dc3545"; }
+  else el.style.borderColor = "#dc3545";
+  if (focusOnFail) {
+   try { var t = isFile ? my1lpXtraQuery("my1lpXph-img-box", path) : el; t.focus(); t.scrollIntoView({ block: "center" }); } catch (e) {}
+  }
+  return false;
+ };
+ var clear = function () {
+  if (errEl) errEl.style.display = "none";
+  if (isFile) { var box = my1lpXtraQuery("my1lpXph-img-box", path); if (box) box.style.borderColor = "#6c757d"; }
+  else el.style.borderColor = "#6c757d";
+  return true;
+ };
+ if (req && !val) return failLocal((def.lbl || path) + " is required");
+ var ptrn = def.ptrn;
+ if (val && ptrn && typeof ptrn === "string" && ptrn.indexOf("^") !== -1) {
+  var re = null;
+  try { re = new RegExp(ptrn); } catch (e) { re = null; }
+  if (re && !re.test(val)) return failLocal("Invalid " + (def.lbl || path));
+ }
+ var vfn = def.validate;
+ if (vfn && typeof window[vfn] === "function") {
+  if (!window[vfn](el, errEl, def.lbl || path)) return false;
+ }
+ return clear();
+}
+function my1lpXtraLiveCheck(el) {
+ if (!el) return;
+ var path = el.getAttribute("data-path");
+ if (!path) return;
+ var def = my1lpXtraFindDefByPath(my1lpXtraGet(), path);
+ my1lpXtraCheckField(def, path, false);
+}
+function my1lpXtraValidate() {
+ var xtra = my1lpXtraGet();
+ if (!xtra || typeof xtra !== "object") return true;
+ var ok = true;
+ var firstInvalid = null;
+ function walk(obj, basePath) {
+  for (var k in obj) {
+   if (!obj.hasOwnProperty(k)) continue;
+   var def = obj[k];
+   var path = basePath ? basePath + "__" + k : k;
+   if (!def || typeof def !== "object") continue;
+   if (my1lpXtraIsGroup(def)) { walk(my1lpXtraChildren(def), path); continue; }
+   if (!my1lpXtraCheckField(def, path, false)) {
+    ok = false;
+    if (!firstInvalid) {
+     var el = my1lpXtraQuery("my1lpXph-val", path);
+     firstInvalid = el ? (def.type === "file" ? my1lpXtraQuery("my1lpXph-img-box", path) : el) : null;
+    }
+   }
+  }
+ }
+ walk(xtra, "");
+ if (firstInvalid) {
+  try { firstInvalid.focus(); firstInvalid.scrollIntoView({ block: "center" }); } catch (e) {}
+ }
+ return ok;
+}
+function my1lpXtraCollect() {
+ var xtra = my1lpXtraGet();
+ var out = {};
+ if (!xtra || typeof xtra !== "object") return out;
+ function walk(obj, basePath, dest) {
+  for (var k in obj) {
+   if (!obj.hasOwnProperty(k)) continue;
+   var def = obj[k];
+   var path = basePath ? basePath + "__" + k : k;
+   if (!def || typeof def !== "object") continue;
+   if (my1lpXtraIsGroup(def)) { dest[k] = {}; walk(my1lpXtraChildren(def), path, dest[k]); continue; }
+   var el = my1lpXtraQuery("my1lpXph-val", path);
+   if (el) dest[k] = el.value;
+  }
+ }
+ walk(xtra, "", out);
+ return out;
+}
+async function my1lpXtraRunPost(def, groupVals, payload) {
+ var fn = def && def.postProcess;
+ if (fn && typeof window[fn] === "function") {
+  var result = await window[fn](groupVals, payload);
+  if (!result) { alert("postProcess failed!"); return groupVals; }
+  return result;
+ }
+ return groupVals;
+}
+async function my1lpXtraPostProcess(collected, xtra, payload) {
+ if (!collected || !xtra || typeof xtra !== "object") return collected;
+ for (var k in xtra) {
+  if (!xtra.hasOwnProperty(k)) continue;
+  var def = xtra[k];
+  if (!def || typeof def !== "object") continue;
+  if (my1lpXtraIsGroup(def)) {
+   var children = my1lpXtraChildren(def);
+   if (def.postProcess && collected[k] && typeof collected[k] === "object") {
+    collected[k] = await my1lpXtraRunPost(def, collected[k], payload);
+   } else if (collected[k] && typeof collected[k] === "object") {
+    await my1lpXtraPostProcess(collected[k], children, payload);
+   }
+  } else if (def.postProcess && typeof collected[k] === "string") {
+   collected[k] = await my1lpXtraRunPost(def, collected[k], payload);
+  }
+ }
+ return collected;
 }
 
 // Main function to open the login modal
@@ -399,7 +701,7 @@ function initializeLoginForm(container) {
    countryCodeSelect.value = '+91';
    updateMobileLengthInfo('loginCountryCode', 'mobileLengthInfo');
    createMobileDigitInputs('mobileDigitsContainer', getRequiredMobileLength('+91'));
-  }, 500);
+  }, 700);
  }
 
  setupLoginEventListeners(container);
@@ -413,11 +715,12 @@ function initializeRegisterForm(container) {
    countryCodeSelect.value = '+91';
    updateMobileLengthInfo('registerCountryCode', 'registerMobileLengthInfo');
    createMobileDigitInputs('registerMobileDigitsContainer', getRequiredMobileLength('+91'));
-  }, 500);
+  }, 700);
  }
 
- createOtpDigitInputs();
- setupRegisterEventListeners(container);
+createOtpDigitInputs();
+  setupRegisterEventListeners(container);
+  my1lpXtraRender();
 }
 
 function setupFormSwitching(container, modalInstance) {
@@ -474,10 +777,7 @@ function setupRegisterEventListeners(container) {
  const verifyOtpBtn = container.querySelector('#verifyOtpBtn');
  const resendOtp = container.querySelector('#resendOtp');
  const completeRegistration = container.querySelector('#completeRegistration');
- const englishName = container.querySelector('#englishName');
  const localName = container.querySelector('#localName');
- const expandLocalName = container.querySelector('#expandLocalName');
- const localNameSection = container.querySelector('#localNameSection');
  const regPassword = container.querySelector('#regPassword');
  const confirmPassword = container.querySelector('#confirmPassword');
  const countryCodeSelect = container.querySelector('#registerCountryCode');
@@ -505,37 +805,6 @@ function setupRegisterEventListeners(container) {
  if (resendOtp) {
   resendOtp.addEventListener('click', async function () {
    await handleResendOtp(container);
-  });
- }
-
- if (expandLocalName && localNameSection) {
-  expandLocalName.addEventListener('click', function () {
-   if (localNameSection.classList.contains('d-none')) {
-    localNameSection.classList.remove('d-none');
-    this.classList.remove('fa-expand-alt');
-    this.classList.add('fa-compress-alt');
-    this.title = 'Hide local language name';
-   } else {
-    localNameSection.classList.add('d-none');
-    this.classList.remove('fa-compress-alt');
-    this.classList.add('fa-expand-alt');
-    this.title = 'Add name in local language';
-   }
-  });
- }
-
- if (englishName) {
-  englishName.addEventListener('blur', function () {
-   const errorElement = container.querySelector('#englishNameError');
-   if (errorElement) {
-    if (this.value.length >= 2 && /^[A-Za-z\s]+$/.test(this.value)) {
-     errorElement.classList.add('d-none');
-     this.classList.remove('is-invalid');
-    } else {
-     errorElement.classList.remove('d-none');
-     this.classList.add('is-invalid');
-    }
-   }
   });
  }
 
@@ -722,6 +991,8 @@ async function handleSendOtp(container) {
   return;
  }
 
+ if (!my1lpXtraValidate()) return;
+
  const sendOtpText = container.querySelector('#sendOtpText');
  const sendOtpLoader = container.querySelector('#sendOtpLoader');
  const sendOtpBtn = container.querySelector('#sendOtpBtn');
@@ -868,12 +1139,6 @@ async function resendOtpRequest(countryCode, mobileNumber, container) {
 async function handleCompleteRegistration(container) {
  const password = container.querySelector('#regPassword').value;
  const confirmPassword = container.querySelector('#confirmPassword').value;
- const englishName = container.querySelector('#englishName').value.trim();
-
- if (englishName.length < 2) {
-  showAlertModal('Name must be at least 2 characters');
-  return;
- }
 
  if (password.length < 6 || password.length > 8) {
   showAlertModal('Password must be between 6 and 8 characters');
@@ -901,7 +1166,7 @@ async function handleCompleteRegistration(container) {
   const localName = container.querySelector('#localName').value.trim();
   const otp = getOtpFromInputs();
 
-  await performRegistration(countryCode, mobileNumber, englishName, localName, otp, password);
+  await performRegistration(countryCode, mobileNumber, localName, otp, password);
  } catch (error) {
   console.error('Registration error:', error);
   showAlertModal('Registration failed. Please try again.');
@@ -914,6 +1179,19 @@ async function handleCompleteRegistration(container) {
 }
 
 // Mobile digit input functions
+function blockAutofillOnDigits(input, index) {
+ input.autocomplete = 'off';
+ input.name = 'md' + index + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+ input.spellcheck = false;
+ input.setAttribute('data-lpignore', 'true');
+ input.setAttribute('data-form-type', 'other');
+ input.readOnly = true;
+ const unlock = function () { input.readOnly = false; };
+ input.addEventListener('mousedown', unlock);
+ input.addEventListener('touchstart', unlock);
+ input.addEventListener('keydown', unlock);
+}
+
 function createMobileDigitInputs(containerId, requiredLength) {
  const container = document.getElementById(containerId);
  if (!container) return;
@@ -945,6 +1223,7 @@ function createMobileDigitInputs(containerId, requiredLength) {
    input.addEventListener('keydown', handleMobileDigitKeydown);
    input.addEventListener('paste', handleMobilePaste);
    input.addEventListener('focus', clearMobileDigitError);
+   blockAutofillOnDigits(input, i);
    if (i < half) {
     row1.appendChild(input);
    } else {
@@ -972,6 +1251,7 @@ function createMobileDigitInputs(containerId, requiredLength) {
    input.addEventListener('keydown', handleMobileDigitKeydown);
    input.addEventListener('paste', handleMobilePaste);
    input.addEventListener('focus', clearMobileDigitError);
+   blockAutofillOnDigits(input, i);
    container.appendChild(input);
   }
  }
@@ -1006,6 +1286,7 @@ function createOtpDigitInputs() {
   input.addEventListener('keydown', handleOtpDigitKeydown);
   input.addEventListener('paste', handleOtpPaste);
   input.addEventListener('focus', clearOtpDigitError);
+  blockAutofillOnDigits(input, i);
   container.appendChild(input);
  }
 
@@ -1126,7 +1407,10 @@ function handleMobilePaste(e) {
  const container = e.target.closest('[id$="DigitsContainer"]');
  const inputs = container.querySelectorAll('input');
 
- inputs.forEach(input => input.value = '');
+ inputs.forEach(input => {
+  input.value = '';
+  input.readOnly = false;
+ });
 
  for (let i = 0; i < digits.length && i < inputs.length; i++) {
   inputs[i].value = digits[i];
@@ -1151,7 +1435,10 @@ function handleOtpPaste(e) {
  const characters = cleanData.split('');
 
  const inputs = document.querySelectorAll('#otpDigitsContainer input');
- inputs.forEach(input => input.value = '');
+ inputs.forEach(input => {
+  input.value = '';
+  input.readOnly = false;
+ });
 
  for (let i = 0; i < characters.length && i < inputs.length; i++) {
   inputs[i].value = characters[i];
@@ -1172,6 +1459,7 @@ function handleOtpPaste(e) {
 function clearMobileDigitError(e) {
  const input = e.target;
  input.classList.remove('is-invalid');
+ input.readOnly = false;
  const container = input.closest('[id$="DigitsContainer"]');
  const errorId = container.id === 'mobileDigitsContainer' ? 'mobileError' : 'registerMobileError';
  const errorElement = document.getElementById(errorId);
@@ -1183,6 +1471,7 @@ function clearMobileDigitError(e) {
 function clearOtpDigitError(e) {
  const input = e.target;
  input.classList.remove('is-invalid');
+ input.readOnly = false;
 }
 
 function getMobileNumberFromDigits(containerId) {
@@ -1323,15 +1612,21 @@ async function verifyOTP(countryCode, mobileNumber, otp) {
  }
 }
 
-async function performRegistration(countryCode, mobileNumber, englishName, localName, otp, password) {
+async function performRegistration(countryCode, mobileNumber, localName, otp, password) {
  const data = {
   yo: mobileNumber,
   yc: countryCode,
-  mn: englishName,
   mu: localName,
   mp: otp,
-  pw: password
+  pw: password,
+  eo: appOwner.eo,
+  ec: appOwner.ec
  };
+
+ if (!my1lpXtraValidate()) return;
+ var xtraVals = my1lpXtraCollect();
+ xtraVals = await my1lpXtraPostProcess(xtraVals, my1lpXtraGet(), data);
+ if (xtraVals && Object.keys(xtraVals).length > 0) data.p = xtraVals;
 
  try {
   const response = await fetch('https://my1.in/5z/s.php', {
@@ -1909,11 +2204,11 @@ function generateLognThemeP(cssText) {
  css += ".modal .text-primary, .modal a.text-primary { color: " + brandHex + " !important; }\n";
  css += "#forgotPassword { color: " + brandHex + " !important; }\n";
  css += "#forgotPassword:hover { color: " + brandDark + " !important; }\n";
- css += "#mobileDigitsContainer input.form-control, #registerMobileDigitsContainer input.form-control, #otpDigitsContainer input.form-control, #loginCountryCode.form-select, #registerCountryCode.form-select, #loginPassword.form-control, #regPassword.form-control, #confirmPassword.form-control, #englishName.form-control, #localName.form-control { border-color: #495057 !important; }\n";
- if (glow) {
-  css += "#mobileDigitsContainer input.form-control:focus, #registerMobileDigitsContainer input.form-control:focus, #otpDigitsContainer input.form-control:focus, #loginCountryCode.form-select:focus, #registerCountryCode.form-select:focus, #loginPassword.form-control:focus, #regPassword.form-control:focus, #confirmPassword.form-control:focus, #englishName.form-control:focus, #localName.form-control:focus { border-color: #495057 !important; box-shadow: 0 0 0 0.2rem " + glow + " !important; }\n";
- } else {
-  css += "#mobileDigitsContainer input.form-control:focus, #registerMobileDigitsContainer input.form-control:focus, #otpDigitsContainer input.form-control:focus, #loginCountryCode.form-select:focus, #registerCountryCode.form-select:focus, #loginPassword.form-control:focus, #regPassword.form-control:focus, #confirmPassword.form-control:focus, #englishName.form-control:focus, #localName.form-control:focus { border-color: #495057 !important; }\n";
+css += "#mobileDigitsContainer input.form-control, #registerMobileDigitsContainer input.form-control, #otpDigitsContainer input.form-control, #loginCountryCode.form-select, #registerCountryCode.form-select, #loginPassword.form-control, #regPassword.form-control, #confirmPassword.form-control, #localName.form-control { border-color: #495057 !important; }\n";
+  if (glow) {
+   css += "#mobileDigitsContainer input.form-control:focus, #registerMobileDigitsContainer input.form-control:focus, #otpDigitsContainer input.form-control:focus, #loginCountryCode.form-select:focus, #registerCountryCode.form-select:focus, #loginPassword.form-control:focus, #regPassword.form-control:focus, #confirmPassword.form-control:focus, #localName.form-control:focus { border-color: #495057 !important; box-shadow: 0 0 0 0.2rem " + glow + " !important; }\n";
+  } else {
+   css += "#mobileDigitsContainer input.form-control:focus, #registerMobileDigitsContainer input.form-control:focus, #otpDigitsContainer input.form-control:focus, #loginCountryCode.form-select:focus, #registerCountryCode.form-select:focus, #loginPassword.form-control:focus, #regPassword.form-control:focus, #confirmPassword.form-control:focus, #localName.form-control:focus { border-color: #495057 !important; }\n";
  }
  return css;
 }

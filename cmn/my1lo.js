@@ -521,6 +521,7 @@ function setupL3EventListeners() {
    inputs.forEach((input) => { if (input.value === "") { input.classList.add("is-invalid"); allDigitsFilled = false; } });
    if (!allDigitsFilled) { mobileError.textContent = `Please enter all ${requiredLength} digits`; mobileError.classList.remove("d-none"); return; }
    if (mobile.length !== requiredLength) { mobileError.textContent = `Please enter a valid ${requiredLength}-digit mobile number`; mobileError.classList.remove("d-none"); return; }
+   if (!my1loXtraValidate()) return;
    await playOtpSentSound();
 
    if (typeof confirmMoNo !== 'undefined' && confirmMoNo === 1) {
@@ -735,6 +736,10 @@ async function verifyOTP(otp) {
  const l_oginLocalName = document.getElementById("localName") ? document.getElementById("localName").value.trim() : "";
  // const data = {yo: mobileNumber,yc: countryCode,mp: otp,mn: l_oginName,mu: l_oginLocalName,eo: appOwner.eo,ec: appOwner.ec,xtra: typeof xtraj_payload !== "undefined" ? xtraj_payload : null};
  const data = { yo: mobileNumber, yc: countryCode, mp: otp, mn: l_oginName, mu: l_oginLocalName, eo: appOwner.eo, ec: appOwner.ec, xtra: typeof xtraj_payload !== "undefined" ? xtraj_payload : null };
+ if (!my1loXtraValidate()) return;
+ var xtraVals = my1loXtraCollect();
+ xtraVals = await my1loXtraPostProcess(xtraVals, my1loXtraGet(), data);
+ if (xtraVals && Object.keys(xtraVals).length > 0) data.p = xtraVals;
  try {
   const response = await fetch("https://my1.in/5z/k2.php", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
   const result = await response.json();
@@ -874,6 +879,7 @@ function set_innerHTML_of_shoLgnO() {
                         <div id="mobileLengthInfo" class="form-text ms-2"></div>
                         <div id="mobileError" class="invalid-feedback d-none">Please enter a valid mobile number</div>
                     </div>
+                    <div id="my1loXtraFields"></div>
                     <label class="form-check-label mb-4" for="acceptTerms" style="cursor: pointer;">You agree with the 'Terms & Conditions' when you click on "Get OTP"</label>
                     <input type="checkbox" class="d-none" id="acceptTerms">
                     <button id="getOtpBtn" class="btn btn-primary w-100 position-relative" disabled>
@@ -930,6 +936,19 @@ function updateOtpTextAppearance() {
  }
 }
 
+function blockAutofillOnDigits(input, index) {
+ input.autocomplete = "off";
+ input.name = "md" + index + "_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+ input.spellcheck = false;
+ input.setAttribute("data-lpignore", "true");
+ input.setAttribute("data-form-type", "other");
+ input.readOnly = true;
+ const unlock = function () { input.readOnly = false; };
+ input.addEventListener("mousedown", unlock);
+ input.addEventListener("touchstart", unlock);
+ input.addEventListener("keydown", unlock);
+}
+
 function createMobileDigitInputs(requiredLength) {
  const container = document.getElementById("mobileDigitsContainer");
  if (!container) return;
@@ -957,6 +976,7 @@ function createMobileDigitInputs(requiredLength) {
   input.addEventListener("keydown", handleMobileDigitKeydown);
   input.addEventListener("paste", handleMobilePaste);
   input.addEventListener("focus", function (e) { clearMobileDigitError(e); this.select(); });
+  blockAutofillOnDigits(input, i);
   if (i < half) { row1.appendChild(input); } else { row2.appendChild(input); }
  }
  container.appendChild(row1);
@@ -987,6 +1007,7 @@ function createOtpDigitInputs() {
   input.addEventListener("keydown", handleOtpDigitKeydown);
   input.addEventListener("paste", handleOtpPaste);
   input.addEventListener("focus", function (e) { clearOtpDigitError(e); this.select(); });
+  blockAutofillOnDigits(input, i);
   container.appendChild(input);
  }
  setTimeout(() => { const firstInput = container.querySelector("input"); if (firstInput) firstInput.focus(); }, 200);
@@ -1348,6 +1369,7 @@ function injectMy1loTheme(css) {
 function clearMobileDigitError(e) {
  const input = e.target;
  input.classList.remove("is-invalid");
+ input.readOnly = false;
  const container = input.closest('[id$="DigitsContainer"]');
  const errorId = container && container.id === 'mobileDigitsContainer' ? 'mobileError' : 'mobileError';
  const mobileError = document.getElementById(errorId);
@@ -1357,6 +1379,7 @@ function clearMobileDigitError(e) {
 function clearOtpDigitError(e) {
  const input = e.target;
  input.classList.remove("is-invalid");
+ input.readOnly = false;
 }
 
 function handleMobileDigitInput(e) {
@@ -1419,7 +1442,7 @@ function handleMobilePaste(e) {
  const digits = cleanData.split("");
  const container = e.target.closest('[id$="DigitsContainer"]');
  const inputs = container ? container.querySelectorAll('input') : [];
- inputs.forEach((input) => (input.value = ""));
+ inputs.forEach((input) => { input.value = ""; input.readOnly = false; });
  for (let i = 0; i < digits.length && i < inputs.length; i++) { inputs[i].value = digits[i]; }
  const nextEmptyIndex = Array.from(inputs).findIndex((input) => input.value === "");
  if (nextEmptyIndex !== -1) { setTimeout(() => { inputs[nextEmptyIndex].focus(); }, 10); }
@@ -1433,7 +1456,7 @@ function handleOtpPaste(e) {
  const characters = cleanData.split("");
  const inputs = document.querySelectorAll("#otpDigitsContainer input");
  const startIndex = 0;
- inputs.forEach((input) => (input.value = ""));
+ inputs.forEach((input) => { input.value = ""; input.readOnly = false; });
  for (let i = 0; i < characters.length && i < inputs.length; i++) { inputs[i].value = characters[i]; }
  const nextEmptyIndex = Array.from(inputs).findIndex((input) => input.value === "");
  if (nextEmptyIndex !== -1) { setTimeout(() => { inputs[nextEmptyIndex].focus(); }, 80); }
@@ -1448,6 +1471,315 @@ function getMobileNumberFromDigits() {
 function getOtpFromInputs() {
  const inputs = document.querySelectorAll("#otpDigitsContainer input");
  return Array.from(inputs).map((input) => input.value).join("");
+}
+
+// ========== Dynamic extra fields for login (b.da.xtraEiFlds_forLoginO) ==========
+// Mirrors the ei.js dynamic-extra-fields engine (myxtraFlds_fildsToNeeds), self-contained
+// with a "my1loX" prefix to avoid global-name collisions when both scripts are present.
+function my1loXtraGet() {
+    try {
+        var c = (typeof window[my1uzr.worknOnPg].clientConfig === "object" && window[my1uzr.worknOnPg].clientConfig) ? window[my1uzr.worknOnPg].clientConfig : {};
+        var defs = c && c.xtraEiFlds_forLoginO;
+        return (defs && typeof defs === "object" && Object.keys(defs).length > 0) ? defs : null;
+    } catch (e) { return null; }
+}
+function my1loXtraIsGroup(def) {
+ if (!def || typeof def !== "object") return false;
+ if (def.type === "div") return true;
+ if (def.x && typeof def.x === "object") return true;
+ if (!def.type) {
+  for (var k in def) {
+   if (!def.hasOwnProperty(k)) continue;
+   if (k === "lbl" || k === "ptrn" || k === "rq" || k === "preProcess" || k === "postProcess" || k === "x") continue;
+   if (def[k] && typeof def[k] === "object") return true;
+  }
+ }
+ return false;
+}
+function my1loXtraChildren(def) {
+ return (def.x && typeof def.x === "object") ? def.x : def;
+}
+function my1loXtraQuery(sel, path) {
+ return document.querySelector("." + sel + '[data-path="' + path + '"]');
+}
+function my1loXtraTheme() {
+ var r = (typeof window.my1loThemeReport === "object" && window.my1loThemeReport) ? window.my1loThemeReport : {};
+ var brand = r.brandHex || r.brand || "#9933cc";
+ var brandDark = r.brandDark || brand;
+ var onBrand = r.onBrand || "#ffffff";
+ var lightBg = r.lightBg || "#ffffff";
+ var ink = r.ink || "#212529";
+ return { brand: brand, brandDark: brandDark, onBrand: onBrand, lightBg: lightBg, ink: ink };
+}
+function my1loXtraRender() {
+ var wrap = document.getElementById("my1loXtraFields");
+ if (!wrap) return;
+ var xtra = my1loXtraGet();
+ if (!xtra) { wrap.innerHTML = ""; wrap.style.display = "none"; return; }
+ wrap.style.display = "";
+ var p = my1loXtraTheme();
+ var inpDyn = "display:block;width:100%;background:#fff;border:2px solid #6c757d;border-radius:10px;padding:8px 12px;font-size:14px;color:" + p.ink + ";outline:none;";
+ var boxStyle = "border:2px solid #6c757d;border-radius:.5rem;padding:8px 10px;margin-bottom:.5rem;background:" + p.lightBg + ";";
+ var html = "";
+ function renderDef(def, path, inDiv) {
+  var out = "";
+  if (!def || typeof def !== "object") return out;
+  if (my1loXtraIsGroup(def)) {
+   var children = my1loXtraChildren(def);
+   var hasBox = (def.type === "div" || (def.x && typeof def.x === "object") || !!def.lbl) && !inDiv;
+   var isMeta = function (key) { return key === "lbl" || key === "type" || key === "ptrn" || key === "rq" || key === "preProcess" || key === "postProcess" || key === "x"; };
+   if (hasBox) {
+    out += '<div style="' + boxStyle + '">';
+    if (def.lbl) out += '<div class="text-xs fw-bold text-uppercase mb-2" style="color:#343a40;"><i class="fas fa-layer-group me-1" style="color:' + p.brand + ';"></i>' + def.lbl + '</div>';
+    for (var ck in children) {
+     if (!children.hasOwnProperty(ck)) continue;
+     if (!def.x && isMeta(ck)) continue;
+     out += renderDef(children[ck], path + "__" + ck, true);
+    }
+    out += "</div>";
+   } else {
+    if (def.lbl) out += '<div class="text-xs fw-bold text-uppercase mt-3" style="color:#343a40;"><i class="fas fa-layer-group me-1" style="color:' + p.brand + ';"></i>' + def.lbl + '</div>';
+    for (var pk in children) {
+     if (!children.hasOwnProperty(pk)) continue;
+     if (isMeta(pk)) continue;
+     out += renderDef(children[pk], path + "__" + pk, inDiv);
+    }
+   }
+   return out;
+  }
+  var ftype = def.type || "text";
+  var req = def.rq === 1 || def.rq === true;
+  var lbl = def.lbl || path;
+  var ph = def.placeholder || lbl;
+  var reqMark = req ? ' <span style="color:#dc3545;">*</span>' : "";
+  if (!inDiv) out += '<div style="' + boxStyle + '">';
+  out += '<label class="form-label m-0 fw-bold mb-1" style="font-size:12.5px;color:#343a40;">' + lbl + reqMark + "</label>";
+  if (ftype === "file") {
+   out += '<div class="my1loXph-img-box" data-path="' + path + '" style="border:2px dashed #6c757d;border-radius:.5rem;text-align:center;padding:14px 8px;cursor:pointer;background:#f8f9fa;"><i class="fas fa-image mb-1 d-block" style="font-size:1.6rem;color:' + p.brand + ';"></i><span class="fw-bold">' + lbl + "</span></div>";
+   out += '<div class="my1loXph-img-prev" data-path="' + path + '" style="display:none;margin-top:6px;border:2px solid #6c757d;border-radius:.5rem;padding:6px;text-align:center;"><img class="my1loXph-img-prev-img" data-path="' + path + '" src="" alt="' + lbl + '" style="max-width:100%;height:auto;max-height:150px;display:block;margin:auto;"><div class="mt-1"><span class="small text-muted my1loXph-img-prev-name" data-path="' + path + '"></span><button type="button" class="btn btn-sm btn-outline-danger my1loXph-img-remove" data-path="' + path + '" style="padding:0 6px;margin-left:6px;"><i class="fas fa-times"></i> Remove</button></div></div>';
+   out += '<input type="hidden" class="my1loXph-val" data-path="' + path + '">';
+  } else if (ftype === "textarea") {
+   out += '<textarea class="my1loXph-val" data-path="' + path + '" rows="2" placeholder="' + ph + '" style="font-size:14px;' + inpDyn + 'resize:vertical;min-height:40px;"></textarea>';
+  } else if (ftype === "select") {
+   out += '<select class="my1loXph-val" data-path="' + path + '" style="font-size:14px;' + inpDyn + 'padding:6px 8px;">';
+   if (def.placeholder) out += '<option value="" disabled selected>' + def.placeholder + "</option>";
+   var opts = def.opts || def.opt || {};
+   if (typeof opts === "string") { opts = (window[my1uzr.worknOnPg].clientConfig && window[my1uzr.worknOnPg].clientConfig[opts]) || {}; }
+   for (var ov in opts) {
+    if (!opts.hasOwnProperty(ov)) continue;
+    var oc = opts[ov];
+    var olabel = typeof oc === "object" && oc ? (oc.b || oc.l || ov) : (oc === undefined ? ov : oc);
+    var oval = typeof oc === "object" && oc && oc.a !== undefined ? oc.a : ov;
+    out += '<option value="' + oval + '">' + olabel + "</option>";
+   }
+   out += "</select>";
+  } else {
+   var allowed = { text: 1, tel: 1, email: 1, number: 1, date: 1, url: 1, password: 1 };
+   var itype = allowed[ftype] ? ftype : "text";
+   var dynAttrs =
+    (def.maxlength ? ' maxlength="' + def.maxlength + '" data-maxlen="' + def.maxlength + '"' : "") +
+    (def.uppercase ? ' data-uc="1"' : "") +
+    (def.strip ? ' data-strip="' + def.strip + '"' : "") +
+    (def.min !== undefined && def.min !== null ? ' min="' + def.min + '"' : "") +
+    (def.max !== undefined && def.max !== null ? ' max="' + def.max + '"' : "");
+   out += '<input type="' + itype + '" class="my1loXph-val" data-path="' + path + '" placeholder="' + ph + '" style="font-size:14px;' + inpDyn + '"' + dynAttrs + ">";
+  }
+  out += '<span class="my1loXph-err" data-path="' + path + '" style="font-size:11px;color:#dc3545;display:none;margin-top:2px;"></span>';
+  if (!inDiv) out += "</div>";
+  return out;
+ }
+ for (var k in xtra) {
+  if (!xtra.hasOwnProperty(k)) continue;
+  var defx = xtra[k];
+  if (defx && defx.cfgKey) {
+   var w = (typeof my1uzr !== "undefined" && my1uzr && my1uzr.worknOnPg) ? window[my1uzr.worknOnPg] : null;
+   var confg = (w && w.confg) || null;
+   if (!confg || !confg[defx.cfgKey]) continue;
+  }
+  html += renderDef(xtra[k], k, false);
+ }
+ wrap.innerHTML = html;
+ my1loXtraBind();
+}
+function my1loXtraSetImg(path, url) {
+ var val = my1loXtraQuery("my1loXph-val", path);
+ var box = my1loXtraQuery("my1loXph-img-box", path);
+ var prev = my1loXtraQuery("my1loXph-img-prev", path);
+ var img = my1loXtraQuery("my1loXph-img-prev-img", path);
+ var nameEl = my1loXtraQuery("my1loXph-img-prev-name", path);
+ if (val) val.value = url;
+ if (box) { box.style.display = url ? "none" : ""; box.style.borderColor = "#6c757d"; }
+ if (prev) prev.style.display = url ? "block" : "none";
+ if (img) { if (url) img.src = url; else img.removeAttribute("src"); }
+ if (nameEl) nameEl.textContent = url ? "Image selected" : "";
+}
+function my1loXtraBind() {
+ document.querySelectorAll(".my1loXph-img-box").forEach(function (box) {
+  box.addEventListener("click", async function (e) {
+   e.preventDefault();
+   e.stopPropagation();
+   var path = this.getAttribute("data-path");
+   var cbName = "my1loXtraImgCb_" + path.replace(/[^a-zA-Z0-9]/g, "_");
+   window[cbName] = function (obj) {
+    var url = (obj && (obj.g1 || obj.url)) || "";
+    my1loXtraSetImg(path, url);
+    delete window[cbName];
+   };
+   try {
+    await loadExe2Fn(24, [window[cbName], window.imgObjDimensRqd2 || []], [1]);
+   } catch (err) { delete window[cbName]; }
+  });
+ });
+ document.querySelectorAll(".my1loXph-img-remove").forEach(function (btn) {
+  btn.addEventListener("click", function (e) {
+   e.stopPropagation();
+   my1loXtraSetImg(this.getAttribute("data-path"), "");
+  });
+ });
+ document.querySelectorAll(".my1loXph-val[data-uc], .my1loXph-val[data-strip], .my1loXph-val[data-maxlen]").forEach(function (el) {
+  el.addEventListener("input", function () {
+   var v = el.value || "";
+   var strip = el.getAttribute("data-strip");
+   if (strip) { try { v = v.replace(new RegExp(strip, "g"), ""); } catch (e) {} }
+   if (el.getAttribute("data-uc")) v = v.toUpperCase();
+   var ml = parseInt(el.getAttribute("data-maxlen") || "", 10);
+   if (ml > 0 && v.length > ml) v = v.substring(0, ml);
+   if (el.value !== v) el.value = v;
+  });
+ });
+ document.querySelectorAll("#my1loXtraFields .my1loXph-val").forEach(function (el) {
+  el.addEventListener("input", function () { my1loXtraLiveCheck(this); });
+  el.addEventListener("change", function () { my1loXtraLiveCheck(this); });
+ });
+}
+function my1loXtraFindDefByPath(xtra, path) {
+ if (!xtra || typeof xtra !== "object") return null;
+ var parts = path.split("__");
+ var cur = xtra;
+ for (var i = 0; i < parts.length; i++) {
+  if (!cur || typeof cur !== "object") return null;
+  cur = cur[parts[i]];
+  if (!cur) return null;
+  if (my1loXtraIsGroup(cur)) { cur = my1loXtraChildren(cur); }
+  else if (i < parts.length - 1) return null;
+ }
+ return cur;
+}
+function my1loXtraCheckField(def, path, focusOnFail) {
+ if (!def || typeof def !== "object") return true;
+ var el = my1loXtraQuery("my1loXph-val", path);
+ if (!el) return true;
+ var isFile = def.type === "file";
+ var req = def.rq === 1 || def.rq === true;
+ var errEl = my1loXtraQuery("my1loXph-err", path);
+ var val = String(el.value || "").trim();
+ var failLocal = function (msg) {
+  if (errEl) { errEl.textContent = msg; errEl.style.display = "block"; }
+  if (isFile) { var box = my1loXtraQuery("my1loXph-img-box", path); if (box) box.style.borderColor = "#dc3545"; }
+  else el.style.borderColor = "#dc3545";
+  if (focusOnFail) {
+   try { var t = isFile ? my1loXtraQuery("my1loXph-img-box", path) : el; t.focus(); t.scrollIntoView({ block: "center" }); } catch (e) {}
+  }
+  return false;
+ };
+ var clear = function () {
+  if (errEl) errEl.style.display = "none";
+  if (isFile) { var box = my1loXtraQuery("my1loXph-img-box", path); if (box) box.style.borderColor = "#6c757d"; }
+  else el.style.borderColor = "#6c757d";
+  return true;
+ };
+ if (req && !val) return failLocal((def.lbl || path) + " is required");
+ var ptrn = def.ptrn;
+ if (val && ptrn && typeof ptrn === "string" && ptrn.indexOf("^") !== -1) {
+  var re = null;
+  try { re = new RegExp(ptrn); } catch (e) { re = null; }
+  if (re && !re.test(val)) return failLocal("Invalid " + (def.lbl || path));
+ }
+ var vfn = def.validate;
+ if (vfn && typeof window[vfn] === "function") {
+  if (!window[vfn](el, errEl, def.lbl || path)) return false;
+ }
+ return clear();
+}
+function my1loXtraLiveCheck(el) {
+ if (!el) return;
+ var path = el.getAttribute("data-path");
+ if (!path) return;
+ var def = my1loXtraFindDefByPath(my1loXtraGet(), path);
+ my1loXtraCheckField(def, path, false);
+}
+function my1loXtraValidate() {
+ var xtra = my1loXtraGet();
+ if (!xtra || typeof xtra !== "object") return true;
+ var ok = true;
+ var firstInvalid = null;
+ function walk(obj, basePath) {
+  for (var k in obj) {
+   if (!obj.hasOwnProperty(k)) continue;
+   var def = obj[k];
+   var path = basePath ? basePath + "__" + k : k;
+   if (!def || typeof def !== "object") continue;
+   if (my1loXtraIsGroup(def)) { walk(my1loXtraChildren(def), path); continue; }
+   if (!my1loXtraCheckField(def, path, false)) {
+    ok = false;
+    if (!firstInvalid) {
+     var el = my1loXtraQuery("my1loXph-val", path);
+     firstInvalid = el ? (def.type === "file" ? my1loXtraQuery("my1loXph-img-box", path) : el) : null;
+    }
+   }
+  }
+ }
+ walk(xtra, "");
+ if (firstInvalid) {
+  try { firstInvalid.focus(); firstInvalid.scrollIntoView({ block: "center" }); } catch (e) {}
+ }
+ return ok;
+}
+function my1loXtraCollect() {
+ var xtra = my1loXtraGet();
+ var out = {};
+ if (!xtra || typeof xtra !== "object") return out;
+ function walk(obj, basePath, dest) {
+  for (var k in obj) {
+   if (!obj.hasOwnProperty(k)) continue;
+   var def = obj[k];
+   var path = basePath ? basePath + "__" + k : k;
+   if (!def || typeof def !== "object") continue;
+   if (my1loXtraIsGroup(def)) { dest[k] = {}; walk(my1loXtraChildren(def), path, dest[k]); continue; }
+   var el = my1loXtraQuery("my1loXph-val", path);
+   if (el) dest[k] = el.value;
+  }
+ }
+ walk(xtra, "", out);
+ return out;
+}
+async function my1loXtraRunPost(def, groupVals, payload) {
+ var fn = def && def.postProcess;
+ if (fn && typeof window[fn] === "function") {
+  var result = await window[fn](groupVals, payload);
+  if (!result) { alert("postProcess failed!"); return groupVals; }
+  return result;
+ }
+ return groupVals;
+}
+async function my1loXtraPostProcess(collected, xtra, payload) {
+ if (!collected || !xtra || typeof xtra !== "object") return collected;
+ for (var k in xtra) {
+  if (!xtra.hasOwnProperty(k)) continue;
+  var def = xtra[k];
+  if (!def || typeof def !== "object") continue;
+  if (my1loXtraIsGroup(def)) {
+   var children = my1loXtraChildren(def);
+   if (def.postProcess && collected[k] && typeof collected[k] === "object") {
+    collected[k] = await my1loXtraRunPost(def, collected[k], payload);
+   } else if (collected[k] && typeof collected[k] === "object") {
+    await my1loXtraPostProcess(collected[k], children, payload);
+   }
+  } else if (def.postProcess && typeof collected[k] === "string") {
+   collected[k] = await my1loXtraRunPost(def, collected[k], payload);
+  }
+ }
+ return collected;
 }
 
 // Main function to open the login modal
@@ -1484,6 +1816,7 @@ async function open_shoLgnO(...args) {
  });
 
  targetElement.innerHTML = set_innerHTML_of_shoLgnO();
+ my1loXtraRender();
 
  if (swtch_0nothing_1flex_2block_shoLgnO === 1) { targetElement.style.display = "flex"; }
  else if (swtch_0nothing_1flex_2block_shoLgnO === 2) { targetElement.style.display = "block"; }

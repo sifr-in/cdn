@@ -1,11 +1,29 @@
 class DexieDBManager {
- constructor() {
-  this.dbCache = new Map();
-  this.versionCache = new Map();
-  this.operationQueue = new Map(); // Queue for each database
-  this.maxRetries = 3; // Maximum retry attempts for locked DB
-  this.retryDelay = 100; // Initial delay between retries in ms
- }
+  constructor() {
+   this.dbCache = new Map();
+   this.versionCache = new Map();
+   this.operationQueue = new Map(); // Queue for each database
+   this.maxRetries = 3; // Maximum retry attempts for locked DB
+   this.retryDelay = 100; // Initial delay between retries in ms
+   this.versionStorageKey = "my1_in_indexedDBs_ver";
+  }
+  getPersistedVersion(dbName) {
+   try {
+    const store = JSON.parse(localStorage.getItem(this.versionStorageKey) || "{}");
+    return parseInt(store[dbName], 10) || 0;
+   } catch (e) {
+    return 0;
+   }
+  }
+  setPersistedVersion(dbName, version) {
+   try {
+    const store = JSON.parse(localStorage.getItem(this.versionStorageKey) || "{}");
+    store[dbName] = version;
+    localStorage.setItem(this.versionStorageKey, JSON.stringify(store));
+   } catch (e) {
+    console.warn("Failed to persist version for " + dbName, e);
+   }
+  }
  // Helper method to queue operations
  async queueOperation(dbName, operation) {
   if (!this.operationQueue.has(dbName)) {
@@ -75,58 +93,72 @@ class DexieDBManager {
    }
   });
  }
- async updateDbSchema(dbName, schemaUpdates) {
-  return this.queueOperation(dbName, async () => {
-   for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
-    try {
-     let db = this.dbCache.get(dbName) || new Dexie(dbName);
-     const currentVersion = this.versionCache.get(dbName) || 1;
-     const newVersion = currentVersion + 1;
-
-     if (db.isOpen()) await db.close();
-
-     // 1. Get all existing schemas from localStorage
-     const allSchemas = JSON.parse(localStorage.getItem("my1_in_indexedDBs") || "[]");
-     const mergedSchema = {};
-
-     // 2. First, load ALL existing tables (to prevent deletion)
-     for (const schema of allSchemas) {
-      const tableName = schema.tb;
-      const actualName = tableName.includes('~') ? tableName.replace('~', '') : tableName;
-      mergedSchema[actualName] = schema.ix; // Preserve existing schema
-     }
-
-     // 3. Apply updates (new or modified tables) without removing any
-     for (const { tableName, schema } of schemaUpdates) {
-      mergedSchema[tableName] = schema; // Override if exists, or add new
-     }
-
-     // 4. Proceed with version update
-     const tempDb = new Dexie(dbName);
-     tempDb.version(newVersion).stores(mergedSchema);
-
+  async updateDbSchema(dbName, schemaUpdates) {
+   return this.queueOperation(dbName, async () => {
+    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
      try {
-      await tempDb.open();
-      if (db && db.isOpen()) await db.close();
-      this.dbCache.set(dbName, tempDb);
-      this.versionCache.set(dbName, newVersion);
-      return;
-     } catch (openError) {
-      await tempDb.close();
-      throw openError;
+      let db = this.dbCache.get(dbName) || new Dexie(dbName);
+      // Determine the DB's ACTUAL installed version so our new version is always
+      // strictly greater and Dexie performs the upgrade (adds missing tables).
+      // versionCache resets on every page reload, so we must also consult the
+      // persisted version and the live open instance.
+      let liveVersion = 0;
+      if (db && db.isOpen && db.isOpen()) {
+       liveVersion = db.verno || 0;
+      }
+      const persistedVersion = this.getPersistedVersion(dbName);
+      const currentVersion = Math.max(
+       this.versionCache.get(dbName) || 0,
+       persistedVersion,
+       liveVersion
+      );
+      const newVersion = currentVersion + 1;
+
+      if (db.isOpen()) await db.close();
+
+      // 1. Get all existing schemas from localStorage
+      const allSchemas = JSON.parse(localStorage.getItem("my1_in_indexedDBs") || "[]");
+      const mergedSchema = {};
+
+      // 2. First, load ALL existing tables (to prevent deletion)
+      for (const schema of allSchemas) {
+       const tableName = schema.tb;
+       const actualName = tableName.includes('~') ? tableName.replace('~', '') : tableName;
+       mergedSchema[actualName] = schema.ix; // Preserve existing schema
+      }
+
+      // 3. Apply updates (new or modified tables) without removing any
+      for (const { tableName, schema } of schemaUpdates) {
+       mergedSchema[tableName] = schema; // Override if exists, or add new
+      }
+
+      // 4. Proceed with version update
+      const tempDb = new Dexie(dbName);
+      tempDb.version(newVersion).stores(mergedSchema);
+
+      try {
+       await tempDb.open();
+       if (db && db.isOpen()) await db.close();
+       this.dbCache.set(dbName, tempDb);
+       this.versionCache.set(dbName, tempDb.verno || newVersion);
+       this.setPersistedVersion(dbName, tempDb.verno || newVersion);
+       return;
+      } catch (openError) {
+       await tempDb.close();
+       throw openError;
+      }
+     } catch (error) {
+      if (error.message.includes('locked') && attempt < this.maxRetries) {
+       await new Promise(resolve =>
+        setTimeout(resolve, this.retryDelay * attempt));
+       continue;
+      }
+      console.error('Failed to update database schema:', error);
+      throw error;
      }
-    } catch (error) {
-     if (error.message.includes('locked') && attempt < this.maxRetries) {
-      await new Promise(resolve =>
-       setTimeout(resolve, this.retryDelay * attempt));
-      continue;
-     }
-     console.error('Failed to update database schema:', error);
-     throw error;
     }
-   }
-  });
- }
+   });
+  }
  async handleNwTables(loaderId, dbName, tableNames) {
   if (typeof document !== 'undefined') {
    const loader = document.getElementById(loaderId);
@@ -194,25 +226,48 @@ class DexieDBManager {
 
   return { results, successCount, failureCount };
  }
- async checkTableExists(dbName, tableName) {
-  try {
-   let db = this.dbCache.get(dbName);
-   if (!db) {
-    db = new Dexie(dbName);
-    await db.open().catch(() => { });
-    this.dbCache.set(dbName, db);
-   }
+  async checkTableExists(dbName, tableName) {
+   try {
+    let db = this.dbCache.get(dbName);
+    if (!db || !db.isOpen()) {
+     db = await this.openExisting(dbName);
+     this.dbCache.set(dbName, db);
+    }
 
-   if (!db.isOpen()) {
-    await db.open();
-   }
+    // Ensure an open connection exists
+    if (!db.isOpen()) {
+     await db.open();
+    }
 
-   return db.table(tableName) !== undefined;
-  } catch (error) {
-   console.error(`Error checking if table ${tableName} exists:`, error);
-   return false;
+    return db.table(tableName) !== undefined;
+   } catch (error) {
+    console.error(`Error checking if table ${tableName} exists:`, error);
+    return false;
+   }
   }
- }
+  // Open (or create) a database connection using the version + schema we last
+  // persisted, so existing higher-version databases open reliably (instead of
+  // silently failing when no version is declared on the Dexie instance).
+  async openExisting(dbName) {
+   const db = new Dexie(dbName);
+   const storedVersion = this.getPersistedVersion(dbName);
+   const allSchemas = JSON.parse(localStorage.getItem("my1_in_indexedDBs") || "[]");
+   const schema = {};
+   for (const s of allSchemas) {
+    const actualName = s.tb.includes('~') ? s.tb.replace('~', '') : s.tb;
+    schema[actualName] = s.ix;
+   }
+   // Declare the persisted version (or 1 for a brand-new DB) with the current
+   // stored schema so we can connect to already-upgraded databases.
+   const targetVersion = storedVersion > 0 ? storedVersion : 1;
+   db.version(targetVersion).stores(schema);
+   try {
+    await db.open();
+   } catch (e) {
+    await db.close().catch(() => { });
+   }
+   return db;
+  }
  async createTables(dbName, tableNames) {
   const localStorageKey = "my1_in_indexedDBs";
   const storedSchemas = JSON.parse(localStorage.getItem(localStorageKey)) || [];
@@ -284,7 +339,7 @@ class DexieDBManager {
 
   // 2. Fetch from remote if not found locally
   try {
-   const response = await fetch("https://cdn.jsdelivr.net/gh/sifr-in/cdn@de32eef/cmn/my1xi.da");
+   const response = await fetch("https://cdn.jsdelivr.net/gh/sifr-in/cdn@d8c0fec/cmn/my1xi.da");
    if (response.ok) {
     const remoteSchemas = await response.json();
     schema = Array.isArray(remoteSchemas)

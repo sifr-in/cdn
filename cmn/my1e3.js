@@ -1,10 +1,9 @@
+window.appcss = null;
+let xtraj_payload = null;
 async function set_owner() {
- let appcss = null;
  const pathParts = window.location.pathname.split('/').filter(p => p);
  const eo = pathParts[0] || "0.0000000000";
  const ec = pathParts[1] || "z";
- let xtraj_payload = null;
-
  window.appOwner = {
   tn: `${eo}_${ec}`.replace(/\./g, "_"),
   eo: eo,
@@ -1379,7 +1378,7 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
    if (t343mp.su == 2) {
     return Promise.reject(new Error("first accept login"));
    } else if (t343mp.su == 0) {
-    xtraj_payload = jsonPayload;
+    xtraj_payload = { ...jsonPayload };
     xtraj_payload.endP = url;
     if (shoLoginByOas2orByPas1 > 0) {
      if (shoLoginByOas2orByPas1 == 2) {
@@ -2578,6 +2577,242 @@ document.addEventListener('DOMContentLoaded', function () {
  setTimeout(initializeUniversalBackButtonHandler, 1000);
 });
 
+// ==================== Shared datetime picker (Bootstrap - Tempus Dominus) ====================
+// Self-contained helpers attached to window so they never collide with b.js's local declarations
+// and so window.initDateTimePicker is usable dynamically in any project without b.js.
+window.PICKER_TD_VERSION = '6.10.4';
+window.PICKER_DATE_FORMAT = 'yyyy-MM-dd HH:mm';
+window.tdDepsPromise = null;
+
+window.loadDatePickerDependencies = function () {
+  if (typeof tempusDominus !== 'undefined') return Promise.resolve();
+  if (!window.tdDepsPromise) {
+    window.tdDepsPromise = new Promise((resolve, reject) => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = `https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@${window.PICKER_TD_VERSION}/dist/css/tempus-dominus.min.css`;
+      link.onerror = () => reject(new Error('Failed to load Tempus Dominus CSS'));
+      document.head.appendChild(link);
+
+      const script = document.createElement('script');
+      script.src = `https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@${window.PICKER_TD_VERSION}/dist/js/tempus-dominus.min.js`;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Tempus Dominus JS'));
+      document.head.appendChild(script);
+    });
+    window.tdDepsPromise.catch(() => { window.tdDepsPromise = null; });
+  }
+  return window.tdDepsPromise;
+};
+
+// Format as "YYYY-MM-DD HH:mm" (the storage/validation format used everywhere)
+window.formatForPicker = function (date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+};
+
+window.parsePickerValue = function (val) {
+  if (!val) return null;
+  const parts = String(val).trim().split(/[\sT]+/);
+  const d = parts[0].split('-').map(Number);
+  const t = (parts[1] || '00:00').split(':').map(Number);
+  if (!d[0] || !d[1] || !d[2]) return null;
+  // Tempus Dominus DateTime extends native Date -> month is 0-based
+  return new tempusDominus.DateTime(d[0], d[1] - 1, d[2], t[0] || 0, t[1] || 0, t[2] || 0);
+};
+
+window.MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+window.MONTH_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+window.isDesktopView = function () {
+  return window.innerWidth > 768;
+};
+
+window.formatLongDisplay = function (val) {
+  if (!val) return '';
+  const parts = String(val).trim().split(/[\sT]+/);
+  const d = (parts[0] || '').split('-');
+  if (d.length < 3) return val;
+  const month = window.MONTH_FULL[Number(d[1]) - 1] || d[1];
+  const day = String(d[2]).padStart(2, '0');
+  const base = `${day}/${month}/${d[0]}`;
+  const t = (parts[1] || '').split(':').map(Number);
+  if (!t.length || isNaN(t[0])) return base;
+  let h = t[0] % 24;
+  const ampm = h >= 12 ? 'pm' : 'am';
+  h = h % 12;
+  if (h === 0) h = 12;
+  const min = String(t[1] || 0).padStart(2, '0');
+  return `${base} ${String(h).padStart(2, '0')}:${min}${ampm}`;
+};
+
+window.formatShortDisplay = function (val) {
+  if (!val) return '';
+  if (window.isDesktopView()) return window.formatLongDisplay(val);
+  const parts = String(val).trim().split(/[\sT]+/);
+  const d = (parts[0] || '').split('-');
+  if (d.length < 3) return val;
+  return String(d[2]).padStart(2, '0') + '/' + (window.MONTH_SHORT[Number(d[1]) - 1] || d[1]);
+};
+
+// Inject picker toolbar CSS (OK/Zero buttons + toolbar grid) once, so styling works without b.js/appcss
+window.injectTDPickerCss = function () {
+  if (document.getElementById('td-picker-self-contained-css')) return;
+  const styleEl = document.createElement('style');
+  styleEl.id = 'td-picker-self-contained-css';
+  styleEl.innerHTML = `
+ .tempus-dominus-widget.show { position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; margin: 0 !important; z-index: 9999 !important; box-shadow: 0 .5rem 1rem rgba(0,0,0,.35); border-radius: 8px; max-height: 85vh; overflow-y: auto }
+ .tempus-dominus-widget .arrow { display: none }
+ .tempus-dominus-widget .toolbar [data-action="close"] { width: auto; height: auto; padding: .05rem .28rem; font-size: .72rem; line-height: 1; border-radius: .17rem; color: #fff }
+ .tempus-dominus-widget .toolbar [data-action="close"]:hover, .tempus-dominus-widget .toolbar [data-action="close"]:focus { color: #fff }
+ .tempus-dominus-widget .toolbar { display: grid !important; grid-template-columns: 1fr auto auto 1fr !important; grid-auto-rows: 40px !important; align-items: center !important }
+ .tempus-dominus-widget .toolbar [data-action="today"] { order: 1 !important; justify-self: start !important; margin-left: 1.4rem !important }
+ .tempus-dominus-widget .toolbar .td-zero-btn { order: 2 !important; position: static !important; transform: none !important; width: auto !important; height: auto !important; padding: .05rem .28rem; font-size: .72rem; line-height: 1; border-radius: .17rem; color: #fff }
+ .tempus-dominus-widget .toolbar .td-ok-btn { order: 3 !important; position: static !important; transform: none !important }
+ .tempus-dominus-widget .toolbar [data-action="togglePicker"] { order: 4 !important; justify-self: end !important; margin-right: 1.4rem !important }
+`;
+  document.head.appendChild(styleEl);
+};
+
+window.initDateTimePicker = async function (inputId, options) {
+  options = options || {};
+  const el = document.getElementById(inputId);
+  if (!el) return null;
+  await window.loadDatePickerDependencies();
+  window.injectTDPickerCss();
+
+  const dispEl = document.getElementById(el.id + '_disp');
+  const dispFormatter = options.displayFormatter || window.formatShortDisplay;
+  function updateDisp() {
+    if (dispEl) dispEl.textContent = dispFormatter(committed);
+    const w = el.closest('.bm-date-wrap');
+    if (w) w.classList.toggle('has-val', !!committed);
+  }
+
+  const autoNow = options.autoNow !== false;
+  let committed = options.initialValue || el.value || (autoNow ? window.formatForPicker(new Date()) : '');
+  el.type = 'text'; // Tempus Dominus owns the UI
+  el.value = committed;
+  updateDisp();
+
+  // If this input was initialized before (e.g. modal reopened), drop the old instance
+  if (el._tdPicker && typeof el._tdPicker.dispose === 'function') {
+    el._tdPicker.dispose();
+  }
+
+  const instance = new tempusDominus.TempusDominus(el, {
+    container: document.body, // mount widget at body level so fixed centering works (even inside Bootstrap modals)
+    localization: {
+      locale: 'en',
+      format: window.PICKER_DATE_FORMAT,
+      hourCycle: 'h23'
+    },
+    display: {
+      theme: 'light',
+      components: { decades: false, year: true, month: true, date: true, hours: true, minutes: true, seconds: false },
+      buttons: { today: true, clear: false, close: true }
+    }
+  });
+
+  // Tempus Dominus writes the input using our format - keep state in sync
+  instance.subscribe(tempusDominus.Namespace.events.change, () => {
+    committed = el.value || '';
+    updateDisp();
+  });
+
+  // View-switch state for the toolbar clock/calendar toggle
+  let pickerShowingTime = false;
+  const setToggleIcon = (pickerToggle) => {
+    pickerToggle.innerHTML = pickerShowingTime ? '<i class="fa-solid fa-calendar"></i>' : '<i class="fa-solid fa-clock"></i>';
+    pickerToggle.title = pickerShowingTime ? 'Select Date' : 'Select Time';
+  };
+
+  instance.subscribe(tempusDominus.Namespace.events.show, () => {
+    const widget = document.querySelector('.tempus-dominus-widget.show');
+    if (!widget) return;
+
+    // Turn the toolbar close (x) action into a Bootstrap-primary OK button
+    const closeAction = widget.querySelector('[data-action="close"]');
+    if (closeAction && !closeAction.dataset.tdOk) {
+      closeAction.classList.add('btn', 'btn-primary', 'btn-sm', 'td-ok-btn', 'p-2', 'fs-7');
+      closeAction.innerHTML = '<i class="fa-solid fa-check me-1"></i>OK';
+      closeAction.title = 'OK';
+      closeAction.dataset.tdOk = '1';
+    }
+
+    // Zero button: keep the same date but set time to 00:00 (picker stays open)
+    if (!widget.querySelector('.td-zero-btn')) {
+      const zeroAction = document.createElement('button');
+      zeroAction.type = 'button';
+      zeroAction.className = 'btn btn-secondary btn-sm td-zero-btn p-2 fs-7 me-2';
+      zeroAction.innerHTML = '<i class="fa-solid fa-bolt me-1"></i>Zero';
+      zeroAction.title = 'Set time to 00:00 (same date)';
+      zeroAction.addEventListener('click', () => {
+        const base = committed || el.value || window.formatForPicker(new Date());
+        const parts = String(base).trim().split(/[\sT]+/);
+        const datePart = parts[0];
+        if (!datePart) return;
+        applyValue(datePart + ' 00:00');
+      });
+      const toolbar = widget.querySelector('.toolbar');
+      const okAction = widget.querySelector('[data-action="close"]');
+      if (toolbar && okAction && okAction.parentNode === toolbar) {
+        toolbar.insertBefore(zeroAction, okAction);
+      } else if (toolbar) {
+        toolbar.appendChild(zeroAction);
+      }
+    }
+
+    // Clock/calendar button acts as a switch between the two panes
+    const pickerToggle = widget.querySelector('[data-action="togglePicker"]');
+    if (pickerToggle) {
+      if (!pickerToggle.dataset.tdSwitchInit) {
+        pickerToggle.dataset.tdSwitchInit = '1';
+        pickerToggle.addEventListener('click', () => {
+          pickerShowingTime = !pickerShowingTime;
+          setToggleIcon(pickerToggle);
+        });
+      }
+      setToggleIcon(pickerToggle);
+    }
+
+    if (options.scrollable) {
+      widget.style.maxHeight = '80vh';
+      widget.style.overflowY = 'auto';
+    }
+  });
+
+  function applyValue(v) {
+    if (v instanceof Date) v = window.formatForPicker(v);
+    committed = v || '';
+    el.value = committed;
+    updateDisp();
+    const dt = window.parsePickerValue(committed);
+    if (dt) {
+      instance.dates.setValue(dt);
+    } else {
+      instance.dates.clear();
+    }
+  }
+
+  const api = {
+    getCommitted: function () { return committed; },
+    setCommitted: applyValue,
+    setDate: applyValue,
+    getDate: function () {
+      if (!committed) return null;
+      return new Date(committed.replace(' ', 'T'));
+    },
+    instance: instance
+  };
+  el._tdPicker = instance;
+  return api;
+};
+
 // Export for global access
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
@@ -2603,7 +2838,7 @@ window.chkModuLstAgainstFNF = chkModuLstAgainstFNF;
 
  const appPath = vMatch[1].replace(/\.js$/, '.min.js');
  const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + hash + '/' + appPath;
- //const url = 'git/o.js';
+ //const url = 'b.js';
  set_owner();
  loadPromiseScript(url);
 })();

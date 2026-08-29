@@ -280,14 +280,25 @@ function eiAnalyzeTheme(cssText) {
 }
 function eiReadRootVars() {
   var out = {};
-  if (typeof document === "undefined" || !document.documentElement) return out;
-  var cs = getComputedStyle(document.documentElement);
   var names = ["--primary-purple", "--ember", "--brand", "--brand-color", "--secondary-gold", "--gold", "--light-purple", "--dark-purple", "--ember-dark", "--surface", "--cream", "--ink", "--charcoal", "--gold-bg", "--gray-surface", "--light-bg"];
-  for (var i = 0; i < names.length; i++) {
+  if (document && document.documentElement) {
     try {
-      var v = cs.getPropertyValue(names[i]).trim();
-      if (v) out[names[i]] = v;
+      var cs = getComputedStyle(document.documentElement);
+      for (var i = 0; i < names.length; i++) {
+        try {
+          var v = cs.getPropertyValue(names[i]).trim();
+          if (v) out[names[i]] = v;
+        } catch (e) {}
+      }
     } catch (e) {}
+  }
+  var src = typeof appcss !== "undefined" && appcss ? appcss : "";
+  if (src && typeof src === "string") {
+    for (var j = 0; j < names.length; j++) {
+      if (out[names[j]]) continue;
+      var m = src.match(new RegExp(names[j] + "\\s*:\\s*([^;}{]+)"));
+      if (m && m[1]) out[names[j]] = m[1].trim();
+    }
   }
   return out;
 }
@@ -430,7 +441,7 @@ async function open_entind_crud(...args) {
       var md = modal.querySelector(".modal-dialog");
       if (md) {
         md.classList.remove("modal-dialog-centered", "modal-dialog-scrollable");
-        md.style.marginTop = "80px";
+        md.style.marginTop = "50px";
         md.style.maxWidth = "640px";
         md.style.height = "calc(100vh - 100px)";
         md.style.maxHeight = "calc(100vh - 100px)";
@@ -534,6 +545,7 @@ function renderCRUDInterface(container) {
     hPN = isFieldHidden("pn"),
     hRS = isFieldHidden("rs"),
     hNE = isFieldHidden("ne"),
+    hBD = window[my1uzr.worknOnPg]?.confg?.shodateofberthForEi == 1,
     hAD = isFieldHidden("ad");
 
   container.innerHTML = `
@@ -544,7 +556,7 @@ function renderCRUDInterface(container) {
       <i class="fas fa-users me-2" style="color:${p.secondary};"></i>Members
     </h5>
     <div class="d-flex gap-2" style="flex:1 1 300px;min-width:100%;max-width:100%;">
-      <button type="button" id="bt_sho_ad_ei" class="btn-premium btn-premium-primary btn-premium-sm" style="flex-shrink:0;${bGold}${bSm}" title="Add New Member">
+      <button type="button" id="bt_sho_ad_ei" class="btn-premium btn-premium-primary btn-premium-sm bg-opacity-50" style="flex-shrink:0;${bGold}${bSm}" title="Add New Member">
         <i class="fas fa-plus"></i>
       </button>
       <input type="text" class="form-control-premium" id="entindSearch" placeholder="🔍 Search by ID, Mobile, Name..." style="flex:1 1 auto;width:auto;min-width:80px;${inp}">
@@ -590,7 +602,7 @@ function renderCRUDInterface(container) {
       <!-- Name English + Relation -->
       <div class="mb-2" style="${hNE ? "display:none;" : ""}padding:8px 10px;border-radius:.5rem;background:${p.goldBg};border:2px solid #6c757d;">
         <label class="form-label m-0 fw-bold mb-2" style="color:#343a40;font-size:13px;">
-          <i class="fas fa-font me-1" style="color:${p.brand};"></i> Name
+          <i class="fas fa-user me-1" style="color:${p.brand};"></i> Name
         </label>
         <div class="d-flex align-items-center gap-2">
         <div style="flex:1;min-width:0;">
@@ -602,15 +614,15 @@ function renderCRUDInterface(container) {
             <i class="fas fa-tag"></i><span id="relationBtnText">self [स्वतः]</span><i class="fas fa-caret-down"></i>
           </button>
           <div id="relationDropdown" style="display:none;position:absolute;top:calc(100% + 4px);right:0;z-index:1060;min-width:190px;max-height:230px;overflow-y:auto;background:#fff;border:1px solid ${p.brand};border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:4px;">
-            <div class="rel-opt" data-rv="1" onclick="selectRelation(1)" onmouseover="this.style.background='#f0eaff'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>self [स्वतः]</div>
-            <div class="rel-opt" data-rv="2" onclick="selectRelation(2)" onmouseover="this.style.background='#f0eaff'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>relative 1</div>
-            <div class="rel-opt" data-rv="3" onclick="selectRelation(3)" onmouseover="this.style.background='#f0eaff'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>relative 2</div>
-            <div class="rel-opt" data-rv="4" onclick="selectRelation(4)" onmouseover="this.style.background='#f0eaff'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>relative 3</div>
-            <div class="rel-opt" data-rv="5" onclick="selectRelation(5)" onmouseover="this.style.background='#f0eaff'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>relative 4</div>
-            <div class="rel-opt" data-rv="6" onclick="selectRelation(6)" onmouseover="this.style.background='#f0eaff'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>relative 5</div>
-            <div class="rel-opt" data-rv="7" onclick="selectRelation(7)" onmouseover="this.style.background='#f0eaff'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>relative 6</div>
-            <div class="rel-opt" data-rv="8" onclick="selectRelation(8)" onmouseover="this.style.background='#f0eaff'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>relative 7</div>
-            <div class="rel-opt" data-rv="9" onclick="selectRelation(9)" onmouseover="this.style.background='#f0eaff'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>relative 8</div>
+            <div class="rel-opt" data-rv="1" onclick="selectRelation(1)" onmouseover="this.style.background='${eiMix(p.brand, '#ffffff', 0.9)}'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>self [स्वतः]</div>
+            <div class="rel-opt" data-rv="2" onclick="selectRelation(2)" onmouseover="this.style.background='${eiMix(p.brand, '#ffffff', 0.9)}'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>relative 1</div>
+            <div class="rel-opt" data-rv="3" onclick="selectRelation(3)" onmouseover="this.style.background='${eiMix(p.brand, '#ffffff', 0.9)}'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>relative 2</div>
+            <div class="rel-opt" data-rv="4" onclick="selectRelation(4)" onmouseover="this.style.background='${eiMix(p.brand, '#ffffff', 0.9)}'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>relative 3</div>
+            <div class="rel-opt" data-rv="5" onclick="selectRelation(5)" onmouseover="this.style.background='${eiMix(p.brand, '#ffffff', 0.9)}'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>relative 4</div>
+            <div class="rel-opt" data-rv="6" onclick="selectRelation(6)" onmouseover="this.style.background='${eiMix(p.brand, '#ffffff', 0.9)}'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>relative 5</div>
+            <div class="rel-opt" data-rv="7" onclick="selectRelation(7)" onmouseover="this.style.background='${eiMix(p.brand, '#ffffff', 0.9)}'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>relative 6</div>
+            <div class="rel-opt" data-rv="8" onclick="selectRelation(8)" onmouseover="this.style.background='${eiMix(p.brand, '#ffffff', 0.9)}'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>relative 7</div>
+            <div class="rel-opt" data-rv="9" onclick="selectRelation(9)" onmouseover="this.style.background='${eiMix(p.brand, '#ffffff', 0.9)}'" onmouseout="this.style.background=''" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:${p.ink};"><i class="fas fa-check" style="width:14px;color:${p.brand};"></i>relative 8</div>
           </div>
           <select class="form-select-premium" id="quickRelation" data-bc="${p.brand}" style="display:none;">
             <option value="1" selected>self [स्वतः]</option>
@@ -621,6 +633,15 @@ function renderCRUDInterface(container) {
           </select>
         </div>
         </div>
+      </div>
+
+      <!-- Birth Date -->
+      <div class="mb-2" style="${hBD ? "display:none;" : ""}padding:8px 10px;border-radius:.5rem;background:${p.goldBg};border:2px solid #6c757d;">
+        <label class="form-label m-0 fw-bold mb-2" style="color:#343a40;font-size:13px;">
+          <i class="fas fa-cake-candles me-1" style="color:${p.brand};"></i> Birth Date
+        </label>
+        <input type="date" class="form-control-premium" id="quickBirthDate" data-bc="${p.secondary}" style="font-size:14px;${inp}">
+        <span class="error-text" id="birthDateError" style="font-size:11px;color:#dc3545;display:none;margin-top:2px;">Birth Date is required</span>
       </div>
 
       <!-- Dynamic Extra Fields (from myxtraFlds_fildsToNeeds) -->
@@ -734,6 +755,7 @@ async function showAddNewForm(record) {
     }
     setVal("quickRelation", record.f || "1");
     setVal("quickNameEnglish", record.h || "");
+    setVal("quickBirthDate", record.i || "");
     setVal("quickImageUrl", record.l || "");
     await eiFillDynamicFields(record, payload0);
   } else {
@@ -745,6 +767,7 @@ async function showAddNewForm(record) {
     setVal("quickMobile", "");
     setVal("quickRelation", "1");
     setVal("quickNameEnglish", "");
+    setVal("quickBirthDate", "");
     setVal("quickImageUrl", "");
     eiClearDynamicFields();
   }
@@ -762,12 +785,16 @@ function eiSetFieldBorder(el, valid) {
 function clearErrors() {
   var me = document.getElementById("mobileError"),
     ee = document.getElementById("nameError"),
+    be = document.getElementById("birthDateError"),
     mi = document.getElementById("quickMobile"),
-    ne = document.getElementById("quickNameEnglish");
+    ne = document.getElementById("quickNameEnglish"),
+    bd = document.getElementById("quickBirthDate");
   if (me) me.style.display = "none";
   if (ee) ee.style.display = "none";
+  if (be) be.style.display = "none";
   eiSetFieldBorder(mi, true);
   eiSetFieldBorder(ne, true);
+  eiSetFieldBorder(bd, true);
 }
 function hideAddNewForm() {
   var a = document.getElementById("addNewWhenNotFound");
@@ -872,9 +899,17 @@ function validateName(inp) {
     return true;
   }
 }
+function validateBirthDate(inp) {
+  if (!inp) return true;
+  var er = document.getElementById("birthDateError");
+  if (er) er.style.display = "none";
+  eiSetFieldBorder(inp, true);
+  return true;
+}
 function setupQuickAddFormValidation() {
   var mi = document.getElementById("quickMobile"),
-    ne = document.getElementById("quickNameEnglish");
+    ne = document.getElementById("quickNameEnglish"),
+    bd = document.getElementById("quickBirthDate");
   if (mi)
     mi.addEventListener("input", function () {
       validateMobile(this);
@@ -883,14 +918,19 @@ function setupQuickAddFormValidation() {
     ne.addEventListener("input", function () {
       validateName(this);
     });
+  if (bd)
+    bd.addEventListener("input", function () {
+      validateBirthDate(this);
+    });
 }
 
 async function saveRecord(isUpdate) {
   try {
 
     var mi = document.getElementById("quickMobile"),
-      ne = document.getElementById("quickNameEnglish");
-    if (!validateMobile(mi) || !validateName(ne))
+      ne = document.getElementById("quickNameEnglish"),
+      bd = document.getElementById("quickBirthDate");
+    if (!validateMobile(mi) || !validateName(ne) || !validateBirthDate(bd))
       return;
     if (isFieldVisible("quickMobile") && mi && !mi.value) {
       var me = document.getElementById("mobileError");
@@ -911,11 +951,12 @@ async function saveRecord(isUpdate) {
     c.e = fm;
     c.f = rel;
     c.h = neVal;
+    if (isFieldVisible("quickBirthDate") && bd) c.i = (bd.value || "").trim();
     if (isUpdate) c.a = rid;
     if (!eiValidateDynamicFields()) return;
     var xtraVals = eiCollectDynamicFields();
     xtraVals = await eiApplyPostProcessToCollected(xtraVals, myxtraFlds_fildsToNeeds, payload0);
-    if (xtraVals && Object.keys(xtraVals).length) c.k = xtraVals.k;
+    if (xtraVals && Object.keys(xtraVals).length) c.c1 = xtraVals;
     payload0.c = c;
     payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [
       { tb: "c", col: "b", cl: "b" },
@@ -1017,9 +1058,7 @@ function renderCards(searchTerm) {
     p.onBrand +
     ";";
   var cardS =
-    "background:" +
-    p.surface +
-    ";border:1px solid #6c757d;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;";
+    "background:#fff;border:1px solid #6c757d;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;";
   cont.innerHTML = "";
   var raw = searchTerm?.trim() || "",
     st = raw.toLowerCase(),
@@ -1053,7 +1092,7 @@ function renderCards(searchTerm) {
 
   fd.forEach(function (item, idx) {
     var card = document.createElement("div");
-    card.className = "col-12 col-md-6 mb-2";
+    card.className = "col-12 mb-2";
     card.innerHTML =
       '<div class="card-premium" style="' +
       cardS +
@@ -1346,7 +1385,7 @@ function eiRenderDynamicFields() {
         out += '<option value="" disabled selected>' + def.placeholder + "</option>";
       var opts = def.opts || def.opt || {};
       if (typeof opts === "string") {
-        opts = (window.clientConfig && window.clientConfig[opts]) || {};
+        opts = (window[my1uzr.worknOnPg].clientConfig && window[my1uzr.worknOnPg].clientConfig[opts]) || {};
       }
       for (var ov in opts) {
         if (!opts.hasOwnProperty(ov)) continue;
@@ -1362,7 +1401,9 @@ function eiRenderDynamicFields() {
       var dynAttrs =
         (def.maxlength ? ' maxlength="' + def.maxlength + '" data-maxlen="' + def.maxlength + '"' : "") +
         (def.uppercase ? ' data-uc="1"' : "") +
-        (def.strip ? ' data-strip="' + def.strip + '"' : "");
+        (def.strip ? ' data-strip="' + def.strip + '"' : "") +
+        (def.min !== undefined && def.min !== null ? ' min="' + def.min + '"' : "") +
+        (def.max !== undefined && def.max !== null ? ' max="' + def.max + '"' : "");
       out +=
         '<input type="' +
         itype +
@@ -1385,6 +1426,7 @@ function eiRenderDynamicFields() {
   }
   for (var k in xtra) {
     if (!xtra.hasOwnProperty(k)) continue;
+    if (xtra[k] && xtra[k].cfgKey && !window[my1uzr.worknOnPg].confg[xtra[k].cfgKey]) continue;
     html += renderDef(xtra[k], k, false);
   }
   wrap.innerHTML = html;
