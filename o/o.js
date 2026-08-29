@@ -1,5 +1,8 @@
 // newproject.js - Main product catalog with left sidebar for mobile + search
 // funtion inside my1.in/3 , my1.in/4 must not be checked in menu list
+//const appData = null;
+//form old 2/l.php fn:85 to:-
+//send .da complete date to 5/a.php fn:104
 const tblsRequired = ["f", "fp", "p", "s", "c", "o", "os", "od", "fn100"];
 const publicFunctions = ",78,77,";
 const moduLst = [
@@ -8,6 +11,7 @@ const moduLst = [
     { "a":",85,", "b": "Manage Categorys", "c": "fa-star", "d": "mn_ct", "e": "#ffc107" },
     { "a":",82,97,95,", "b": "Manage Permistions", "c": "fa-user-shield", "d": "fav1", "e": "#0d6efd" },
     { "a":",-0,", "b": "Manage Driver", "c": "fa-truck", "d": "driver_panel", "e": "#fd7e14" },
+    { "a":",-100,", "b": "Driver Upload Img", "c": "fa-truck-loading", "d": "showDrvBilingPanel", "e": "#17a2b8" },
     { "a":",100,", "b": "Driver Orders", "c": "fa-truck-loading", "d": "showMyDrvPanel", "e": "#17a2b8" },
     { "a":",84,88,", "b": "Recent Orders", "c": "fa-clock", "d": "recent", "e": "#0dcaf0" }
 ];
@@ -22,6 +26,14 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
     window.burgerMenuItems.push(...menuItems);
     if (typeof createBurgerMenuElements === 'function') createBurgerMenuElements();
 };
+
+    const sho_da_tkLimit = 1;
+    let appData = {};
+    const ids_of_views = [3];
+    let tblFailureCount = 1;
+    const cacheStrategy = 1;
+    const dontShoLoginConfirmation = 1;
+    const dontRestartAfterLogin = 1;
 (async function () {
 
     //keep as if comments:
@@ -29,26 +41,26 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
         { "a": 1, "u": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" },
         { "a": 2, "u": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" },
         { "a": 3, "u": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" },
-        { "a": 4, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/cmn/my1lo.js", "c": "open_shoLgnO", "r": "open_shoLgnO" },
+        { "a": 4, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1lo.js", "c": "open_shoLgnO", "r": "open_shoLgnO" },
         //{ "a": 4, "u": "git/my1lo.js", "c": "open_shoLgnO", "r": "open_shoLgnO" },
         { "a": 5, "u": "https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js" },
         { "a": 6, "u": "https://code.jquery.com/jquery-3.6.0.min.js" },
         { "a": 7, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/cmn/my1ap.min.js" },
-        { "a": 8, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/cmn/my1xi.min.js" },
+        { "a": 8, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1xi.min.js" },
         { "a": 9, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/mr/andro.js" },
         { "a": 10, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/mr/noti.js", "c": "showNotifications", "r": "showNotifications" },
         { "a": 11, "u": "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" },
         { "a": 12, "u": "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js" },
         { "a": 13, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/mr/drvphp.js", "c": "upld2drv", "r": "upld2drv" },
-        { "a": 14, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/cmn/my1ctr.js", "c": "showFunctionManager,getPermissionCounts,getAlreadyPermittedFunctions", "r": "showFunctionManager" },
+        { "a": 14, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
         //{ "a": 14, "u": "git/my1ctr.js", "c": "showFunctionManager,getPermissionCounts,getAlreadyPermittedFunctions", "r": "showFunctionManager" },
-        { "a": 16, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/o/menu.js", "c": "openBurgerMenu,closeBurgerMenu,createBurgerMenuElements", "r": "createBurgerMenuElements" },
+        { "a": 16, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9eec64b/o/menu.js", "c": "openBurgerMenu,closeBurgerMenu,createBurgerMenuElements", "r": "createBurgerMenuElements" },
         //{ "a": 16, "u": "git/menu.js", "c": "openBurgerMenu,closeBurgerMenu,createBurgerMenuElements", "r": "createBurgerMenuElements" },
         { "a": 17, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@349125a/o/ed_prod.js", "c": "showProductList", "r": "showProductList" },
         //{ "a": 17, "u": "git/ed_prod.js", "c": "showProductList", "r": "showProductList" },
-        { "a": 20, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/o/show_prods.js", "c": "showProductsByCategory", "r": "showProductsByCategory" },
+        { "a": 20, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9eec64b/o/show_prods.js", "c": "showProductsByCategory", "r": "showProductsByCategory" },
         //{ "a": 20, "u": "git/show_prods.js", "c": "showProductsByCategory", "r": "showProductsByCategory" },
-        { "a": 22, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/cmn/ei.min.js", "c": "open_entind_crud", "r": "open_entind_crud" },
+        { "a": 22, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/ei.min.js", "c": "open_entind_crud", "r": "open_entind_crud" },
         //{ "a": 22, "u": "git/ei.js", "c": "open_entind_crud", "r": "open_entind_crud" },
         { "a": 23, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/o/o_r.js", "c": "handl_o_rspons", "r": "handl_o_rspons" },
         //{ "a": 23, "u": "git/o_r.js", "c": "handl_o_rspons", "r": "handl_o_rspons" },
@@ -60,24 +72,22 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
         //{ "a": 26, "u": "git/mn_or.js", "c": "showManageOrders", "r": "showManageOrders" },
         { "a": 27, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/o/up_prod.js", "c": "showUpdateProduct", "r": "showUpdateProduct" },
         //{ "a": 27, "u": "git/up_prod.js", "c": "showUpdateProduct", "r": "showUpdateProduct" },
-        { "a": 28, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/o/mn_ct.js", "c": "showManageCategories", "r": "showManageCategories" },
+        { "a": 28, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9eec64b/o/mn_ct.js", "c": "showManageCategories", "r": "showManageCategories" },
         //{ "a": 28, "u": "git/mn_ct.js", "c": "showManageCategories", "r": "showManageCategories" },
         { "a": 29, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/o/mn_drvr.js", "c": "showDriverPanel", "r": "showDriverPanel" },
         //{ "a": 29, "u": "git/mn_drvr.js", "c": "showDriverPanel", "r": "showDriverPanel" },
         { "a": 30, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1236a32/cmn/clrChe.js", "c": "showClearCacheModal", "r": "showClearCacheModal" },
         //{ "a": 31, "u": "git/my1lp.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
-        { "a": 31, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/cmn/my1lp.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
+        { "a": 31, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1lp.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
+        //{ "a": 31, "u": "git/my1lp.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
         { "a": 32, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/o/my_drvr.js", "c": "showMyDrvPanel", "r": "showMyDrvPanel" },
         //{ "a": 32, "u": "git/my_drvr.js", "c": "showMyDrvPanel", "r": "showMyDrvPanel" },
+        //{ "a": 33, "u": "git/drvr_upld_img.js", "c": "showMyDrvPanel", "r": "showMyDrvPanel" },
+        //{ "a": 34, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@4d95515/cmn/my1ap.min.js" },
+        // "a": 34, "u": "git/my1ap.js" },
+        //{ "a": 35, "u": "git/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" }
     ];
 
-    const sho_da_tkLimit = 1;
-    let appData = {};
-    const ids_of_views = [3];
-    let tblFailureCount = 1;
-    const cacheStrategy = 1;
-    const dontShoLoginConfirmation = 1;
-    const dontRestartAfterLogin = 1;
     window[my1uzr.worknOnPg].appInfo = {
         "business": "Star Milk Shop",
         "owner": "Godase",
@@ -322,22 +332,26 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
     try {
         let result1;
         if (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].usdInAndroWv === 1)
-            result1 = await loadCshScriptsSequentially(1, 2, 3, 5, 6, 8, 23);
+            result1 = await loadCshScriptsSequentially(1, 2, 3, 5, 6, 8, 20, 23);
         else
-            result1 = await loadCshScriptsSequentially(1, 2, 3, 5, 6, 8, 9, 23);
+            result1 = await loadCshScriptsSequentially(1, 2, 3, 5, 6, 8, 9, 20, 23, 34);
 
         if (!result1.success) {
             throw new Error('Failed to load required scripts: ' + result1.error);
         } else {
             fetch('o.da').then(function (r) { return r.json(); }).then(function (d) {
-                if (d && d.cata && Array.isArray(d.cata) && d.cata.length > 0) {
-                    window[my1uzr.worknOnPg].categorys = d.cata;
-                    console.log('Loaded categories from o.da:', d.cata);
+                if (d && typeof d === 'object' && !Array.isArray(d)) {
+                    window[my1uzr.worknOnPg].clientConfig = d;
+                    window[my1uzr.worknOnPg].categorys = Array.isArray(d.cata) ? d.cata : [];
+                    console.log('Loaded config from o.da:', d);
+                    rerenderCategoriesWhenDomReady();
                 } else {
+                    window[my1uzr.worknOnPg].clientConfig = {};
                     window[my1uzr.worknOnPg].categorys = [];
-                    console.log('No categories in o.da, using empty list');
+                    console.log('No valid config in o.da, using empty config');
                 }
             }).catch(function (e) {
+                window[my1uzr.worknOnPg].clientConfig = {};
                 window[my1uzr.worknOnPg].categorys = [];
                 console.warn('Could not load o.da, using defaults:', e);
             });
@@ -445,7 +459,7 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
                         // Only reload on FIRST load, not subsequent loads
                         if (isLoadedIn !== 'true') {
                             localStorage.setItem('isLoadedIn', 'true');
-                            setTimeout(() => location.reload(), 300);
+                            //setTimeout(() => location.reload(), 300);
                         }
                     } else {
                         // Allow retry if API failed
@@ -490,13 +504,15 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
     window.queuedPreload = queuedPreload;
 })();
 
+var driveThmW = 300;
 function getGoogleDriveImageUrl(value, thumbnail) {
     if (!value) return '';
     value = String(value).trim();
     var parts = value.split(/\s+/);
     if (parts.length >= 1 && /^[A-Za-z0-9_-]{20,}$/.test(parts[0])) {
         var fileId = thumbnail && parts[1] ? parts[1] : parts[0];
-        return 'https://lh3.googleusercontent.com/d/' + fileId + '=w150?authuser=0';
+        var w = thumbnail ? 200 : (window.driveThmW || 300);
+        return 'https://lh3.googleusercontent.com/d/' + fileId + '=w' + w + '?authuser=0';
     }
     if (/^https?:\/\//i.test(value)) return value;
     return '';
@@ -504,7 +520,11 @@ function getGoogleDriveImageUrl(value, thumbnail) {
 
 var _imgQueue = [];
 var _imgActive = 0;
-var _IMG_MAX = 5;
+var _IMG_MAX = 8;
+var _imgObserver = null;
+var _blobCache = {}; 
+var _gdrvCacheName = 'gdrive-imgs';
+var _gdrvCache = null;
 if (!document.querySelector('link[href*="lh3.googleusercontent.com"][rel="preconnect"]')) {
     var _preconnect = document.createElement('link');
     _preconnect.rel = 'preconnect';
@@ -515,9 +535,105 @@ function _isGoogleDriveUrl(url) {
     return url && url.indexOf('lh3.googleusercontent.com') !== -1;
 }
 
+function _getGdrvCache() {
+    if (_gdrvCache) return _gdrvCache;
+    if (typeof caches === 'undefined') return null;
+    _gdrvCache = caches.open(_gdrvCacheName).catch(function () { return null; });
+    return _gdrvCache;
+}
+
+function _revokeObjUrl(objUrl) {
+    if (objUrl && objUrl.indexOf('blob:') === 0) {
+        try { URL.revokeObjectURL(objUrl); } catch (e) { }
+    }
+}
+
+function _makeObjUrl(blob) {
+    try { return URL.createObjectURL(blob); } catch (e) { return ''; }
+}
+
+function _loadFromCache(url) {
+    return _getGdrvCache().then(function (cache) {
+        if (!cache) return null;
+        return cache.match(url).then(function (hit) {
+            if (hit) return hit.blob();
+            return null;
+        });
+    });
+}
+
+function _warmImgCache(url) {
+    if (typeof caches === 'undefined' || _blobCache[url]) return;
+    _getGdrvCache().then(function (cache) {
+        if (!cache) return;
+        cache.match(url).then(function (hit) {
+            if (hit) {
+                hit.blob().then(function (blob) {
+                    if (blob) {
+                        var objUrl = _makeObjUrl(blob);
+                        if (objUrl) { _blobCache[url] = objUrl; }
+                    }
+                }).catch(function () { });
+                return;
+            }
+            fetch(url, { mode: 'cors' }).then(function (resp) {
+                if (!resp || !resp.ok) return;
+                var clone = resp.clone();
+                cache.put(url, resp);
+                clone.blob().then(function (blob) {
+                    if (blob) {
+                        var objUrl = _makeObjUrl(blob);
+                        if (objUrl) { _blobCache[url] = objUrl; }
+                    }
+                }).catch(function () { });
+            }).catch(function () { });
+        }).catch(function () { });
+    }).catch(function () { });
+}
+
+function _tryServeFromCache(imgEl, url) {
+    if (typeof caches === 'undefined' || !imgEl) return;
+    if (_blobCache[url]) {
+        imgEl.src = _blobCache[url];
+        return;
+    }
+    _loadFromCache(url).then(function (blob) {
+        if (!blob || !imgEl || !imgEl.isConnected) return;
+        var objUrl = _makeObjUrl(blob);
+        if (!objUrl) return;
+        if (!_blobCache[url]) _blobCache[url] = objUrl;
+        imgEl.src = objUrl;
+    }).catch(function () { });
+}
+
+function _getImgObserver() {
+    if (_imgObserver) return _imgObserver;
+    if (typeof IntersectionObserver !== 'function') return null;
+    _imgObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            var img = entry.target;
+            if (entry.isIntersecting && img && img.dataset && img.dataset.__lazyUrl) {
+                _imgObserver.unobserve(img);
+                var lazyUrl = img.dataset.__lazyUrl;
+                delete img.dataset.__lazyUrl;
+                _imgQueue.push({ el: img, url: lazyUrl });
+                _processImgQueue();
+            }
+        });
+    }, { rootMargin: '250px', threshold: 0 });
+    return _imgObserver;
+}
+
 function queuedImageLoad(imgEl, url) {
     if (!url) { imgEl.src = window.PLACEHOLDER_IMG || ''; return; }
     if (!_isGoogleDriveUrl(url)) { imgEl.src = url; return; }
+    var observer = _getImgObserver();
+    if (observer && imgEl && imgEl.dataset) {
+        if (imgEl.dataset.src) delete imgEl.dataset.src;
+        imgEl.dataset.__lazyUrl = url;
+        observer.observe(imgEl);
+        return;
+    }
     _imgQueue.push({ el: imgEl, url: url });
     _processImgQueue();
 }
@@ -550,6 +666,7 @@ function _preloadImg(url) {
     var img = new Image();
     img.onload = function () { _imgDone(); };
     img.onerror = function () { _imgDone(); };
+    _warmImgCache(url);
     img.src = url;
 }
 
@@ -570,12 +687,27 @@ function _throttledImgLoad(imgEl, url) {
             imgEl.src = window.PLACEHOLDER_IMG || '';
         }
         if (imgEl.dataset) delete imgEl.dataset.src;
+        if (imgEl.dataset) delete imgEl.dataset.__objUrl;
         _imgDone();
     };
-    imgEl.src = url;
-    if (imgEl.complete) {
-        if (imgEl.naturalWidth > 0 && imgEl.naturalHeight > 0) imgEl.onload();
-        else imgEl.onerror();
+    if (_blobCache && _blobCache[url]) {
+        imgEl.src = _blobCache[url];
+    } else {
+        imgEl.src = url;
+    }
+    if (typeof caches !== 'undefined') {
+        _tryServeFromCache(imgEl, url);
+        _warmImgCache(url);
+    }
+}
+
+function rerenderCategoriesWhenDomReady() {
+    if (typeof renderCategoryStrip !== 'function') return;
+    if (document.getElementById('catStripDesktop') || document.getElementById('mobileSidebar')) {
+        renderCategoryStrip();
+        if (typeof updateLayoutVisibility === 'function') updateLayoutVisibility();
+    } else {
+        setTimeout(rerenderCategoriesWhenDomReady, 100);
     }
 }
 
@@ -950,7 +1082,7 @@ function setupBurgerMenu() {
     }
 }
 
-let appcss=`
+appcss=`
             * { box-sizing: border-box; }
             body { margin: 0; padding: 0; padding-top: 56px; background: #EAF6FF; font-family: 'Segoe UI', Roboto, Arial, sans-serif; min-height: 100vh; }
 
