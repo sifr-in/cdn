@@ -13,10 +13,10 @@
         //{ "icon": "fa-star", "label": "Best Sellers", "action": "bestsellers", "color": "#ffc107" },
         //{ "icon": "fa-clock", "label": "Recent Orders", "action": "recent", "color": "#0dcaf0" },
         //{ "icon": "fa-heart", "label": "Favorites", "action": "favorites", "color": "#d63384" },
-        { "icon": "fa-broom", "label": "Clear Cache", "action": "clr_cache", "color": "#dc3545" },
         { "icon": "fa-cog", "label": "Settings", "action": "settings", "color": "#6c757d" },
         { "icon": "fa-info-circle", "label": "About", "action": "about", "color": "#6610f2" },
         { "icon": "fa-phone", "label": "Contact", "action": "contact", "color": "#fd7e14" },
+        { "icon": "fa-broom", "label": "Clear Cache", "action": "clr_cache", "color": "#dc3545" },
         { "icon": "fa-sign-in-alt", "label": "Special Login", "action": "home", "color": "#0d6efd" },
     ];
 
@@ -281,9 +281,7 @@
                     break;
 
                 case 'settings':
-                    if (typeof showToast === 'function') {
-                        showToast('Opening settings...', { type: 'info', duration: 2000 });
-                    }
+                    // (async () => { await loadExe2Fn(35, ['dv_to_set_open_my1ctr_processed', 0, 1, 2], [1]); })();
                     break;
 
                 case 'about':
@@ -299,7 +297,7 @@
                     break;
                 case 'fav1':
                     try {
-                        (async () => { await loadExe2Fn(14, [], [1]); })();
+                        (async () => { await loadExe2Fn(14, ['dv_to_set_open_my1ctr_processed', 0, 1, 2], [1]); })();
                     } catch (error) {
                         window.showelsemodal(error || "500");
                     }
@@ -315,6 +313,14 @@
                 case 'showMyDrvPanel':
                     try {
                         (async () => { await loadExe2Fn(32, [], [1]); })();
+                    } catch (error) {
+                        window.showelsemodal(error || "500");
+                    }
+                    break;
+
+                case 'showDrvBilingPanel':
+                    try {
+                        (async () => { await loadExe2Fn(33, [], [1]); })();
                     } catch (error) {
                         window.showelsemodal(error || "500");
                     }

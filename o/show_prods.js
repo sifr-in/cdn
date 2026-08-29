@@ -98,7 +98,8 @@
         var parts = value.split(/\s+/);
         if (parts.length >= 1 && /^[A-Za-z0-9_-]{20,}$/.test(parts[0])) {
             var fileId = thumbnail && parts[1] ? parts[1] : parts[0];
-            return 'https://lh3.googleusercontent.com/d/' + fileId + '=w300?authuser=0';
+            var w = thumbnail ? 200 : (window.driveThmW || 300);
+            return 'https://lh3.googleusercontent.com/d/' + fileId + '=w' + w + '?authuser=0';
         }
         return value;
     }

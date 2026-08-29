@@ -57,11 +57,13 @@
         }
 
         payload0.vw = 1;
-        payload0.fn = 85;
-        payload0.cata = categoryList;
-
-        console.log('Category update payload:', payload0);
-
+        payload0.fn = 104;
+        //payload0.cata = categoryList;
+        payload0.drml = "sambodhisarang.in";
+        payload0.appNm = "o";
+        window[my1uzr.worknOnPg].clientConfig.cata = categoryList;
+        payload0.prt_stng = window[my1uzr.worknOnPg].clientConfig;
+        
         var _ldId = 'mnct_ld_' + Date.now();
         var _ldDiv = document.createElement('div');
         _ldDiv.id = _ldId;
@@ -70,7 +72,7 @@
         document.body.appendChild(_ldDiv);
 
         try {
-            const response = await fnj3("https://my1.in/2/l.php", payload0, 1, true, null, 20000, 0, 2, 1);
+            const response = await fnj3("https://my1.in/5/a.php", payload0, 1, true, null, 20000, 0, 2, 1);
             var _ldEl = document.getElementById(_ldId);
             if (_ldEl) _ldEl.remove();
             if (response && response.su == 1) {
