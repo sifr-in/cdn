@@ -820,9 +820,9 @@ async function AdmPpOpenPermits() {
          + '<button type="button" class="btn btn-outline-secondary btn-sm admPpPermArrow" data-fn-h="' + h + '" title="Users permitted on Function #' + h + '" style="margin-left:auto; padding:0 7px; line-height:1.1; flex-shrink:0;">&rarr;</button>'
          + '</div>';
       }
-      cardsHtml += '<div class="admPpGvPrmCard" data-func-id="' + h + '"' + (exhausted ? ' data-exhausted="1"' : '') + (already.length ? ' data-renews="1"' : '') + ' style="cursor:' + (exhausted ? 'not-allowed' : 'pointer') + ';border:1px solid #6c757d;border-radius:8px;padding:8px 12px;margin-bottom:6px;background:' + (exhausted ? '#f8f9fa' : '#fff') + ';' + (exhausted ? 'opacity:.7;pointer-events:none;' : '') + '">'
+      cardsHtml += '<div class="admPpGvPrmCard" data-func-id="' + h + '"' + (already.length ? ' data-renews="1"' : '') + ' style="cursor:pointer;border:1px solid #6c757d;border-radius:8px;padding:8px 12px;margin-bottom:6px;background:#fff;">'
        + '<div class="d-flex align-items-center gap-2">'
-       + '<input type="checkbox" class="form-check-input mt-0 admPpGvPrmCb border border-dark" data-h="' + h + '" tabindex="-1" style="width:16px;height:16px;"' + (exhausted ? ' disabled' : '') + '>'
+       + '<input type="checkbox" class="form-check-input mt-0 admPpGvPrmCb border border-dark" data-h="' + h + '" tabindex="-1" style="width:16px;height:16px;">'
        + '<span class="fw-bold" style="font-size:.88rem;color:' + theme.brand + ';">' + h + '</span>'
        + '<span class="fw-semibold flex-grow-1" style="font-size:.88rem;">' + AdmPpEsc(name) + '</span>'
        + '<span class="badge bg-info text-dark" style="font-size:.88rem;">' + AdmPpEsc(String(iVal)) + '</span>'
@@ -918,7 +918,6 @@ async function AdmPpOpenPermits() {
 
     contentEl.querySelectorAll('.admPpGvPrmCard').forEach(function (card) {
       card.addEventListener('click', function (e) {
-        if (card.dataset.exhausted) return;
         if (e.target.closest('.admPpCardTill')) return;
         var cb = card.querySelector('.admPpGvPrmCb');
         if (e.target === cb || e.target.closest('.admPpGvPrmCb')) {
