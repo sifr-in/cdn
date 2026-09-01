@@ -332,6 +332,44 @@ function AdmPpThemeForceReload() {
   window.__admPpTheme = null;
 }
 
+function admPpInjectMenuCss() {
+  if (document.getElementById('admPpMenuCss')) return;
+  var st = document.createElement('style');
+  st.id = 'admPpMenuCss';
+  st.textContent = '#admPpModMenu{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;}'
+    + '@media(min-width:768px){#admPpModMenu{grid-template-columns:repeat(auto-fill,minmax(90px,1fr));}}'
+    + '#admPpModMenu button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px 8px;border-radius:12px;border:1px solid #6c757d;background:#fff;cursor:pointer;min-width:0;transition:transform .15s,box-shadow .15s;font-family:inherit;}'
+    + '#admPpModMenu button:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.12);}'
+    + '#admPpModMenu button .mt-ic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--mc,#6c757d);background:#ceffda;border:1px solid rgba(108,117,125,.25);}'
+    + '#admPpModMenu button .mt-lb{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;letter-spacing:.2px;line-height:1;color:#212529;}';
+  document.head.appendChild(st);
+}
+
+function admPpRenderModMenu() {
+  var menuEl = document.getElementById('admPpModMenu');
+  if (!menuEl) return;
+  var mods = (window[my1uzr && my1uzr.worknOnPg] && window[my1uzr.worknOnPg].allowedModulesMenuItems)
+    || [];
+  if (!mods.length) { menuEl.innerHTML = ''; return; }
+  var shortMap = { hm:'home', rm:'rooms', ar:'addRoom', bs:'booking', rt:'restaurant', rw:'reviews', st:'settings', pl:'policies' };
+  var hCols = ((window[my1uzr && my1uzr.worknOnPg] && window[my1uzr.worknOnPg].colsToHideMenu) || '')
+    .split(',').map(function (k) { return shortMap[k.trim().toLowerCase()] || k.trim().toLowerCase(); }).filter(function (k) { return k; });
+  var visible = mods.filter(function (m) { return hCols.indexOf(m.d) === -1; });
+  menuEl.innerHTML = visible.map(function (m) {
+    var iconColor = m.e && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(m.e) ? m.e : 'var(--mc,#6c757d)';
+    return '<button type="button" data-action="' + AdmPpEsc(m.d) + '" style="--mc:' + AdmPpEsc(iconColor) + ';">'
+      + '<span class="mt-ic"><i class="fa-solid ' + AdmPpEsc(m.c || 'fa-cube') + '"></i></span>'
+      + '<span class="mt-lb">' + AdmPpEsc(m.b || 'Module') + '</span></button>';
+  }).join('');
+  menuEl.querySelectorAll('button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var action = btn.dataset.action;
+      if (admPpModalRefs.instance) admPpModalRefs.instance.hide();
+      if (typeof openAdminFromMenu === 'function') openAdminFromMenu(action);
+    });
+  });
+}
+
  function showUserInfoModal() {
   if (!my1uzr) return;
 
@@ -361,6 +399,7 @@ function AdmPpThemeForceReload() {
  contentElement.style.padding = '0';
  contentElement.style.flex = '1 1 auto';
  contentElement.style.overflowY = 'auto';
+ contentElement.style.background = theme.profileBg;
 
  const avatarInner = my1uzr.ml ?
   `<img src="${my1uzr.ml}" alt="Profile Picture" style="width:100%; height:100%; object-fit:cover;">` :
@@ -397,9 +436,10 @@ function AdmPpThemeForceReload() {
      <span class="fw-semibold" style="font-size:.92rem; white-space:nowrap;">${my1uzr.mc || "0"}</span>
     </div>
    </div>
-  </div>
  </div>
 </div>
+</div>
+<div id="admPpModMenu" class="mt-3" style="background:${theme.surface};border:1px solid #6c757d;border-radius:14px;box-shadow:0 2px 12px rgba(36,27,69,.07);margin:0 10px 14px;"></div>
 <div id="admPp_view_proxy" class="px-2 pb-2 pt-2 d-none" style="background:${theme.surface};border:1px solid #6c757d;border-radius:14px;box-shadow:0 2px 12px rgba(36,27,69,.07);padding: 16px 6px;margin:0 10px 14px;"></div>
 <div id="admPp_view_permits" class="px-2 pb-2 pt-2 d-none" style="background:${theme.surface};border:1px solid #6c757d;border-radius:14px;box-shadow:0 2px 12px rgba(36,27,69,.07);padding: 16px 6px;margin:0 10px 14px;"></div>
 `;
@@ -423,8 +463,10 @@ admPpState.view = 'profile';
  if (bpEl) bpEl.addEventListener('click', () => { if (admPpState.view !== 'proxy') AdmPpSetView('proxy'); });
   if (btEl) btEl.addEventListener('click', () => { if (admPpState.view !== 'permits') AdmPpSetView('permits'); });
 
+ AdmPpSetView('profile');
  modalInstance.show();
- AdmPpSetView('proxy');
+ admPpInjectMenuCss();
+ admPpRenderModMenu();
 }
 
 // ===================== Proxy & Permissions management =====================
@@ -657,7 +699,7 @@ async function AdmPpShowPermittedUsers(h) {
 <div class="px-3 py-2" style="font-size:.85rem; display:flex; flex-direction:column; gap:8px; overflow-y:auto; max-height:60vh;">
  ${rows || '<div class="text-muted d-flex align-items-center justify-content-center" style="min-height:120px;">No users permitted on this function.</div>'}
 </div>`;
-  modalInstance.show();
+ modalInstance.show();
 }
 
 function AdmPpGvPrmTillColorSafe(till) {
@@ -734,8 +776,7 @@ async function AdmPpOpenPermits() {
   }
 
   const mods = (typeof gvPrmGetModules === 'function' ? gvPrmGetModules() : null)
-    || window.moduLst
-    || (window[my1uzr && my1uzr.worknOnPg] && window[my1uzr.worknOnPg].moduLst)
+    || window[my1uzr.worknOnPg].moduLst
     || [];
 
   const allFp = window[my1uzr.worknOnPg].admPp_fp || [];

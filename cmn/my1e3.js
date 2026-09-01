@@ -216,7 +216,7 @@ async function chkModuLstAgainstFNF(moduLst) {
         }
     });
     if(temp11.length === 0)
-      window.showelsemodal("Not Allowed");
+      console.log("Allowed Menu Count: "+ temp11);
     temp11.hook = moduLst.hook || "onModuLstAllowed";
     return temp11;
 }
@@ -2838,7 +2838,7 @@ window.chkModuLstAgainstFNF = chkModuLstAgainstFNF;
 
  const appPath = vMatch[1].replace(/\.js$/, '.min.js');
  const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + hash + '/' + appPath;
- //const url = 'b.js';
+ //const url = 'core/ht.js';
  set_owner();
  loadPromiseScript(url);
 })();

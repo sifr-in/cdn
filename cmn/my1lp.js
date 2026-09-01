@@ -5,7 +5,6 @@ let id_of_dv_shoLgnP_to_set_processed_dom_object;
 let switch_shoLgnP_create_nw_modal;
 let swtch_0nothing_1flex_2block_shoLgnP;
 if (typeof swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn === "undefined") { var swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn = 0; }
-let confirmMoNo = 1;
 if (typeof isOtpSuppressed === "undefined") { var isOtpSuppressed = false; }
 
 // Resend timer functionality
@@ -16,7 +15,7 @@ if (typeof resendTimeLeft === "undefined") { var resendTimeLeft = 0; }
 if (typeof fullScreenLoader === "undefined") { var fullScreenLoader = null; }
 
 // Check if user is logged in
-function isLoggedIn() {
+function isLoggedInLP() {
  return typeof my1uzr !== 'undefined' && my1uzr != null && my1uzr.mk != null;
 }
 
@@ -88,7 +87,7 @@ function showAlertModal(message, type = 'error') {
 // }
 
 // Show logout option modal
-function showLogoutOption() {
+function showLogoutOptionLP() {
  const { contentElement, modalInstance } = create_modal_dynamically('logoutModal');
 
  contentElement.innerHTML = `
@@ -119,7 +118,7 @@ function showLogoutOption() {
 }
 
 // Save original body styles
-function saveBodyStyles() {
+function saveBodyStylesLP() {
  originalBodyStyles = {
   overflow: document.body.style.overflow,
   position: document.body.style.position,
@@ -128,14 +127,14 @@ function saveBodyStyles() {
 }
 
 // Restore body styles
-function restoreL3BodyStyles() {
+function restoreL3BodyStylesLP() {
  document.body.style.overflow = originalBodyStyles.overflow || '';
  document.body.style.position = originalBodyStyles.position || '';
  document.body.style.width = originalBodyStyles.width || '';
 }
 
 // Function to show mobile confirmation modal
-function showMobileConfirmationModal(countryCode, mobileNumber, callback) {
+function showMobileConfirmationModalLP(countryCode, mobileNumber, callback) {
  const { contentElement, modalInstance } = create_modal_dynamically('mobileConfirmationModal');
 
  contentElement.innerHTML = `
@@ -165,12 +164,12 @@ function showMobileConfirmationModal(countryCode, mobileNumber, callback) {
 }
 
 // Show full screen loader
-function showFullScreenLoader(message = 'Processing...') {
+function showFullScreenLoaderLP(message = 'Processing...') {
  fullScreenLoader = createDynamicLoader(message);
 }
 
 // Hide full screen loader
-function hideFullScreenLoader() {
+function hideFullScreenLoaderLP() {
  if (fullScreenLoader && typeof fullScreenLoader.removeLoader === 'function') {
   fullScreenLoader.removeLoader();
   fullScreenLoader = null;
@@ -190,11 +189,11 @@ function set_innerHTML_of_shoLgnP() {
 <div class="mb-3">
 <!--label for="loginMobile" class="form-label">Mobile Number</label-->
 <div class="input-group flex-nowrap">
-<select id="loginCountryCode" class="form-select" style="max-width: 120px; width: auto; flex-shrink: 0;"></select>
-<div id="mobileDigitsContainer" class="d-flex gap-1 ms-2 flex-row flex-wrap"></div>
+<select id="lp-loginCountryCode" class="form-select" style="max-width: 120px; width: auto; flex-shrink: 0;"></select>
+<div id="lp-mobileDigitsContainer" class="d-flex gap-1 ms-2 flex-row flex-wrap"></div>
 </div>
-<div id="mobileLengthInfo" class="form-text ms-2"></div>
-<div id="mobileError" class="invalid-feedback d-none">Please enter a valid mobile number</div>
+<div id="lp-mobileLengthInfo" class="form-text ms-2"></div>
+<div id="lp-mobileError" class="invalid-feedback d-none">Please enter a valid mobile number</div>
 </div>
 
 <div class="row align-items-center g-2 mb-3">
@@ -245,48 +244,48 @@ function set_innerHTML_of_register() {
 <div class="container p-0">
 <div class="card">
 <div class="card-header text-center d-flex justify-content-between align-items-center">
-<h5 class="card-title mb-0">Register <span id="otpTextToggle" style="cursor: pointer; padding: 2px 5px; border-radius: 3px; transition: all 0.3s;">New</span> Account</h5>
+<h5 class="card-title mb-0">Register <span id="lp-otpTextToggle" style="cursor: pointer; padding: 2px 5px; border-radius: 3px; transition: all 0.3s;">New</span> Account</h5>
 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="card-body" style="background-color: #99FFFF; max-height: 70vh; overflow-y: auto;">
 <div class="mb-3">
 <!--label for="registerMobile" class="form-label">Mobile Number</label-->
 <div class="input-group flex-nowrap">
-<select id="registerCountryCode" class="form-select" style="max-width: 120px; width: auto; flex-shrink: 0;"></select>
-<div id="registerMobileDigitsContainer" class="d-flex gap-1 ms-2 flex-row flex-wrap"></div>
+<select id="lp-registerCountryCode" class="form-select" style="max-width: 120px; width: auto; flex-shrink: 0;"></select>
+<div id="lp-registerMobileDigitsContainer" class="d-flex gap-1 ms-2 flex-row flex-wrap"></div>
 </div>
-<div id="registerMobileLengthInfo" class="form-text ms-2"></div>
-<div id="registerMobileError" class="invalid-feedback d-none">Please enter a valid mobile number</div>
+<div id="lp-registerMobileLengthInfo" class="form-text ms-2"></div>
+<div id="lp-registerMobileError" class="invalid-feedback d-none">Please enter a valid mobile number</div>
 </div>
 
-<label class="form-check-label ml-2 mb-4" for="acceptTerms">
+<label class="form-check-label ml-2 mb-4" id="lp-termsLabel">
 You agree with the <a href="#" class="text-primary">Terms & Conditions</a> when you click on "Send OTP"
 </label>
 
 <div id="my1lpXtraFields"></div>
 
-<button id="sendOtpBtn" class="btn btn-primary w-100 position-relative">
-<span id="sendOtpText">Send OTP</span>
-<span id="sendOtpLoader" class="spinner-border spinner-border-sm d-none position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%);"></span>
+<button id="lp-sendOtpBtn" class="btn btn-primary w-100 position-relative">
+<span id="lp-sendOtpText">Send OTP</span>
+<span id="lp-sendOtpLoader" class="spinner-border spinner-border-sm d-none position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%);"></span>
 </button>
 
-<div id="resendContainer" class="d-none ml-3">
-<strong><span id="resendCountdown" class="text-primary fw-bold"></span></strong>
+<div id="lp-resendContainer" class="d-none ml-3">
+<strong><span id="lp-resendCountdown" class="text-primary fw-bold"></span></strong>
 </div>
 
-<div id="otpSection" class="d-none mt-3">
+<div id="lp-otpSection" class="d-none mt-3">
 <div class="mb-3">
 <label class="form-label">Enter OTP (6 digits)</label>
-<div id="otpDigitsContainer" class="d-flex gap-1 justify-content-center"></div>
+<div id="lp-otpDigitsContainer" class="d-flex gap-1 justify-content-center"></div>
 </div>
 
 <div class="text-center mt-2">
-<button id="resendOtp" class="btn btn-outline-secondary btn-sm">Resend OTP</button>
+<button id="lp-resendOtp" class="btn btn-outline-secondary btn-sm">Resend OTP</button>
 </div>
 
-<button id="verifyOtpBtn" class="btn btn-primary w-100 mt-2 position-relative">
-<span id="verifyOtpText">Verify OTP</span>
-<span id="verifyOtpLoader" class="spinner-border spinner-border-sm d-none position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%);"></span>
+<button id="lp-verifyOtpBtn" class="btn btn-primary w-100 mt-2 position-relative">
+<span id="lp-verifyOtpText">Verify OTP</span>
+<span id="lp-verifyOtpLoader" class="spinner-border spinner-border-sm d-none position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%);"></span>
 </button>
 </div>
 
@@ -550,11 +549,17 @@ function my1lpXtraCheckField(def, path, focusOnFail) {
   return true;
  };
  if (req && !val) return failLocal((def.lbl || path) + " is required");
- var ptrn = def.ptrn;
- if (val && ptrn && typeof ptrn === "string" && ptrn.indexOf("^") !== -1) {
+var ptrn = def.ptrn || def.pattern;
+  if (val && ptrn && typeof ptrn === "string") {
   var re = null;
   try { re = new RegExp(ptrn); } catch (e) { re = null; }
   if (re && !re.test(val)) return failLocal("Invalid " + (def.lbl || path));
+ }
+ if (val && def.type === "email") {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) return failLocal("Please enter valid email!");
+ }
+ if (val && def.type === "url") {
+  if (!/^https?:\/\/.+\..+/.test(val)) return failLocal("Please enter valid URL!");
  }
  var vfn = def.validate;
  if (vfn && typeof window[vfn] === "function") {
@@ -618,7 +623,7 @@ async function my1lpXtraRunPost(def, groupVals, payload) {
  var fn = def && def.postProcess;
  if (fn && typeof window[fn] === "function") {
   var result = await window[fn](groupVals, payload);
-  if (!result) { alert("postProcess failed!"); return groupVals; }
+  if (!result) { showAlertModal("postProcess failed!"); return groupVals; }
   return result;
  }
  return groupVals;
@@ -655,7 +660,7 @@ async function open_shoLgnP(...args) {
  swtch_0nothing_1flex_2block_shoLgnP = args[2] || 0;
  swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn = args[3] || 0;
 
- if (isLoggedIn()) {
+ if (isLoggedInLP()) {
   if (swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn === 2) {
    showUserInfoModal();
   }
@@ -671,14 +676,14 @@ async function open_shoLgnP(...args) {
 
  // Add event listener for when modal is hidden to restore body styles and release wake lock
  modalElement.addEventListener('hidden.bs.modal', function () {
-  restoreL3BodyStyles();
+  restoreL3BodyStylesLP();
   if (typeof releaseWakeLock === 'function') {
    releaseWakeLock();
   }
  });
 
  modalElement.addEventListener('shown.bs.modal', function () {
-  const firstInput = modalElement.querySelector('#mobileDigitsContainer input');
+  const firstInput = modalElement.querySelector('#lp-mobileDigitsContainer input');
   if (firstInput) firstInput.focus();
  });
 
@@ -694,31 +699,31 @@ async function open_shoLgnP(...args) {
 }
 
 function initializeLoginForm(container) {
- const countryCodeSelect = container.querySelector('#loginCountryCode');
+ const countryCodeSelect = container.querySelector('#lp-loginCountryCode');
  if (countryCodeSelect) {
-  loadCountryCodes('loginCountryCode');
+  loadCountryCodesLP('lp-loginCountryCode');
   setTimeout(() => {
    countryCodeSelect.value = '+91';
-   updateMobileLengthInfo('loginCountryCode', 'mobileLengthInfo');
-   createMobileDigitInputs('mobileDigitsContainer', getRequiredMobileLength('+91'));
-  }, 700);
+   updateMobileLengthInfoLP('lp-loginCountryCode', 'lp-mobileLengthInfo');
+   createMobileDigitInputsLP('lp-mobileDigitsContainer', getRequiredMobileLengthLP('+91'));
+  }, 500);
  }
 
  setupLoginEventListeners(container);
 }
 
 function initializeRegisterForm(container) {
- const countryCodeSelect = container.querySelector('#registerCountryCode');
+ const countryCodeSelect = container.querySelector('#lp-registerCountryCode');
  if (countryCodeSelect) {
-  loadCountryCodes('registerCountryCode');
+  loadCountryCodesLP('lp-registerCountryCode');
   setTimeout(() => {
    countryCodeSelect.value = '+91';
-   updateMobileLengthInfo('registerCountryCode', 'registerMobileLengthInfo');
-   createMobileDigitInputs('registerMobileDigitsContainer', getRequiredMobileLength('+91'));
-  }, 700);
+   updateMobileLengthInfoLP('lp-registerCountryCode', 'lp-registerMobileLengthInfo');
+   createMobileDigitInputsLP('lp-registerMobileDigitsContainer', getRequiredMobileLengthLP('+91'));
+  }, 500);
  }
 
-createOtpDigitInputs();
+createOtpDigitInputsLP();
   setupRegisterEventListeners(container);
   my1lpXtraRender();
 }
@@ -747,14 +752,14 @@ function setupFormSwitching(container, modalInstance) {
 function setupLoginEventListeners(container) {
  const loginSubmit = container.querySelector('#loginSubmit');
  const loginPassword = container.querySelector('#loginPassword');
- const countryCodeSelect = container.querySelector('#loginCountryCode');
+ const countryCodeSelect = container.querySelector('#lp-loginCountryCode');
  const forgotPassword = container.querySelector('#forgotPassword');
 
  if (countryCodeSelect) {
   countryCodeSelect.addEventListener('change', function () {
-   updateMobileLengthInfo('loginCountryCode', 'mobileLengthInfo');
-   const requiredLength = getRequiredMobileLength(this.value);
-   createMobileDigitInputs('mobileDigitsContainer', requiredLength);
+   updateMobileLengthInfoLP('lp-loginCountryCode', 'lp-mobileLengthInfo');
+   const requiredLength = getRequiredMobileLengthLP(this.value);
+   createMobileDigitInputsLP('lp-mobileDigitsContainer', requiredLength);
   });
  }
 
@@ -773,20 +778,20 @@ function setupLoginEventListeners(container) {
 }
 
 function setupRegisterEventListeners(container) {
- const sendOtpBtn = container.querySelector('#sendOtpBtn');
- const verifyOtpBtn = container.querySelector('#verifyOtpBtn');
- const resendOtp = container.querySelector('#resendOtp');
+ const sendOtpBtn = container.querySelector('#lp-sendOtpBtn');
+ const verifyOtpBtn = container.querySelector('#lp-verifyOtpBtn');
+ const resendOtp = container.querySelector('#lp-resendOtp');
  const completeRegistration = container.querySelector('#completeRegistration');
  const localName = container.querySelector('#localName');
  const regPassword = container.querySelector('#regPassword');
  const confirmPassword = container.querySelector('#confirmPassword');
- const countryCodeSelect = container.querySelector('#registerCountryCode');
+ const countryCodeSelect = container.querySelector('#lp-registerCountryCode');
 
  if (countryCodeSelect) {
   countryCodeSelect.addEventListener('change', function () {
-   updateMobileLengthInfo('registerCountryCode', 'registerMobileLengthInfo');
-   const requiredLength = getRequiredMobileLength(this.value);
-   createMobileDigitInputs('registerMobileDigitsContainer', requiredLength);
+   updateMobileLengthInfoLP('lp-registerCountryCode', 'lp-registerMobileLengthInfo');
+   const requiredLength = getRequiredMobileLengthLP(this.value);
+   createMobileDigitInputsLP('lp-registerMobileDigitsContainer', requiredLength);
   });
  }
 
@@ -852,32 +857,32 @@ function setupRegisterEventListeners(container) {
  }
 
  // Add OTP text toggle functionality
- setupOtpTextToggle(container);
+ setupOtpTextToggleLP(container);
 }
 
 // OTP text toggle function for registration
-function setupOtpTextToggle(container) {
- const otpTextToggle = container.querySelector('#otpTextToggle');
+function setupOtpTextToggleLP(container) {
+ const otpTextToggle = container.querySelector('#lp-otpTextToggle');
  if (otpTextToggle) {
-  updateOtpTextAppearance(otpTextToggle);
+  updateOtpTextAppearanceLP(otpTextToggle);
 
   otpTextToggle.addEventListener('click', function () {
    if (isOtpSuppressed) {
     if (confirm('Do you want to Enable?')) {
      isOtpSuppressed = false;
-     updateOtpTextAppearance(otpTextToggle);
+     updateOtpTextAppearanceLP(otpTextToggle);
     }
    } else {
     if (confirm('Do you want to Disable?')) {
      isOtpSuppressed = true;
-     updateOtpTextAppearance(otpTextToggle);
+     updateOtpTextAppearanceLP(otpTextToggle);
     }
    }
   });
  }
 }
 
-function updateOtpTextAppearance(otpTextToggle) {
+function updateOtpTextAppearanceLP(otpTextToggle) {
  if (otpTextToggle) {
   if (isOtpSuppressed) {
    otpTextToggle.textContent = 'disabled';
@@ -892,15 +897,15 @@ function updateOtpTextAppearance(otpTextToggle) {
 }
 
 async function handleLoginSubmit(container) {
- const countryCode = container.querySelector('#loginCountryCode').value;
- const mobileNumber = getMobileNumberFromDigits('mobileDigitsContainer');
+ const countryCode = container.querySelector('#lp-loginCountryCode').value;
+ const mobileNumber = getMobileNumberFromDigitsLP('lp-mobileDigitsContainer');
  const password = container.querySelector('#loginPassword').value;
- const requiredLength = getRequiredMobileLength(countryCode);
+ const requiredLength = getRequiredMobileLengthLP(countryCode);
 
- const mobileError = container.querySelector('#mobileError');
+ const mobileError = container.querySelector('#lp-mobileError');
  mobileError.classList.add('d-none');
 
- const inputs = container.querySelectorAll('#mobileDigitsContainer input');
+ const inputs = container.querySelectorAll('#lp-mobileDigitsContainer input');
  inputs.forEach(input => input.classList.remove('is-invalid'));
 
  let allDigitsFilled = true;
@@ -939,7 +944,7 @@ async function handleLoginSubmit(container) {
  loginLoader.classList.remove('d-none');
  loginSubmit.disabled = true;
 
- showFullScreenLoader('Logging in...');
+ showFullScreenLoaderLP('Logging in...');
 
  try {
   await performLogin(countryCode, mobileNumber, password);
@@ -950,7 +955,7 @@ async function handleLoginSubmit(container) {
   loginText.classList.remove('d-none');
   loginLoader.classList.add('d-none');
   loginSubmit.disabled = false;
-  hideFullScreenLoader();
+  hideFullScreenLoaderLP();
  }
 }
 
@@ -959,16 +964,16 @@ async function handleSendOtp(container) {
  if (switchToRegister) switchToRegister.disabled = true;
  const switchToLogin = container.querySelector('#switchToLogin');
  if (switchToLogin) switchToLogin.disabled = true;
- const termsLabel = container.querySelector('label[for="acceptTerms"]');
+ const termsLabel = container.querySelector('#lp-termsLabel');
  if (termsLabel) termsLabel.classList.add('d-none');
- const countryCode = container.querySelector('#registerCountryCode').value;
- const mobileNumber = getMobileNumberFromDigits('registerMobileDigitsContainer');
- const requiredLength = getRequiredMobileLength(countryCode);
+ const countryCode = container.querySelector('#lp-registerCountryCode').value;
+ const mobileNumber = getMobileNumberFromDigitsLP('lp-registerMobileDigitsContainer');
+ const requiredLength = getRequiredMobileLengthLP(countryCode);
 
- const mobileError = container.querySelector('#registerMobileError');
+ const mobileError = container.querySelector('#lp-registerMobileError');
  mobileError.classList.add('d-none');
 
- const inputs = container.querySelectorAll('#registerMobileDigitsContainer input');
+ const inputs = container.querySelectorAll('#lp-registerMobileDigitsContainer input');
  inputs.forEach(input => input.classList.remove('is-invalid'));
 
  let allDigitsFilled = true;
@@ -993,9 +998,9 @@ async function handleSendOtp(container) {
 
  if (!my1lpXtraValidate()) return;
 
- const sendOtpText = container.querySelector('#sendOtpText');
- const sendOtpLoader = container.querySelector('#sendOtpLoader');
- const sendOtpBtn = container.querySelector('#sendOtpBtn');
+ const sendOtpText = container.querySelector('#lp-sendOtpText');
+ const sendOtpLoader = container.querySelector('#lp-sendOtpLoader');
+ const sendOtpBtn = container.querySelector('#lp-sendOtpBtn');
 
  sendOtpText.classList.add('d-none');
  sendOtpLoader.classList.remove('d-none');
@@ -1009,59 +1014,59 @@ async function handleSendOtp(container) {
   sendOtpText.classList.remove('d-none');
   sendOtpLoader.classList.add('d-none');
   sendOtpBtn.disabled = false;
-  hideFullScreenLoader();
+  hideFullScreenLoaderLP();
  }
 }
 
 async function sendOtpRequest(countryCode, mobileNumber, container) {
  try {
-  showFullScreenLoader('Sending OTP...');
-  const otpSent = await getOTP(countryCode, mobileNumber);
+  showFullScreenLoaderLP('Sending OTP...');
+  const otpSent = await getOTP_LP(countryCode, mobileNumber);
   if (otpSent.success) {
-   container.querySelector('#otpSection').classList.remove('d-none');
-   container.querySelector('#sendOtpBtn').classList.add('d-none');
+   container.querySelector('#lp-otpSection').classList.remove('d-none');
+   container.querySelector('#lp-sendOtpBtn').classList.add('d-none');
 
    if (otpSent.waitTime) {
-    startResendTimer(otpSent.waitTime, container);
+    startResendTimerLP(otpSent.waitTime, container);
    }
   }
  } finally {
-  const sendOtpText = container.querySelector('#sendOtpText');
-  const sendOtpLoader = container.querySelector('#sendOtpLoader');
-  const sendOtpBtn = container.querySelector('#sendOtpBtn');
+  const sendOtpText = container.querySelector('#lp-sendOtpText');
+  const sendOtpLoader = container.querySelector('#lp-sendOtpLoader');
+  const sendOtpBtn = container.querySelector('#lp-sendOtpBtn');
 
   sendOtpText.classList.remove('d-none');
   sendOtpLoader.classList.add('d-none');
   sendOtpBtn.disabled = false;
-  hideFullScreenLoader();
+  hideFullScreenLoaderLP();
  }
 }
 
 async function handleVerifyOtp(container) {
- const otp = getOtpFromInputs();
+ const otp = getOtpFromInputsLP();
 
  if (otp.length !== 6) {
   showAlertModal('Please enter a valid 6-digit OTP');
   return;
  }
 
- const verifyOtpText = container.querySelector('#verifyOtpText');
- const verifyOtpLoader = container.querySelector('#verifyOtpLoader');
- const verifyOtpBtn = container.querySelector('#verifyOtpBtn');
+ const verifyOtpText = container.querySelector('#lp-verifyOtpText');
+ const verifyOtpLoader = container.querySelector('#lp-verifyOtpLoader');
+ const verifyOtpBtn = container.querySelector('#lp-verifyOtpBtn');
 
  verifyOtpText.classList.add('d-none');
  verifyOtpLoader.classList.remove('d-none');
  verifyOtpBtn.disabled = true;
 
- showFullScreenLoader('Verifying OTP...');
+ showFullScreenLoaderLP('Verifying OTP...');
 
  try {
-  const countryCode = container.querySelector('#registerCountryCode').value;
-  const mobileNumber = getMobileNumberFromDigits('registerMobileDigitsContainer');
+  const countryCode = container.querySelector('#lp-registerCountryCode').value;
+  const mobileNumber = getMobileNumberFromDigitsLP('lp-registerMobileDigitsContainer');
 
-  const result = await verifyOTP(countryCode, mobileNumber, otp);
+  const result = await verifyOTP_LP(countryCode, mobileNumber, otp);
   if (result) {
-   container.querySelector('#otpSection').classList.add('d-none');
+   container.querySelector('#lp-otpSection').classList.add('d-none');
    container.querySelector('#registrationForm').classList.remove('d-none');
   } else {
    showAlertModal('Invalid OTP. Please try again.');
@@ -1073,16 +1078,16 @@ async function handleVerifyOtp(container) {
   verifyOtpText.classList.remove('d-none');
   verifyOtpLoader.classList.add('d-none');
   verifyOtpBtn.disabled = false;
-  hideFullScreenLoader();
+  hideFullScreenLoaderLP();
  }
 }
 
 async function handleResendOtp(container) {
- const countryCode = container.querySelector('#registerCountryCode').value;
- const mobileNumber = getMobileNumberFromDigits('registerMobileDigitsContainer');
- const requiredLength = getRequiredMobileLength(countryCode);
+ const countryCode = container.querySelector('#lp-registerCountryCode').value;
+ const mobileNumber = getMobileNumberFromDigitsLP('lp-registerMobileDigitsContainer');
+ const requiredLength = getRequiredMobileLengthLP(countryCode);
 
- const inputs = container.querySelectorAll('#registerMobileDigitsContainer input');
+ const inputs = container.querySelectorAll('#lp-registerMobileDigitsContainer input');
  inputs.forEach(input => input.classList.remove('is-invalid'));
 
  let allDigitsFilled = true;
@@ -1103,10 +1108,10 @@ async function handleResendOtp(container) {
   return;
  }
 
- const resendOtp = container.querySelector('#resendOtp');
+ const resendOtp = container.querySelector('#lp-resendOtp');
  resendOtp.disabled = true;
 
- showFullScreenLoader('Resending OTP...');
+ showFullScreenLoaderLP('Resending OTP...');
 
  try {
   await resendOtpRequest(countryCode, mobileNumber, container);
@@ -1114,25 +1119,25 @@ async function handleResendOtp(container) {
   console.error('Resend OTP error:', error);
   showAlertModal('Please try again.');
   resendOtp.disabled = false;
-  hideFullScreenLoader();
+  hideFullScreenLoaderLP();
  }
 }
 
 async function resendOtpRequest(countryCode, mobileNumber, container) {
  try {
-  const otpSent = await getOTP(countryCode, mobileNumber);
+  const otpSent = await getOTP_LP(countryCode, mobileNumber);
   if (otpSent.success) {
    showAlertModal('OTP resent successfully', 'success');
 
-   const verifyOtpBtn = container.querySelector('#verifyOtpBtn');
+   const verifyOtpBtn = container.querySelector('#lp-verifyOtpBtn');
    if (verifyOtpBtn) verifyOtpBtn.classList.remove('d-none');
 
    if (otpSent.waitTime) {
-    startResendTimer(otpSent.waitTime, container);
+    startResendTimerLP(otpSent.waitTime, container);
    }
   }
  } finally {
-  hideFullScreenLoader();
+  hideFullScreenLoaderLP();
  }
 }
 
@@ -1158,13 +1163,13 @@ async function handleCompleteRegistration(container) {
  completeRegLoader.classList.remove('d-none');
  completeRegistration.disabled = true;
 
- showFullScreenLoader('Completing registration...');
+ showFullScreenLoaderLP('Completing registration...');
 
  try {
-  const countryCode = container.querySelector('#registerCountryCode').value;
-  const mobileNumber = getMobileNumberFromDigits('registerMobileDigitsContainer');
+  const countryCode = container.querySelector('#lp-registerCountryCode').value;
+  const mobileNumber = getMobileNumberFromDigitsLP('lp-registerMobileDigitsContainer');
   const localName = container.querySelector('#localName').value.trim();
-  const otp = getOtpFromInputs();
+  const otp = getOtpFromInputsLP();
 
   await performRegistration(countryCode, mobileNumber, localName, otp, password);
  } catch (error) {
@@ -1174,12 +1179,12 @@ async function handleCompleteRegistration(container) {
   completeRegText.classList.remove('d-none');
   completeRegLoader.classList.add('d-none');
   completeRegistration.disabled = false;
-  hideFullScreenLoader();
+  hideFullScreenLoaderLP();
  }
 }
 
 // Mobile digit input functions
-function blockAutofillOnDigits(input, index) {
+function blockAutofillOnDigitsLP(input, index) {
  input.autocomplete = 'off';
  input.name = 'md' + index + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
  input.spellcheck = false;
@@ -1192,13 +1197,13 @@ function blockAutofillOnDigits(input, index) {
  input.addEventListener('keydown', unlock);
 }
 
-function createMobileDigitInputs(containerId, requiredLength) {
+function createMobileDigitInputsLP(containerId, requiredLength) {
  const container = document.getElementById(containerId);
  if (!container) return;
 
  container.innerHTML = '';
 
- if (containerId === 'mobileDigitsContainer' || containerId === 'registerMobileDigitsContainer') {
+ if (containerId === 'lp-mobileDigitsContainer' || containerId === 'lp-registerMobileDigitsContainer') {
   const half = Math.ceil(requiredLength / 2);
   const row1 = document.createElement('div');
   row1.className = 'd-flex gap-1 mb-1';
@@ -1219,11 +1224,11 @@ function createMobileDigitInputs(containerId, requiredLength) {
    input.style.color = '#000';
    input.style.backgroundColor = '#fff';
    input.dataset.index = i;
-   input.addEventListener('input', handleMobileDigitInput);
-   input.addEventListener('keydown', handleMobileDigitKeydown);
-   input.addEventListener('paste', handleMobilePaste);
-   input.addEventListener('focus', clearMobileDigitError);
-   blockAutofillOnDigits(input, i);
+   input.addEventListener('input', handleMobileDigitInputLP);
+   input.addEventListener('keydown', handleMobileDigitKeydownLP);
+   input.addEventListener('paste', handleMobilePasteLP);
+   input.addEventListener('focus', clearMobileDigitErrorLP);
+   blockAutofillOnDigitsLP(input, i);
    if (i < half) {
     row1.appendChild(input);
    } else {
@@ -1247,11 +1252,11 @@ function createMobileDigitInputs(containerId, requiredLength) {
    input.style.color = '#000';
    input.style.backgroundColor = '#fff';
    input.dataset.index = i;
-   input.addEventListener('input', handleMobileDigitInput);
-   input.addEventListener('keydown', handleMobileDigitKeydown);
-   input.addEventListener('paste', handleMobilePaste);
-   input.addEventListener('focus', clearMobileDigitError);
-   blockAutofillOnDigits(input, i);
+   input.addEventListener('input', handleMobileDigitInputLP);
+   input.addEventListener('keydown', handleMobileDigitKeydownLP);
+   input.addEventListener('paste', handleMobilePasteLP);
+   input.addEventListener('focus', clearMobileDigitErrorLP);
+   blockAutofillOnDigitsLP(input, i);
    container.appendChild(input);
   }
  }
@@ -1262,8 +1267,8 @@ function createMobileDigitInputs(containerId, requiredLength) {
  }, 200);
 }
 
-function createOtpDigitInputs() {
- const container = document.getElementById('otpDigitsContainer');
+function createOtpDigitInputsLP() {
+ const container = document.getElementById('lp-otpDigitsContainer');
  if (!container) return;
 
  container.innerHTML = '';
@@ -1282,11 +1287,11 @@ function createOtpDigitInputs() {
   input.style.backgroundColor = '#fff';
   input.style.textTransform = 'uppercase';
   input.dataset.index = i;
-  input.addEventListener('input', handleOtpDigitInput);
-  input.addEventListener('keydown', handleOtpDigitKeydown);
-  input.addEventListener('paste', handleOtpPaste);
-  input.addEventListener('focus', clearOtpDigitError);
-  blockAutofillOnDigits(input, i);
+  input.addEventListener('input', handleOtpDigitInputLP);
+  input.addEventListener('keydown', handleOtpDigitKeydownLP);
+  input.addEventListener('paste', handleOtpPasteLP);
+  input.addEventListener('focus', clearOtpDigitErrorLP);
+  blockAutofillOnDigitsLP(input, i);
   container.appendChild(input);
  }
 
@@ -1297,7 +1302,7 @@ function createOtpDigitInputs() {
 }
 
 // Input handling functions
-function handleMobileDigitInput(e) {
+function handleMobileDigitInputLP(e) {
  const input = e.target;
  const index = parseInt(input.dataset.index);
  let value = input.value;
@@ -1322,7 +1327,7 @@ function handleMobileDigitInput(e) {
  }
 }
 
-function handleOtpDigitInput(e) {
+function handleOtpDigitInputLP(e) {
  const input = e.target;
  const index = parseInt(input.dataset.index);
  let value = input.value;
@@ -1338,7 +1343,7 @@ function handleOtpDigitInput(e) {
  input.classList.remove('is-invalid');
 
  if (value.length === 1) {
-  const inputs = document.querySelectorAll('#otpDigitsContainer input');
+  const inputs = document.querySelectorAll('#lp-otpDigitsContainer input');
   if (index < inputs.length - 1) {
    setTimeout(() => {
     inputs[index + 1].focus();
@@ -1347,7 +1352,7 @@ function handleOtpDigitInput(e) {
  }
 }
 
-function handleMobileDigitKeydown(e) {
+function handleMobileDigitKeydownLP(e) {
  const input = e.target;
  const index = parseInt(input.dataset.index);
  const container = input.closest('[id$="DigitsContainer"]');
@@ -1373,10 +1378,10 @@ function handleMobileDigitKeydown(e) {
  }
 }
 
-function handleOtpDigitKeydown(e) {
+function handleOtpDigitKeydownLP(e) {
  const input = e.target;
  const index = parseInt(input.dataset.index);
- const inputs = document.querySelectorAll('#otpDigitsContainer input');
+ const inputs = document.querySelectorAll('#lp-otpDigitsContainer input');
 
  if (e.key === 'Backspace') {
   if (input.value === '' && index > 0) {
@@ -1398,7 +1403,7 @@ function handleOtpDigitKeydown(e) {
  }
 }
 
-function handleMobilePaste(e) {
+function handleMobilePasteLP(e) {
  e.preventDefault();
  const pastedData = e.clipboardData.getData('text');
  const cleanData = pastedData.replace(/\D/g, '');
@@ -1428,13 +1433,13 @@ function handleMobilePaste(e) {
  }
 }
 
-function handleOtpPaste(e) {
+function handleOtpPasteLP(e) {
  e.preventDefault();
  const pastedData = e.clipboardData.getData('text');
  const cleanData = pastedData.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().substring(0, 6);
  const characters = cleanData.split('');
 
- const inputs = document.querySelectorAll('#otpDigitsContainer input');
+ const inputs = document.querySelectorAll('#lp-otpDigitsContainer input');
  inputs.forEach(input => {
   input.value = '';
   input.readOnly = false;
@@ -1456,40 +1461,40 @@ function handleOtpPaste(e) {
  }
 }
 
-function clearMobileDigitError(e) {
+function clearMobileDigitErrorLP(e) {
  const input = e.target;
  input.classList.remove('is-invalid');
  input.readOnly = false;
  const container = input.closest('[id$="DigitsContainer"]');
- const errorId = container.id === 'mobileDigitsContainer' ? 'mobileError' : 'registerMobileError';
+ const errorId = container.id === 'lp-mobileDigitsContainer' ? 'lp-mobileError' : 'lp-registerMobileError';
  const errorElement = document.getElementById(errorId);
  if (errorElement) {
   errorElement.classList.add('d-none');
  }
 }
 
-function clearOtpDigitError(e) {
+function clearOtpDigitErrorLP(e) {
  const input = e.target;
  input.classList.remove('is-invalid');
  input.readOnly = false;
 }
 
-function getMobileNumberFromDigits(containerId) {
+function getMobileNumberFromDigitsLP(containerId) {
  const container = document.getElementById(containerId);
  if (!container) return '';
  const inputs = container.querySelectorAll('input');
  return Array.from(inputs).map(input => input.value).join('');
 }
 
-function getOtpFromInputs() {
- const inputs = document.querySelectorAll('#otpDigitsContainer input');
+function getOtpFromInputsLP() {
+ const inputs = document.querySelectorAll('#lp-otpDigitsContainer input');
  return Array.from(inputs).map(input => input.value).join('');
 }
 
 // Resend timer functionality
-function startResendTimer(waitTime, container) {
- const resendOtp = container.querySelector('#resendOtp');
- const resendContainer = container.querySelector('#resendContainer');
+function startResendTimerLP(waitTime, container) {
+ const resendOtp = container.querySelector('#lp-resendOtp');
+ const resendContainer = container.querySelector('#lp-resendContainer');
 
  if (!resendContainer || !resendOtp) return;
 
@@ -1503,11 +1508,11 @@ function startResendTimer(waitTime, container) {
  resendOtp.classList.add('d-none');
  resendContainer.classList.remove('d-none');
 
- updateResendCountdown(container);
+ updateResendCountdownLP(container);
 
  resendTimer = setInterval(() => {
   resendTimeLeft--;
-  updateResendCountdown(container);
+  updateResendCountdownLP(container);
 
   if (resendTimeLeft <= 0) {
    clearInterval(resendTimer);
@@ -1519,32 +1524,32 @@ function startResendTimer(waitTime, container) {
    resendOtp.classList.add('btn-warning');
 
    const regForm = container.querySelector('#registrationForm');
-   const otpSec = container.querySelector('#otpSection');
+   const otpSec = container.querySelector('#lp-otpSection');
    if (regForm && !regForm.classList.contains('d-none')) {
     regForm.classList.add('d-none');
    }
    if (otpSec && otpSec.classList.contains('d-none')) {
     otpSec.classList.remove('d-none');
-    container.querySelector('#sendOtpBtn').classList.add('d-none');
+    container.querySelector('#lp-sendOtpBtn').classList.add('d-none');
    }
-   const verifyOtpBtn = container.querySelector('#verifyOtpBtn');
+   const verifyOtpBtn = container.querySelector('#lp-verifyOtpBtn');
    if (verifyOtpBtn) verifyOtpBtn.classList.add('d-none');
-   const otpInputs = container.querySelectorAll('#otpDigitsContainer input');
+   const otpInputs = container.querySelectorAll('#lp-otpDigitsContainer input');
    otpInputs.forEach(input => input.value = '');
   }
  }, 1000);
 }
 
-function updateResendCountdown(container) {
- const resendCountdown = container.querySelector('#resendCountdown');
+function updateResendCountdownLP(container) {
+ const resendCountdown = container.querySelector('#lp-resendCountdown');
  if (resendCountdown) {
   resendCountdown.innerHTML = `Complete Registration in <span class="blink-text cntrsec">${resendTimeLeft}</span> seconds`;
  }
 }
 
 // API functions
-async function getOTP(countryCode, mobileNumber) {
- const requiredLength = getRequiredMobileLength(countryCode);
+async function getOTP_LP(countryCode, mobileNumber) {
+ const requiredLength = getRequiredMobileLengthLP(countryCode);
 
  if (mobileNumber.length !== requiredLength) {
   showAlertModal(`Please enter a valid ${requiredLength}-digit mobile number for ${countryCode}`);
@@ -1585,7 +1590,7 @@ async function getOTP(countryCode, mobileNumber) {
  }
 }
 
-async function verifyOTP(countryCode, mobileNumber, otp) {
+async function verifyOTP_LP(countryCode, mobileNumber, otp) {
  const data = { yo: mobileNumber, yc: countryCode, mp: otp };
 
  try {
@@ -1794,7 +1799,7 @@ async function performLogin(countryCode, mobileNumber, password) {
 }
 
 // Utility functions
-function loadCountryCodes(selectId) {
+function loadCountryCodesLP(selectId) {
  const countryCodes = [
   { code: '+1', name: 'USA', flag: '🇺🇸', length: 10 },
   { code: '+44', name: 'UK', flag: '🇬🇧', length: 10 },
@@ -1816,16 +1821,16 @@ function loadCountryCodes(selectId) {
  }
 }
 
-function updateMobileLengthInfo(selectId, lengthInfoId) {
+function updateMobileLengthInfoLP(selectId, lengthInfoId) {
  const countryCode = document.getElementById(selectId)?.value;
- const requiredLength = getRequiredMobileLength(countryCode);
+ const requiredLength = getRequiredMobileLengthLP(countryCode);
  const lengthInfoElement = document.getElementById(lengthInfoId);
  if (lengthInfoElement) {
   lengthInfoElement.textContent = `${requiredLength} digits required`;
  }
 }
 
-function getRequiredMobileLength(countryCode) {
+function getRequiredMobileLengthLP(countryCode) {
  const lengthMap = {
   '+1': 10, '+44': 10, '+91': 10, '+86': 11, '+81': 10,
   '+33': 9, '+49': 10, '+7': 10, '+55': 11, '+61': 9
@@ -1838,12 +1843,12 @@ function validateMobileNumber(mobile) {
 }
 
 // Initialize login system
-function initLoginSystem() {
+function initLoginSystemLP() {
  const loginButton = document.getElementById('el_sho_login_modal');
  if (loginButton) {
   loginButton.addEventListener('click', function () {
-   // if (isLoggedIn()) {
-   //    showLogoutOption();
+   // if (isLoggedInLP()) {
+   //    showLogoutOptionLP();
    // } else {
    open_shoLgnP([]);
    // }
@@ -1852,7 +1857,7 @@ function initLoginSystem() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
- initLoginSystem();
+ initLoginSystemLP();
 });
 
 function logPout() {
@@ -1868,7 +1873,7 @@ function addCustomStylesP() {
  const style = document.createElement('style');
  style.textContent = `
    .cntrsec{color : #dc3545; font-size : 200%;}
-[id$="DigitsContainer"] input.form-control{border-color:#6c757d!important;font-size:16px!important;color:#000!important;background-color:#fff!important;padding:.375rem 0.25rem!important}[id$="DigitsContainer"] input.form-control:focus{border-color:#495057!important;box-shadow:0 0 0 .2rem rgb(108 117 125 / .25)!important;color:#000!important;background-color:#fff!important}#otpDigitsContainer input.form-control{border-color:#6c757d!important;font-size:16px!important;color:#000!important;background-color:#fff!important;padding:.375rem 0.25rem!important;text-transform:uppercase!important}#otpDigitsContainer input.form-control:focus{border-color:#495057!important;box-shadow:0 0 0 .2rem rgb(108 117 125 / .25)!important;color:#000!important;background-color:#fff!important}[id$="DigitsContainer"] input,#otpDigitsContainer input{-webkit-text-fill-color:#000!important}#resendOtp:disabled{cursor:not-allowed;opacity:.6}#resendOtp.btn-warning{background-color:#ffc107!important;border-color:#ffc107!important;color:#212529!important}.blink-text{animation:blinkAnim 1s step-end infinite}@keyframes blinkAnim{0%,100%{opacity:1}50%{opacity:0}}
+[id$="DigitsContainer"] input.form-control{border-color:#6c757d!important;font-size:16px!important;color:#000!important;background-color:#fff!important;padding:.375rem 0.25rem!important}[id$="DigitsContainer"] input.form-control:focus{border-color:#495057!important;box-shadow:0 0 0 .2rem rgb(108 117 125 / .25)!important;color:#000!important;background-color:#fff!important}#lp-otpDigitsContainer input.form-control{border-color:#6c757d!important;font-size:16px!important;color:#000!important;background-color:#fff!important;padding:.375rem 0.25rem!important;text-transform:uppercase!important}#lp-otpDigitsContainer input.form-control:focus{border-color:#495057!important;box-shadow:0 0 0 .2rem rgb(108 117 125 / .25)!important;color:#000!important;background-color:#fff!important}[id$="DigitsContainer"] input,#lp-otpDigitsContainer input{-webkit-text-fill-color:#000!important}#lp-resendOtp:disabled{cursor:not-allowed;opacity:.6}#lp-resendOtp.btn-warning{background-color:#ffc107!important;border-color:#ffc107!important;color:#212529!important}.blink-text{animation:blinkAnim 1s step-end infinite}@keyframes blinkAnim{0%,100%{opacity:1}50%{opacity:0}}
 `;
  document.head.appendChild(style);
 }
@@ -2194,21 +2199,21 @@ function generateLognThemeP(cssText) {
  css += ".modal .card-header .card-title { color: " + onBrand + " !important; }\n";
  css += ".modal .card-header .btn-close { filter: " + (onBrand === "#ffffff" ? "invert(1)" : "none") + "; }\n";
  css += ".modal .card-body { background-color: " + lightBg + " !important; }\n";
- css += "#loginSubmit, #sendOtpBtn, #verifyOtpBtn, #completeRegistration { background-color: " + brandHex + " !important; border-color: " + brandHex + " !important; color: " + onBrand + " !important; }\n";
- css += "#loginSubmit:hover, #loginSubmit:focus, #sendOtpBtn:hover, #sendOtpBtn:focus, #verifyOtpBtn:hover, #verifyOtpBtn:focus, #completeRegistration:hover, #completeRegistration:focus { background-color: " + brandDark + " !important; border-color: " + brandDark + " !important; color: " + onBrand + " !important; }\n";
- css += "#loginSubmit:disabled, #sendOtpBtn:disabled, #verifyOtpBtn:disabled, #completeRegistration:disabled { background-color: " + brandHex + " !important; border-color: " + brandHex + " !important; opacity: 0.55; }\n";
+ css += "#loginSubmit, #lp-sendOtpBtn, #lp-verifyOtpBtn, #completeRegistration { background-color: " + brandHex + " !important; border-color: " + brandHex + " !important; color: " + onBrand + " !important; }\n";
+ css += "#loginSubmit:hover, #loginSubmit:focus, #lp-sendOtpBtn:hover, #lp-sendOtpBtn:focus, #lp-verifyOtpBtn:hover, #lp-verifyOtpBtn:focus, #completeRegistration:hover, #completeRegistration:focus { background-color: " + brandDark + " !important; border-color: " + brandDark + " !important; color: " + onBrand + " !important; }\n";
+ css += "#loginSubmit:disabled, #lp-sendOtpBtn:disabled, #lp-verifyOtpBtn:disabled, #completeRegistration:disabled { background-color: " + brandHex + " !important; border-color: " + brandHex + " !important; opacity: 0.55; }\n";
  css += "#switchToRegister { border-color: " + brandHex + " !important; color: " + brandHex + " !important; }\n";
  css += "#switchToRegister:hover { background-color: " + brandHex + " !important; color: " + onBrand + " !important; }\n";
- css += "#resendOtp { border-color: " + brandHex + " !important; color: " + brandHex + " !important; }\n";
- css += "#resendOtp:hover { background-color: " + brandHex + " !important; color: " + onBrand + " !important; }\n";
+ css += "#lp-resendOtp { border-color: " + brandHex + " !important; color: " + brandHex + " !important; }\n";
+ css += "#lp-resendOtp:hover { background-color: " + brandHex + " !important; color: " + onBrand + " !important; }\n";
  css += ".modal .text-primary, .modal a.text-primary { color: " + brandHex + " !important; }\n";
  css += "#forgotPassword { color: " + brandHex + " !important; }\n";
  css += "#forgotPassword:hover { color: " + brandDark + " !important; }\n";
-css += "#mobileDigitsContainer input.form-control, #registerMobileDigitsContainer input.form-control, #otpDigitsContainer input.form-control, #loginCountryCode.form-select, #registerCountryCode.form-select, #loginPassword.form-control, #regPassword.form-control, #confirmPassword.form-control, #localName.form-control { border-color: #495057 !important; }\n";
+css += "#lp-mobileDigitsContainer input.form-control, #lp-registerMobileDigitsContainer input.form-control, #lp-otpDigitsContainer input.form-control, #lp-loginCountryCode.form-select, #lp-registerCountryCode.form-select, #loginPassword.form-control, #regPassword.form-control, #confirmPassword.form-control, #localName.form-control { border-color: #495057 !important; }\n";
   if (glow) {
-   css += "#mobileDigitsContainer input.form-control:focus, #registerMobileDigitsContainer input.form-control:focus, #otpDigitsContainer input.form-control:focus, #loginCountryCode.form-select:focus, #registerCountryCode.form-select:focus, #loginPassword.form-control:focus, #regPassword.form-control:focus, #confirmPassword.form-control:focus, #localName.form-control:focus { border-color: #495057 !important; box-shadow: 0 0 0 0.2rem " + glow + " !important; }\n";
+   css += "#lp-mobileDigitsContainer input.form-control:focus, #lp-registerMobileDigitsContainer input.form-control:focus, #lp-otpDigitsContainer input.form-control:focus, #lp-loginCountryCode.form-select:focus, #lp-registerCountryCode.form-select:focus, #loginPassword.form-control:focus, #regPassword.form-control:focus, #confirmPassword.form-control:focus, #localName.form-control:focus { border-color: #495057 !important; box-shadow: 0 0 0 0.2rem " + glow + " !important; }\n";
   } else {
-   css += "#mobileDigitsContainer input.form-control:focus, #registerMobileDigitsContainer input.form-control:focus, #otpDigitsContainer input.form-control:focus, #loginCountryCode.form-select:focus, #registerCountryCode.form-select:focus, #loginPassword.form-control:focus, #regPassword.form-control:focus, #confirmPassword.form-control:focus, #localName.form-control:focus { border-color: #495057 !important; }\n";
+   css += "#lp-mobileDigitsContainer input.form-control:focus, #lp-registerMobileDigitsContainer input.form-control:focus, #lp-otpDigitsContainer input.form-control:focus, #lp-loginCountryCode.form-select:focus, #lp-registerCountryCode.form-select:focus, #loginPassword.form-control:focus, #regPassword.form-control:focus, #confirmPassword.form-control:focus, #localName.form-control:focus { border-color: #495057 !important; }\n";
  }
  return css;
 }
