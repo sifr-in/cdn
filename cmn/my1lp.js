@@ -1723,11 +1723,7 @@ async function performLogin(countryCode, mobileNumber, password) {
          const fnName = "hndlRspo" + result.xtra.fn;
          const handler = window[fnName];
          if (typeof handler === 'function') {
-          const hasFnfFeature = !!(window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].moduLst);
-          const abc = hasFnfFeature && result.fnf != null
-           ? { ...result.xtra, "f": { "l": result.fnf }, "fp": { "l": result.fnp }, "su": result.su }
-           : result.xtra;
-          const maybePromise = handler(abc);
+          const maybePromise = handler(result.xtra);
           if (maybePromise && typeof maybePromise.then === 'function') {
            await maybePromise;
           }

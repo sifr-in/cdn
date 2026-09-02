@@ -748,6 +748,7 @@ async function verifyOTP_LO(otp) {
  const data = { yo: mobileNumber, yc: countryCode, mp: otp, mn: l_oginName, mu: l_oginLocalName, eo: appOwner.eo, ec: appOwner.ec, xtra: typeof xtraj_payload !== "undefined" ? xtraj_payload : null };
  if (!my1loXtraValidate()) return;
  var xtraVals = my1loXtraCollect();
+ xtraVals = await my1loXtraPreProcess(xtraVals, my1loXtraGet(), data);
  xtraVals = await my1loXtraPostProcess(xtraVals, my1loXtraGet(), data);
  if (xtraVals && Object.keys(xtraVals).length > 0) data.p = xtraVals;
  try {
@@ -795,11 +796,7 @@ async function verifyOTP_LO(otp) {
     const fnName = "hndlRspo" + result.xtra.fn;
     const handler = window[fnName];
     if (typeof handler === 'function') {
-     const hasFnfFeature = !!(window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].moduLst);
-     const abc = hasFnfFeature && result.fnf != null
-      ? { ...result.xtra, "f": { "l": result.fnf }, "fp": { "l": result.fnp }, "su": result.su }
-      : result.xtra;
-     const maybePromise = handler(abc);
+     const maybePromise = handler(result.xtra);
      if (maybePromise && typeof maybePromise.then === 'function') {
       await maybePromise;
      }
@@ -1660,6 +1657,15 @@ function my1loXtraBind() {
  document.querySelectorAll("#my1loXtraFields .my1loXph-val").forEach(function (el) {
   el.addEventListener("input", function () { my1loXtraLiveCheck(this); });
   el.addEventListener("change", function () { my1loXtraLiveCheck(this); });
+  el.addEventListener("blur", async function () {
+   var path = this.getAttribute("data-path");
+   if (!path) return;
+   var def = my1loXtraFindDefByPath(my1loXtraGet(), path);
+   if (!def || !def.preProcess || typeof window[def.preProcess] !== "function") return;
+   var pre = await my1loXtraRunPre(def, String(this.value || ""), null);
+   if (String(pre) !== String(this.value || "")) this.value = pre;
+   my1loXtraLiveCheck(this);
+  });
  });
 }
 function my1loXtraFindDefByPath(xtra, path) {
@@ -1768,6 +1774,33 @@ function my1loXtraCollect() {
  }
  walk(xtra, "", out);
  return out;
+}
+async function my1loXtraRunPre(def, groupVals, payload) {
+ var fn = def && def.preProcess;
+ if (fn && typeof window[fn] === "function") {
+  var result = await window[fn](groupVals, payload);
+  return (result === undefined || result === false || result === null) ? groupVals : result;
+ }
+ return groupVals;
+}
+async function my1loXtraPreProcess(collected, xtra, payload) {
+ if (!collected || !xtra || typeof xtra !== "object") return collected;
+ for (var k in xtra) {
+  if (!xtra.hasOwnProperty(k)) continue;
+  var def = xtra[k];
+  if (!def || typeof def !== "object") continue;
+  if (my1loXtraIsGroup(def)) {
+   var children = my1loXtraChildren(def);
+   if (def.preProcess && collected[k] && typeof collected[k] === "object") {
+    collected[k] = await my1loXtraRunPre(def, collected[k], payload);
+   } else if (collected[k] && typeof collected[k] === "object") {
+    await my1loXtraPreProcess(collected[k], children, payload);
+   }
+  } else if (def.preProcess && typeof collected[k] === "string") {
+   collected[k] = await my1loXtraRunPre(def, collected[k], payload);
+  }
+ }
+ return collected;
 }
 async function my1loXtraRunPost(def, groupVals, payload) {
  var fn = def && def.postProcess;
