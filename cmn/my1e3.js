@@ -2669,11 +2669,12 @@ window.injectTDPickerCss = function () {
  .tempus-dominus-widget .arrow { display: none }
  .tempus-dominus-widget .toolbar [data-action="close"] { width: auto; height: auto; padding: .05rem .28rem; font-size: .72rem; line-height: 1; border-radius: .17rem; color: #fff }
  .tempus-dominus-widget .toolbar [data-action="close"]:hover, .tempus-dominus-widget .toolbar [data-action="close"]:focus { color: #fff }
- .tempus-dominus-widget .toolbar { display: grid !important; grid-template-columns: 1fr auto auto 1fr !important; grid-auto-rows: 40px !important; align-items: center !important }
+ .tempus-dominus-widget .toolbar { display: grid !important; grid-template-columns: 1fr auto auto auto 1fr !important; grid-auto-rows: 40px !important; align-items: center !important }
  .tempus-dominus-widget .toolbar [data-action="today"] { order: 1 !important; justify-self: start !important; margin-left: 1.4rem !important }
  .tempus-dominus-widget .toolbar .td-zero-btn { order: 2 !important; position: static !important; transform: none !important; width: auto !important; height: auto !important; padding: .05rem .28rem; font-size: .72rem; line-height: 1; border-radius: .17rem; color: #fff }
- .tempus-dominus-widget .toolbar .td-ok-btn { order: 3 !important; position: static !important; transform: none !important }
- .tempus-dominus-widget .toolbar [data-action="togglePicker"] { order: 4 !important; justify-self: end !important; margin-right: 1.4rem !important }
+ .tempus-dominus-widget .toolbar .td-clear-btn { order: 3 !important; position: static !important; transform: none !important; width: auto !important; height: auto !important; padding: .05rem .28rem; font-size: .72rem; line-height: 1; border-radius: .17rem; color: #fff }
+ .tempus-dominus-widget .toolbar .td-ok-btn { order: 4 !important; position: static !important; transform: none !important }
+ .tempus-dominus-widget .toolbar [data-action="togglePicker"] { order: 5 !important; justify-self: end !important; margin-right: 1.4rem !important }
 `;
   document.head.appendChild(styleEl);
 };
@@ -2767,6 +2768,28 @@ window.initDateTimePicker = async function (inputId, options) {
       }
     }
 
+    // Clear button: reset the picker to empty (input + state cleared) and close
+    if (!widget.querySelector('.td-clear-btn')) {
+      const clearAction = document.createElement('button');
+      clearAction.type = 'button';
+      clearAction.className = 'btn btn-secondary btn-sm td-clear-btn p-2 fs-7 me-2';
+      clearAction.innerHTML = '<i class="fa-solid fa-eraser me-1"></i>Clear';
+      clearAction.title = 'Clear the selected value';
+      clearAction.addEventListener('click', () => {
+        clearValue();
+        if (instance) instance.dates.clear();
+        if (instance) instance.hide();
+        window.dispatchEvent(new Event('clearDateTimePicker'));
+      });
+      const toolbar = widget.querySelector('.toolbar');
+      const okAction = widget.querySelector('[data-action="close"]');
+      if (toolbar && okAction && okAction.parentNode === toolbar) {
+        toolbar.insertBefore(clearAction, okAction);
+      } else if (toolbar) {
+        toolbar.appendChild(clearAction);
+      }
+    }
+
     // Clock/calendar button acts as a switch between the two panes
     const pickerToggle = widget.querySelector('[data-action="togglePicker"]');
     if (pickerToggle) {
@@ -2799,10 +2822,25 @@ window.initDateTimePicker = async function (inputId, options) {
     }
   }
 
+  // Clear the committed value (input + state) without triggering a picker
+  // change event, so callers that read the input see it emptied.
+  function clearValue() {
+    committed = '';
+    el.value = '';
+    updateDisp();
+  }
+
   const api = {
     getCommitted: function () { return committed; },
     setCommitted: applyValue,
     setDate: applyValue,
+    clear: function () {
+      clearValue();
+      if (instance) {
+        instance.dates.clear();
+        instance.hide();
+      }
+    },
     getDate: function () {
       if (!committed) return null;
       return new Date(committed.replace(' ', 'T'));

@@ -384,29 +384,73 @@ function my1lpXtraRender() {
  function renderDef(def, path, inDiv) {
   var out = "";
   if (!def || typeof def !== "object") return out;
-  if (my1lpXtraIsGroup(def)) {
-   var children = my1lpXtraChildren(def);
-   var hasBox = (def.type === "div" || (def.x && typeof def.x === "object") || !!def.lbl) && !inDiv;
-   var isMeta = function (key) { return key === "lbl" || key === "type" || key === "ptrn" || key === "rq" || key === "preProcess" || key === "postProcess" || key === "x"; };
-   if (hasBox) {
-    out += '<div style="' + boxStyle + '">';
-    if (def.lbl) out += '<div class="text-xs fw-bold text-uppercase mb-2" style="color:#343a40;"><i class="fas fa-layer-group me-1" style="color:' + p.brand + ';"></i>' + def.lbl + '</div>';
-    for (var ck in children) {
-     if (!children.hasOwnProperty(ck)) continue;
-     if (!def.x && isMeta(ck)) continue;
-     out += renderDef(children[ck], path + "__" + ck, true);
+   if (my1lpXtraIsGroup(def)) {
+    var children = my1lpXtraChildren(def);
+    var hasBox = (def.type === "div" || (def.x && typeof def.x === "object") || !!def.lbl) && !inDiv;
+     var isMeta = function (key) { return key === "lbl" || key === "type" || key === "ptrn" || key === "rq" || key === "rqOneOf" || key === "preProcess" || key === "postProcess" || key === "x"; };
+    if (hasBox) {
+     out += '<div style="' + boxStyle + '">';
+     if (def.lbl) out += '<div class="text-xs fw-bold text-uppercase mb-2" style="color:#343a40;"><i class="fas fa-layer-group me-1" style="color:' + p.brand + ';"></i>' + def.lbl + '</div>';
+     var _ro = def.rqOneOf && typeof def.rqOneOf === "object" && def.rqOneOf.length ? def.rqOneOf : null;
+     var _roSelDone = false;
+     for (var ck in def) {
+      if (!def.hasOwnProperty(ck)) continue;
+      if (isMeta(ck)) {
+       if (_ro && ck === "rqOneOf" && !_roSelDone) {
+        _roSelDone = true;
+        out += '<select class="my1lpXph-rqOneOf-sel" data-path="' + path + '" style="font-size:14px;' + inpDyn + 'padding:6px 8px;margin-bottom:8px;"><option value="" disabled selected>Select...</option>';
+        for (var ri = 0; ri < _ro.length; ri++) {
+         var rKey = _ro[ri];
+         var rLbl = (children[rKey] && children[rKey].lbl) || rKey;
+         out += '<option value="' + rKey + '">' + rLbl + '</option>';
+        }
+         out += '</select>';
+         out += '<span class="my1lpXph-err" data-path="' + path + '__rqOneOfSel" style="font-size:11px;color:#dc3545;display:none;margin-top:2px;"></span>';
+        }
+        continue;
+       }
+       if (!def.x && !children[ck]) continue;
+      if (_ro && _ro.indexOf(ck) !== -1) {
+       out += '<div class="my1lpXph-rqOneOf-item" data-rqoneof="' + path + '" data-rqoneof-key="' + ck + '" style="display:none;">';
+       out += renderDef(children[ck], path + "__" + ck, true);
+       out += '</div>';
+      } else {
+       out += renderDef(children[ck], path + "__" + ck, true);
+      }
+     }
+     out += "</div>";
+    } else {
+     if (def.lbl) out += '<div class="text-xs fw-bold text-uppercase mt-3" style="color:#343a40;"><i class="fas fa-layer-group me-1" style="color:' + p.brand + ';"></i>' + def.lbl + '</div>';
+     var _ro = def.rqOneOf && typeof def.rqOneOf === "object" && def.rqOneOf.length ? def.rqOneOf : null;
+     var _roSelDone = false;
+     for (var pk in def) {
+      if (!def.hasOwnProperty(pk)) continue;
+      if (isMeta(pk)) {
+       if (_ro && pk === "rqOneOf" && !_roSelDone) {
+        _roSelDone = true;
+        out += '<select class="my1lpXph-rqOneOf-sel" data-path="' + path + '" style="font-size:14px;' + inpDyn + 'padding:6px 8px;margin-bottom:8px;"><option value="" disabled selected>Select...</option>';
+        for (var ri = 0; ri < _ro.length; ri++) {
+         var rKey = _ro[ri];
+         var rLbl = (children[rKey] && children[rKey].lbl) || rKey;
+         out += '<option value="' + rKey + '">' + rLbl + '</option>';
+        }
+         out += '</select>';
+         out += '<span class="my1lpXph-err" data-path="' + path + '__rqOneOfSel" style="font-size:11px;color:#dc3545;display:none;margin-top:2px;"></span>';
+        }
+        continue;
+       }
+       if (!children[pk]) continue;
+      if (_ro && _ro.indexOf(pk) !== -1) {
+       out += '<div class="my1lpXph-rqOneOf-item" data-rqoneof="' + path + '" data-rqoneof-key="' + pk + '" style="display:none;">';
+       out += renderDef(children[pk], path + "__" + pk, inDiv);
+       out += '</div>';
+      } else {
+       out += renderDef(children[pk], path + "__" + pk, inDiv);
+      }
+     }
     }
-    out += "</div>";
-   } else {
-    if (def.lbl) out += '<div class="text-xs fw-bold text-uppercase mt-3" style="color:#343a40;"><i class="fas fa-layer-group me-1" style="color:' + p.brand + ';"></i>' + def.lbl + '</div>';
-    for (var pk in children) {
-     if (!children.hasOwnProperty(pk)) continue;
-     if (isMeta(pk)) continue;
-     out += renderDef(children[pk], path + "__" + pk, inDiv);
-    }
+    return out;
    }
-   return out;
-  }
   var ftype = def.type || "text";
   var req = def.rq === 1 || def.rq === true;
   var lbl = def.lbl || path;
@@ -510,8 +554,32 @@ function my1lpXtraBind() {
  document.querySelectorAll("#my1lpXtraFields .my1lpXph-val").forEach(function (el) {
   el.addEventListener("input", function () { my1lpXtraLiveCheck(this); });
   el.addEventListener("change", function () { my1lpXtraLiveCheck(this); });
- });
-}
+   el.addEventListener("blur", async function () {
+    var path = this.getAttribute("data-path");
+    if (!path) return;
+    var def = my1lpXtraFindDefByPath(my1lpXtraGet(), path);
+    if (!def || !def.preProcess || typeof window[def.preProcess] !== "function") return;
+    var pre = await my1lpXtraRunPre(def, String(this.value || ""), null);
+    if (String(pre) !== String(this.value || "")) this.value = pre;
+    my1lpXtraLiveCheck(this);
+   });
+  });
+  document.querySelectorAll(".my1lpXph-rqOneOf-sel").forEach(function (sel) {
+   sel.addEventListener("change", function () {
+    var gp = this.getAttribute("data-path");
+    document.querySelectorAll('.my1lpXph-rqOneOf-item[data-rqoneof="' + gp + '"]').forEach(function (d) { d.style.display = "none"; });
+    var chosen = this.value;
+    if (chosen) {
+     var item = document.querySelector('.my1lpXph-rqOneOf-item[data-rqoneof="' + gp + '"][data-rqoneof-key="' + chosen + '"]');
+     if (item) {
+      item.style.display = "";
+      var def = my1lpXtraFindDefByPath(my1lpXtraGet(), gp + "__" + chosen);
+      if (def && def._origRq !== undefined) { def.rq = def._origRq; delete def._origRq; }
+     }
+    }
+   });
+  });
+ }
 function my1lpXtraFindDefByPath(xtra, path) {
  if (!xtra || typeof xtra !== "object") return null;
  var parts = path.split("__");
@@ -529,6 +597,11 @@ function my1lpXtraCheckField(def, path, focusOnFail) {
  if (!def || typeof def !== "object") return true;
  var el = my1lpXtraQuery("my1lpXph-val", path);
  if (!el) return true;
+ var rpItem = el.closest('.my1lpXph-rqOneOf-item');
+ if (rpItem && rpItem.style.display === "none") {
+  if (def.rq !== undefined && def._origRq === undefined) { def._origRq = def.rq; def.rq = 0; }
+  return true;
+ }
  var isFile = def.type === "file";
  var req = def.rq === 1 || def.rq === true;
  var errEl = my1lpXtraQuery("my1lpXph-err", path);
@@ -595,7 +668,54 @@ function my1lpXtraValidate() {
    }
   }
  }
- walk(xtra, "");
+  walk(xtra, "");
+   (function() {
+    function chkGroup(obj, basePath) {
+     for (var k in obj) {
+      if (!obj.hasOwnProperty(k)) continue;
+      var def = obj[k];
+      var path = basePath ? basePath + "__" + k : k;
+      if (!def || typeof def !== "object") continue;
+      if (my1lpXtraIsGroup(def)) {
+       var ro = def.rqOneOf;
+       if (ro && typeof ro === "object" && ro.length) {
+        var ch = my1lpXtraChildren(def);
+        var anyVal = false;
+        var anyVisible = false;
+        var lbls = [];
+        var firstVisiblePath = null;
+        var ddEl = my1lpXtraQuery("my1lpXph-rqOneOf-sel", path);
+        for (var i = 0; i < ro.length; i++) {
+         var fk = ro[i];
+         if (ch[fk] && ch[fk].lbl) lbls.push(ch[fk].lbl);
+         var cel = my1lpXtraQuery("my1lpXph-val", path + "__" + fk);
+         if (!cel) continue;
+         var celItem = cel.closest('.my1lpXph-rqOneOf-item');
+         if (celItem && celItem.style.display === "none") continue;
+         if (!anyVisible) { anyVisible = true; firstVisiblePath = path + "__" + fk; }
+         if (String(cel.value || "").trim()) { anyVal = true; break; }
+        }
+         if (!anyVal) {
+          ok = false;
+          if (!firstInvalid) {
+           firstInvalid = ddEl || (firstVisiblePath ? my1lpXtraQuery("my1lpXph-val", firstVisiblePath) : null) || null;
+          }
+          var errEl = !anyVisible
+           ? my1lpXtraQuery("my1lpXph-err", path + "__rqOneOfSel")
+           : (ddEl ? my1lpXtraQuery("my1lpXph-err", path + "__" + ro[0]) : (firstVisiblePath ? my1lpXtraQuery("my1lpXph-err", firstVisiblePath) : null));
+          if (errEl) {
+           errEl.textContent = !anyVisible ? "Required" : "Please enter at least one: " + lbls.join(", ");
+           errEl.style.display = "block";
+          }
+         }
+       }
+       chkGroup(my1lpXtraChildren(def), path);
+       continue;
+      }
+     }
+    }
+    chkGroup(xtra, "");
+   })();
  if (firstInvalid) {
   try { firstInvalid.focus(); firstInvalid.scrollIntoView({ block: "center" }); } catch (e) {}
  }
@@ -612,12 +732,24 @@ function my1lpXtraCollect() {
    var path = basePath ? basePath + "__" + k : k;
    if (!def || typeof def !== "object") continue;
    if (my1lpXtraIsGroup(def)) { dest[k] = {}; walk(my1lpXtraChildren(def), path, dest[k]); continue; }
-   var el = my1lpXtraQuery("my1lpXph-val", path);
-   if (el) dest[k] = el.value;
+    var el = my1lpXtraQuery("my1lpXph-val", path);
+    if (el) {
+     var _roItem = el.closest('.my1lpXph-rqOneOf-item');
+     if (_roItem && _roItem.style.display === "none") continue;
+     dest[k] = el.value;
+    }
   }
  }
  walk(xtra, "", out);
  return out;
+}
+async function my1lpXtraRunPre(def, groupVals, payload) {
+ var fn = def && def.preProcess;
+ if (fn && typeof window[fn] === "function") {
+  var result = await window[fn](groupVals, payload);
+  return (result === undefined || result === false || result === null) ? groupVals : result;
+ }
+ return groupVals;
 }
 async function my1lpXtraRunPost(def, groupVals, payload) {
  var fn = def && def.postProcess;
@@ -2179,7 +2311,7 @@ function generateLognThemeP(cssText) {
   console.log("[my1lo.theme] analysis error:", e);
  }
  if (report && report.brand) {
-  console.log("[my1lo.theme]", report.matches);
+  //console.log("[my1lo.theme]", report.matches);
  } else {
   console.log("[my1lo.theme] no brand color detected");
  }
