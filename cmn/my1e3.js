@@ -2,8 +2,8 @@ window.appcss = null;
 let xtraj_payload = null;
 async function set_owner() {
  const pathParts = window.location.pathname.split('/').filter(p => p);
- const eo = pathParts[0] || "0.0000000000";
- const ec = pathParts[1] || "z";
+ const eo = pathParts[0] || window.ownr_eo;
+ const ec = pathParts[1] || window.ownr_ec;
  window.appOwner = {
   tn: `${eo}_${ec}`.replace(/\./g, "_"),
   eo: eo,
