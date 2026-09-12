@@ -1,4 +1,13 @@
 // nextDate.js - Premium Next Hearing Date Modal
+function addDaysUtc(dateStr, days) {
+  if (!dateStr) return "";
+  var p = String(dateStr).split("-");
+  if (p.length !== 3) return dateStr;
+  return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2] + days))
+    .toISOString()
+    .substring(0, 10);
+}
+
 window.openNextHearingModal = function (recordData, caseDateEntry) {
   window._nhRecordData = recordData;
   window._nhCaseDateEntry = caseDateEntry || null;
@@ -6,6 +15,20 @@ window.openNextHearingModal = function (recordData, caseDateEntry) {
     ? JSON.parse(JSON.stringify(recordData))
     : null;
   var today = getLocalToday();
+  var displayDate = null;
+  if (caseDateEntry && caseDateEntry.e) {
+    if (caseDateEntry.e > today) {
+      displayDate = caseDateEntry.f
+        ? getCaseDisplayDate(caseDateEntry.f)
+        : null;
+    } else {
+      displayDate = caseDateEntry.e;
+    }
+  }
+  if (!displayDate) displayDate = getCaseDisplayDate(recordData.a);
+  if (!displayDate) displayDate = today;
+  window._nhDisplayDate = displayDate;
+  var nhMin = displayDate ? addDaysUtc(displayDate, 1) : "";
   var isUpdate = !!(
     caseDateEntry &&
     caseDateEntry.e &&
@@ -82,7 +105,7 @@ window.openNextHearingModal = function (recordData, caseDateEntry) {
             </div>
             <div class="form-group-premium mb-3">
               <label class="form-label-premium" for="nhDate">Next Date <span class="required">*</span></label>
-              <input type="date" id="nhDate" value="${prefilledDate}" class="form-control-premium fw-bold">
+              <input type="date" id="nhDate" value="${prefilledDate}" class="form-control-premium fw-bold"${nhMin ? ' min="' + nhMin + '"' : ""}>
             </div>
             <div class="d-flex gap-3 mb-3">
               <div class="form-group-premium mb-0 flex-fill">
@@ -157,7 +180,7 @@ window.updateNhEntry = async function (modalId) {
     showMessageModal("Info", "Please select a date!", false);
     return;
   }
-  var displayDate = getCaseDisplayDate(record.a);
+  var displayDate = window._nhDisplayDate || getCaseDisplayDate(record.a) || getLocalToday();
   if (displayDate && newDate <= displayDate) {
     showMessageModal(
       "Info",
@@ -427,12 +450,12 @@ window.saveNextHearing = async function (modalId) {
   var importantLevel =
     parseInt(document.getElementById("nhImportant")?.value) || 1;
   var selectedStage = parseInt(document.getElementById("nhStage")?.value) || 1;
-  var newDate = document.getElementById("nhDate")?.value;
+var newDate = document.getElementById("nhDate")?.value;
   if (!newDate) {
     showMessageModal("Info", "Please select a date!", false);
     return;
   }
-  var displayDate = getCaseDisplayDate(record.a);
+  var displayDate = window._nhDisplayDate || getCaseDisplayDate(record.a) || getLocalToday();
   if (displayDate && newDate <= displayDate) {
     showMessageModal(
       "Info",

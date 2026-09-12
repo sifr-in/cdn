@@ -95,6 +95,7 @@ async function showAddCaseModal(editRecord) {
   var isEditMode = editingRecordId !== null;
   var mid = "addCaseModal_" + Date.now();
   var today = getLocalToday();
+  _csvAdvocateOrigParent = null;
 
   var hideCols = (
     window[my1uzr.worknOnPg]?.colsToHideCases || ""
@@ -157,6 +158,26 @@ async function showAddCaseModal(editRecord) {
         "</div>"
       : "";
 
+  var csvSectionHtml =
+    isEditMode
+      ? ""
+      : '<div id="' +
+        mid +
+        '_cnrCsvSection" style="display:none;border-bottom:2px solid var(--gray-bg);padding:14px 18px;">' +
+        '<div class="d-flex align-items-center gap-2 mb-2">' +
+        '<i class="fas fa-file-csv text-gold" style="font-size:16px;"></i>' +
+        '<span class="fw-bold text-navy" style="font-size:14px;">CNR by CSV</span></div>' +
+        '<p class="text-sm text-gray mb-3">Choose the advocate below, then paste comma-separated CNR numbers.</p>' +
+        '<div id="' +
+        mid +
+        '_csvAdvocateSlot"></div>' +
+        '<div class="form-group-premium mb-0">' +
+        '<label class="form-label-premium">CNR Numbers <span class="required">*</span></label>' +
+        '<textarea id="caseCNRCsv" rows="6" class="form-control-premium" placeholder="e.g. MHCC000120260123, MHCC000120260124, MHCC000120260125" style="text-transform:uppercase;font-family:monospace;letter-spacing:1px;"></textarea>' +
+        '<div id="caseCNRCsvStatus" style="font-size:11px;margin-top:5px;"></div>' +
+        '<div class="form-hint">Separate multiple CNR numbers with commas (,)</div>' +
+        "</div></div>";
+
   var basicFieldsHtml =
     // ======== CASE SOURCE ========
     '<div class="p-3" style="border-bottom:2px solid var(--gray-bg);">' +
@@ -178,6 +199,16 @@ async function showAddCaseModal(editRecord) {
     '" value="0" checked onchange="toggleCNRFields(\'' +
     mid +
     "')\"> Non E-Court Case</label>" +
+    (isEditMode
+      ? ""
+      : '<label id="csRadioCsv_' +
+        mid +
+        '" class="cs-radio-label">' +
+        '<input type="radio" name="caseSource_' +
+        mid +
+        '" value="2" onchange="toggleCNRFields(\'' +
+        mid +
+        "')\"> CNR by csv</label>") +
     "</div></div>" +
     '<div id="' +
     mid +
@@ -245,6 +276,7 @@ async function showAddCaseModal(editRecord) {
     '<label class="form-label-premium">Brief Number</label>' +
     '<input type="text" id="caseBriefNumber" placeholder="e.g. Exh.45" maxlength="8" class="form-control-premium">' +
     "</div></div></div>" +
+    csvSectionHtml +
     // ======== DATES ========
     '<div id="datesSection" style="border-bottom:2px solid var(--gray-bg);padding:14px 18px;">' +
     '<div class="form-row-premium mb-0">' +
@@ -505,6 +537,25 @@ async function showAddCaseModal(editRecord) {
   }
   var ndDisp = caseDisplayRec(editRecord);
   var ndCaseNo = editRecord ? (ndDisp.h || "") + "/" + (ndDisp.i || "") : "";
+  var editDispDate = null;
+  if (caseDateEntry && caseDateEntry.f) {
+    for (var ndi = 0; ndi < caseDates.length; ndi++) {
+      if (caseDates[ndi].a == caseDateEntry.f) {
+        editDispDate = caseDates[ndi].e;
+        break;
+      }
+    }
+  }
+  if (!editDispDate)
+    editDispDate =
+      typeof getCaseDisplayDate === "function"
+        ? getCaseDisplayDate(editingRecordId)
+        : null;
+  var editNhMin = editDispDate
+    ? typeof addDaysUtc === "function"
+      ? addDaysUtc(editDispDate, 1)
+      : ""
+    : "";
   var nextDateTabHtml = isEditMode
     ? '<div class="p-3" style="border-bottom:2px solid var(--gray-bg);">' +
       '<div class="text-sm text-gray">Case: <strong class="text-navy" style="font-size:14px;">' +
@@ -522,7 +573,9 @@ async function showAddCaseModal(editRecord) {
       '<label class="form-label-premium" for="editNhDate">Next Date <span class="required">*</span></label>' +
       '<input type="date" id="editNhDate" value="' +
       escHtml(prefNdDate) +
-      '" class="form-control-premium fw-bold">' +
+      '" class="form-control-premium fw-bold"' +
+      (editNhMin ? ' min="' + editNhMin + '"' : "") +
+      '>' +
       "</div>" +
       '<div class="d-flex gap-3 mb-3">' +
       '<div class="form-group-premium mb-0 flex-fill">' +
@@ -617,12 +670,24 @@ async function showAddCaseModal(editRecord) {
 
   await populateCaseAdvocateOptions(mid);
 
+  var csvTa0 = document.getElementById("caseCNRCsv");
+  if (csvTa0) {
+    csvTa0.addEventListener("input", function () {
+      updateCsvValidation(csvTa0);
+    });
+  }
+
   if (isEditMode && editRecord) {
     prefillsAddCaseForm(editRecord, mid);
     var srcRadio = document.querySelector(
       'input[name="caseSource_' + mid + '"]:checked',
     );
-    if (srcRadio) applyCaseFieldVisibility(mid, srcRadio.value === "1");
+    if (srcRadio) {
+      applyCaseFieldVisibility(
+        mid,
+        srcRadio.value === "1" ? "ecourt" : "manual",
+      );
+    }
   }
 
   m.show();
@@ -1335,7 +1400,7 @@ window.toggleEcFields = function () {
       hideCols.indexOf("cy") < 0 ? "" : "none";
 };
 
-function applyCaseFieldVisibility(modalId, isECourt) {
+function applyCaseFieldVisibility(modalId, mode) {
   var hideCols = (
     window[my1uzr.worknOnPg]?.colsToHideCases || ""
   ).toLowerCase();
@@ -1354,6 +1419,9 @@ function applyCaseFieldVisibility(modalId, isECourt) {
     var el = document.getElementById(id);
     if (el) el.style.display = show ? "" : "none";
   }
+
+  var isECourt = mode === "ecourt";
+  var isCsv = mode === "csv";
 
   if (isECourt) {
     setShow("ecBriefGroup", !hideBf);
@@ -1377,6 +1445,21 @@ function applyCaseFieldVisibility(modalId, isECourt) {
       if (hideFr && filerRadio.checked) answererRadio.checked = true;
       if (hideRp && answererRadio.checked) filerRadio.checked = true;
     }
+  } else if (isCsv) {
+    setShow("ecBriefGroup", false);
+    setShow("caseDdGroup", false);
+    setShow("courtNameSection", false);
+    setShow("filerGroup", false);
+    setShow("respondentGroup", false);
+    setShow("notifSection", false);
+    setShow("partySideFilerLabel", false);
+    setShow("partySideAnswererLabel", false);
+    setShow("datesSection", false);
+    setShow("partyInfoSection", false);
+    setShow("partySideGroup", false);
+    setShow(modalId + "_moreBtn", false);
+    setShow(modalId + "_moreSection", false);
+    setShow(modalId + "_modalFooter", true);
   } else {
     setShow("ecBriefGroup", true);
     setShow("caseDdGroup", true);
@@ -1395,19 +1478,229 @@ function applyCaseFieldVisibility(modalId, isECourt) {
   }
 }
 
+var _csvAdvocateOrigParent = null;
+
+function moveAdvocateToCsvSlot(modalId) {
+  var sel = document.getElementById("caseAdvocate");
+  var slot = document.getElementById(modalId + "_csvAdvocateSlot");
+  if (!sel || !slot || slot === sel.parentElement) return;
+  if (!_csvAdvocateOrigParent) _csvAdvocateOrigParent = sel.parentElement;
+  slot.appendChild(sel.parentElement);
+}
+
+function moveAdvocateBack() {
+  var sel = document.getElementById("caseAdvocate");
+  if (!sel || !_csvAdvocateOrigParent) return;
+  if (_csvAdvocateOrigParent === sel.parentElement) return;
+  _csvAdvocateOrigParent.appendChild(sel.parentElement);
+}
+
+function parseCsvCNRs(text) {
+  var tokens = String(text || "")
+    .split(/[,\n;]+/)
+    .map(function (t) {
+      return t.trim().toUpperCase();
+    })
+    .filter(function (t) {
+      return t.length > 0;
+    });
+  var valid = [];
+  var invalid = [];
+  var firstSeen = {};
+  var dupMap = {};
+  for (var i = 0; i < tokens.length; i++) {
+    var t = tokens[i];
+    if (!/^[A-Z]{4}\d{12}$/.test(t)) {
+      invalid.push(t);
+      continue;
+    }
+    if (firstSeen[t]) {
+      dupMap[t] = (dupMap[t] || 1) + 1;
+    } else {
+      firstSeen[t] = 1;
+      valid.push(t);
+    }
+  }
+  return {
+    tokens: tokens,
+    count: tokens.length,
+    valid: valid,
+    invalid: invalid,
+    dupMap: dupMap,
+  };
+}
+
+function updateCsvValidation(csvTa) {
+  var status = document.getElementById("caseCNRCsvStatus");
+  if (!status) return;
+  var res = parseCsvCNRs(csvTa ? csvTa.value : "");
+  csvTa = csvTa || document.getElementById("caseCNRCsv");
+  var html = "";
+  if (res.count === 0) {
+    status.innerHTML = "";
+    if (csvTa) csvTa.className = csvTa.className.replace(/\sis-invalid/g, "");
+    if (csvTa) csvTa.style.borderColor = "";
+    return;
+  }
+  var lines = [];
+  lines.push(res.count + " CNR(s) listed.");
+  var invalidList = [];
+  for (var iv = 0; iv < res.invalid.length; iv++) {
+    if (invalidList.indexOf(res.invalid[iv]) < 0)
+      invalidList.push(res.invalid[iv]);
+  }
+  if (invalidList.length) {
+    lines.push(
+      '<span style="color:#dc3545;font-weight:600;">✗ Invalid CNR format: ' +
+        escHtml(invalidList.join(", ")) +
+        " — expected 4 letters followed by 12 digits</span>",
+    );
+  }
+  var dupKeys = [];
+  for (var dk in res.dupMap) {
+    if (Object.prototype.hasOwnProperty.call(res.dupMap, dk)) {
+      dupKeys.push(dk + " ×" + res.dupMap[dk]);
+    }
+  }
+  if (dupKeys.length) {
+    lines.push(
+      '<span style="color:#B8942E;font-weight:600;">⚠ Duplicate CNR(s): ' +
+        escHtml(dupKeys.join(", ")) +
+        "</span>",
+    );
+  }
+  status.innerHTML = lines.join("<br>");
+  if (csvTa) {
+    if (invalidList.length) {
+      csvTa.className = csvTa.className.replace(/\sis-invalid/g, "") + " is-invalid";
+    } else {
+      csvTa.className = csvTa.className.replace(/\sis-invalid/g, "");
+    }
+    csvTa.style.borderColor = invalidList.length
+      ? ""
+      : dupKeys.length
+        ? "var(--gold)"
+        : "";
+  }
+}
+
+window.sendCNRCoutCases = async function (modalId) {
+  var csvTa = document.getElementById("caseCNRCsv");
+  var advSel = document.getElementById("caseAdvocate");
+  var res = parseCsvCNRs(csvTa ? csvTa.value : "");
+
+  updateCsvValidation(csvTa);
+
+  if (res.count === 0) {
+    showMessageModal("Info", "Please enter at least one CNR number.", false);
+    return;
+  }
+  if (res.invalid.length) {
+    var invList = [];
+    for (var iv2 = 0; iv2 < res.invalid.length; iv2++) {
+      if (invList.indexOf(res.invalid[iv2]) < 0) invList.push(res.invalid[iv2]);
+    }
+    showMessageModal(
+      "Info",
+      "Invalid CNR format detected!\n\n" +
+        invList.join(", ") +
+        "\n\nExpected: 4 letters followed by 12 digits\ne.g. MHCC000120260123",
+      false,
+    );
+    return;
+  }
+  var dupKeys = [];
+  for (var dk2 in res.dupMap) {
+    if (Object.prototype.hasOwnProperty.call(res.dupMap, dk2)) {
+      dupKeys.push(dk2 + " ×" + res.dupMap[dk2]);
+    }
+  }
+  if (dupKeys.length) {
+    showMessageModal(
+      "Info",
+      "Duplicate CNR numbers found!\n\n" +
+        dupKeys.join(", ") +
+        "\n\nPlease remove duplicates before saving.",
+      false,
+    );
+    return;
+  }
+  var advocateValue = advSel ? (advSel.value || "").trim() : "";
+  var advocateId = parseInt(advocateValue.split("|")[0]) || 0;
+  if (!advocateId) {
+    showMessageModal("Info", "Please select an advocate first.", false);
+    return;
+  }
+
+  var saveBtn = document.getElementById(modalId + "_saveBtn");
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner"></span> Syncing...';
+  }
+
+  var cs91Records = res.valid.map(function (t) {
+    return { e: t };
+  });
+  payload0.x1 = JSON.stringify(cs91Records);
+  payload0.x2 = advocateId;
+  payload0.fn = 108;
+  payload0.vw = 1;
+  payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [
+    { tb: "cs" },
+    { tb: "cs91" },
+    { tb: "c" },
+    { tb: "a" },
+  ]);
+
+  try {
+    if (typeof fnj3 !== "function") {
+      showMessageModal("Info", "Server communication not available", false);
+      return;
+    }
+    var response = await fnj3(
+      "https://my1.in/2/r.php",
+      payload0,
+      1,
+      true,
+      null,
+      20000,
+      0,
+      1,
+      1,
+    );
+    console.log("📥 CNR-by-CSV Import:", response);
+
+    if (response && response.su == 1) {
+      hndlRspo108(response);
+    } else {
+      showMessageModal("Error", response?.ms || "Import failed", true);
+    }
+  } catch (err) {
+    showMessageModal("Info", "Error: " + err.message, false);
+  } finally {
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save Case';
+    }
+  }
+};
+
 window.toggleCNRFields = function (modalId) {
   var sourceRadio = document.querySelector(
     'input[name="caseSource_' + modalId + '"]:checked',
   );
   var cnrSection = document.getElementById(modalId + "_cnrSection");
   var manualSection = document.getElementById(modalId + "_manualSection");
+  var csvSection = document.getElementById(modalId + "_cnrCsvSection");
   var caseContent = document.getElementById(modalId + "_caseContent");
   var radioEcourt = document.getElementById("csRadioEcourt_" + modalId);
   var radioManual = document.getElementById("csRadioManual_" + modalId);
+  var radioCsv = document.getElementById("csRadioCsv_" + modalId);
 
   if (sourceRadio && sourceRadio.value === "1") {
     if (cnrSection) cnrSection.style.display = "block";
     if (manualSection) manualSection.style.display = "none";
+    if (csvSection) csvSection.style.display = "none";
     if (caseContent) {
       caseContent.style.background = "var(--section-ecourt-bg)";
       caseContent.style.borderLeft = "3px solid var(--section-ecourt-border)";
@@ -1418,11 +1711,35 @@ window.toggleCNRFields = function (modalId) {
     if (radioManual) {
       radioManual.className = "cs-radio-label";
     }
+    if (radioCsv) {
+      radioCsv.className = "cs-radio-label";
+    }
     toggleEcFields();
-    applyCaseFieldVisibility(modalId, true);
+    moveAdvocateBack();
+    applyCaseFieldVisibility(modalId, "ecourt");
+  } else if (sourceRadio && sourceRadio.value === "2") {
+    if (cnrSection) cnrSection.style.display = "none";
+    if (manualSection) manualSection.style.display = "none";
+    if (csvSection) csvSection.style.display = "block";
+    if (caseContent) {
+      caseContent.style.background = "var(--section-csv-bg)";
+      caseContent.style.borderLeft = "3px solid var(--section-csv-border)";
+    }
+    if (radioEcourt) {
+      radioEcourt.className = "cs-radio-label";
+    }
+    if (radioManual) {
+      radioManual.className = "cs-radio-label";
+    }
+    if (radioCsv) {
+      radioCsv.className = "cs-radio-label cs-active-csv";
+    }
+    moveAdvocateToCsvSlot(modalId);
+    applyCaseFieldVisibility(modalId, "csv");
   } else {
     if (cnrSection) cnrSection.style.display = "none";
     if (manualSection) manualSection.style.display = "block";
+    if (csvSection) csvSection.style.display = "none";
     if (caseContent) {
       caseContent.style.background = "var(--section-manual-bg)";
       caseContent.style.borderLeft = "3px solid var(--section-manual-border)";
@@ -1433,7 +1750,11 @@ window.toggleCNRFields = function (modalId) {
     if (radioManual) {
       radioManual.className = "cs-radio-label cs-active-manual";
     }
-    applyCaseFieldVisibility(modalId, false);
+    if (radioCsv) {
+      radioCsv.className = "cs-radio-label";
+    }
+    moveAdvocateBack();
+    applyCaseFieldVisibility(modalId, "manual");
   }
 };
 
@@ -1610,6 +1931,14 @@ window.updateCaseRecord = async function () {
     'input[name="caseSource_' + modalId + '"]:checked',
   );
   var isECourt = sourceRadio && sourceRadio.value === "1";
+  if (sourceRadio && sourceRadio.value === "2") {
+    showMessageModal(
+      "Info",
+      "CNR by CSV import is not implemented yet.",
+      false,
+    );
+    return;
+  }
   var hideCols = (
     window[my1uzr.worknOnPg]?.colsToHideCases || ""
   ).toLowerCase();
@@ -1718,7 +2047,7 @@ window.updateCaseRecord = async function () {
 
   payload0.p = {
     e: parseInt(countryCode.replace("+", "")) || 91,
-    f: parseInt(caseNumber) || 0,
+    f: 0,
     g: caseType,
     h: caseNumber,
     i: caseYear,
@@ -1741,7 +2070,12 @@ window.updateCaseRecord = async function () {
       break;
     }
   }
-  if (origCaseRec && Number(origCaseRec.f) > 0) {
+  if (
+    origCaseRec &&
+    Number(origCaseRec.f) > 0 &&
+    typeof getCaseCs91Record === "function" &&
+    getCaseCs91Record(origCaseRec)
+  ) {
     payload0.p.f = origCaseRec.f;
   }
 
@@ -1847,6 +2181,10 @@ window.saveCase = async function (modalId) {
     'input[name="caseSource_' + modalId + '"]:checked',
   );
   var isECourt = sourceRadio && sourceRadio.value === "1";
+  if (sourceRadio && sourceRadio.value === "2") {
+    sendCNRCoutCases(modalId);
+    return;
+  }
 
   var previousDate = document.getElementById("casePreviousDate")?.value || "";
   var nextDate = document.getElementById("caseNextDate")?.value || "";
@@ -2030,7 +2368,7 @@ window.saveCase = async function (modalId) {
 
   payload0.p = {
     e: parseInt(countryCode.replace("+", "")) || 91,
-    f: parseInt(caseNumber) || 0,
+    f: 0,
     g: caseType,
     h: caseNumber,
     i: caseYear,
