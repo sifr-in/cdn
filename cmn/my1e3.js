@@ -2686,6 +2686,10 @@ window.initDateTimePicker = async function (inputId, options) {
   await window.loadDatePickerDependencies();
   window.injectTDPickerCss();
 
+  // mode: 'datetime' (default) | 'date' (date-only) | 'time' (time-only)
+  const mode = options.mode === 'date' || options.mode === 'time' ? options.mode : 'datetime';
+  const PICKER_FORMAT = mode === 'date' ? 'yyyy-MM-dd' : mode === 'time' ? 'HH:mm' : window.PICKER_DATE_FORMAT;
+
   const dispEl = document.getElementById(el.id + '_disp');
   const dispFormatter = options.displayFormatter || window.formatShortDisplay;
   function updateDisp() {
@@ -2694,8 +2698,15 @@ window.initDateTimePicker = async function (inputId, options) {
     if (w) w.classList.toggle('has-val', !!committed);
   }
 
+  function nowForMode() {
+    const full = window.formatForPicker(new Date());
+    if (mode === 'date') return full.split(' ')[0];
+    if (mode === 'time') return full.split(' ')[1];
+    return full;
+  }
+
   const autoNow = options.autoNow !== false;
-  let committed = options.initialValue || el.value || (autoNow ? window.formatForPicker(new Date()) : '');
+  let committed = options.initialValue || el.value || (autoNow ? nowForMode() : '');
   el.type = 'text'; // Tempus Dominus owns the UI
   el.value = committed;
   updateDisp();
@@ -2709,12 +2720,20 @@ window.initDateTimePicker = async function (inputId, options) {
     container: document.body, // mount widget at body level so fixed centering works (even inside Bootstrap modals)
     localization: {
       locale: 'en',
-      format: window.PICKER_DATE_FORMAT,
+      format: PICKER_FORMAT,
       hourCycle: 'h23'
     },
     display: {
       theme: 'light',
-      components: { decades: false, year: true, month: true, date: true, hours: true, minutes: true, seconds: false },
+      components: {
+        decades: false,
+        year: mode !== 'time',
+        month: mode !== 'time',
+        date: mode !== 'time',
+        hours: mode !== 'date',
+        minutes: mode !== 'date',
+        seconds: false
+      },
       buttons: { today: true, clear: false, close: true }
     }
   });
@@ -2745,8 +2764,9 @@ window.initDateTimePicker = async function (inputId, options) {
       closeAction.dataset.tdOk = '1';
     }
 
-    // Zero button: keep the same date but set time to 00:00 (picker stays open)
-    if (!widget.querySelector('.td-zero-btn')) {
+    // Zero button: keep the same date but set time to 00:00 (picker stays open).
+    // Only meaningful in combined datetime mode.
+    if (mode === 'datetime' && !widget.querySelector('.td-zero-btn')) {
       const zeroAction = document.createElement('button');
       zeroAction.type = 'button';
       zeroAction.className = 'btn btn-secondary btn-sm td-zero-btn p-2 fs-7 me-2';
@@ -2790,17 +2810,22 @@ window.initDateTimePicker = async function (inputId, options) {
       }
     }
 
-    // Clock/calendar button acts as a switch between the two panes
+    // Clock/calendar button acts as a switch between the two panes.
+    // In date-only / time-only modes there is no other pane to switch to.
     const pickerToggle = widget.querySelector('[data-action="togglePicker"]');
     if (pickerToggle) {
-      if (!pickerToggle.dataset.tdSwitchInit) {
-        pickerToggle.dataset.tdSwitchInit = '1';
-        pickerToggle.addEventListener('click', () => {
-          pickerShowingTime = !pickerShowingTime;
-          setToggleIcon(pickerToggle);
-        });
+      if (mode === 'date' || mode === 'time') {
+        pickerToggle.style.display = 'none';
+      } else {
+        if (!pickerToggle.dataset.tdSwitchInit) {
+          pickerToggle.dataset.tdSwitchInit = '1';
+          pickerToggle.addEventListener('click', () => {
+            pickerShowingTime = !pickerShowingTime;
+            setToggleIcon(pickerToggle);
+          });
+        }
+        setToggleIcon(pickerToggle);
       }
-      setToggleIcon(pickerToggle);
     }
 
     if (options.scrollable) {
@@ -2811,10 +2836,19 @@ window.initDateTimePicker = async function (inputId, options) {
 
   function applyValue(v) {
     if (v instanceof Date) v = window.formatForPicker(v);
+    if (mode === 'date' && v) v = String(v).trim().split(/[\sT]+/)[0] || v;
+    if (mode === 'time' && v) {
+      const t = String(v).trim().split(/[\sT]+/);
+      v = t.length > 1 ? (t[1] || t[0]) : (t[0] || '');
+    }
     committed = v || '';
     el.value = committed;
     updateDisp();
-    const dt = window.parsePickerValue(committed);
+    const dt = window.parsePickerValue(
+      mode === 'date' && committed ? committed + ' 00:00' :
+      mode === 'time' && committed ? '2000-01-01 ' + committed :
+      committed
+    );
     if (dt) {
       instance.dates.setValue(dt);
     } else {

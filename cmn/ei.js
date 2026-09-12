@@ -541,11 +541,13 @@ function renderCRUDInterface(container) {
     "background:" +
     p.surface +
     ";border:1px solid #6c757d;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);";
-  var hCC = isFieldHidden("cc"),
+var hCC = isFieldHidden("cc"),
     hPN = isFieldHidden("pn"),
     hRS = isFieldHidden("rs"),
     hNE = isFieldHidden("ne"),
-    hBD = window[my1uzr.worknOnPg]?.confg?.shodateofberthForEi == 1,
+    hBD = window[my1uzr.worknOnPg]?.shodateofberthForEi == 1 ||
+          window[my1uzr.worknOnPg]?.confg?.shodateofberthForEi == 1 ||
+          window[my1uzr.worknOnPg]?.clientConfig?.shodateofberthForEi == 1,
     hAD = isFieldHidden("ad");
 
   container.innerHTML = `
@@ -925,6 +927,7 @@ function setupQuickAddFormValidation() {
 }
 
 async function saveRecord(isUpdate) {
+  var activeBtn = null;
   try {
 
     var mi = document.getElementById("quickMobile"),
@@ -956,7 +959,7 @@ async function saveRecord(isUpdate) {
     if (!eiValidateDynamicFields()) return;
     var xtraVals = eiCollectDynamicFields();
     xtraVals = await eiApplyPostProcessToCollected(xtraVals, myxtraFlds_fildsToNeeds, payload0);
-    if (xtraVals && Object.keys(xtraVals).length) c.c1 = xtraVals;
+    if (xtraVals && Object.keys(xtraVals).length) c = { ...c, ...xtraVals };
     payload0.c = c;
     payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [
       { tb: "c", col: "b", cl: "b" },
@@ -971,7 +974,7 @@ async function saveRecord(isUpdate) {
     // Loading state
     var saveBtn = document.getElementById("quickSave"),
       updateBtn = document.getElementById("updateEntInd");
-    var activeBtn = isUpdate ? updateBtn : saveBtn;
+    activeBtn = isUpdate ? updateBtn : saveBtn;
     if (activeBtn) {
       activeBtn.disabled = true;
       activeBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
@@ -1003,11 +1006,16 @@ async function saveRecord(isUpdate) {
 
         hideAddNewForm();
         renderCards();
-        window.showsuccessmodal("Success", "✅ Member saved successfully!", false);
+        console.log("Success", "✅ Member saved successfully!", false);
 
         if (f1nEiToExe && window[f1nEiToExe] && saved) {
-          window[f1nEiToExe](saved, s_ei_witchToReturn);
-          if (currentModalId) closeSpecificModal(currentModalId);
+          try {
+            window[f1nEiToExe](saved, s_ei_witchToReturn);
+          } catch (ce) {
+            console.error("Post-save callback failed:", ce);
+          } finally {
+            if (currentModalId) closeSpecificModal(currentModalId);
+          }
         }
       } else {
         window.showelsemodal("Info", "⚠️ Saved to server but local sync failed", false);
@@ -1015,14 +1023,15 @@ async function saveRecord(isUpdate) {
     } else {
       window.showelsemodal("Error", resp?.ms || "Failed", true);
     }
+  } catch (e) {
+    window.showelsemodal("Info", e.message, false);
+  } finally {
     if (activeBtn) {
       activeBtn.disabled = false;
       activeBtn.innerHTML = isUpdate
         ? '<i class="fas fa-edit me-1"></i> Update'
         : '<i class="fas fa-save me-1"></i> Save';
     }
-  } catch (e) {
-    window.showelsemodal("Info", e.message, false);
   }
 }
 async function updateRecord() {
@@ -1159,7 +1168,11 @@ function renderCards(searchTerm) {
         if (currentModalId) closeSpecificModal(currentModalId);
         if (f1nEiToExe && window[f1nEiToExe]) {
           var expanded = await eiExpandRecordForSelect(item, payload0);
-          window[f1nEiToExe](expanded, s_ei_witchToReturn);
+          try {
+            window[f1nEiToExe](expanded, s_ei_witchToReturn);
+          } catch (ce) {
+            console.error("Select callback failed:", ce);
+          }
         }
       }
     });
@@ -1239,7 +1252,7 @@ function eiDynIsGroup(def) {
   if (!def.type) {
     for (var k in def) {
       if (!def.hasOwnProperty(k)) continue;
-      if (k === "lbl" || k === "ptrn" || k === "rq" || k === "preProcess" || k === "postProcess" || k === "x") continue;
+      if (k === "lbl" || k === "ptrn" || k === "rq" || k === "rqOneOf" || k === "preProcess" || k === "postProcess" || k === "x") continue;
       if (def[k] && typeof def[k] === "object") return true;
     }
   }
@@ -1299,6 +1312,33 @@ function eiRenderDynamicFields() {
     if (eiDynIsGroup(def)) {
       var children = eiDynChildren(def);
       var hasBox = (def.type === "div" || (def.x && typeof def.x === "object") || !!def.lbl) && !inDiv;
+      var isMeta = function (key) { return key === "lbl" || key === "type" || key === "ptrn" || key === "rq" || key === "rqOneOf" || key === "preProcess" || key === "postProcess" || key === "x"; };
+      var _ro = def.rqOneOf && typeof def.rqOneOf === "object" && def.rqOneOf.length ? def.rqOneOf : null;
+      var rqSelectHtml = null;
+      if (_ro) {
+        rqSelectHtml = function () {
+          var hh =
+            '<label class="form-label m-0 fw-bold mb-1" style="font-size:12.5px;color:#343a40;"><i class="fas fa-id-card me-1" style="color:' +
+            p.brand +
+            ';"></i> ID Proof (select one) <span style="color:#dc3545;">*</span></label>' +
+            '<select class="ei-dyn-rqOneOf-sel" data-path="' +
+            path +
+            '" style="font-size:14px;' +
+            inpDyn +
+            'padding:6px 8px;margin-bottom:8px;"><option value="" disabled selected>Select ID type...</option>';
+          for (var rr = 0; rr < _ro.length; rr++) {
+            var rk = _ro[rr];
+            var rlb = (children[rk] && children[rk].lbl) || rk;
+            hh += '<option value="' + rk + '">' + rlb + "</option>";
+          }
+          hh += "</select>";
+          hh +=
+            '<span class="ei-dyn-err" data-path="' +
+            path +
+            '__rqOneOfSel" style="font-size:11px;color:#dc3545;display:none;margin-top:2px;"></span>';
+          return hh;
+        };
+      }
       if (hasBox) {
         out += '<div style="' + boxStyle + '">';
         if (def.lbl) {
@@ -1311,8 +1351,18 @@ function eiRenderDynamicFields() {
         }
         for (var ck in children) {
           if (!children.hasOwnProperty(ck)) continue;
-          if (!def.x && (ck === "lbl" || ck === "type" || ck === "ptrn" || ck === "rq" || ck === "preProcess" || ck === "postProcess" || ck === "x")) continue;
-          out += renderDef(children[ck], path + "__" + ck, true);
+          if (ck === "rqOneOf") {
+            if (rqSelectHtml) out += rqSelectHtml();
+            continue;
+          }
+          if (isMeta(ck)) continue;
+          if (_ro && _ro.indexOf(ck) !== -1) {
+            out += '<div class="ei-dyn-rqOneOf-item" data-rqoneof="' + path + '" data-rqoneof-key="' + ck + '" style="display:none;">';
+            out += renderDef(children[ck], path + "__" + ck, true);
+            out += '</div>';
+          } else {
+            out += renderDef(children[ck], path + "__" + ck, true);
+          }
         }
         out += "</div>";
       } else {
@@ -1326,8 +1376,18 @@ function eiRenderDynamicFields() {
         }
         for (var pk in children) {
           if (!children.hasOwnProperty(pk)) continue;
-          if (pk === "lbl" || pk === "type" || pk === "ptrn" || pk === "rq" || pk === "preProcess" || pk === "postProcess" || pk === "x") continue;
-          out += renderDef(children[pk], path + "__" + pk, inDiv);
+          if (pk === "rqOneOf") {
+            if (rqSelectHtml) out += rqSelectHtml();
+            continue;
+          }
+          if (isMeta(pk)) continue;
+          if (_ro && _ro.indexOf(pk) !== -1) {
+            out += '<div class="ei-dyn-rqOneOf-item" data-rqoneof="' + path + '" data-rqoneof-key="' + pk + '" style="display:none;">';
+            out += renderDef(children[pk], path + "__" + pk, inDiv);
+            out += '</div>';
+          } else {
+            out += renderDef(children[pk], path + "__" + pk, inDiv);
+          }
         }
       }
       return out;
@@ -1471,6 +1531,17 @@ function eiBindDynamicHandlers() {
       if (el.value !== v) el.value = v;
     });
   });
+  document.querySelectorAll(".ei-dyn-rqOneOf-sel").forEach(function (sel) {
+    sel.addEventListener("change", function () {
+      var gp = this.getAttribute("data-path");
+      document.querySelectorAll('.ei-dyn-rqOneOf-item[data-rqoneof="' + gp + '"]').forEach(function (d) { d.style.display = "none"; });
+      var chosen = this.value;
+      if (chosen) {
+        var item = document.querySelector('.ei-dyn-rqOneOf-item[data-rqoneof="' + gp + '"][data-rqoneof-key="' + chosen + '"]');
+        if (item) item.style.display = "";
+      }
+    });
+  });
 }
 function eiValidateDynamicFields() {
   var xtra = myxtraFlds_fildsToNeeds || null;
@@ -1489,6 +1560,8 @@ function eiValidateDynamicFields() {
       }
       var el = eiDynQuery("ei-dyn-val", path);
       if (!el) continue;
+      var rpItem = el.closest('.ei-dyn-rqOneOf-item');
+      if (rpItem && rpItem.style.display === "none") continue;
       var isFile = def.type === "file";
       var req = def.rq === 1 || def.rq === true;
       var val = (el.value || "").trim();
@@ -1522,7 +1595,7 @@ function eiValidateDynamicFields() {
         setErr((def.lbl || k) + " is required");
         continue;
       }
-      var ptrn = def.ptrn;
+      var ptrn = def.ptrn || def.pattern;
       if (val && ptrn && typeof ptrn === "string" && ptrn.indexOf("^") !== -1) {
         var re = null;
         try {
@@ -1531,9 +1604,19 @@ function eiValidateDynamicFields() {
           re = null;
         }
         if (re && !re.test(val)) {
-          setErr("Invalid " + (def.lbl || k));
-          continue;
+          var normVal = val.toUpperCase().replace(/[\s\-._/]/g, "");
+          if (!re.test(normVal)) {
+            setErr("Invalid " + (def.lbl || k) + (def.fmt ? " (" + def.fmt + ")" : ""));
+            continue;
+          }
+          if (el && el.value !== normVal) el.value = normVal;
         }
+      }
+      if (val && def.type === "email") {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) { setErr("Please enter valid email!"); continue; }
+      }
+      if (val && def.type === "url") {
+        if (!/^https?:\/\/.+\..+/.test(val)) { setErr("Please enter valid URL!"); continue; }
       }
       var vfn = def.validate;
       if (vfn && typeof window[vfn] === "function") {
@@ -1547,6 +1630,56 @@ function eiValidateDynamicFields() {
     }
   }
   walk(xtra, "");
+  (function () {
+    function chkGroup(obj, basePath) {
+      for (var k in obj) {
+        if (!obj.hasOwnProperty(k)) continue;
+        var def = obj[k];
+        var path = basePath ? basePath + "__" + k : k;
+        if (!def || typeof def !== "object") continue;
+        if (eiDynIsGroup(def)) {
+          var ro = def.rqOneOf;
+          if (ro && typeof ro === "object" && ro.length) {
+            var ch = eiDynChildren(def);
+            var anyVal = false;
+            var anyVisible = false;
+            var lbls = [];
+            var firstVisiblePath = null;
+            var ddEl = eiDynQuery("ei-dyn-rqOneOf-sel", path);
+            for (var i = 0; i < ro.length; i++) {
+              var fk = ro[i];
+              if (ch[fk] && ch[fk].lbl) lbls.push(ch[fk].lbl);
+              var cel = eiDynQuery("ei-dyn-val", path + "__" + fk);
+              if (!cel) continue;
+              var celItem = cel.closest('.ei-dyn-rqOneOf-item');
+              if (celItem && celItem.style.display === "none") continue;
+              if (!anyVisible) { anyVisible = true; firstVisiblePath = path + "__" + fk; }
+              if (String(cel.value || "").trim()) { anyVal = true; break; }
+            }
+            if (!anyVal) {
+              ok = false;
+              if (!firstInvalid) {
+                firstInvalid = ddEl || (firstVisiblePath ? eiDynQuery("ei-dyn-val", firstVisiblePath) : null) || null;
+              }
+              var errEl = !anyVisible
+                ? eiDynQuery("ei-dyn-err", path + "__rqOneOfSel")
+                : (ddEl ? eiDynQuery("ei-dyn-err", path + "__" + ro[0]) : (firstVisiblePath ? eiDynQuery("ei-dyn-err", firstVisiblePath) : null));
+              if (errEl) {
+                errEl.textContent = !anyVisible ? "Required" : "Please enter at least one: " + lbls.join(", ");
+                errEl.style.display = "block";
+              }
+            } else {
+              var errSel2 = eiDynQuery("ei-dyn-err", path + "__rqOneOfSel");
+              if (errSel2) errSel2.style.display = "none";
+            }
+          }
+          chkGroup(eiDynChildren(def), path);
+          continue;
+        }
+      }
+    }
+    chkGroup(xtra, "");
+  })();
   if (firstInvalid) {
     try {
       firstInvalid.focus();
@@ -1571,7 +1704,11 @@ function eiCollectDynamicFields() {
         continue;
       }
       var el = eiDynQuery("ei-dyn-val", path);
-      if (el) dest[k] = el.value;
+      if (el) {
+        var _rpItem = el.closest('.ei-dyn-rqOneOf-item');
+        if (_rpItem && _rpItem.style.display === "none") continue;
+        dest[k] = el.value;
+      }
     }
   }
   walk(xtra, "", out);
@@ -1605,6 +1742,35 @@ async function eiFillDynamicFields(record, payload0) {
     }
   }
   await walk(xtra, "", data);
+  (function () {
+    function fillRqOneOf(obj, basePath, dataObj) {
+      for (var k in obj) {
+        if (!obj.hasOwnProperty(k)) continue;
+        var def = obj[k];
+        var path = basePath ? basePath + "__" + k : k;
+        if (!def || typeof def !== "object") continue;
+        if (eiDynIsGroup(def)) {
+          var ro = def.rqOneOf;
+          if (ro && typeof ro === "object" && ro.length) {
+            var ch = eiDynChildren(def);
+            var gd = dataObj && dataObj[k];
+            var ddEl = eiDynQuery("ei-dyn-rqOneOf-sel", path);
+            for (var i = 0; i < ro.length; i++) {
+              var fk = ro[i];
+              if (gd && gd[fk] && String(gd[fk]).trim()) {
+                if (ddEl) ddEl.value = fk;
+                var item = document.querySelector('.ei-dyn-rqOneOf-item[data-rqoneof="' + path + '"][data-rqoneof-key="' + fk + '"]');
+                if (item) item.style.display = "";
+                break;
+              }
+            }
+          }
+          fillRqOneOf(eiDynChildren(def), path, dataObj && dataObj[k]);
+        }
+      }
+    }
+    fillRqOneOf(xtra, "", data);
+  })();
 }
 function eiClearDynamicFields() {
   document.querySelectorAll(".ei-dyn-val").forEach(function (el) {
@@ -1625,6 +1791,12 @@ function eiClearDynamicFields() {
   });
   document.querySelectorAll(".ei-dyn-err").forEach(function (e) {
     e.style.display = "none";
+  });
+  document.querySelectorAll(".ei-dyn-rqOneOf-item").forEach(function (d) {
+    d.style.display = "none";
+  });
+  document.querySelectorAll(".ei-dyn-rqOneOf-sel").forEach(function (sel) {
+    sel.selectedIndex = 0;
   });
 }
 async function eiRunPostProcess(def, groupVals, payload0) {
