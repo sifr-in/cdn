@@ -2416,14 +2416,6 @@ function roomFilterBarHtml(list) {
   );
 }
 
-var HOTEL_SLIDES = window[my1uzr.worknOnPg].clientConfig?.HOTEL_SLIDES || [
-  "https://r1imghtlak.mmtcdn.com/222453ccb50d11eeb4300a58a9feac02.jpg",
-  "images/Suit Room/103/20260417_113947.jpg",
-  "images/Deluxe-AA/Deluxe-AA/1.PNG",
-  "images/Family Room/Family/21.PNG",
-  "images/Deluxe-BB/Deluxe-BB/12.PNG",
-];
-
 var sliderIdx = 0;
 var sliderTimer = null;
 var slideStartX = null;
@@ -5201,6 +5193,7 @@ window.loadRoomConfig = async function () {
         htImgSrc(cfg.bzlogo) || "https://i.postimg.cc/gJ62yjJf/my1.jpg";
     }
     window[my1uzr.worknOnPg].clientConfig = cfg;
+    window.HOTEL_SLIDES = window[my1uzr.worknOnPg].clientConfig?.HOTEL_SLIDES || [];
     applyRoomLists(cfg);
     if (
       document.getElementById("roomsGrid") &&
