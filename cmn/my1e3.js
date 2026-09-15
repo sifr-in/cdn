@@ -27,6 +27,18 @@ async function set_owner() {
  }
  window[my1uzr.worknOnPg] = {};
 }
+function clearPayload0() {
+ if (!window.payload0) return;
+ const keep = {
+  eo: window.payload0.eo,
+  ec: window.payload0.ec,
+  fi: window.payload0.fi,
+  fk: window.payload0.fk
+ };
+ if (window.payload0.mk != null) keep.mk = window.payload0.mk;
+ Object.keys(window.payload0).forEach(k => delete window.payload0[k]);
+ Object.assign(window.payload0, keep);
+}
 window.suppressModals = false;
 // Vanilla JS modal functions - no Bootstrap required
 window.showelsemodal = function (errorMsg) {
@@ -2885,11 +2897,57 @@ window.initDateTimePicker = async function (inputId, options) {
   return api;
 };
 
+function pageLoader(on = true) {
+    // Create loader only once
+    let loader = document.getElementById("commonPageLoader");
+
+    if (!loader) {
+        loader = document.createElement("div");
+        loader.id = "commonPageLoader";
+
+        loader.innerHTML = `
+            <div style="
+                width:45px;
+                height:45px;
+                border:5px solid #ddd;
+                border-top:5px solid #333;
+                border-radius:50%;
+                animation:commonLoaderSpin .8s linear infinite;
+            "></div>
+        `;
+
+        loader.style.cssText = `
+            position:fixed;
+            inset:0;
+            display:none;
+            align-items:center;
+            justify-content:center;
+            background:rgba(148, 148, 148, 0.75);
+            z-index:9999999;
+        `;
+
+        const style = document.createElement("style");
+        style.textContent = `
+            @keyframes commonLoaderSpin {
+                to { transform:rotate(360deg); }
+            }
+        `;
+
+        document.head.appendChild(style);
+        document.body.appendChild(loader);
+    }
+
+    // ON / OFF
+    loader.style.display = on ? "flex" : "none";
+}
+
 // Export for global access
+window.my1PageLoader = pageLoader;
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
 window.set_owner = set_owner;
 window.chkModuLstAgainstFNF = chkModuLstAgainstFNF;
+window.clearPayload0 = clearPayload0;
 
 (function bootLoadAppScr() {
  const src = document.currentScript ? document.currentScript.src : '';
@@ -2910,7 +2968,7 @@ window.chkModuLstAgainstFNF = chkModuLstAgainstFNF;
 
  const appPath = vMatch[1].replace(/\.js$/, '.min.js');
  const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + hash + '/' + appPath;
- //const url = 'core/ht.js';
+ //const url = 'rm.js';
  set_owner();
  loadPromiseScript(url);
 })();

@@ -937,6 +937,7 @@ async function sendBookingPayload() {
   // side, so adt starts empty but the key is still sent.
   var adt = [];
 
+  clearPayload0();
   payload0.p = {
     e: room ? room.a || room.no || room.e || 0 : 0, // room ID from rm table
     f: nowDtt, // booking dtt
@@ -1098,6 +1099,11 @@ window.hndlRspo113 = async function (resp, snap, room) {
         (typeof lastSnap !== "undefined" && lastSnap) ||
         (typeof calcBooking === "function" ? calcBooking() : null);
     }
+    my1PageLoader(true);
+    setTimeout(function () {
+      printMyBooking();
+      my1PageLoader(false);
+    }, 2000);
     // showBill(buildGuestBookingBillSnap(billSnap || {}, resp), function () {
     //   var scrollRoom = room || (billSnap && billSnap.room);
     //   if (scrollRoom && typeof showHome === "function") {

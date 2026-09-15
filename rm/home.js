@@ -109,6 +109,7 @@ window.htRefreshBookings = async function () {
   var btn = document.getElementById("htRefreshBtn");
   if (btn) { btn.querySelector("i").classList.add("fa-spin"); btn.disabled = true; }
   try {
+    clearPayload0();
     payload0.vw = 1;
     payload0.fn = 85;
     payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "rb" }, { tb: "c" }, { tb: "r" }]);

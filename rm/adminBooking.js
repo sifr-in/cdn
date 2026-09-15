@@ -1,6 +1,7 @@
 var htPackages = [];
 var htAddons = [];
 var htExtras = window.htExtras || [];
+var existing = [];
 
 // Receipts/advance payments belong to the booking's guest. If a receipt row
 // carries no party id (h), default it to the selected guest so server-side
@@ -43,6 +44,7 @@ window.fnAfterRcptPmt = function(...objjj){
     if (rec.l && rec.l.td != null) rec.td = String(rec.l.td);
     payments.push(rec);
   }
+  existing = payments;
   bookingState.payments = payments;
   renderPaymentsRows("bkPaymentRows");
   renderPaymentsRows("bePaymentRows");
@@ -117,6 +119,7 @@ window.updateBillPayments = async function () {
       return r;
     });
 
+    clearPayload0();
     payload0.vw = 1;
     payload0.fn = 103;
     payload0.r = paymentArray;
@@ -221,7 +224,7 @@ window.openRcptPmtModal = async function () {
   } catch (e) {
     rRows = [];
   }
-  var existing = [];
+
   if (bookingState.editBookingId) {
     var cfg =
       window[my1uzr.worknOnPg]?.clientConfig?.rp_xtraEiFlds_rmBookAdmin;
@@ -2085,8 +2088,9 @@ function finishBookingSave(built, title, msg) {
 function buildBookingPayload() {
   // payload0 is a shared global: the guest-search flows (fn 36 / entity crud)
   // can leave a guest object in payload0.c. The booking payload must not
-  // resend it, so drop any leftover c before assembling the request.
-  delete payload0.c;
+  // can leave leftover keys. Reset to the set_owner base keys only
+  // (eo/ec/fi/fk/mk) before assembling the booking request.
+  clearPayload0();
   var room = getRoomById(bookingState.roomId);
   var pkg = getPackageById(bookingState.packageId);
   var nights = calcNights(bookingState.checkin, bookingState.checkout) || 1;
@@ -2466,6 +2470,7 @@ window.deleteBookingRecord = function (record) {
     upd.a = record.a;
     upd.o = 4; // status -> Cancelled
 
+    clearPayload0();
     payload0.x1 = record.a;
     payload0.p = upd;
     payload0.vw = 1;
@@ -2834,6 +2839,20 @@ window.editBookingRecord = async function (record) {
     }
     beBookedDatesCache = {};
     showBookingEntryView();
+    // Enrich the already-rendered guest section from the c-table record
+    // (match rb.o == c.a). commonFnToRunAfter_op_ViewCall sets name/mobile/
+    // address/ID docs on the be* fields and reveals the guest section.
+    if (bookingState.guestCId && String(bookingState.guestCId) !== "0") {
+      try {
+        var cRows = (await dbDexieManager.getAllRecords(dbnm, "c")) || [];
+        for (var ci = 0; ci < cRows.length; ci++) {
+          if (String(cRows[ci].a) === String(bookingState.guestCId)) {
+            commonFnToRunAfter_op_ViewCall(cRows[ci], 1);
+            break;
+          }
+        }
+      } catch (e) { console.warn("Guest detail lookup failed:", e); }
+    }
   } else {
     openBookingModal(room, record.e, record.f);
     bookingState.editBookingId = record.a;
@@ -2859,6 +2878,28 @@ window.editBookingRecord = async function (record) {
     // Restore the booking's saved receipts (table r, td filtered) so the
     // Summary payment block and Update Payments button stay in sync.
     bookingState.payments = await loadBookingReceipts(record.a);
+    // Auto-populate guest details from c table (rb.o == c.a) so the wizard's
+    // guest step re-opens with the saved guest values.
+    if (bookingState.guestCId && String(bookingState.guestCId) !== "0") {
+      try {
+        var cRowsW = (await dbDexieManager.getAllRecords(dbnm, "c")) || [];
+        for (var ci = 0; ci < cRowsW.length; ci++) {
+          if (String(cRowsW[ci].a) === String(bookingState.guestCId)) {
+            var gRecW = cRowsW[ci];
+            if (gRecW.h) bookingState.guestName = gRecW.h;
+            if (gRecW.e) {
+              var hpW = String(gRecW.e).split(".");
+              if (hpW.length === 2) {
+                bookingState.countryCode = hpW[0];
+                bookingState.mobile = hpW[1];
+              }
+            }
+            if (gRecW.m) bookingState.address = gRecW.m;
+            break;
+          }
+        }
+      } catch (e) { console.warn("Guest detail lookup failed:", e); }
+    }
     beBookedDatesCache = {};
   }
 };
