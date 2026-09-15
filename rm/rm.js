@@ -127,7 +127,6 @@ window[my1uzr.worknOnPg].shodateofberthForEi = 1;
       {
         a: 4,
         u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fbf62ad/cmn/my1lo.js",
-        //u: "my1lo.js",
         c: "open_shoLgnO",
         r: "open_shoLgnO",
       },
@@ -179,7 +178,8 @@ window[my1uzr.worknOnPg].shodateofberthForEi = 1;
       },
       {
         a: 20,
-        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/booking.js",
+        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@687784c/rm/booking.js",
+        //u: "git/booking.js",
         c: "openSummarySheet,calcBooking",
         r: " ",
       },
@@ -192,7 +192,6 @@ window[my1uzr.worknOnPg].shodateofberthForEi = 1;
       {
         a: 36,
         u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/cmn/ei.min.js",
-        //u: "ei.js",
         c: "open_entind_crud",
         r: "open_entind_crud",
       },
@@ -217,13 +216,15 @@ window[my1uzr.worknOnPg].shodateofberthForEi = 1;
       },
       {
         a: 44,
-        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/home.js",
+        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@687784c/rm/home.js",
+        //u: "git/home.js",
         c: "showDashboard,renderTable",
         r: " ",
       },
       {
         a: 46,
-        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/adminBooking.js",
+        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@687784c/rm/adminBooking.js",
+        //u: "git/adminBooking.js",
         c: "openBookingModal,saveBooking",
         r: " ",
       },
@@ -252,11 +253,9 @@ window[my1uzr.worknOnPg].shodateofberthForEi = 1;
         r: " ",
       },
       { "a": 52, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b7740c3/cmn/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
-      //{ "a": 52, "u": "core/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
       { "a": 53, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fcbc516/cmn/my1rp.js", "c": "open_my1rp", "r": "open_my1rp" },
-      //{ "a": 53, "u": "git/my1rp.js", "c": "open_my1rp", "r": "open_my1rp" },
       { "a": 106, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/addRoom.js", "c": "showAddRoom,setAddRoomHero,updateThumb,publishAddRoom,resetAddRoomForm,editRoom", "r": " " },
-      { "a": 112, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/adminBooking.js", "c": "openBookingModal,saveBooking", "r": " " },
+      { "a": 112, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@687784c/rm/adminBooking.js", "c": "openBookingModal,saveBooking", "r": " " },
       { "a": 114, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/restaurant.js", "c": "showRestaurant", "r": " " },
       { "a": 111, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/reviews.js", "c": "showReviews,openReviewModal,submitReview", "r": " " },
     ];
@@ -1611,6 +1610,11 @@ appcss = `:root {
   .ht-footer-inner { display: flex; flex-direction: column; align-items: center; gap: 16px; }
   .ht-footer-brand { font-family: "Playfair Display", Georgia, serif; font-size: 17px; font-weight: 700; color: #fff8e7; }
   .ht-footer-tag { font-size: 10px; letter-spacing: 2.4px; color: var(--gold); text-transform: uppercase; margin-top: 2px; text-align: center; }
+  .ht-footer-contact { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 28px; width: 100%; }
+  .ht-footer-contact-item { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; }
+  .ht-footer-contact-item i { color: var(--gold); font-size: 12px; width: 14px; text-align: center; }
+  .ht-footer-c-label { color: var(--gold); font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; }
+  .ht-footer-c-value { color: #d9cfb8; }
   .ht-footer-links { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
   .ht-footer-links a {
     color: var(--gold-light);
@@ -1713,6 +1717,7 @@ appcss = `:root {
   @media (max-width: 767.98px) {
     .ht-policy-grid { grid-template-columns: 1fr; }
     .ht-policy-view { padding: 24px 20px 50px; }
+    .ht-footer-contact { flex-direction: column; align-items: center; gap: 8px; }
   }
   @media (max-width: 479.98px) {
     .ht-policy-view { padding: 20px 16px 50px; }
@@ -2013,6 +2018,9 @@ function applyClientConfigToPublic() {
     name: cfg.bznm || (hotel && hotel.name) || "Hotel",
     city: cfg.bzadrs || (hotel && hotel.city) || "",
     tagline: cfg.subjto || (hotel && hotel.tagline) || "",
+    address: cfg.bzadrs || (hotel && hotel.address) || "",
+    phone: cfg.conta || (hotel && hotel.phone) || "",
+    email: cfg.emlAdrs || (hotel && hotel.email) || "",
     currency: (hotel && hotel.currency) || "INR",
     symbol: (hotel && hotel.symbol) || "\u20B9",
     gst: cfg.gst != null ? Number(cfg.gst) : (hotel && hotel.gst) || 5,
@@ -2098,12 +2106,31 @@ function renderApp() {
     '<div class="ht-footer-tag">' +
     escHtml(h.tagline || "") +
     "</div>" +
+    (h.phone || h.email || h.address
+      ? '<div class="ht-footer-contact">' +
+        (h.phone
+          ? '<div class="ht-footer-contact-item"><i class="fa-solid fa-phone"></i><span class="ht-footer-c-label">Mobile Number</span><span class="ht-footer-c-value">' +
+            h.phone +
+            "</span></div>"
+          : "") +
+        (h.email
+          ? '<div class="ht-footer-contact-item"><i class="fa-solid fa-envelope"></i><span class="ht-footer-c-label">Email Address</span><span class="ht-footer-c-value">' +
+            escHtml(h.email) +
+            "</span></div>"
+          : "") +
+        (h.address
+          ? '<div class="ht-footer-contact-item"><i class="fa-solid fa-location-dot"></i><span class="ht-footer-c-label">Address</span><span class="ht-footer-c-value">' +
+            escHtml(h.address) +
+            "</span></div>"
+          : "") +
+        "</div>"
+      : "") +
     '<div class="ht-footer-links">' +
-    '<a href="javascript:void(0)" onclick="showPolicy(\'terms\')">Terms & Conditions</a>' +
+    '<a href="'+window[my1uzr.worknOnPg].clientConfig.trmsFl+'" target="_blank">Terms & Conditions</a>' +
     '<span class="ht-footer-sep">|</span>' +
-    '<a href="javascript:void(0)" onclick="showPolicy(\'privacy\')">Privacy Policy</a>' +
+    '<a href="'+window[my1uzr.worknOnPg].clientConfig.prvcFl+'" target="_blank">Privacy Policy</a>' +
     '<span class="ht-footer-sep">|</span>' +
-    '<a href="javascript:void(0)" onclick="showPolicy(\'refund\')">Refund Policy</a>' +
+    '<a href="'+window[my1uzr.worknOnPg].clientConfig.rfndFl+'" target="_blank">Refund Policy</a>' +
     "</div>" +
     '<div class="ht-footer-copy">&copy; ' +
     new Date().getFullYear() +
@@ -5324,6 +5351,7 @@ window.openRoomBooking = async function (roomId, ci, co) {
   try {
     var la = await dbDexieManager
       .getMaxDateRecords(dbnm, [{ tb: "rb" }]);
+    clearPayload0();
     payload0.vw = 1;
     payload0.fn = 111;
     payload0.la = la;
@@ -5411,6 +5439,7 @@ window.updateRoomStatus = async function (roomId, status) {
     upd.a = roomId;
     upd.d = val;
 
+    clearPayload0();
     payload0.x1 = roomId;
     payload0.p = upd;
     payload0.vw = 1;
