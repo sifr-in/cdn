@@ -1,7 +1,7 @@
 const tblsRequired = [ "f", "fp", "c", "rm", "r", "rb"];
 const moduLst = [
   //{ a: ",3,79,80", mi: ",36,", b: "entInd entity/individual", c: "fa-user", d: "entind", e: "#064ebb" },
-  { a: ",85,", mi: ",44,", b: "Dashboard", c: "fa-chart-line", d: "home", e: "#0d6efd" },
+  { a: ",85,115,", mi: ",44,", b: "Dashboard", c: "fa-chart-line", d: "home", e: "#0d6efd" },
   { a: ",106,", mi: ",106,", b: "Manage Rooms", c: "fa-bed", d: "rooms", e: "#198754" },
   //{ a: ",106,", mi: ",106,", b: "Add Room", c: "fa-plus-circle", d: "addRoom", e: "#20c997" },
   { a: ",106,112,114,103,", mi: ",106,112,114,", b: "New Booking", c: "fa-calendar-plus", d: "booking", e: "#dc3545" },
@@ -23,70 +23,6 @@ window[my1uzr.worknOnPg].emptBodyMs =
 window[my1uzr.worknOnPg].colsToHide = "n,";
 window[my1uzr.worknOnPg].dtFormat = "dd-mm-yyyy";
 window[my1uzr.worknOnPg].shodateofberthForEi = 1;
-
-/* ============================================================
-   Lazy-load race fix (my1e3.js is readonly, so patch here).
-   loadPromiseScript() resolves early when a <script> tag for the
-   same URL already exists in the DOM - even if that tag is still
-   downloading. Two "Book Now" click handlers can therefore call
-   loadExe2Fn() for the same module concurrently; the second call
-   "loads" the tag, re-checks the window functions, finds them
-   still undefined and throws "Functions ... not found after
-   loading script". Wrap loadExe2Fn so concurrent callers await
-   the SAME in-flight load promise instead of starting a new one.
-   ============================================================ */
-(function () {
-  if (window.__htLoadSerialize) return;
-  window.__htLoadSerialize = true;
-  var orig = window.loadExe2Fn;
-  if (typeof orig !== "function") return;
-  var inflight = {};
-  var wrapped = function (id) {
-    var key = String(id);
-    if (inflight[key]) return inflight[key];
-    var p = orig.apply(null, arguments).then(
-      function (v) {
-        delete inflight[key];
-        return v;
-      },
-      function (e) {
-        delete inflight[key];
-        throw e;
-      },
-    );
-    inflight[key] = p;
-    return p;
-  };
-  wrapped.__htOrigLoadExe2Fn = orig;
-  window.loadExe2Fn = wrapped;
-})();
-
-/* ============================================================
-   Patch loadPromiseScript to handle stale/failed script tags.
-   When a <script> tag already exists in the DOM but the script
-   failed to load or never finished, remove the stale tag and
-   create a fresh one so retries actually re-download.
-   ============================================================ */
-(function () {
-  if (window.__htLoadPromisePatched) return;
-  window.__htLoadPromisePatched = true;
-  var origLPS = window.loadPromiseScript;
-  if (typeof origLPS !== "function") return;
-  window.loadPromiseScript = function (url) {
-    if (!url.endsWith(".css") && !url.includes("/css/")) {
-      var existing = document.querySelector('script[src="' + url + '"]');
-      if (existing) {
-        if (existing.dataset.htLoaded === "1") return Promise.resolve();
-        existing.remove();
-      }
-    }
-    return origLPS(url).then(function (v) {
-      var tag = document.querySelector('script[src="' + url + '"]');
-      if (tag) tag.dataset.htLoaded = "1";
-      return v;
-    });
-  };
-})();
 
 /* ============================================================
    HT - Hotel Shri Vimaleshwar Executive (user page)
@@ -172,13 +108,14 @@ window[my1uzr.worknOnPg].shodateofberthForEi = 1;
       },
       {
         a: 25,
-        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/policyContent.js",
-        c: "initPolicyContent",
+        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@25415a1/cmn/conta.js",
+        //u: "git/conta.js",
+        c: "showContactModal",
         r: " ",
       },
       {
         a: 20,
-        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@687784c/rm/booking.js",
+        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@25415a1/rm/booking.js",
         //u: "git/booking.js",
         c: "openSummarySheet,calcBooking",
         r: " ",
@@ -223,7 +160,7 @@ window[my1uzr.worknOnPg].shodateofberthForEi = 1;
       },
       {
         a: 46,
-        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@687784c/rm/adminBooking.js",
+        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@25415a1/rm/adminBooking.js",
         //u: "git/adminBooking.js",
         c: "openBookingModal,saveBooking",
         r: " ",
@@ -255,7 +192,8 @@ window[my1uzr.worknOnPg].shodateofberthForEi = 1;
       { "a": 52, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b7740c3/cmn/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
       { "a": 53, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fcbc516/cmn/my1rp.js", "c": "open_my1rp", "r": "open_my1rp" },
       { "a": 106, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/addRoom.js", "c": "showAddRoom,setAddRoomHero,updateThumb,publishAddRoom,resetAddRoomForm,editRoom", "r": " " },
-      { "a": 112, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@687784c/rm/adminBooking.js", "c": "openBookingModal,saveBooking", "r": " " },
+      { "a": 112, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@25415a1/rm/adminBooking.js", "c": "openBookingModal,saveBooking", "r": " " },
+      //{ "a": 112, "u": "git/adminBooking.js", "c": "openBookingModal,saveBooking", "r": " " },
       { "a": 114, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/restaurant.js", "c": "showRestaurant", "r": " " },
       { "a": 111, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/reviews.js", "c": "showReviews,openReviewModal,submitReview", "r": " " },
     ];
@@ -2131,6 +2069,8 @@ function renderApp() {
     '<a href="'+window[my1uzr.worknOnPg].clientConfig.prvcFl+'" target="_blank">Privacy Policy</a>' +
     '<span class="ht-footer-sep">|</span>' +
     '<a href="'+window[my1uzr.worknOnPg].clientConfig.rfndFl+'" target="_blank">Refund Policy</a>' +
+    '<span class="ht-footer-sep">|</span>' +
+    '<button type="button" class="ht-btn ht-btn-ember ht-footer-contact-btn" onclick="if (typeof showContactModal === \'function\') showContactModal();">Contact Us</button>' +
     "</div>" +
     '<div class="ht-footer-copy">&copy; ' +
     new Date().getFullYear() +
@@ -3057,7 +2997,6 @@ function switchView(v, policyType) {
     pol.classList.remove("ht-hidden");
     document.body.classList.remove("has-details");
     currentPolicyType = policyType || "terms";
-    renderPolicyContent(currentPolicyType);
   } else {
     home.classList.add("ht-hidden");
     det.classList.remove("ht-hidden");
@@ -3074,46 +3013,6 @@ function showHome() {
 
 function showPolicy(type) {
   switchView("policies", type);
-}
-
-function renderPolicyContent(type) {
-  var data = null;
-  if (type === "terms") data = POLICY_TERMS;
-  else if (type === "privacy") data = POLICY_PRIVACY;
-  else if (type === "refund") data = POLICY_REFUND;
-  if (!data) return;
-
-  var sections = "";
-  for (var i = 0; i < data.sections.length; i++) {
-    var s = data.sections[i];
-    sections +=
-      '<div class="ht-policy-section">' +
-      "<h3>" +
-      escHtml(s.heading) +
-      "</h3>" +
-      "<p>" +
-      escHtml(s.body) +
-      "</p>" +
-      "</div>";
-  }
-
-  el("viewPolicies").innerHTML =
-    '<div class="ht-policy-view">' +
-    '<button class="ht-back-btn" onclick="showHome()"><i class="fa-solid fa-arrow-left"></i> Back</button>' +
-    '<div class="ht-policy-header">' +
-    '<i class="fa-solid ' +
-    data.icon +
-    '"></i>' +
-    "<h1>" +
-    escHtml(data.title) +
-    "</h1>" +
-    "</div>" +
-    '<div class="ht-policy-date">Last updated: ' +
-    escHtml(data.lastUpdated) +
-    "</div>" +
-    '<div class="ht-policy-grid">' +
-    sections +
-    "</div></div>";
 }
 
 function showRoomDetails(id) {
@@ -3251,6 +3150,7 @@ function normalizeBookingRow(bk) {
     j: bk.e != null ? bk.e : 0,
     m: daysBetweenStr(e, f),
     n: typeof bk.m === "number" ? bk.m : parseFloat(bk.m) || 0,
+    disc: bk.n != null ? Number(bk.n) || 0 : 0,
     o: bk.o != null ? bk.o : 0,
     oc: bk.o != null ? bk.o : 0,
     k: bk.k != null ? bk.k : null,

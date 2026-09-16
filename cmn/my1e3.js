@@ -491,21 +491,30 @@ function loadPromiseScript(url) {
    link.onload = resolve;
    link.onerror = reject;
    document.head.appendChild(link);
-  } else {
-   // It's a JS file
-   // Check for duplicates
-   const existingScript = document.querySelector(`script[src="${url}"]`);
-   if (existingScript) {
-    resolve();
-    return;
-   }
+} else {
+    // It's a JS file
+    // Duplicate handling: a tag in the DOM may still be downloading or have
+    // failed. If we already loaded it, resolve; else remove the stale tag so
+    // the retry actually re-downloads.
+    const existingScript = document.querySelector(`script[src="${url}"]`);
+    if (existingScript) {
+     if (existingScript.dataset.htLoaded === "1") {
+      resolve();
+      return;
+     }
+     existingScript.remove();
+    }
 
-   const script = document.createElement("script");
-   script.onload = resolve;
-   script.onerror = reject;
-   script.src = url;
-   document.head.appendChild(script);
-  }
+    const script = document.createElement("script");
+    script.onload = function () {
+     const tag = document.querySelector(`script[src="${url}"]`);
+     if (tag) tag.dataset.htLoaded = "1";
+     resolve();
+    };
+    script.onerror = reject;
+    script.src = url;
+    document.head.appendChild(script);
+   }
  });
 }
 async function loadCshScriptsSequentially(...scriptIds) {
@@ -701,10 +710,15 @@ function getNextCshId() {
  const maxA = Math.max(...window[my1uzr.worknOnPg].cach.map(item => item.a));
  return maxA + 1;
 }
+const __loadExe2FnInflight = {};
 async function loadExe2Fn(id_as_a, pFNarams = [], pSCRParams = []) {
- let loader = null;
+ const key = String(id_as_a);
+ if (__loadExe2FnInflight[key]) return __loadExe2FnInflight[key];
 
- try {
+ const run = (async () => {
+  let loader = null;
+
+  try {
   // Validate required global objects
   if (typeof my1uzr === 'undefined') {
    throw new Error('my1uzr object not found');
@@ -853,6 +867,14 @@ async function loadExe2Fn(id_as_a, pFNarams = [], pSCRParams = []) {
    // Hide existing loader
    loader.style.display = 'none';
   }
+ }
+ })();
+
+ __loadExe2FnInflight[key] = run;
+ try {
+  return await run;
+ } finally {
+  delete __loadExe2FnInflight[key];
  }
 }
 
@@ -2606,11 +2628,17 @@ window.loadDatePickerDependencies = function () {
       link.onerror = () => reject(new Error('Failed to load Tempus Dominus CSS'));
       document.head.appendChild(link);
 
-      const script = document.createElement('script');
-      script.src = `https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@${window.PICKER_TD_VERSION}/dist/js/tempus-dominus.min.js`;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('Failed to load Tempus Dominus JS'));
-      document.head.appendChild(script);
+      const popper = document.createElement('script');
+      popper.src = 'https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js';
+      popper.onerror = () => reject(new Error('Failed to load Popper.js'));
+      popper.onload = () => {
+        const script = document.createElement('script');
+        script.src = `https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@${window.PICKER_TD_VERSION}/dist/js/tempus-dominus.min.js`;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load Tempus Dominus JS'));
+        document.head.appendChild(script);
+      };
+      document.head.appendChild(popper);
     });
     window.tdDepsPromise.catch(() => { window.tdDepsPromise = null; });
   }
