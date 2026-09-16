@@ -1488,12 +1488,161 @@ function finishPreview() {
     showMessageModal("Check Your Stay", msg, true);
     return;
   }
-  //if (isLoggedIn()) {
-    sendBookingPayload();
-  // } else {
-  //   pendingPay = true;
-  //   open_shoLgnO("tempLoginModal", 0, 0);
-  // }
+  startPhonePePayment();
+}
+
+/* ============================================================
+   PHONEPE PAYMENT (front-end)
+   ------------------------------------------------------------
+   1. POST the grand total to phonepe/request.php.
+   2. Persist the booking snapshot + module state to localStorage
+      so it survives the PhonePe redirect round-trip.
+   3. Redirect the browser to the PhonePe checkout page.
+   On return the app lands on ?pp=OK|FAIL|ERR&oid=... and the
+   handlePhonePeReturn() below submits the booking (only after
+   the server has verified the order as COMPLETED).
+   ============================================================ */
+function ppStorageKey(k) {
+  return "pp_" + k;
+}
+
+async function startPhonePePayment() {
+  var snap = lastSnap || calcBooking();
+  if (!snap) return;
+
+  my1PageLoader(true);
+  try {
+    var resp = await fetch("phonepe/request.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amountRupees: snap.grandTotal }),
+    });
+    var data = await resp.json();
+    my1PageLoader(false);
+
+    if (!data.orderId || !data.redirectUrl) {
+      showelsemodal(data.error || "Payment could not be started. Please try again.", true);
+      return;
+    }
+
+    localStorage.setItem(ppStorageKey("oid"), data.orderId);
+    localStorage.setItem(ppStorageKey("snap"), JSON.stringify(snap));
+    localStorage.setItem(ppStorageKey("checkin"), checkIn);
+    localStorage.setItem(ppStorageKey("checkout"), checkOut);
+    localStorage.setItem(ppStorageKey("adults"), String(adults));
+    localStorage.setItem(ppStorageKey("children"), String(children));
+    localStorage.setItem(ppStorageKey("childAges"), JSON.stringify(childAges));
+    localStorage.setItem(ppStorageKey("packageId"), String(packageId || 0));
+    localStorage.setItem(ppStorageKey("addonIds"), JSON.stringify(addonIds));
+    localStorage.setItem(ppStorageKey("chargeWithAc"), String(!!chargeWithAc));
+
+    window.location.href = data.redirectUrl;
+  } catch (e) {
+    my1PageLoader(false);
+    showelsemodal("Payment service unavailable. Please try again.", true);
+  }
+  return false;
+}
+
+function restoreBookingStateForPayment() {
+  var snap = null;
+  try {
+    snap = JSON.parse(localStorage.getItem(ppStorageKey("snap")) || "null");
+  } catch (e) {
+    snap = null;
+  }
+  if (!snap) return null;
+
+  checkIn = localStorage.getItem(ppStorageKey("checkin")) || snap.checkin || "";
+  checkOut = localStorage.getItem(ppStorageKey("checkout")) || snap.checkout || "";
+  adults = Number(localStorage.getItem(ppStorageKey("adults"))) || snap.adults || 0;
+  children = Number(localStorage.getItem(ppStorageKey("children"))) || snap.children || 0;
+  try {
+    childAges = JSON.parse(localStorage.getItem(ppStorageKey("childAges")) || "[]");
+  } catch (e) {
+    childAges = [];
+  }
+  if (!Array.isArray(childAges)) childAges = [];
+  packageId = Number(localStorage.getItem(ppStorageKey("packageId"))) || snap.package?.id || 0;
+  try {
+    addonIds = JSON.parse(localStorage.getItem(ppStorageKey("addonIds")) || "[]");
+  } catch (e) {
+    addonIds = [];
+  }
+  if (!Array.isArray(addonIds)) addonIds = [];
+  chargeWithAc = localStorage.getItem(ppStorageKey("chargeWithAc")) === "true";
+  lastSnap = snap;
+  return snap;
+}
+
+function clearPhonePeStorage() {
+  [
+    "oid",
+    "snap",
+    "checkin",
+    "checkout",
+    "adults",
+    "children",
+    "childAges",
+    "packageId",
+    "addonIds",
+    "chargeWithAc",
+  ].forEach(function (k) {
+    localStorage.removeItem(ppStorageKey(k));
+  });
+}
+
+function handlePhonePeReturn() {
+  var params = new URLSearchParams(window.location.search);
+  var pp = params.get("pp");
+  if (!pp) return;
+
+  history.replaceState({}, "", window.location.pathname);
+
+  if (pp === "OK") {
+    var expectedOid = localStorage.getItem(ppStorageKey("oid"));
+    var oid = params.get("oid");
+    if (expectedOid && oid && expectedOid !== oid) {
+      clearPhonePeStorage();
+      showMessageModal(
+        "Check Payment",
+        "Payment reference does not match. Please contact the hotel with your order id: " + oid,
+        true,
+      );
+      return;
+    }
+
+    var snap = restoreBookingStateForPayment();
+    if (snap) {
+      lastSnap = snap;
+      clearPhonePeStorage();
+      sendBookingPayload();
+    } else {
+      clearPhonePeStorage();
+      showMessageModal(
+        "Payment Done",
+        "Your payment was received but the booking details could not be restored. Please contact the hotel.",
+        true,
+      );
+    }
+  } else {
+    clearPhonePeStorage();
+    showMessageModal(
+      "Payment Pending",
+      pp === "ERR"
+        ? "We could not verify your payment. Please check your bookings later or contact the hotel."
+        : "Payment was not completed. Please try again.",
+      true,
+    );
+  }
+}
+
+if (typeof window !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", handlePhonePeReturn);
+  } else {
+    handlePhonePeReturn();
+  }
 }
 
 window.function2runAfter_O_Login = function (result) {
