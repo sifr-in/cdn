@@ -115,7 +115,7 @@ window[my1uzr.worknOnPg].shodateofberthForEi = 1;
       },
       {
         a: 20,
-        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@25415a1/rm/booking.js",
+        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@4a0308c/rm/booking.js",
         //u: "git/booking.js",
         c: "openSummarySheet,calcBooking",
         r: " ",
