@@ -724,11 +724,11 @@ function summaryHtml(s, opts) {
     "Room \u00b7 " + s.nights + " night" + (s.nights > 1 ? "s" : ""),
     fmtMoney(s.roomCostFull),
   ); if (s.discountAmt > 0) {
-    rows += srow(
-      "Long-stay discount (" + s.discountPercent + "%)",
-      "\u2212" + fmtMoney(s.discountAmt),
-      "neg",
-    );
+    var dLbl =
+      s.discountPercent && Number(s.discountPercent) > 0
+        ? "Long-stay discount (" + s.discountPercent + "%)"
+        : "Discount";
+    rows += srow(dLbl, "\u2212" + fmtMoney(s.discountAmt), "neg");
   }
   if (s.adultFee > 0) {
     rows += srow(
@@ -780,7 +780,7 @@ function summaryHtml(s, opts) {
     escHtml(hotel.name) +
     "</div>" +
     '<div class="s-room" id="sRoomLine">' +
-    escHtml(s.room.name) +
+    escHtml(s.room ? s.room.name : s.roomName) +//(s.room && (s?.room?.name || s.roomName || s?.room?.e)) || "") +
     "</div>" +
     '<div class="s-day-rates">' +
     dayRatesHtml(s) +
@@ -1355,17 +1355,18 @@ function bookingSnapFromRecord(bk) {
     addonList.push({ addon: { name: "Add-ons" }, cost: addonChargeTotal });
   }
 
-  var discountAmt = 0;
+  var discountAmt = Math.round(Number(bk.disc) || 0);
   var roomCostFull = full;
-  var subtotal = roomCostFull + occupancyFee + addonCost - discountAmt;
+  var subtotal = roomCostFull + occupancyFee + addonCost;
   var tax = gst > 0 ? Math.round((subtotal * gst) / 100) : 0;
 
   if (subtotal <= 0 && bk.n) {
     roomCostFull = Number(bk.n) || 0;
     subtotal = roomCostFull;
     tax = 0;
+    discountAmt = 0;
   }
-  var grandTotal = Math.round(subtotal + tax);
+  var grandTotal = Math.round(subtotal + tax) - discountAmt;
 
   return {
     room: room,

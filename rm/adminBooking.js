@@ -29,7 +29,7 @@ function receiptPartyId(rec) {
   document.head.appendChild(st);
 })();
 
-window.fnAfterRcptPmt = function(...objjj){
+window.fnAfterRcptPmt = function (...objjj) {
   var rData = (objjj && objjj[0]) || [];
   var payments = [];
   for (var i = 0; i < rData.length; i++) {
@@ -131,19 +131,19 @@ window.updateBillPayments = async function () {
     ]);
 
     var response = null;
-    
-      response = await fnj3(
-        "https://my1.in/2/p.php",
-        payload0,
-        1,
-        true,
-        null,
-        20000,
-        0,
-        2,
-        1
-      );
-  
+
+    response = await fnj3(
+      "https://my1.in/2/p.php",
+      payload0,
+      1,
+      true,
+      null,
+      20000,
+      0,
+      2,
+      1
+    );
+
     if (response && response.su == 1) {
       // if (typeof handl_rm_rspons !== "function") {
       //   try {
@@ -176,10 +176,89 @@ window.updateBillPayments = async function () {
     showMessageModal(
       "Info",
       "Error updating payments: " +
-        (error && error.message ? error.message : error),
+      (error && error.message ? error.message : error),
       false
     );
   }
+};
+
+// Bill preview for a saved booking: loads the raw rb row by id (plus its guest
+// record), rebuilds the bill snapshot with the rb.n discount applied, and
+// renders it through the shared showBill/bill module. Called after the booking
+// is saved, before the loader clears.
+window.printBillFromDashboard = async function (bookingId) {
+  if (typeof showBill !== "function") {
+    showMessageModal("Info", "Print unavailable.", true);
+    return;
+  }
+  var raws = [];
+  try {
+    raws = (await dbDexieManager.getAllRecords(dbnm, "rb")) || [];
+  } catch (e) {
+    raws = [];
+  }
+  var raw = null;
+  for (var i = 0; i < raws.length; i++) {
+    if (raws[i] && String(raws[i].a) === String(bookingId)) {
+      raw = raws[i];
+      break;
+    }
+  }
+  if (!raw) {
+    showMessageModal("Info", "Bill not found", true);
+    return;
+  }
+  var snap = null;
+  if (
+    typeof normalizeBookingRow === "function" &&
+    typeof bookingSnapFromRecord === "function"
+  ) {
+    try {
+      snap = bookingSnapFromRecord(normalizeBookingRow(raw));
+    } catch (e) {
+      snap = null;
+    }
+  }
+  if (!snap) {
+    showMessageModal(
+      "Info",
+      "Could not build the bill for this booking.",
+      true,
+    );
+    return;
+  }
+  if (raw.o != null) {
+    var cRows = [];
+    try {
+      cRows = (await dbDexieManager.getAllRecords(dbnm, "c")) || [];
+    } catch (e) {
+      cRows = [];
+    }
+    for (var cj = 0; cj < cRows.length; cj++) {
+      if (
+        cRows[cj] &&
+        cRows[cj].a != null &&
+        String(cRows[cj].a) === String(raw.o)
+      ) {
+        var guest = cRows[cj];
+        snap.guestName = guest.h != null ? String(guest.h) : "";
+        snap.contact = guest.e != null ? String(guest.e) : "";
+        snap.email =
+          typeof billC1Email === "function" ? billC1Email(guest) || "" : "";
+        snap.address = guest.m != null ? String(guest.m) : "";
+        break;
+      }
+    }
+  }
+  showBill(snap, function () {
+    document.body.classList.add("ht-print-bill");
+    var cleanup = function () {
+      document.body.classList.remove("ht-print-bill");
+    };
+    window.addEventListener("afterprint", cleanup);
+    window.print();
+    window.setTimeout(cleanup, 30000);
+  });
 };
 
 // Reload the currently-open Edit Booking view from the freshly saved DB row so
@@ -1340,10 +1419,10 @@ function renderRoomStep() {
     var rImg = htRoomImage(r);
     var rImgHtml = rImg
       ? '<img src="' +
-        escAttr(rImg) +
-        '" alt="' +
-        escAttr(htRoomName(r)) +
-        '" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">'
+      escAttr(rImg) +
+      '" alt="' +
+      escAttr(htRoomName(r)) +
+      '" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">'
       : '<i class="fas fa-bed"></i>';
     h +=
       '<div class="col-12 col-md-6">' +
@@ -1602,11 +1681,11 @@ function renderSummaryStep() {
 
   var childTxt = bookingState.children.length
     ? bookingState.children.length +
-      " child" +
-      (bookingState.children.length > 1 ? "ren" : "") +
-      " (ages " +
-      childAges.join(", ") +
-      ")"
+    " child" +
+    (bookingState.children.length > 1 ? "ren" : "") +
+    " (ages " +
+    childAges.join(", ") +
+    ")"
     : "None";
 
   var guestsTxt = isABHidden("ad")
@@ -1654,15 +1733,15 @@ function renderSummaryStep() {
     (isABHidden("name")
       ? ""
       : "<tr><td>Guest</td><td>" +
-        escHtml(bookingState.guestName) +
-        "</td></tr>") +
+      escHtml(bookingState.guestName) +
+      "</td></tr>") +
     (isABHidden("contact")
       ? ""
       : "<tr><td>Contact</td><td>" +
-        escHtml(
-          formatMobile(bookingState.countryCode + "." + bookingState.mobile),
-        ) +
-        "</td></tr>") +
+      escHtml(
+        formatMobile(bookingState.countryCode + "." + bookingState.mobile),
+      ) +
+      "</td></tr>") +
     "<tr><td>Stay</td><td>" +
     stayTxt +
     "</td></tr>" +
@@ -1686,29 +1765,29 @@ function renderSummaryStep() {
     "</td></tr>" +
     (calc.childAdj > 0
       ? '<tr class="tot"><td>Paid Child (' +
-        calc.paidChildren +
-        ")</td><td>₹" +
-        fmtAmt(calc.childAdj) +
-        "</td></tr>"
+      calc.paidChildren +
+      ")</td><td>₹" +
+      fmtAmt(calc.childAdj) +
+      "</td></tr>"
       : "") +
     (calc.adultAdj > 0
       ? '<tr class="tot"><td>Extra Adult (' +
-        calc.extraAdults +
-        " \u00d7 \u20B9" +
-        fmtAmt(calc.extraGuestRate) +
-        ")</td><td>₹" +
-        fmtAmt(calc.adultAdj) +
-        "</td></tr>"
+      calc.extraAdults +
+      " \u00d7 \u20B9" +
+      fmtAmt(calc.extraGuestRate) +
+      ")</td><td>₹" +
+      fmtAmt(calc.adultAdj) +
+      "</td></tr>"
       : "") +
     (calc.pkgAmount > 0
       ? '<tr class="tot"><td>Package Adjustment</td><td>₹' +
-        fmtAmt(calc.pkgAmount) +
-        "</td></tr>"
+      fmtAmt(calc.pkgAmount) +
+      "</td></tr>"
       : "") +
     (calc.addonsTotal > 0
       ? '<tr class="tot"><td>Add-ons</td><td>₹' +
-        fmtAmt(calc.addonsTotal) +
-        "</td></tr>"
+      fmtAmt(calc.addonsTotal) +
+      "</td></tr>"
       : "") +
     '<tr class="tot"><td>Subtotal</td><td>₹' +
     fmtAmt(calc.subtotal) +
@@ -2038,7 +2117,7 @@ function buildLastSnap(built) {
     advanceAmount: advanceTotal,
     balanceDue: Math.round(
       Math.round(built.calc.total - (bookingState.discountAmt || 0)) -
-        advanceTotal,
+      advanceTotal,
     ),
     payStatus: bookingState.payStatus,
   };
@@ -2324,19 +2403,19 @@ window.saveBooking = async function () {
 
   console.log("📤 Save Booking:", JSON.stringify(payload0.p, null, 2));
 
-try {
+  try {
     if (typeof fnj3 === "function") {
       var resp = await fnj3(
-          "https://my1.in/2/s.php",
-          payload0,
-          1,
-          true,
-          null,
-          20000,
-          0,
-          1,
-          1,
-        );
+        "https://my1.in/2/s.php",
+        payload0,
+        1,
+        true,
+        null,
+        20000,
+        0,
+        1,
+        1,
+      );
       if (resp && resp.su == 1) {
         if (typeof handl_rm_rspons !== "function") {
           try {
@@ -2346,18 +2425,17 @@ try {
           }
         }
         await handl_rm_rspons(resp);
-        finishBookingSave(
-          built,
-          "Success",
-          "✅ Booking saved successfully!\n\nGuest: " +
-            bookingState.guestName +
-            "\nRoom: " +
-            (built.room ? htRoomName(built.room) : "-") +
-            "\nCheck-in: " +
-            bookingState.checkin +
-            "\nTotal: ₹" +
-            built.calc.total,
-        );
+        closeBookingModal();
+        beBookedDatesCache = {};
+        await adminLoadDataFromDB();
+        showDashboard();
+        my1PageLoader(true);
+        setTimeout(function () {
+          var rbList = (resp && resp.rb && resp.rb.l) || [];
+          var lastRb = rbList.length ? rbList[rbList.length - 1] : null;
+          printBillFromDashboard(lastRb ? lastRb.a : null);
+          my1PageLoader(false);
+        }, 2000);
       } else {
         showMessageModal("Error", resp?.ms || "Failed to save booking", true);
       }
@@ -2450,14 +2528,13 @@ window.updateBooking = async function () {
 };
 
 // ── DELETE BOOKING ─────────────────────────────────────────────────────
-// Endpoint: https://my1.in/2/del.php  |  fn = -10  |  x1 = booking id.
-// Sends the record copy with status field o = 4 (Cancelled); availability.js
-// skips o === 4 rows so the room frees up. Mirrors deleteReviewRecord.
 window.deleteBookingRecord = function (record) {
   if (!record || !record.a) return;
-  if (!window.confirm("Delete this booking? This cannot be undone.")) return;
-
   return (async function () {
+    if (!(await window.showConfirmModal(
+      "Delete this booking? This cannot be undone.",
+    )))
+      return;
     if (typeof fnj3 !== "function") {
       showMessageModal("Info", "Server communication not available", false);
       return;
@@ -2472,20 +2549,15 @@ window.deleteBookingRecord = function (record) {
 
     clearPayload0();
     payload0.x1 = record.a;
-    payload0.p = upd;
+    //payload0.p = upd;
     payload0.vw = 1;
-    payload0.fn = -10; // delete op (del.php)
-    payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [
-      { tb: "rb" },
-      { tb: "rm" },
-      { tb: "c" },
-    ]);
+    payload0.fn = 115; // Delete Bookings
 
     console.log("🗑️ Delete Booking:", record.a, JSON.stringify(payload0.p));
 
     try {
       var resp = await fnj3(
-        "https://google.com/2/del.php",
+        "https://my1.in/2/t.php",
         payload0,
         1,
         true,
@@ -2496,18 +2568,20 @@ window.deleteBookingRecord = function (record) {
         1,
       );
       if (resp && resp.su == 1) {
-        if (typeof handl_rm_rspons !== "function") {
-          try {
-            await loadExe2Fn(52);
-          } catch (e) {
-            console.warn("loadExe2Fn(52) failed:", e);
-          }
-        }
-        await handl_rm_rspons(resp);
+        // if (typeof handl_rm_rspons !== "function") {
+        //   try {
+        //     await loadExe2Fn(52);
+        //   } catch (e) {
+        //     console.warn("loadExe2Fn(52) failed:", e);
+        //   }
+        // }
+        await dbDexieManager.deleteRecords(dbnm, "rb", record.a).catch(err => {
+          console.error(err);
+        });
         beBookedDatesCache = {};
         await adminLoadDataFromDB();
         showDashboard();
-        showMessageModal("Success", "✅ Booking deleted!", false);
+        showMessageModal("Success", "✅ " + resp?.ms || "Booking deleted" + "!", false);
       } else {
         showMessageModal("Error", resp?.ms || "Failed to delete booking", true);
       }
@@ -2817,13 +2891,13 @@ window.editBookingRecord = async function (record) {
         var rArr = Array.isArray(raw.r)
           ? raw.r
           : (function () {
-              try {
-                var tmp = JSON.parse(raw.r);
-                return Array.isArray(tmp) ? tmp : [];
-              } catch (e) {
-                return [];
-              }
-            })();
+            try {
+              var tmp = JSON.parse(raw.r);
+              return Array.isArray(tmp) ? tmp : [];
+            } catch (e) {
+              return [];
+            }
+          })();
         bookingState.payments = rArr
           .filter(function (pm) {
             return pm && (parseFloat(pm.j) > 0 || pm.i || pm.l);
@@ -3156,8 +3230,8 @@ function commonFnToRunAfter_op_ViewCall(obj, swtch) {
       if (typeof v !== "string") v = JSON.stringify(v);
       if (!v) continue;
       var lbl = ck === "adhar" ? "Aadhaar Card" :
-                ck === "pport" ? "Passport" :
-                ck === "drvlc" ? "Driving License" : ck;
+        ck === "pport" ? "Passport" :
+          ck === "drvlc" ? "Driving License" : ck;
       lines +=
         '<div class="be-id-line" style="display:flex;justify-content:space-between;gap:8px;padding:2px 0;">' +
         '<span class="fw-bold" style="color:#8A5A2B;">' + lbl + '</span>' +
@@ -3240,7 +3314,7 @@ function beRoomStaySection() {
   h +=
     '<div class="col-12 col-sm-6 col-lg-4">' +
     '<label class="form-label-premium">Select guest</label>' +
-        '<button type="button" class="be-head-btn" onclick="(async () => { await loadExe2Fn(36, [\'no-loader-element\', 1, \'modalContentForEntInd\', \'commonFnToRunAfter_op_ViewCall\', 1, typeof window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_ei_admin_srchGuest !== \'undefined\' ? window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_ei_admin_srchGuest : null], [1]); })()">' +
+    '<button type="button" class="be-head-btn" onclick="(async () => { await loadExe2Fn(36, [\'no-loader-element\', 1, \'modalContentForEntInd\', \'commonFnToRunAfter_op_ViewCall\', 1, typeof window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_ei_admin_srchGuest !== \'undefined\' ? window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_ei_admin_srchGuest : null], [1]); })()">' +
     '<i class="fas fa-search me-1"></i> Select Guest</button></div>' +
     '</div>' +
     "</div></div></div>";
@@ -3591,10 +3665,10 @@ function beRenderCalendar(pop, input, monthDate, booked) {
     okBtn.addEventListener("click", function (ev) {
       ev.stopPropagation();
       var ci = bookingState && bookingState.checkin;
-    var co = bookingState && bookingState.checkout;
-    if (!ci || !co || !(co > ci)) {
-      return;
-    }
+      var co = bookingState && bookingState.checkout;
+      if (!ci || !co || !(co > ci)) {
+        return;
+      }
       if (pop.parentNode) pop.remove();
       if (typeof beRecalc === "function") beRecalc();
       if (pop.dataset.beInput === "beCheckinPublic") {
@@ -4379,9 +4453,9 @@ function syncBookingEntryToState() {
     bookingState.extraItems.length > 0
       ? htReadExtraCharges("beExtraList")
       : (function () {
-          var ec = parseFloat(document.getElementById("beExtraCharges")?.value) || 0;
-          return ec < 0 ? 0 : ec;
-        })();
+        var ec = parseFloat(document.getElementById("beExtraCharges")?.value) || 0;
+        return ec < 0 ? 0 : ec;
+      })();
   // payments come from the Receipt/Payment modal (window.fnAfterRcptPmt);
   // bookingState.payments is already set, keep as-is.
   bookingState.payStatus = document.getElementById("bePayStatus")?.value || "";
