@@ -4,7 +4,6 @@
 //form old 2/l.php fn:85 to:-
 //send .da complete date to 5/a.php fn:104
 const tblsRequired = ["f", "fp", "p", "s", "c", "o", "os", "od", "fn100"];
-const publicFunctions = ",78,77,";
 const moduLst = [
     { "a":",82,72,86,", "b": "Manage Products", "c": "fa-plus-circle",  "d": "mn_prods", "e": "#198754" },
     { "a":",81,", "b": "Manage Orders", "c": "fa-percent", "d": "mn_or", "e": "#dc3545" },
@@ -13,11 +12,12 @@ const moduLst = [
     { "a":",-0,", "b": "Manage Driver", "c": "fa-truck", "d": "driver_panel", "e": "#fd7e14" },
     { "a":",-100,", "b": "Driver Upload Img", "c": "fa-truck-loading", "d": "showDrvBilingPanel", "e": "#17a2b8" },
     { "a":",100,", "b": "Driver Orders", "c": "fa-truck-loading", "d": "showMyDrvPanel", "e": "#17a2b8" },
-    { "a":",84,88,", "b": "Recent Orders", "c": "fa-clock", "d": "recent", "e": "#0dcaf0" }
+    { "a":",84,88,78,", "b": "Recent Orders", "c": "fa-clock", "d": "recent", "e": "#0dcaf0" }
 ];
 moduLst.hook = "onModuLstAllowed";
 window[my1uzr.worknOnPg].moduLst = moduLst;
 window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
+    window[my1uzr.worknOnPg].allowedModulesMenuItems = allowedModules || [];
     const menuItems = allowedModules.map(m => ({ icon: m.c, label: m.b, action: m.d, color: m.e }));
     window[my1uzr.worknOnPg].adminMenuItems = menuItems;
     if (!Array.isArray(window.burgerMenuItems)) window.burgerMenuItems = [];
@@ -41,7 +41,7 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
         { "a": 1, "u": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" },
         { "a": 2, "u": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" },
         { "a": 3, "u": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" },
-        { "a": 4, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1lo.js", "c": "open_shoLgnO", "r": "open_shoLgnO" },
+        { "a": 4, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fbf62ad/cmn/my1lo.js", "c": "open_shoLgnO", "r": "open_shoLgnO" },
         //{ "a": 4, "u": "git/my1lo.js", "c": "open_shoLgnO", "r": "open_shoLgnO" },
         { "a": 5, "u": "https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js" },
         { "a": 6, "u": "https://code.jquery.com/jquery-3.6.0.min.js" },
@@ -52,23 +52,22 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
         { "a": 11, "u": "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" },
         { "a": 12, "u": "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js" },
         { "a": 13, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/mr/drvphp.js", "c": "upld2drv", "r": "upld2drv" },
-        { "a": 14, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@d921653/cmn/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
-        //{ "a": 14, "u": "git/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
-        { "a": 16, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9eec64b/o/menu.js", "c": "openBurgerMenu,closeBurgerMenu,createBurgerMenuElements", "r": "createBurgerMenuElements" },
+        { "a": 14, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b7740c3/cmn/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
+        { "a": 16, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1d6dac3/o/menu.js", "c": "openBurgerMenu,closeBurgerMenu,createBurgerMenuElements", "r": "createBurgerMenuElements" },
         //{ "a": 16, "u": "git/menu.js", "c": "openBurgerMenu,closeBurgerMenu,createBurgerMenuElements", "r": "createBurgerMenuElements" },
         { "a": 17, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@349125a/o/ed_prod.js", "c": "showProductList", "r": "showProductList" },
         //{ "a": 17, "u": "git/ed_prod.js", "c": "showProductList", "r": "showProductList" },
-        { "a": 20, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9eec64b/o/show_prods.js", "c": "showProductsByCategory", "r": "showProductsByCategory" },
+        { "a": 20, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1d6dac3/o/show_prods.js", "c": "showProductsByCategory", "r": "showProductsByCategory" },
         //{ "a": 20, "u": "git/show_prods.js", "c": "showProductsByCategory", "r": "showProductsByCategory" },
-        { "a": 22, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/ei.min.js", "c": "open_entind_crud", "r": "open_entind_crud" },
+        { "a": 22, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/cmn/ei.min.js", "c": "open_entind_crud", "r": "open_entind_crud" },
         //{ "a": 22, "u": "git/ei.js", "c": "open_entind_crud", "r": "open_entind_crud" },
-        { "a": 23, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/o/o_r.js", "c": "handl_o_rspons", "r": "handl_o_rspons" },
+        { "a": 23, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1d6dac3/o/o_r.js", "c": "handl_o_rspons", "r": "handl_o_rspons" },
         //{ "a": 23, "u": "git/o_r.js", "c": "handl_o_rspons", "r": "handl_o_rspons" },
-        { "a": 24, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/o/cart.js", "c": "initCartIcon,addToCart,openCartModal", "r": "initCartIcon" },
+        { "a": 24, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1d6dac3/o/cart.js", "c": "initCartIcon,addToCart,openCartModal", "r": "initCartIcon" },
         //{ "a": 24, "u": "git/cart.js", "c": "initCartIcon,addToCart,openCartModal", "r": "initCartIcon" },
-        { "a": 25, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/o/or_hst.js", "c": "howOrderHistoryModal", "r": "howOrderHistoryModal" },
+        { "a": 25, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1d6dac3/o/or_hst.js", "c": "howOrderHistoryModal", "r": "howOrderHistoryModal" },
         //{ "a": 25, "u": "git/or_hst.js", "c": "howOrderHistoryModal", "r": "howOrderHistoryModal" },
-        { "a": 26, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/o/mn_or.js", "c": "showManageOrders", "r": "showManageOrders" },
+        { "a": 26, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1d6dac3/o/mn_or.js", "c": "showManageOrders", "r": "showManageOrders" },
         //{ "a": 26, "u": "git/mn_or.js", "c": "showManageOrders", "r": "showManageOrders" },
         { "a": 27, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/o/up_prod.js", "c": "showUpdateProduct", "r": "showUpdateProduct" },
         //{ "a": 27, "u": "git/up_prod.js", "c": "showUpdateProduct", "r": "showUpdateProduct" },
@@ -77,15 +76,13 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
         { "a": 29, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/o/mn_drvr.js", "c": "showDriverPanel", "r": "showDriverPanel" },
         //{ "a": 29, "u": "git/mn_drvr.js", "c": "showDriverPanel", "r": "showDriverPanel" },
         { "a": 30, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1236a32/cmn/clrChe.js", "c": "showClearCacheModal", "r": "showClearCacheModal" },
-        //{ "a": 31, "u": "git/my1lp.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
-        { "a": 31, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1lp.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
+        { "a": 31, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fbf62ad/cmn/my1lp.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
         //{ "a": 31, "u": "git/my1lp.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
         { "a": 32, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/o/my_drvr.js", "c": "showMyDrvPanel", "r": "showMyDrvPanel" },
         //{ "a": 32, "u": "git/my_drvr.js", "c": "showMyDrvPanel", "r": "showMyDrvPanel" },
-        { "a": 33, "u": "git/drvr_upld_img.js", "c": "showMyDrvPanel", "r": "showMyDrvPanel" },
-        //{ "a": 34, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@4d95515/cmn/my1ap.min.js" },
-        // "a": 34, "u": "git/my1ap.js" },
-        //{ "a": 35, "u": "git/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" }
+        //{ "a": 33, "u": "git/drvr_upld_img.js", "c": "showMyDrvPanel", "r": "showMyDrvPanel" },
+        { "a": 34, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1d6dac3/cmn/my1ap.min.js" },
+        //{"a": 34, "u": "git/my1ap.js" },
     ];
 
     window[my1uzr.worknOnPg].appInfo = {
@@ -95,6 +92,7 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
         "tagline": "Aapke Saath, Behtar Saath ke liye",
         "mail": "sifr.matrimony@gmail.com",
         "mob": "+91 9960706060",
+        "logo": "https://iili.io/n22ERrx.md.png"
     };
     window[my1uzr.worknOnPg].showHstfrmMO = null;
 
@@ -358,6 +356,22 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
             const createResult = await dbDexieManager.handleNwTables("loader", dbnm, tblsRequired);
             tblFailureCount = createResult.failureCount;
 
+            var hook = window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg][moduLst.hook];
+            var existing = window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].allowedModulesMenuItems;
+            var missing =
+                typeof existing === 'undefined' ||
+                existing === null ||
+                existing === '' ||
+                (Array.isArray(existing) && existing.length === 0);
+            if (typeof hook === 'function' && missing) {
+                try {
+                    var permitted = await chkModuLstAgainstFNF(moduLst);
+                    hook(permitted);
+                } catch (e) {
+                    console.warn('failed to resolve allowed modules menu items', e);
+                }
+            }
+
             // INJECT styles + build HTML while data loads (pure sync, no data needed)
             // ==================== ALL STYLES ====================
             const st = document.createElement("style");
@@ -365,11 +379,15 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
             document.head.appendChild(st);
 
             const shopNameFromAppInfo = window[my1uzr.worknOnPg].appInfo.business;
+            const shopAppLogo = window[my1uzr.worknOnPg].appInfo.logo;
             const mainBody = document.getElementById("main_body");
             mainBody.innerHTML = `
                 <div class="topnav">
                     <div id="burgerBtn"><i class="fas fa-bars bbm"></i></div>
-                    <div class="shopname">${shopNameFromAppInfo}</div>
+                    <div class="shopname">
+                        <img class="shopname-logo" src="${shopAppLogo}" alt="Star Milk Shop">
+                        <span class="shopname-text">${shopNameFromAppInfo}</span>
+                    </div>
                     <div style="display:flex;align-items:center;gap:8px;">
                         <div id="searchBtn"><i class="fas fa-search bbs"></i></div>
                         <div id="cartContainer"></div>
@@ -518,13 +536,23 @@ function getGoogleDriveImageUrl(value, thumbnail) {
     return '';
 }
 
-var _imgQueue = [];
-var _imgActive = 0;
-var _IMG_MAX = 8;
-var _imgObserver = null;
-var _blobCache = {}; 
+var _blobCache = {};
+var _displayedSession = {};
 var _gdrvCacheName = 'gdrive-imgs';
 var _gdrvCache = null;
+var _prioQueue = [];
+var _bgQueue = [];
+var _prioActive = 0;
+var _bgActive = 0;
+var _PRIO_MAX = 3;
+var _BG_MAX = 1;
+var _bgStaggerMs = 300;
+var _imgObserver = null;
+var _bgPending = {};
+var _bgFetching = {};
+var _displayInFlight = {};
+var _consecFails = 0;
+var _bgPauseUntil = 0;
 if (!document.querySelector('link[href*="lh3.googleusercontent.com"][rel="preconnect"]')) {
     var _preconnect = document.createElement('link');
     _preconnect.rel = 'preconnect';
@@ -553,7 +581,7 @@ function _makeObjUrl(blob) {
 }
 
 function _loadFromCache(url) {
-    return _getGdrvCache().then(function (cache) {
+    return Promise.resolve(_getGdrvCache()).then(function (cache) {
         if (!cache) return null;
         return cache.match(url).then(function (hit) {
             if (hit) return hit.blob();
@@ -563,47 +591,60 @@ function _loadFromCache(url) {
 }
 
 function _warmImgCache(url) {
-    if (typeof caches === 'undefined' || _blobCache[url]) return;
-    _getGdrvCache().then(function (cache) {
-        if (!cache) return;
-        cache.match(url).then(function (hit) {
-            if (hit) {
-                hit.blob().then(function (blob) {
-                    if (blob) {
-                        var objUrl = _makeObjUrl(blob);
-                        if (objUrl) { _blobCache[url] = objUrl; }
+    return new Promise(function (resolve) {
+        if (typeof caches === 'undefined') { resolve(false); return; }
+        if (_blobCache[url] || _bgFetching[url] || _displayInFlight[url] || _displayedSession[url]) { resolve(true); return; }
+        _bgFetching[url] = true;
+        _getGdrvCache().then(function (cache) {
+            if (!cache) { delete _bgFetching[url]; resolve(false); return; }
+            cache.match(url).then(function (hit) {
+                if (hit) {
+                    hit.blob().then(function (blob) {
+                        delete _bgFetching[url];
+                        if (blob) {
+                            var objUrl = _makeObjUrl(blob);
+                            if (objUrl) { _blobCache[url] = objUrl; }
+                            resolve(true);
+                        } else {
+                            resolve(false);
+                        }
+                    }).catch(function () { delete _bgFetching[url]; resolve(false); });
+                    return;
+                }
+                fetch(url, { mode: 'cors' }).then(function (resp) {
+                    delete _bgFetching[url];
+                    if (!resp || !resp.ok) {
+                        if (resp && resp.status === 429) { _consecFails += 2; }
+                        resolve(false);
+                        return;
                     }
-                }).catch(function () { });
-                return;
-            }
-            fetch(url, { mode: 'cors' }).then(function (resp) {
-                if (!resp || !resp.ok) return;
-                var clone = resp.clone();
-                cache.put(url, resp);
-                clone.blob().then(function (blob) {
-                    if (blob) {
-                        var objUrl = _makeObjUrl(blob);
-                        if (objUrl) { _blobCache[url] = objUrl; }
-                    }
-                }).catch(function () { });
-            }).catch(function () { });
-        }).catch(function () { });
-    }).catch(function () { });
+                    _consecFails = 0;
+                    var clone = resp.clone();
+                    cache.put(url, resp).then(function () {
+                        return clone.blob();
+                    }).then(function (blob) {
+                        if (blob) {
+                            var objUrl = _makeObjUrl(blob);
+                            if (objUrl) { _blobCache[url] = objUrl; }
+                        }
+                        resolve(true);
+                    }).catch(function () { resolve(false); });
+                }).catch(function () {
+                    delete _bgFetching[url];
+                    _consecFails++;
+                    resolve(false);
+                });
+            }).catch(function () { delete _bgFetching[url]; resolve(false); });
+        }).catch(function () { delete _bgFetching[url]; resolve(false); });
+    });
 }
 
-function _tryServeFromCache(imgEl, url) {
-    if (typeof caches === 'undefined' || !imgEl) return;
-    if (_blobCache[url]) {
-        imgEl.src = _blobCache[url];
-        return;
+function _deferBg(fn) {
+    if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(fn, { timeout: 1000 });
+    } else {
+        setTimeout(fn, _bgStaggerMs);
     }
-    _loadFromCache(url).then(function (blob) {
-        if (!blob || !imgEl || !imgEl.isConnected) return;
-        var objUrl = _makeObjUrl(blob);
-        if (!objUrl) return;
-        if (!_blobCache[url]) _blobCache[url] = objUrl;
-        imgEl.src = objUrl;
-    }).catch(function () { });
 }
 
 function _getImgObserver() {
@@ -612,71 +653,109 @@ function _getImgObserver() {
     _imgObserver = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
             var img = entry.target;
-            if (entry.isIntersecting && img && img.dataset && img.dataset.__lazyUrl) {
-                _imgObserver.unobserve(img);
-                var lazyUrl = img.dataset.__lazyUrl;
-                delete img.dataset.__lazyUrl;
-                _imgQueue.push({ el: img, url: lazyUrl });
-                _processImgQueue();
-            }
+            if (!entry.isIntersecting) return;
+            if (!img || !img.dataset || !img.dataset.__lazyUrl) return;
+            _imgObserver.unobserve(img);
+            var lazyUrl = img.dataset.__lazyUrl;
+            delete img.dataset.__lazyUrl;
+            _prioQueue.push({ el: img, url: lazyUrl });
+            _processPrioQueue();
         });
-    }, { rootMargin: '250px', threshold: 0 });
+    }, { rootMargin: '0px', threshold: 0 });
     return _imgObserver;
 }
 
 function queuedImageLoad(imgEl, url) {
-    if (!url) { imgEl.src = window.PLACEHOLDER_IMG || ''; return; }
-    if (!_isGoogleDriveUrl(url)) { imgEl.src = url; return; }
+    if (!url) { if (imgEl) imgEl.src = window.PLACEHOLDER_IMG || ''; return; }
+    if (!_isGoogleDriveUrl(url)) { if (imgEl) imgEl.src = url; return; }
     var observer = _getImgObserver();
     if (observer && imgEl && imgEl.dataset) {
         if (imgEl.dataset.src) delete imgEl.dataset.src;
         imgEl.dataset.__lazyUrl = url;
         observer.observe(imgEl);
-        return;
+    } else {
+        _prioQueue.push({ el: imgEl, url: url });
+        _processPrioQueue();
     }
-    _imgQueue.push({ el: imgEl, url: url });
-    _processImgQueue();
+    _scheduleBgWarm(url);
 }
 
 function queuedPreload(url) {
     if (!url || !_isGoogleDriveUrl(url)) return;
-    _imgQueue.push({ el: null, url: url, preload: true });
-    _processImgQueue();
+    _scheduleBgWarm(url);
 }
 
-function _processImgQueue() {
-    while (_imgActive < _IMG_MAX && _imgQueue.length > 0) {
-        var item = _imgQueue.shift();
-        if (!item) { continue; }
-        _imgActive++;
-        if (item.preload) {
-            _preloadImg(item.url);
-        } else {
-            _throttledImgLoad(item.el, item.url);
-        }
+function _scheduleBgWarm(url) {
+    if (_blobCache[url] || _bgPending[url] || _displayInFlight[url] || _displayedSession[url]) return;
+    _bgPending[url] = true;
+    _deferBg(function () {
+        _bgPending[url] = false;
+        if (_blobCache[url] || _displayInFlight[url] || _bgFetching[url] || _displayedSession[url]) return;
+        _bgQueue.push(url);
+        _processBgQueue();
+    });
+}
+
+function _processBgQueue() {
+    if (Date.now() < _bgPauseUntil) return;
+    while (_bgActive < _BG_MAX && _bgQueue.length > 0) {
+        if (_consecFails >= 5) break;
+        var url = _bgQueue.shift();
+        if (!url) continue;
+        if (_blobCache[url] || _displayInFlight[url] || _bgFetching[url] || _displayedSession[url]) continue;
+        _bgActive++;
+        _warmImgCache(url).then(function () { _bgDone(); });
     }
 }
 
-function _imgDone() {
-    _imgActive--;
-    _processImgQueue();
+function _bgDone() {
+    _bgActive--;
+    var delay = _bgStaggerMs;
+    if (_consecFails >= 5) {
+        delay = Math.min(60000, 5000 * Math.pow(2, _consecFails - 4));
+        _bgPauseUntil = Date.now() + delay;
+    }
+    setTimeout(_processBgQueue, delay);
 }
 
-function _preloadImg(url) {
-    var img = new Image();
-    img.onload = function () { _imgDone(); };
-    img.onerror = function () { _imgDone(); };
-    _warmImgCache(url);
-    img.src = url;
+function _prioDone() {
+    if (_prioActive > 0) _prioActive--;
+    _processPrioQueue();
 }
 
-function _throttledImgLoad(imgEl, url) {
+function _processPrioQueue() {
+    while (_prioActive < _PRIO_MAX && _prioQueue.length > 0) {
+        var item = _prioQueue.shift();
+        if (!item) continue;
+        _prioActive++;
+        _loadPrioImg(item.el, item.url);
+    }
+}
+
+function _startDisplay(url) {
+    if (_displayInFlight[url]) { _displayInFlight[url]++; }
+    else { _displayInFlight[url] = 1; }
+}
+
+function _endDisplay(url) {
+    if (_displayInFlight[url]) {
+        _displayInFlight[url]--;
+        if (_displayInFlight[url] <= 0) {
+            delete _displayInFlight[url];
+            _displayedSession[url] = true;
+        }
+    }
+    _prioDone();
+}
+
+function _attachImgHandlers(imgEl, url) {
     imgEl.onerror = function () {
         imgEl.onerror = null;
         imgEl.onload = null;
         imgEl.src = window.PLACEHOLDER_IMG || '';
         if (imgEl.dataset) delete imgEl.dataset.src;
-        _imgDone();
+        if (imgEl.dataset) delete imgEl.dataset.__lazyUrl;
+        _endDisplay(url);
     };
     imgEl.onload = function () {
         imgEl.onload = null;
@@ -687,18 +766,57 @@ function _throttledImgLoad(imgEl, url) {
             imgEl.src = window.PLACEHOLDER_IMG || '';
         }
         if (imgEl.dataset) delete imgEl.dataset.src;
-        if (imgEl.dataset) delete imgEl.dataset.__objUrl;
-        _imgDone();
+        if (imgEl.dataset) delete imgEl.dataset.__lazyUrl;
+        _endDisplay(url);
     };
-    if (_blobCache && _blobCache[url]) {
+}
+
+function _serveNative(imgEl, url) {
+    if (_blobCache[url]) {
+        if (imgEl.isConnected) imgEl.src = _blobCache[url];
+        else _endDisplay(url);
+        return;
+    }
+    if (!imgEl.isConnected) { _endDisplay(url); return; }
+    if (_bgFetching[url]) {
+        setTimeout(function () {
+            if (_blobCache[url]) {
+                if (imgEl.isConnected) imgEl.src = _blobCache[url];
+                _endDisplay(url);
+                return;
+            }
+            if (!imgEl.isConnected) { _endDisplay(url); return; }
+            _attachImgHandlers(imgEl, url);
+            imgEl.src = url;
+        }, 400);
+        return;
+    }
+    _attachImgHandlers(imgEl, url);
+    imgEl.src = url;
+}
+
+function _loadPrioImg(imgEl, url) {
+    if (!imgEl) { _prioDone(); return; }
+    if (_blobCache[url]) {
         imgEl.src = _blobCache[url];
-    } else {
-        imgEl.src = url;
+        _prioDone();
+        return;
     }
-    if (typeof caches !== 'undefined') {
-        _tryServeFromCache(imgEl, url);
-        _warmImgCache(url);
-    }
+    _startDisplay(url);
+    _loadFromCache(url).then(function (blob) {
+        if (blob) {
+            var objUrl = _makeObjUrl(blob);
+            if (objUrl) {
+                if (!_blobCache[url]) _blobCache[url] = objUrl;
+                if (imgEl.isConnected) imgEl.src = objUrl;
+                _endDisplay(url);
+                return;
+            }
+        }
+        _serveNative(imgEl, url);
+    }).catch(function () {
+        _serveNative(imgEl, url);
+    });
 }
 
 function rerenderCategoriesWhenDomReady() {
@@ -1095,9 +1213,18 @@ appcss=`
             .topnav i { font-size: 22px; cursor: pointer; color: white; transition: transform 0.2s; }
             .topnav i:hover { transform: scale(1.1); }
             .shopname {
+                display: flex; align-items: center; gap: 8px;
+                min-width: 0; max-width: 45%;
+            }
+            .shopname-logo {
+                width: 34px; height: 34px; border-radius: 50%;
+                object-fit: cover; background: #fff;
+                flex-shrink: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+            }
+            .shopname-text {
                 font-size: 24px; font-family: 'Segoe UI', Roboto, Arial, sans-serif; font-weight: bold;
                 color: #fff; text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
-                white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
             }
             #cartContainer{ display:flex; align-items:center; margin-left:10px; }
 
