@@ -79,8 +79,8 @@ function handl_o_rspons(response) {
                         ["a"]
                     );
                 }
-                await refreshProductsCache();
-                await refreshStatusCache();
+                if (typeof refreshProductsCache === 'function') { await refreshProductsCache();}
+                if (typeof refreshStatusCache === 'function') { await refreshStatusCache();}
 
             } else {
 

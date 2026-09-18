@@ -9,13 +9,14 @@
     let currentContentElement = null;
     let currentModalId = null;
     let isLoading = false;
-    let currentStatusFilter = '0'; // Default: Pending (0)
+    let currentStatusFilter = 'all'; // Default: All Orders
 
     // Calculate item total like cart.js does
     function getItemTotal(qty, priceInfo) {
-        const increment = Number(priceInfo.increment || 1);
+        // OLD: const increment = Number(priceInfo.increment || 1);
         const selling = Number(priceInfo.selling || 0);
-        return (qty / increment) * selling;
+        // OLD: return (qty / increment) * selling;
+        return selling * qty;
     }
 
     // Get price info for a stock item
@@ -67,7 +68,7 @@
         }
 
         try {
-            await dbDexieManager.deleteRecords(dbnm, 'o');
+            // OLD: await dbDexieManager.deleteRecords(dbnm, 'o'); // removed: keep old data if fetch returns nothing (additive overwrite)
             payload0.vw = 1;
             payload0.fn = 81;
             payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [
@@ -143,7 +144,8 @@
 
                 // Calculate correct amount using getItemTotal
                 const priceInfo = getPriceInfo(order.f, order.h, order.i);
-                const correctAmount = getItemTotal(order.g, priceInfo);
+                const jAmount = Number(order.j);
+                const correctAmount = !isNaN(jAmount) && jAmount > 0 ? jAmount : getItemTotal(order.g, priceInfo);
 
                 groupedMap[groupKey].items.push({
                     ...order,
@@ -199,8 +201,8 @@
     async function showManageOrders() {
         console.log('showManageOrders called');
 
-        // Reset to default filter (Pending = '0')
-        currentStatusFilter = '0';
+        // Reset to default filter (All Orders)
+        currentStatusFilter = 'all';
 
         try {
             if (typeof create_fullpage_view !== 'function') {

@@ -107,9 +107,10 @@
     }
 
     function getItemTotal(qty, priceInfo) {
-        const increment = Number(priceInfo.increment || 1);
+        // OLD: const increment = Number(priceInfo.increment || 1);
         const selling = Number(priceInfo.selling || 0);
-        return (qty / increment) * selling;
+        // OLD: return (qty / increment) * selling;
+        return selling * qty;
     }
 
     function customRound(value) {
@@ -393,22 +394,22 @@
 
                 html += `
                     <div class="cart-item mb-2 p-2 border rounded" style="background:#f8f9fa;">
-                        <div class="d-flex align-items-center gap-3">
-                            <img src="${imgUrl}" alt="${product.name}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;" onerror="this.src='${PLACEHOLDER_IMG}'">
-                            <div class="flex-grow-1">
-                                <div class="fw-bold" style="font-size:14px;">${product.name}</div>
-                                <div class="small text-muted">${item.packageSize ? item.packageSize + ' ' + unitShort : packageSize + ' ' + unitShort} <span class="badge bg-info text-dark ms-1" style="font-size:9px;">Min: ${minQty} | Max: ${maxQty === Infinity ? '∞' : maxQty}</span></div>
-                                <div class="d-flex align-items-center gap-2 mt-1">
-                                    <span class="fw-bold text-success" style="font-size:14px;">₹${sellingPrice}</span>
-                                    ${mrp > sellingPrice ? `<span class="text-muted text-decoration-line-through" style="font-size:12px;">₹${mrp}</span>` : ''}
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center justify-content-between gap-2">
+                            <img src="${imgUrl}" alt="${product.name}" style="width:50px;height:50px;object-fit:cover;border-radius:8px;flex-shrink:0;" onerror="this.src='${PLACEHOLDER_IMG}'">
+                            <div class="d-flex align-items-center gap-2 flex-shrink-0">
                                 <button class="btn btn-sm btn-outline-secondary" onclick="window.changeCartQty('${product.pid}','${unitId}',${packageIndex},-1)" style="width:28px;height:28px;padding: 0 0 .6px 0;border-radius:50%;">−</button>
                                 <span class="fw-bold" style="min-width:30px;text-align:center;">${qty}</span>
                                 <button class="btn btn-sm btn-outline-secondary" onclick="window.changeCartQty('${product.pid}','${unitId}',${packageIndex},1)" style="width:28px;height:28px;padding: 0 0 .6px 0;border-radius:50%;">+</button>
                                 <button class="btn btn-sm btn-outline-danger" onclick="window.removeFromCart('${product.pid}','${unitId}',${packageIndex})" style="width:28px;height:28px;padding: 0 0 .6px 0;border-radius:50%;"><i class="fas fa-times" style="font-size:12px;"></i></button>
                             </div>
+                        </div>
+                        <div class="fw-bold" style="font-size:14px;">${product.name}</div>
+                        <div class="small text-muted">${item.packageSize ? item.packageSize + ' ' + unitShort : packageSize + ' ' + unitShort} <span class="badge bg-info text-dark ms-1" style="font-size:9px;">Min: ${minQty} | Max: ${maxQty === Infinity ? '∞' : maxQty}</span></div>
+                        <div class="d-flex align-items-center flex-wrap gap-2 mt-1">
+                            <span class="fw-bold text-dark" style="font-size:12px;">₹${sellingPrice}</span>
+                            <span class="text-muted" style="font-size:12px;">× ${qty}</span>
+                            <span class="text-success fw-bold" style="font-size:14px;">= ₹${sellingPrice * qty}</span>
+                            ${mrp > sellingPrice ? `<span class="text-muted text-decoration-line-through" style="font-size:12px;">₹${mrp}</span>` : ''}
                         </div>
                     </div>
                 `;
@@ -498,7 +499,9 @@
                 confirmMessage += '• ' + productName + ' - Qty: ' + qty + (packageText ? ' (' + packageText + ')' : '') + '\n';
                 totalItems += qty;
                 var priceInfo = item.priceInfo;
-                if (priceInfo) { var increment = Number(priceInfo.increment || 1); var selling = Number(priceInfo.selling || 0); grandTotal += (qty / increment) * selling; }
+                if (priceInfo) { var selling = Number(priceInfo.selling || 0); // OLD: var increment = Number(priceInfo.increment || 1);
+                    // OLD: grandTotal += (qty / increment) * selling;
+                    grandTotal += selling * qty; }
             });
             grandTotal = customRound(grandTotal);
             confirmMessage += '\nTotal Items: ' + totalItems + '\nTotal Amount: ₹' + grandTotal + '\n\nNeeds any thing else?, Proceed with order?';
@@ -554,7 +557,7 @@
                 if (!item || qty <= 0) return;
                 var product = item.product;
                 var stockId = product.S?.a || product.sid || '';
-                items.push({ f: stockId, g: qty, h: item.unitId || '', i: item.packageSize || '', j: item.priceInfo?.selling || '', s: window._checkoutCustomerId || '' });
+                items.push({ f: stockId, g: qty, h: item.unitId || '', i: item.packageSize || '', j: (Number(item.priceInfo?.selling) || 0) * qty, s: window._checkoutCustomerId || '' }); // OLD: j: item.priceInfo?.selling || ''
             });
             payload0.p = items;
             payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'o' }, { "tb": 'os' }]);

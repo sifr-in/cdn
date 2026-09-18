@@ -533,7 +533,7 @@ function initializePWAAfterFirebase() {
      setTimeout(() => {
       loader.removeLoader();
 
-      checkCacheVersion();
+    //   checkCacheVersion();
 
       // Call checkAndSubscribe when service worker is ready (regardless of permission)
       if ('serviceWorker' in navigator) {
@@ -599,7 +599,7 @@ function initializePWAAfterFirebase() {
  }
 
  function checkCacheVersion() {
-  if (!my1uzr.worknOnPg || cacheVersion === undefined) {
+  if (!my1uzr.worknOnPg || typeof cacheVersion === 'undefined') {
    console.error('Required variables not available for cache version check');
    return;
   }

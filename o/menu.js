@@ -85,11 +85,12 @@
         const shopName = (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].appInfo && window[my1uzr.worknOnPg].appInfo.business)
             ? window[my1uzr.worknOnPg].appInfo.business
             : 'Bay Products';
+        const shopAppLogo = window[my1uzr.worknOnPg].appInfo.logo;
 
         header.innerHTML = `
             <i class="fas fa-times" style="position:absolute;top:15px;right:15px;color:white;font-size:20px;cursor:pointer;opacity:0.8;" onclick="closeBurgerMenu()"></i>
             <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
-                <img src="./StarMilkShopLogo.png" alt="logo" style="width:44px;height:44px;border-radius:50%;object-fit:cover;background:#fff;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,0.2);">
+                <img src="${shopAppLogo}" alt="logo" style="width:44px;height:44px;border-radius:50%;object-fit:cover;background:#fff;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,0.2);">
                 <h5 style="margin:0;font-size:18px;font-weight:600;">${shopName}</h5>
             </div>
             <small style="display:block;margin-top:5px;opacity:0.9;font-size:12px;">Your one-stop shop</small>

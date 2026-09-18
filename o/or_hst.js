@@ -12,9 +12,10 @@
     let currentStatusFilter = null;
 
     function getItemTotal(qty, priceInfo) {
-        const increment = Number(priceInfo.increment || 1);
+        // OLD: const increment = Number(priceInfo.increment || 1);
         const selling = Number(priceInfo.selling || 0);
-        return (qty / increment) * selling;
+        // OLD: return (qty / increment) * selling;
+        return selling * qty;
     }
 
     function getPriceInfo(stockId, unitId, packageSize) {
@@ -72,7 +73,8 @@
                 };
             }
             const priceInfo = getPriceInfo(item.f, item.h, item.i);
-            const correctAmount = getItemTotal(item.g, priceInfo);
+            const jAmount = Number(item.j);
+            const correctAmount = !isNaN(jAmount) && jAmount > 0 ? jAmount : getItemTotal(item.g, priceInfo);
             ordersMap[orderKey].items.push({
                 id: item.a, dateTime: item.b, status: item.d,
                 customerId: item.e,
@@ -300,7 +302,7 @@
         <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
             <h5 class="mb-0">
                 <i class="fas fa-clock me-2 text-primary"></i>Order History
-                ${filterCustomerId ? `<span class="badge bg-info ms-2" style="font-size:12px;">${customerName}</span>` : ''}
+                ${filterCustomerId ? `<span class="badge bg-info ms-2 text-dark" style="font-size:12px;">${customerName}</span>` : ''}
             </h5>
         </div>
         <div id="ohToolbar_${modalId}" class="d-flex gap-2 mb-2"></div>
@@ -335,7 +337,7 @@
                     html += `<div class="d-flex align-items-center gap-2 px-3 py-2 ${idx > 0 ? 'border-top' : ''} ${isMarkedForStatus ? 'oh-selected' : ''}" style="border-color:#f0f0f0;cursor:pointer;" id="${uniqueItemId}"
                         onclick="window.toggleItemSelection('${window.escapeHTML(item.id)}', '${uniqueItemId}', '${modalId}')">
                     <input type="checkbox" class="form-check-input oh-item-checkbox" ${isMarkedForStatus ? 'checked' : ''} style="flex-shrink:0;display:${isMarkedForStatus ? 'block' : 'none'};pointer-events:none;" onclick="event.stopPropagation();">
-                    ${productImg ? `<img src="${productImg}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;" onerror="this.src='${PLACEHOLDER_IMG}'">` : `<div style="width:36px;height:36px;border-radius:6px;background:#e9ecef;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-box text-muted" style="font-size:12px;"></i></div>`}
+                    ${productImg ? `<img data-src="${productImg}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;" onerror="this.src='${PLACEHOLDER_IMG}'">` : `<div style="width:36px;height:36px;border-radius:6px;background:#e9ecef;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fas fa-box text-muted" style="font-size:12px;"></i></div>`}
                     <div class="flex-grow-1" style="min-width:0;">
                         <div class="fw-medium" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${productName}</div>
                         <div style="font-size:11px;color:#6c757d;">${qty} × ${packageSize} ${unitName}</div>
@@ -345,7 +347,7 @@
                 </div>`;
                 } else {
                     html += `<div class="d-flex align-items-center gap-2 px-3 py-2 ${idx > 0 ? 'border-top' : ''} ${isMarkedForCancel ? 'oh-cancel-marked' : ''}" style="border-color:#f0f0f0;" id="${uniqueItemId}">
-                    ${productImg ? `<img src="${productImg}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;flex-shrink:0;opacity:${isMarkedForCancel ? '0.6' : '1'};" onerror="this.src='${PLACEHOLDER_IMG}'">` : `<div style="width:40px;height:40px;border-radius:8px;background:#e9ecef;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:${isMarkedForCancel ? '0.6' : '1'};"><i class="fas fa-box text-muted" style="font-size:14px;"></i></div>`}
+                    ${productImg ? `<img data-src="${productImg}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;flex-shrink:0;opacity:${isMarkedForCancel ? '0.6' : '1'};" onerror="this.src='${PLACEHOLDER_IMG}'">` : `<div style="width:40px;height:40px;border-radius:8px;background:#e9ecef;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:${isMarkedForCancel ? '0.6' : '1'};"><i class="fas fa-box text-muted" style="font-size:14px;"></i></div>`}
                     <div class="d-flex align-items-center flex-grow-1" style="font-size:13px;min-width:0;text-decoration:${isMarkedForCancel ? 'line-through' : 'none'};text-decoration-thickness:${isMarkedForCancel ? '2px' : '0'};">
                         <div style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                             ${productName}
@@ -367,6 +369,11 @@
 
         html += `</div></div>`;
         contentElement.innerHTML = html;
+        contentElement.querySelectorAll('img[data-src]').forEach(function (img) {
+            if (!img || !img.dataset || !img.dataset.src) return;
+            if (typeof queuedImageLoad === 'function') queuedImageLoad(img, img.dataset.src);
+            else img.src = img.dataset.src;
+        });
         contentElement._ordersData = orders;
         contentElement._isFromManageOrders = isFromManageOrders;
         modalElement._ordersData = orders;
@@ -638,7 +645,7 @@
             var _ld = document.getElementById(_ohLoaderId);
             if (_ld) _ld.remove();
             if (response && response.su == 1) {
-                hndlRspo88(response);
+                hndlRspo88(response, modalId);
             } else {
                 window.showelsemodal(response?.ms || 'Failed to update status.');
             }
@@ -649,7 +656,7 @@
         }
     };
 
-    async function hndlRspo88(response) {
+    async function hndlRspo88(response, modalId) {
         await handl_o_rspons(response, 1);
         selectedItemIds = [];
         selectedChosenStatus = null;

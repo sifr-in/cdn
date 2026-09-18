@@ -243,6 +243,7 @@
         var cartKey = getCartKey(productId, selectedUnitId, packageIndex);
         var qty = window.CART ? (window.CART[cartKey] || 0) : 0;
         var priceInfo = getSelectedPrice(productId, selectedUnitId).priceInfo;
+        var sellingPrice = getPriceValue(priceInfo, 'selling', 0) || 0;
         var minQty = getPriceValue(priceInfo, 'min', 1) || 1;
         var maxQty = getPriceValue(priceInfo, 'max', 0) > 0 ? getPriceValue(priceInfo, 'max', 0) : Infinity;
         var increment = getPriceValue(priceInfo, 'increment', 1) || 1;
@@ -257,7 +258,7 @@
         if (qty === 0) {
             holder.innerHTML = '<button class="sp-add-btn" onclick="addToCart(\'' + productId + '\',this)">ADD' + (minQty > 1 ? ' (' + minQty + ')' : '') + '</button>';
         } else {
-            holder.innerHTML = '<div class="sp-qty-control"><button class="sp-qty-btn" onclick="changeQty(\'' + productId + '\',-1)">−</button><span class="sp-qty-val">' + qty + '</span><button class="sp-qty-btn" onclick="changeQty(\'' + productId + '\',1)">+</button></div>';
+            holder.innerHTML = '<div class="sp-qty-control"><button class="sp-qty-btn" onclick="changeQty(\'' + productId + '\',-1)">−</button><span class="sp-qty-val">' + qty + " | " + qty*sellingPrice + '</span><button class="sp-qty-btn" onclick="changeQty(\'' + productId + '\',1)">+</button></div>';
         }
     };
 
@@ -457,7 +458,7 @@
             if (minQty && minQty > 1) addBtnText += ' (' + minQty + ')';
             card += '<button class="sp-add-btn" onclick="addToCart(\'' + productId + '\',this)">' + addBtnText + '</button>';
         } else {
-            card += '<div class="sp-qty-control"><button class="sp-qty-btn" onclick="changeQty(\'' + productId + '\',-1)">−</button><span class="sp-qty-val">' + qty + '</span><button class="sp-qty-btn" onclick="changeQty(\'' + productId + '\',1)">+</button></div>';
+            card += '<div class="sp-qty-control"><button class="sp-qty-btn" onclick="changeQty(\'' + productId + '\',-1)">−</button><span class="sp-qty-val">' + qty + " | " + qty*sellingPrice + '</span><button class="sp-qty-btn" onclick="changeQty(\'' + productId + '\',1)">+</button></div>';
         }
         card += '</div>';
         if (priceInfo?.min == null) { } else {
