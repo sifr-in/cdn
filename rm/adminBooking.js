@@ -188,7 +188,7 @@ window.updateBillPayments = async function () {
 // is saved, before the loader clears.
 window.printBillFromDashboard = async function (bookingId) {
   if (typeof showBill !== "function") {
-    showMessageModal("Info", "Print unavailable.", true);
+    console.log("Print unavailable.");
     return;
   }
   var raws = [];
@@ -251,13 +251,7 @@ window.printBillFromDashboard = async function (bookingId) {
     }
   }
   showBill(snap, function () {
-    document.body.classList.add("ht-print-bill");
-    var cleanup = function () {
-      document.body.classList.remove("ht-print-bill");
-    };
-    window.addEventListener("afterprint", cleanup);
-    window.print();
-    window.setTimeout(cleanup, 30000);
+    document.body.classList.remove("ht-print-bill");
   });
 };
 

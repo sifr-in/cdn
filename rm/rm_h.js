@@ -9,6 +9,11 @@ function handl_rm_rspons(response) {
             "a",
           ]);
         }
+        if (response.rc != null && response.rc.l != null) {
+          await dbDexieManager.insertToDexie(dbnm, "rc", response.rc.l, true, [
+            "a",
+          ]);
+        }
         // Handle room records — keep the shared config's room list in sync
         // so admin reads (adminRoomRecords from window[my1uzr.worknOnPg].clientConfig.rm) see
         // freshly saved/updated rooms without hitting the rm table.

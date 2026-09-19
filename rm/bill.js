@@ -16,6 +16,7 @@ var billNo = "";
 var billLock = false;
 var billOnClose = null;
 var billBooker = null;
+var currentBillSnap = null;
 
 function pad2(n) {
   return String(n).padStart(2, "0");
@@ -150,25 +151,29 @@ async function resolveBookerInfo(s) {
     }
   }
   if (!needC && s && canDb()) {
-    var rbList = null;
-    try {
-      rbList = await dbDexieManager.getAllRecords(dbnm, "rb");
-    } catch (e) {
-      rbList = null;
+    var roomId = "";
+    if (s.room) {
+      var rid =
+        s.room.a != null ? s.room.a : s.room.no != null ? s.room.no : s.room.e;
+      if (rid != null) roomId = String(rid);
+    } else if (s.roomId != null) {
+      roomId = String(s.roomId);
     }
-    if (rbList) {
-      var roomId = "";
-      if (s.room) {
-        var rid =
-          s.room.a != null ? s.room.a : s.room.no != null ? s.room.no : s.room.e;
-        if (rid != null) roomId = String(rid);
-      } else if (s.roomId != null) {
-        roomId = String(s.roomId);
+    // Unpaid bookings live in rc (same format as rb), so look in both. rb is
+    // the paid/confirmed copy and is searched first.
+    var best = null;
+    var bestId = -1;
+    var srcList = ["rb", "rc"];
+    for (var si = 0; si < srcList.length && !best; si++) {
+      var rl = null;
+      try {
+        rl = await dbDexieManager.getAllRecords(dbnm, srcList[si]);
+      } catch (e) {
+        rl = null;
       }
-      var best = null;
-      var bestId = -1;
-      for (var bi = 0; bi < rbList.length; bi++) {
-        var rb = rbList[bi] || {};
+      if (!rl) continue;
+      for (var bi = 0; bi < rl.length; bi++) {
+        var rb = rl[bi] || {};
         if (rb.g !== s.checkin || rb.h !== s.checkout) continue;
         if (roomId && String(rb.e) !== roomId) continue;
         var bid = parseInt(rb.a, 10) || 0;
@@ -177,20 +182,20 @@ async function resolveBookerInfo(s) {
           best = rb;
         }
       }
-      if (best && best.o != null) {
-        var gcList = null;
-        try {
-          gcList = await dbDexieManager.getAllRecords(dbnm, "c");
-        } catch (e) {
-          gcList = null;
-        }
-        if (gcList) {
-          for (var ci = 0; ci < gcList.length; ci++) {
-            var gc = gcList[ci] || {};
-            if (gc.a != null && String(gc.a) === String(best.o)) {
-              needC = gc;
-              break;
-            }
+    }
+    if (best && best.o != null) {
+      var gcList = null;
+      try {
+        gcList = await dbDexieManager.getAllRecords(dbnm, "c");
+      } catch (e) {
+        gcList = null;
+      }
+      if (gcList) {
+        for (var ci = 0; ci < gcList.length; ci++) {
+          var gc = gcList[ci] || {};
+          if (gc.a != null && String(gc.a) === String(best.o)) {
+            needC = gc;
+            break;
           }
         }
       }
@@ -219,6 +224,7 @@ function billBookerFromSnap(s) {
 // Confirmed; any received amount short of the total is Partially Paid.
 function billStatusOf(s) {
   if (!s) return { label: "Booking Requested", ok: false };
+  if (s.paid) return { label: "Booking Confirmed", ok: true };
   var received = 0;
   if (s.received != null) received = Number(s.received) || 0;
   else if (s.advanceAmount != null) received = Number(s.advanceAmount) || 0;
@@ -443,7 +449,7 @@ function billRowsHtml(s) {
     "</td></tr>";
   var legacyReceived = s.received != null ? s.received : s.advanceAmount || 0;
   var legacyRemaining = Math.max(0, (s.grandTotal || 0) - legacyReceived);
-  var legacyPaidOff = legacyRemaining === 0;
+  var legacyPaidOff = s.paid || legacyRemaining === 0;
   rows +=
     '<tr class="total' +
     (legacyPaidOff ? " ht-paid" : "") +
@@ -593,6 +599,12 @@ function showBill(snap, onClose) {
 
 function renderBill(s) {
   if (!el("modalRoot")) return;
+  currentBillSnap = s;
+  var payBtnHtml = s && s.paid
+    ? '<button class="ht-btn ht-btn-ghost" disabled title="Booking Confirmed">' +
+      '<i class="fa-solid fa-circle-check"></i> Booking Confirmed</button>'
+    : '<button class="ht-btn ht-btn-ghost" onclick="payBillNow()">' +
+      '<i class="fa-solid fa-credit-card"></i> Pay</button>';
   el("modalRoot").innerHTML =
     '<div class="ht-bill-overlay open" id="billOverlay" onclick="closeBill()">' +
     '<div class="ht-bill-stage" onclick="event.stopPropagation()">' +
@@ -600,6 +612,7 @@ function renderBill(s) {
     billHtml(s) +
     "</div>" +
     '<div class="ht-bill-actions">' +
+    payBtnHtml +
     '<button class="ht-btn ht-btn-gold" onclick="downloadPDF()">' +
     '<i class="fa-solid fa-file-pdf"></i> PDF</button>' +
     '<button class="ht-btn ht-btn-ember" onclick="closeBill()">' +
@@ -626,6 +639,12 @@ function closeBill() {
       showHome();
     }
   }, 250);
+}
+
+async function payBillNow() {
+  if (currentBillSnap && currentBillSnap.paid) return;
+  closeBill();
+  await startPhonePePayment(currentBillSnap);
 }
 
 function billFileName() {

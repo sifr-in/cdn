@@ -902,8 +902,8 @@ function addonFacilityId(name) {
    (see section header above). Boot-time refresh lives in core/ht.js with its
    own endpoint (refreshFromServer, rfsh.php).
    ============================================================ */
-async function sendBookingPayload() {
-  var snap = lastSnap || calcBooking();
+async function sendBookingPayload(paySnap) {
+  var snap = paySnap || paySnapLatch || lastSnap || calcBooking();
   if (!snap) return;
   var room = snap.room;
 
@@ -962,7 +962,7 @@ async function sendBookingPayload() {
   }
   payload0.fn = 113;
   payload0.vw = 1;
-  payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "rb" }]);
+  payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "rb" },{ tb: "rc" }]);
 
   delete payload0.x1;
 
@@ -983,17 +983,19 @@ async function sendBookingPayload() {
         await hndlRspo113(resp, snap, room);
       } else {
         pendingPay = false;
+        paySnapLatch = null;
           showelsemodal(
-    resp?.ms ||
-    "Try Again!",
-    true,
-  );
+              resp?.ms ||
+              "Try Again!",
+              true,
+          );
         console.warn("Server did not return data - keeping local data");
           return;
       }
     }
   } catch (err) {
     pendingPay = false;
+    paySnapLatch = null;
     if (!el("modalOverlay") && !el("billOverlay")) //renderAppUI();
       showelsemodal(
     resp?.ms ||
@@ -1084,50 +1086,51 @@ window.hndlRspo113 = async function (resp, snap, room) {
       if (dbBk.length && typeof bookingRecords !== "undefined") {
         bookingRecords = dbBk.map(normalizeBookingRow);
       }
+      var dbRc = (await dbDexieManager.getAllRecords(dbnm, "rc")) || [];
+      myBookingAll = buildMyBookingAll(dbBk, dbRc);
     }
   } catch (e) {
     console.warn("Failed to reload bookings after save:", e);
   }
   if (typeof clearPublicStayDates === "function") clearPublicStayDates();
   if (!el("modalOverlay") && !el("billOverlay")) renderAppUI();
-  if (typeof showBill === "function") {
     closeModal();
     closeSummarySheet();
-    var billSnap = snap;
-    if (!billSnap) {
-      billSnap =
-        (typeof lastSnap !== "undefined" && lastSnap) ||
-        (typeof calcBooking === "function" ? calcBooking() : null);
-    }
-    my1PageLoader(true);
-    setTimeout(function () {
-      printMyBooking();
-      my1PageLoader(false);
-    }, 2000);
-    // showBill(buildGuestBookingBillSnap(billSnap || {}, resp), function () {
-    //   var scrollRoom = room || (billSnap && billSnap.room);
-    //   if (scrollRoom && typeof showHome === "function") {
-    //     showHome();
-    //     window.setTimeout(function () {
-    //       var card = document.getElementById("room-card-" + scrollRoom.id);
-    //       if (card && card.scrollIntoView) {
-    //         card.scrollIntoView({ behavior: "smooth", block: "center" });
-    //       }
-    //     }, 64);
-    //   }
-    // });
-  } else {
-    showMessageModal(
-      "Done",
-      "Your booking request has been sent. The hotel will confirm shortly.",
-    );
-  }
+    var billSnap =
+      snap ||
+      (typeof lastSnap !== "undefined" && lastSnap) ||
+      (typeof calcBooking === "function" ? calcBooking() : null);
+    var item =
+      resp && resp.rc && resp.rc.l
+        ? Object.values(resp.rc.l).find(function (it) {
+            return it && String(it.a) === String(resp.x1);
+          })
+        : null;
+    if (billSnap && item) billSnap.paymentPhonePayGT = item.m;
+    if (billSnap) await startPhonePePayment(billSnap, resp.x1);
   return true;
  }else {
-        pendingPay = false;
-        showelsemodal(resp.ms || "Plese try again");
-      }
+      pendingPay = false;
+      paySnapLatch = null;
+      showelsemodal(resp.ms || "Plese try again");
+  }
 }
+
+// function bookingIdFromResp(resp) {
+//   if (resp) {
+//     if (resp.x1 != null && resp.x1 !== "") return resp.x1;
+
+//     // var rcL = resp.rc && resp.rc.l;
+//     // if (rcL) {
+//     //   if (Array.isArray(rcL) && rcL.length && rcL[0].a != null) return rcL[0].a;
+//     //   if (rcL instanceof Object) {
+//     //     var keys = Object.keys(rcL);
+//     //     if (keys.length && rcL[keys[0]].a != null) return rcL[keys[0]].a;
+//     //   }
+//     // }
+//   }
+//   return "";
+// }
 
 function mrow(k, v) {
   return (
@@ -1149,6 +1152,40 @@ function closeModal() {
 }
 
 var pendingPay = false;
+var paySnapLatch = null;
+
+// Guest-facing bookings: paid (rb) + unpaid (rc) rows merged once. rb rows are
+// the paid/confirmed copies and win when the same stay (check-in e, check-out f,
+// status o) also exists in rc.
+var myBookingAll = [];
+
+// Merge paid (rb) + unpaid (rc) booking rows into one guest-facing list. rb is
+// the paid/confirmed copy; if a booking with the same (e,f,o) triple exists in
+// rc it is dropped so a booking that was moved to rb after payment shows only
+// once.
+function buildMyBookingAll(rbArr, rcArr) {
+  var out = [];
+  var paidKeys = {};
+  function keyOf(n) {
+    return (n.e != null ? n.e : "") + "|" +
+           (n.f != null ? n.f : "") + "|" +
+           (n.o != null ? n.o : "");
+  }
+  function push(list, tb, dropPaid) {
+    for (var i = 0; list && i < list.length; i++) {
+      var n = normalizeBookingRow(list[i]);
+      if (!n || typeof n !== "object") continue;
+      n._tb = tb;
+      var key = keyOf(n);
+      if (dropPaid && key && paidKeys[key]) continue;
+      if (!dropPaid && key) paidKeys[key] = true;
+      out.push(n);
+    }
+  }
+  push(rbArr, "rb", false);
+  push(rcArr, "rc", true);
+  return out;
+}
 
 function isLoggedIn() {
   return !!(typeof my1uzr !== "undefined" && my1uzr && my1uzr.mk);
@@ -1179,13 +1216,14 @@ function getMyGuestId() {
 }
 
 function getMyActiveBooking() {
-  if (typeof bookingRecords === "undefined" || !bookingRecords) return null;
+  if (typeof myBookingAll === "undefined" || !myBookingAll || !myBookingAll.length)
+    return null;
   var u = typeof my1uzr !== "undefined" && my1uzr ? my1uzr : {};
   var guestId = getMyGuestId();
   var moDigits = String(u.mo || "").replace(/\D/g, "");
   var best = null;
-  for (var i = 0; i < bookingRecords.length; i++) {
-    var bk = bookingRecords[i];
+  for (var i = 0; i < myBookingAll.length; i++) {
+    var bk = myBookingAll[i];
     if (!bk || Number(bk.o) === 4) continue;
     var mine = false;
     if (guestId && bk.oc != null) mine = String(bk.oc) === guestId;
@@ -1209,9 +1247,11 @@ async function ensurePublicBookingsLoaded() {
       typeof dbnm !== "undefined"
     ) {
       var dbBk = (await dbDexieManager.getAllRecords(dbnm, "rb")) || [];
+      var dbRc = (await dbDexieManager.getAllRecords(dbnm, "rc")) || [];
       if (dbBk.length && typeof bookingRecords !== "undefined") {
         bookingRecords = dbBk.map(normalizeBookingRow);
       }
+      myBookingAll = buildMyBookingAll(dbBk, dbRc);
       try {
         var dbC = (await dbDexieManager.getAllRecords(dbnm, "c")) || [];
         if (dbC.length && typeof guestRecords !== "undefined") {
@@ -1369,7 +1409,10 @@ function bookingSnapFromRecord(bk) {
   var grandTotal = Math.round(subtotal + tax) - discountAmt;
 
   return {
+    a: bk.a != null ? Number(bk.a) || bk.a : undefined,
     room: room,
+    d: bk.d,
+    paid: Number(bk.d) === 1,
     nights: nights,
     checkin: bk.e,
     checkout: bk.f,
@@ -1413,35 +1456,255 @@ function bookingSnapFromRecord(bk) {
   };
 }
 
-window.printMyBooking = async function () {
-  if (!window.__pubBookingsLoaded) {
-    try {
-      await ensurePublicBookingsLoaded();
-    } catch (e) {
-      console.warn("Failed to preload bookings for print:", e);
+function getMyBookings() {
+  var list = [];
+  if (typeof myBookingAll === "undefined" || !myBookingAll) return list;
+  var u = typeof my1uzr !== "undefined" && my1uzr ? my1uzr : {};
+  var guestId = getMyGuestId();
+  var moDigits = String(u.mo || "").replace(/\D/g, "");
+  for (var i = 0; i < myBookingAll.length; i++) {
+    var bk = myBookingAll[i];
+    if (!bk || Number(bk.o) === 4) continue;
+    var mine = false;
+    if (guestId && bk.oc != null) mine = String(bk.oc) === guestId;
+    if (!mine && moDigits) {
+      var hDigits = String(bk.h || "").replace(/\D/g, "");
+      mine = hDigits.length >= 10 && hDigits.slice(-10) === moDigits.slice(-10);
+    }
+    if (mine) list.push(bk);
+  }
+  list.sort(function (x, y) {
+    var vx =
+      x && x.b != null && x.b !== ""
+        ? Date.parse(String(x.b)) || Number(x.b) || 0
+        : 0;
+    var vy =
+      y && y.b != null && y.b !== ""
+        ? Date.parse(String(y.b)) || Number(y.b) || 0
+        : 0;
+    return vy - vx;
+  });
+  return list;
+}
+
+function getMyBookingById(id) {
+  if (typeof myBookingAll === "undefined" || !myBookingAll) return null;
+  var key = String(id == null ? "" : id);
+  var tb = "";
+  var sep = key.indexOf(":");
+  if (sep > -1) {
+    tb = key.slice(0, sep);
+    key = key.slice(sep + 1);
+  }
+  for (var i = 0; i < myBookingAll.length; i++) {
+    var bk = myBookingAll[i];
+    if (bk && String(bk.a) === key && (!tb || bk._tb === tb)) return bk;
+  }
+  return null;
+}
+
+function myBookingsStatus(bk) {
+  if (!bk) return { label: "Booking Requested", ok: false, paid: false };
+  if (Number(bk.o) === 4)
+    return { label: "Cancelled", ok: false, paid: false, cancelled: true };
+  if (Number(bk.d) === 1)
+    return { label: "Booking Confirmed", ok: true, paid: true };
+  return { label: "Booking Requested", ok: false, paid: false };
+}
+
+function myBookingsGuest() {
+  var id = typeof getMyGuestId === "function" ? getMyGuestId() : "";
+  var name = "";
+  if (id && typeof guestRecords !== "undefined" && guestRecords) {
+    for (var i = 0; i < guestRecords.length; i++) {
+      var c = guestRecords[i] || {};
+      if (String(c.a) === id) {
+        name = c.h != null ? String(c.h) : "";
+        break;
+      }
     }
   }
-  var bk = getMyActiveBooking();
-  if (!bk) {
-    showMessageModal("Info", "No active booking to print.", false);
-    return;
+  return { id: id, name: name };
+}
+
+function myBkDateRange(e, f) {
+  var s = String(e || "").slice(0, 10);
+  var o = String(f || "").slice(0, 10);
+  if (s && o) return s + " \u2192 " + o;
+  return s || o || "-";
+}
+
+function myBookingsCardHtml(bk) {
+  var snap =
+    typeof bookingSnapFromRecord === "function"
+      ? bookingSnapFromRecord(bk)
+      : null;
+  var roomName =
+    snap && snap.room && snap.room.name
+      ? snap.room.name
+      : bk.s
+        ? String(bk.s)
+        : "Hotel Stay";
+  var nights = (snap && snap.nights) || Number(bk.m) || 1;
+  var total =
+    snap && snap.grandTotal != null ? snap.grandTotal : Number(bk.n) || 0;
+  var guests = snap ? (snap.adults || 0) + (snap.children || 0) : "";
+  var st = myBookingsStatus(bk);
+  var ref = bk.p != null && bk.p !== "" ? bk.p : bk.a;
+  var payHtml = st.paid
+    ? ""
+    : '<button class="ht-btn ht-btn-ember ht-mybook-pay" type="button" onclick="payMyBookingById(\'' +
+      escAttr((bk._tb ? bk._tb + ":" : "") + bk.a) +
+      '\')">' +
+      '<i class="fa-solid fa-credit-card"></i> Pay</button>';
+  var metaParts = [
+    escHtml(myBkDateRange(bk.e, bk.f)),
+    nights + (nights > 1 ? " nights" : " night"),
+    guests ? guests + (guests > 1 ? " guests" : " guest") : "",
+    "Booking #" + escHtml(String(ref)),
+  ].filter(Boolean).join(" \u00b7 ");
+  return (
+    '<div class="ht-mybook-card">' +
+    '<div class="mbc-top">' +
+    '<div class="mbc-room"><i class="fa-solid fa-bed"></i> ' +
+    escHtml(roomName) +
+    "</div>" +
+    '<div class="mbc-total"><span class="lb">Total</span><span class="vl">' +
+    fmtMoney(total) +
+    "</span></div>" +
+    "</div>" +
+    '<div class="mbc-sub">' +
+    '<div class="mbc-meta">' +
+    metaParts +
+    "</div>" +
+    '<div class="mbc-tools">' +
+    payHtml +
+    '<span class="mbc-badge' +
+    (st.ok ? " ok" : "") +
+    '"><i class="fa-solid ' +
+    (st.ok ? "fa-circle-check" : "fa-clock") +
+    '"></i> ' +
+    escHtml(st.label) +
+    "</span>" +
+    '<button class="ht-btn ht-btn-gold ht-mybook-print" type="button" onclick="printMyBookingById(\'' +
+    escAttr((bk._tb ? bk._tb + ":" : "") + bk.a) +
+    '\')">' +
+    '<i class="fa-solid fa-print"></i> Print</button>' +
+    "</div>" +
+    "</div>" +
+    "</div>"
+  );
+}
+
+function showMyBookingsModal() {
+  if (!el("modalRoot")) return;
+  var list = getMyBookings();
+  var g = myBookingsGuest();
+  var body = "";
+  if (list.length) {
+    var cards = "";
+    for (var i = 0; i < list.length; i++)
+      cards += myBookingsCardHtml(list[i]);
+    body = '<div class="ht-mybook-list">' + cards + "</div>";
+  } else {
+    body =
+      '<div class="ht-mybook-empty">' +
+      '<i class="fa-solid fa-calendar-xmark"></i>' +
+      "No active bookings found. Book a room to get started." +
+      "</div>";
   }
+  el("modalRoot").innerHTML =
+    '<div class="ht-bill-overlay open" id="myBookingsOverlay" onclick="closeMyBookingsModal()">' +
+    '<div class="ht-bill-stage" onclick="event.stopPropagation()">' +
+    '<div class="ht-bill-scroll ht-mybook-scroll">' +
+    '<div class="ht-mybook-head">' +
+    '<div class="ht-bill-title"><i class="fa-solid fa-book"></i> My Bookings</div>' +
+    '<div class="ht-mybook-guest">' +
+    (g.name
+      ? "Guest: <b>" + escHtml(g.name) + "</b> \u00b7 "
+      : "") +
+    "Guest ID <b>#" +
+    escHtml(g.id || "-") +
+    "</b></div>" +
+    "</div>" +
+    body +
+    "</div>" +
+    '<div class="ht-bill-actions">' +
+    '<button class="ht-btn ht-btn-gold" onclick="closeMyBookingsModal()">' +
+    '<i class="fa-solid fa-check"></i> Done</button>' +
+    "</div>" +
+    "</div></div>";
+  document.body.style.overflow = "hidden";
+}
+
+function closeMyBookingsModal() {
+  var ov = el("myBookingsOverlay");
+  if (ov) ov.classList.remove("open");
+  document.body.style.overflow = "";
+  window.clearTimeout(window.__myBkCloseT);
+  window.__myBkCloseT = window.setTimeout(function () {
+    if (el("myBookingsOverlay") && el("modalRoot")) el("modalRoot").innerHTML = "";
+  }, 250);
+}
+
+async function printBookingBill(bk) {
+  closeMyBookingsModal();
   if (typeof showBill === "function") {
     showBill(bookingSnapFromRecord(bk), function () {
       if (typeof showHome === "function") showHome();
     });
-    window.setTimeout(function () {
-      document.body.classList.add("ht-print-bill");
-      var cleanup = function () {
-        document.body.classList.remove("ht-print-bill");
-      };
-      window.addEventListener("afterprint", cleanup);
-      window.print();
-      window.setTimeout(cleanup, 30000);
-    }, 500);
   } else {
-    showMessageModal("Info", "Print unavailable.", true);
+    console.log("Print unavailable.");
   }
+}
+
+window.printMyBookingById = async function (id) {
+  var bk = getMyBookingById(id);
+  if (!bk) {
+    showMessageModal("Info", "Booking not found.", false);
+    return;
+  }
+  await printBookingBill(bk);
+};
+
+window.payMyBookingById = async function (id) {
+  var bk = getMyBookingById(id);
+  if (!bk) {
+    showMessageModal("Info", "Booking not found.", false);
+    return;
+  }
+  if (Number(bk.d) === 1) {
+    showelsemodal("This booking is already confirmed & paid.");
+    return;
+  }
+  closeMyBookingsModal();
+  await startPhonePePayment(bookingSnapFromRecord(bk), String(bk.a));
+};
+
+window.printMyBooking = async function (opt, item) {
+  if (!window.__pubBookingsLoaded) {
+    try {
+      await ensurePublicBookingsLoaded();
+    } catch (e) {
+      console.warn("Failed to preload bookings:", e);
+    }
+  }
+  if (opt === false) {
+    var bk = item || getMyActiveBooking();
+    if (!bk) {
+      showMessageModal("Info", "No active booking found.", false);
+      return;
+    }
+    if (typeof showBill === "function") {
+      showBill(bookingSnapFromRecord(normalizeBookingRow(bk)), function () {
+        if (typeof showHome === "function") showHome();
+      });
+    } else {
+      console.log("Print unavailable.");
+    }
+    return;
+  }
+  showMyBookingsModal();
 };
 
 window.cancelMyBooking = async function () {
@@ -1488,34 +1751,59 @@ function finishPreview() {
     showMessageModal("Check Your Stay", msg, true);
     return;
   }
-  startPhonePePayment();
+  var s =
+    (typeof lastSnap !== "undefined" && lastSnap) ||
+    (typeof calcBooking === "function" ? calcBooking() : null);
+  if (!s) return;
+  paySnapLatch = s;
+  sendBookingPayload(s);
 }
 
 /* ============================================================
    PHONEPE PAYMENT (front-end)
    ------------------------------------------------------------
    1. POST the grand total to phonepe/request.php.
-   2. Persist the booking snapshot + module state to localStorage
-      so it survives the PhonePe redirect round-trip.
-   3. Redirect the browser to the PhonePe checkout page.
+   2. Redirect the browser to the PhonePe checkout page.
    On return the app lands on ?pp=OK|FAIL|ERR&oid=... and the
-   handlePhonePeReturn() below submits the booking (only after
-   the server has verified the order as COMPLETED).
+   handlePhonePeReturn() below prints the confirmed booking
+   (the server verifies the order via phonepe/redirect.php and
+   showPhonePePostData() in rm.js submits it as x1).
    ============================================================ */
-function ppStorageKey(k) {
-  return "pp_" + k;
-}
-
-async function startPhonePePayment() {
-  var snap = lastSnap || calcBooking();
+async function startPhonePePayment(snapArg, orderIdArg) {
+  var orderId = orderIdArg != null ? String(orderIdArg) : "";
+  var snap = snapArg;
+  if (snapArg != null && (typeof snapArg === "string" || typeof snapArg === "number")) {
+    if (!orderId) orderId = String(snapArg);
+    snap = null;
+  }
+  if (!orderId && snap) {
+    orderId =
+      snap.a != null
+        ? String(snap.a)
+        : snap.id != null
+          ? String(snap.id)
+          : snap.bookingId != null
+            ? String(snap.bookingId)
+            : snap.orderId != null
+              ? String(snap.orderId)
+              : "";
+  }
+  snap = snap || lastSnap || calcBooking();
   if (!snap) return;
-
   my1PageLoader(true);
+  if(window[my1uzr.worknOnPg].clientConfig?.cust_da_const?.paymentGatewayIntegrated == 1){
   try {
+    var amount =
+      snap.paymentPhonePayGT != null
+        ? Number(snap.paymentPhonePayGT)
+        : snap.grandTotal;
+    var paymentBookingId = orderId ? String(orderId) + "-" + Date.now() : "";
     var resp = await fetch("phonepe/request.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amountRupees: snap.grandTotal }),
+      body: JSON.stringify(paymentBookingId
+        ? { amountRupees: amount, bookingId: paymentBookingId }
+        : { amountRupees: amount }),
     });
     var data = await resp.json();
     my1PageLoader(false);
@@ -1525,71 +1813,23 @@ async function startPhonePePayment() {
       return;
     }
 
-    localStorage.setItem(ppStorageKey("oid"), data.orderId);
-    localStorage.setItem(ppStorageKey("snap"), JSON.stringify(snap));
-    localStorage.setItem(ppStorageKey("checkin"), checkIn);
-    localStorage.setItem(ppStorageKey("checkout"), checkOut);
-    localStorage.setItem(ppStorageKey("adults"), String(adults));
-    localStorage.setItem(ppStorageKey("children"), String(children));
-    localStorage.setItem(ppStorageKey("childAges"), JSON.stringify(childAges));
-    localStorage.setItem(ppStorageKey("packageId"), String(packageId || 0));
-    localStorage.setItem(ppStorageKey("addonIds"), JSON.stringify(addonIds));
-    localStorage.setItem(ppStorageKey("chargeWithAc"), String(!!chargeWithAc));
-
     window.location.href = data.redirectUrl;
+    
   } catch (e) {
     my1PageLoader(false);
     showelsemodal("Payment service unavailable. Please try again.", true);
   }
+  }else{
+    my1PageLoader(false);
+    var ok = await showConfirmModal(
+      "Notice: " + window[my1uzr.worknOnPg].clientConfig.noPaymentGatewayMsg,
+    );
+    //if (!ok) return false;
+    setTimeout(function () {
+        printMyBookingById('rc:'+orderId);
+      }, 1000);
+  }
   return false;
-}
-
-function restoreBookingStateForPayment() {
-  var snap = null;
-  try {
-    snap = JSON.parse(localStorage.getItem(ppStorageKey("snap")) || "null");
-  } catch (e) {
-    snap = null;
-  }
-  if (!snap) return null;
-
-  checkIn = localStorage.getItem(ppStorageKey("checkin")) || snap.checkin || "";
-  checkOut = localStorage.getItem(ppStorageKey("checkout")) || snap.checkout || "";
-  adults = Number(localStorage.getItem(ppStorageKey("adults"))) || snap.adults || 0;
-  children = Number(localStorage.getItem(ppStorageKey("children"))) || snap.children || 0;
-  try {
-    childAges = JSON.parse(localStorage.getItem(ppStorageKey("childAges")) || "[]");
-  } catch (e) {
-    childAges = [];
-  }
-  if (!Array.isArray(childAges)) childAges = [];
-  packageId = Number(localStorage.getItem(ppStorageKey("packageId"))) || snap.package?.id || 0;
-  try {
-    addonIds = JSON.parse(localStorage.getItem(ppStorageKey("addonIds")) || "[]");
-  } catch (e) {
-    addonIds = [];
-  }
-  if (!Array.isArray(addonIds)) addonIds = [];
-  chargeWithAc = localStorage.getItem(ppStorageKey("chargeWithAc")) === "true";
-  lastSnap = snap;
-  return snap;
-}
-
-function clearPhonePeStorage() {
-  [
-    "oid",
-    "snap",
-    "checkin",
-    "checkout",
-    "adults",
-    "children",
-    "childAges",
-    "packageId",
-    "addonIds",
-    "chargeWithAc",
-  ].forEach(function (k) {
-    localStorage.removeItem(ppStorageKey(k));
-  });
 }
 
 function handlePhonePeReturn() {
@@ -1600,33 +1840,8 @@ function handlePhonePeReturn() {
   history.replaceState({}, "", window.location.pathname);
 
   if (pp === "OK") {
-    var expectedOid = localStorage.getItem(ppStorageKey("oid"));
-    var oid = params.get("oid");
-    if (expectedOid && oid && expectedOid !== oid) {
-      clearPhonePeStorage();
-      showMessageModal(
-        "Check Payment",
-        "Payment reference does not match. Please contact the hotel with your order id: " + oid,
-        true,
-      );
-      return;
-    }
-
-    var snap = restoreBookingStateForPayment();
-    if (snap) {
-      lastSnap = snap;
-      clearPhonePeStorage();
-      sendBookingPayload();
-    } else {
-      clearPhonePeStorage();
-      showMessageModal(
-        "Payment Done",
-        "Your payment was received but the booking details could not be restored. Please contact the hotel.",
-        true,
-      );
-    }
+    printMyBooking(false);
   } else {
-    clearPhonePeStorage();
     showMessageModal(
       "Payment Pending",
       pp === "ERR"
@@ -1650,6 +1865,7 @@ window.function2runAfter_O_Login = function (result) {
   if (pendingPay) {
     pendingPay = false;
     sendBookingPayload();
+    paySnapLatch = null;
   }
   if (currentView === "home") {
     (typeof ensurePublicBookingsLoaded === "function"

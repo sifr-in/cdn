@@ -112,7 +112,7 @@ window.htRefreshBookings = async function () {
     clearPayload0();
     payload0.vw = 1;
     payload0.fn = 85;
-    payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "rb" }, { tb: "c" }, { tb: "r" }]);
+    payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "rb" },{ tb: "rc" }, { tb: "c" }, { tb: "r" }]);
     var response = await fnj3("https://my1.in/2/l.php", payload0, 1, true, null, 20000, 0, 1, 1);
     if (response && response.su == 1) {
       await handl_rm_rspons(response);
