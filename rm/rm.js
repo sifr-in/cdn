@@ -1,4 +1,4 @@
-const tblsRequired = [ "f", "fp", "c", "rm", "r", "rb"];
+const tblsRequired = [ "f", "fp", "c", "rm", "r", "rb", "rc"];
 const moduLst = [
   //{ a: ",3,79,80", mi: ",36,", b: "entInd entity/individual", c: "fa-user", d: "entind", e: "#064ebb" },
   { a: ",85,115,", mi: ",44,", b: "Dashboard", c: "fa-chart-line", d: "home", e: "#0d6efd" },
@@ -25,26 +25,67 @@ window[my1uzr.worknOnPg].dtFormat = "dd-mm-yyyy";
 window[my1uzr.worknOnPg].shodateofberthForEi = 1;
 
 /* ============================================================
-   HT - Hotel Shri Vimaleshwar Executive (user page)
+   PHONEPE payload handover
    ------------------------------------------------------------
-   index.html holds only declarations. This file is the core:
-
-   - Part 1: KS-style bootstrap (csh list, my1e3 loader and
-             loadExe2Fn for the module files)
-   - Part 2: design system (appcss) injected via
-             injectHTStyles()
-   - Part 3: config, module globals, utilities, data loading
-             (Dexie) and server communication
-             (https://my1.in/2/ht.php, fn: -1).
-
-   The booking process lives in menu/booking.js, the server
-   response handler in core/ht_h.js and the seed data in
-   modules/demoData.js (each loaded through loadExe2Fn).
+   After a COMPLETED payment phonepe/redirect.php redirects here
+   as ?pp=OK&oid=...&data=<urlencoded JSON payload>. Read it up
+   front so it survives the query-string cleanup done later by
+   handlePhonePeReturn() (booking.js), then expose it to
+   showPhonePePostData().
    ============================================================ */
+window.ppPostData = null;
+(function capturePhonePePostData() {
+  try {
+    var raw = new URLSearchParams(window.location.search).get("data");
+    if (raw) window.ppPostData = JSON.parse(raw);
+  } catch (e) {
+    window.ppPostData = null;
+  }
+})();
 
-/* ============================================================
-   PART 1 - BOOTSTRAP (mirrors ks/core/ks.js)
-   ============================================================ */
+async function showPhonePePostData() {
+  var data = window.ppPostData;
+  if (!data) return false;
+  window.ppPostData = null;
+  try {
+    history.replaceState({}, "", window.location.pathname + window.location.hash);
+    clearPayload0();
+    payload0.x1 = data.orderId;
+    payload0.fn = 116;
+    payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "rb" },{ tb: "r" }]);
+    var resp = await fnj3("https://my1.in/3/c.php", payload0, 1, true, null, 20000, 0, 1, 1);
+    if (resp && resp.su == 1) {
+      await handl_rm_rspons(resp);
+      await adminLoadDataFromDB();
+      try {
+        if (
+          typeof dbDexieManager !== "undefined" &&
+          typeof dbnm !== "undefined" &&
+          typeof buildMyBookingAll === "function"
+        ) {
+          var dbBk = (await dbDexieManager.getAllRecords(dbnm, "rb")) || [];
+          var dbRc = (await dbDexieManager.getAllRecords(dbnm, "rc")) || [];
+          myBookingAll = buildMyBookingAll(dbBk, dbRc);
+        }
+      } catch (e) {
+        console.warn("Failed to reload bookings after payment:", e);
+      }
+      my1PageLoader(true);
+      setTimeout(function () {
+        printMyBookingById(resp?.x1);
+        my1PageLoader(false);
+      }, 2000);
+    } else {
+      showMessageModal("Error", resp?.ms || "Failed", true);
+    }
+  } catch (err) {
+    showMessageModal("Info", "Error: " + err?.message || err, false);
+  }
+
+  console.log("📦 PhonePe payload received:", data);
+  console.log("📦 Sifr payload received:", resp);
+  return true;
+}
 (async function () {
   if (!window[my1uzr.worknOnPg].csh) {
     window[my1uzr.worknOnPg].csh = [
@@ -90,7 +131,8 @@ window[my1uzr.worknOnPg].shodateofberthForEi = 1;
       },
       {
         a: 24,
-        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/bill.js",
+        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e5844db/rm/bill.js",
+        //u: "git/bill.js",
         c: "showBill,closeBill",
         r: " ",
       },
@@ -102,7 +144,8 @@ window[my1uzr.worknOnPg].shodateofberthForEi = 1;
       },
       {
         a: 21,
-        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/rm_h.js",
+        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e5844db/rm/rm_h.js",
+        //u: "git/rm_h.js",
         c: "handl_rm_rspons",
         r: " ",
       },
@@ -115,7 +158,7 @@ window[my1uzr.worknOnPg].shodateofberthForEi = 1;
       },
       {
         a: 20,
-        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@4a0308c/rm/booking.js",
+        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e5844db/rm/booking.js",
         //u: "git/booking.js",
         c: "openSummarySheet,calcBooking",
         r: " ",
@@ -153,14 +196,14 @@ window[my1uzr.worknOnPg].shodateofberthForEi = 1;
       },
       {
         a: 44,
-        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@687784c/rm/home.js",
+        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e5844db/rm/home.js",
         //u: "git/home.js",
         c: "showDashboard,renderTable",
         r: " ",
       },
       {
         a: 46,
-        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@25415a1/rm/adminBooking.js",
+        u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e5844db/rm/adminBooking.js",
         //u: "git/adminBooking.js",
         c: "openBookingModal,saveBooking",
         r: " ",
@@ -192,7 +235,7 @@ window[my1uzr.worknOnPg].shodateofberthForEi = 1;
       { "a": 52, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b7740c3/cmn/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
       { "a": 53, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fcbc516/cmn/my1rp.js", "c": "open_my1rp", "r": "open_my1rp" },
       { "a": 106, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/addRoom.js", "c": "showAddRoom,setAddRoomHero,updateThumb,publishAddRoom,resetAddRoomForm,editRoom", "r": " " },
-      { "a": 112, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@25415a1/rm/adminBooking.js", "c": "openBookingModal,saveBooking", "r": " " },
+      { "a": 112, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e5844db/rm/adminBooking.js", "c": "openBookingModal,saveBooking", "r": " " },
       //{ "a": 112, "u": "git/adminBooking.js", "c": "openBookingModal,saveBooking", "r": " " },
       { "a": 114, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/restaurant.js", "c": "showRestaurant", "r": " " },
       { "a": 111, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/reviews.js", "c": "showReviews,openReviewModal,submitReview", "r": " " },
@@ -287,6 +330,8 @@ window[my1uzr.worknOnPg].shodateofberthForEi = 1;
 
     renderAppUI();
     console.log("✅ App UI rendered - Hotel Shri Vimaleshwar Executive");
+
+    showPhonePePostData();
 
     // refreshFromServer();
   } catch (e) {
@@ -394,6 +439,13 @@ appcss = `:root {
     white-space: nowrap;
   }
   .ht-btn:active { transform: translateY(0) scale(0.98); }
+  .ht-btn[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+    filter: grayscale(0.4);
+  }
   .ht-btn-ember {
     background: linear-gradient(135deg, #a13a26, var(--ember-dark));
     color: #fbeedd;
@@ -1208,6 +1260,8 @@ appcss = `:root {
     background: transparent;
   }
   .ht-bill-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
     border-radius: 18px 18px 0 0;
     background: #ffffff;
@@ -1215,6 +1269,7 @@ appcss = `:root {
   }
   .ht-bill-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
     padding: 14px;
     background: linear-gradient(180deg, #2b2419, #201a11);
@@ -1427,6 +1482,117 @@ appcss = `:root {
     .ht-bill-meta { flex-direction: column; gap: 8px; }
     .ht-bill-meta .cols { text-align: left; }
   }
+
+  /* ---- MY BOOKINGS LIST MODAL ---- */
+  .ht-mybook-scroll {
+    background: #fffdf8;
+    padding: 0 0 6px;
+  }
+  .ht-mybook-head {
+    padding: 24px 24px 8px;
+    text-align: center;
+    border-bottom: 1px dashed rgba(201, 164, 92, 0.4);
+  }
+  .ht-mybook-head .ht-bill-title { font-size: 18px; }
+  .ht-mybook-head .ht-bill-status { margin-top: 10px; }
+  .ht-mybook-guest { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+  .ht-mybook-guest b { color: var(--gold-dark); }
+  .ht-mybook-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 18px 24px 24px;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .ht-mybook-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px;
+    background: #ffffff;
+    border: 1px solid rgba(201, 164, 92, 0.4);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .ht-mybook-card .mbc-top {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px 12px;
+  }
+  .ht-mybook-card .mbc-room {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 15.5px;
+    font-weight: 700;
+    color: var(--charcoal);
+  }
+  .ht-mybook-card .mbc-room i { color: var(--gold-dark); font-size: 13px; }
+  .ht-mybook-card .mbc-total {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .ht-mybook-card .mbc-total .lb {
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-size: 10px;
+  }
+  .ht-mybook-card .mbc-total .vl {
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 19px;
+    color: var(--ember-dark);
+    font-weight: 700;
+  }
+  .ht-mybook-card .mbc-sub {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    border-top: 1px dashed rgba(201, 164, 92, 0.35);
+    padding-top: 10px;
+  }
+  .ht-mybook-card .mbc-meta {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .ht-mybook-card .mbc-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+  .ht-mybook-card .mbc-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: #8a6d2f;
+    background: rgba(201, 164, 92, 0.14);
+    border: 1px solid rgba(201, 164, 92, 0.5);
+    border-radius: 999px;
+    padding: 5px 11px;
+  }
+  .ht-mybook-card .mbc-badge.ok {
+    background: linear-gradient(135deg, #4caf7d, #2e7d32);
+    border-color: #2e7d32;
+    color: #ffffff;
+  }
+  .ht-mybook-card .mbc-badge.no { background: #fdecea; color: #b23a3a; border-color: #e8b4a6; }
+  .ht-mybook-card .ht-btn { padding: 8px 14px; font-size: 12.5px; }
+  .ht-mybook-card .ht-mybook-pay { flex: none; }
+  .ht-mybook-empty { text-align: center; padding: 40px 20px 50px; color: var(--muted); }
+  .ht-mybook-empty i { font-size: 34px; color: var(--gold); margin-bottom: 10px; display: block; }
 
   /* ---- BILL: summaryHtml overrides (light background) ---- */
   .ht-bill-body .s-head { border-bottom-color: rgba(201, 164, 92, 0.35); }
@@ -2296,7 +2462,7 @@ function renderNavBar() {
     escHtml(h.name) +
     "</span>" +
     '<span class="ht-brand-tag">' +
-    escHtml(h.tagline) +
+    //escHtml(h.tagline) +
     "</span>" +
     "</div>" +
     "</div>" +
@@ -2542,7 +2708,7 @@ function renderHome() {
     myBookingRow =
       '<div class="ht-my-booking-row">' +
       '<button class="ht-btn ht-btn-gold" onclick="printMyBooking()">' +
-      '<i class="fa-solid fa-print"></i> Print</button>' +
+      '<i class="fa-solid fa-book"></i> My Bookings</button>' +
       '<button class="ht-btn ht-btn-ember" onclick="cancelMyBooking()">' +
       '<i class="fa-solid fa-ban"></i> Cancel booking</button>' +
       "</div>";
@@ -3142,6 +3308,7 @@ function normalizeBookingRow(bk) {
       : "";
   var row = {
     a: bk.a,
+    d: bk.d,
     e: e,
     f: f,
     g: "",
