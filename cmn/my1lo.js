@@ -860,7 +860,10 @@ function set_innerHTML_of_shoLgnO() {
             <div class="card">
                 <div class="card-header text-center d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Login with <span id="lo-otpTextToggle" style="cursor: pointer; padding: 2px 5px; border-radius: 3px; transition: all 0.3s;">OTP</span></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm lo-pw-login" onclick="openLoginWithPassFromLoginWith()" title="Login with Password">🔑 Password</button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
                 </div>
                 <div class="card-body" style="background-color: #33FFCC;">
                     <!--
@@ -919,6 +922,14 @@ function set_innerHTML_of_shoLgnO() {
             </div>
         </div>
     `;
+}
+
+async function openLoginWithPassFromLoginWith() {
+    const modal = bootstrap.Modal.getInstance(document.getElementById(id_of_dv_shoLgnO_to_set_processed_dom_object));
+    if (modal) modal.hide();
+    const t932 = getCacheId("my1lp.js");
+    if (t932)
+        await loadExe2Fn(t932, ['dv_to_set_open_my1ctr_processed', 0, 1, 2], [1]);
 }
 
 function setupOtpTextToggleLO() {
@@ -1022,7 +1033,7 @@ function createOtpDigitInputsLO() {
 
 function addCustomStyles() {
  const style = document.createElement("style");
- style.textContent = `#lo-mobileDigitsContainer input.form-control {border-color: #6c757d !important;font-size: 16px !important;color: #000 !important;background-color: #fff !important;padding: 0.375rem 0.25rem !important;}#lo-mobileDigitsContainer input.form-control:focus {border-color: #495057 !important;box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;color: #000 !important;background-color: #fff !important;}#lo-otpDigitsContainer input.form-control {border-color: #6c757d !important;font-size: 16px !important;color: #000 !important;background-color: #fff !important;padding: 0.375rem 0.25rem !important;text-transform: uppercase !important;}#lo-otpDigitsContainer input.form-control:focus {border-color: #495057 !important;box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;color: #000 !important;background-color: #fff !important;}#lo-mobileDigitsContainer input,#lo-otpDigitsContainer input {-webkit-text-fill-color: #000 !important;}#fullScreenLoader {background-color: rgba(255, 255, 255, 0.9) !important;z-index: 10000 !important;}#autoVerifyProgress, #manualVerifyMsg {font-size: 0.875rem;padding: 0.5rem;margin-bottom: 0.5rem;}#lo-resendOtp:disabled {cursor: not-allowed;opacity: 0.6;}#lo-resendOtp.btn-warning {background-color: #ffc107 !important;border-color: #ffc107 !important;color: #212529 !important;}#audioErrorMsg {font-size: 0.875rem;padding: 0.5rem;margin-bottom: 0.5rem;}#lo-getOtpBtn:disabled {opacity: 0.6;cursor: not-allowed;}.blink-text {animation: blinkAnim 1s step-end infinite;} @keyframes blinkAnim {0%,100%{opacity:1}50%{opacity:0}}body.modal-open{overflow:visible!important;padding-right:0!important}`;
+ style.textContent = `#lo-mobileDigitsContainer input.form-control {border-color: #6c757d !important;font-size: 16px !important;color: #000 !important;background-color: #fff !important;padding: 0.375rem 0.25rem !important;}#lo-mobileDigitsContainer input.form-control:focus {border-color: #495057 !important;box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;color: #000 !important;background-color: #fff !important;}#lo-otpDigitsContainer input.form-control {border-color: #6c757d !important;font-size: 16px !important;color: #000 !important;background-color: #fff !important;padding: 0.375rem 0.25rem !important;text-transform: uppercase !important;}#lo-otpDigitsContainer input.form-control:focus {border-color: #495057 !important;box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;color: #000 !important;background-color: #fff !important;}#lo-mobileDigitsContainer input,#lo-otpDigitsContainer input {-webkit-text-fill-color: #000 !important;}#fullScreenLoader {background-color: rgba(255, 255, 255, 0.9) !important;z-index: 10000 !important;}#autoVerifyProgress, #manualVerifyMsg {font-size: 0.875rem;padding: 0.5rem;margin-bottom: 0.5rem;}#lo-resendOtp:disabled {cursor: not-allowed;opacity: 0.6;}#lo-resendOtp.btn-warning {background-color: #ffc107 !important;border-color: #ffc107 !important;color: #212529 !important;}#audioErrorMsg {font-size: 0.875rem;padding: 0.5rem;margin-bottom: 0.5rem;}.lo-pw-login {color: #6c757d;border-color: #6c757d;background: transparent;}#lo-getOtpBtn:disabled {opacity: 0.6;cursor: not-allowed;}.blink-text {animation: blinkAnim 1s step-end infinite;} @keyframes blinkAnim {0%,100%{opacity:1}50%{opacity:0}}body.modal-open{overflow:visible!important;padding-right:0!important}`;
  document.head.appendChild(style);
 }
 
@@ -1346,6 +1357,8 @@ function generateLognTheme(cssText) {
  css += ".modal .card-header { background-color: " + brandHex + " !important; border-color: " + brandHex + " !important; }\n";
  css += ".modal .card-header .card-title { color: " + onBrand + " !important; }\n";
  css += ".modal .card-header .btn-close { filter: " + (onBrand === "#ffffff" ? "invert(1)" : "none") + "; }\n";
+ css += ".modal .card-header .lo-pw-login { color: " + onBrand + " !important; border-color: " + onBrand + " !important; background-color: transparent !important; }\n";
+ css += ".modal .card-header .lo-pw-login:hover { background-color: " + brandDark + " !important; color: " + onBrand + " !important; }\n";
  css += ".modal .card-body { background-color: " + lightBg + " !important; }\n";
  css += "#lo-getOtpBtn, #lo-verifyOtpBtn { background-color: " + brandHex + " !important; border-color: " + brandHex + " !important; color: " + onBrand + " !important; }\n";
  css += "#lo-getOtpBtn:hover, #lo-getOtpBtn:focus, #lo-verifyOtpBtn:hover, #lo-verifyOtpBtn:focus { background-color: " + brandDark + " !important; border-color: " + brandDark + " !important; color: " + onBrand + " !important; }\n";
