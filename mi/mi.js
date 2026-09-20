@@ -33,6 +33,9 @@ const cust_const = [
  },
  {
   "a": "reptsTB", "b": 31, "c": "", "d": "at bill/reports dropdown condition for tb by ", "u": "url"
+ },
+ {
+  "a": "seprateIdCowBuffelo", "b": 1, "c": "", "d": "when adding a party if his cow & bufellow code is separate, this is used; 2 unique ids can be created", "u": "url"
  }
 ];
 if (typeof window.closeModal !== "function") {
@@ -75,13 +78,16 @@ let tblFailureCount = 1;
 const cacheStrategy = 1;
 const dontShoLoginConfirmation = 1;
 const dontRestartAfterLogin = 1;
-
+let seprateIdCowBuffelo = 0;
+window[my1uzr.worknOnPg].changeToView = "";
+window[my1uzr.worknOnPg].colsToHide = "n,";
+window[my1uzr.worknOnPg].colsToHidePartyDetails = "";
 window.fnCombineCowBuffalo = function (...obj) {
- const tsrrh = obj[0];
- const tsrrfpay = obj[1];
- console.log(obj);
- const result = "," + Object.values(tsrrh).join(",") + ",";
- return result;
+  const tsrrh = obj[0];
+  const tsrrfpay = obj[1];
+  console.log(obj);
+  const result = "," + Object.values(tsrrh).join(",") + ",";
+  return result;
 };
 
 window.fnSeparateCowBuffalo = function (storedVal) {
@@ -485,6 +491,7 @@ window.openSupplierList = function (callbackName, xtraFlds) {
 
   console.log("✅ Framework dependencies loaded");
   await loadMilkCollectConfig();
+  seprateIdCowBuffelo = window[my1uzr.worknOnPg].clientConfig?.cust_da_const?.seprateIdCowBuffelo;
   await recomputeAllowedModules();
 
   // ✅ Self-contained "Clear All Data" modal (replaces CDN clrChe.js modal
