@@ -122,6 +122,22 @@ function cs91CaseNoPrefix(s) {
   return String(s == null ? "" : s).substring(0, 8);
 }
 
+function getCaseDisplayId(record) {
+  if (isCs91Record(record)) {
+    var csRec = findCsByCs91Link(record.a);
+    return csRec ? csRec.a : "-";
+  }
+  return record.a;
+}
+
+function parseCs91NoYear(cnr) {
+  var s = String(cnr == null ? "" : cnr).trim().toUpperCase();
+  if (!/^[A-Z]{4}\d{12}$/.test(s)) return null;
+  var no6 = s.substring(6, 12).replace(/^0+/, "");
+  var year = s.substring(12, 16);
+  return { no: no6 || "", year: /^\d{4}$/.test(year) ? year : "" };
+}
+
 function getCaseDisplayRecord(record) {
   if (!record) return record;
   var cr = getCaseCs91Fallback(record);
@@ -166,6 +182,11 @@ function getCaseDisplayRecord(record) {
       r91.n = cr.l;
       r91.o = cr.m;
     }
+    var pcn = parseCs91NoYear(cr.e || record.e);
+    if (pcn) {
+      r91.h = pcn.no;
+      r91.i = pcn.year;
+    }
     return r91;
   }
   var r = {};
@@ -179,6 +200,13 @@ function getCaseDisplayRecord(record) {
   if (!r.i && cr.s) r.i = cr.s;
   if (!r.n && cr.l) r.n = cr.l;
   if (!r.o && cr.m) r.o = cr.m;
+  if (Number(record.f) > 0 && cr && cr.e) {
+    var p = parseCs91NoYear(cr.e);
+    if (p) {
+      r.h = p.no;
+      r.i = p.year;
+    }
+  }
   return r;
 }
 
@@ -366,7 +394,7 @@ function renderFlatTable() {
     '<div class="table-scroll-premium">' +
     '<table class="table-premium table table-bordered table-sm mb-0">' +
     "<thead><tr>" +
-    (isColVisible("sr") ? "<th>SR</th>" : "") +
+    (isColVisible("sr") ? "<th>ID</th>" : "") +
     (isColVisible("pdate") ? "<th>PDate</th>" : "") +
     (isColVisible("court") ? "<th>Court</th>" : "") +
     (isColVisible("adv") ? "<th>Adv</th>" : "") +
@@ -399,7 +427,7 @@ function renderFlatTable() {
       (hasNextDate ? "background:#D4EDDA;" : "") +
       '">' +
       (isColVisible("sr")
-        ? '<td class="fw-bold text-navy">' + x.a + "</td>"
+        ? '<td class="fw-bold text-navy">' + getCaseDisplayId(x) + "</td>"
         : "") +
       (isColVisible("pdate")
         ? '<td class="fw-semibold" style="color:#c62828;">' +
@@ -533,9 +561,6 @@ function buildHomeRow(
     "ms;" +
     (hasNextDate ? "background:#D4EDDA;" : "") +
     '">' +
-    (isColVisible("sr")
-      ? '<td class="fw-bold text-navy">' + x.a + "</td>"
-      : "") +
     (isColVisible("pdate")
       ? '<td class="fw-semibold" style="color:#c62828;">' +
         pDateHtml +
@@ -811,7 +836,6 @@ function renderTable() {
       '<div class="table-scroll-premium">' +
       '<table class="table-premium table table-bordered table-sm mb-0">' +
       "<thead><tr>" +
-      (isColVisible("sr") ? "<th>SR</th>" : "") +
       (isColVisible("pdate") ? "<th>PDate</th>" : "") +
       (isColVisible("court") ? "<th>Court</th>" : "") +
       (isColVisible("adv") ? "<th>Adv</th>" : "") +
