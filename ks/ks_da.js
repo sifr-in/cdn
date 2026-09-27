@@ -2,7 +2,7 @@
 // Business Details + Logo + Advocates on Board
 // Data source: ks.da | Save endpoint: 2/da.php (fn -22)
 
-const SETTINGS_SAVE_URL = "https://my1.in/3/c.php";
+const SETTINGS_SAVE_URL = "https://my1.in/2/t.php";
 const SETTINGS_SAVE_FN = 104;
 const SETTINGS_DRML = "sambodhisarang.in";
 

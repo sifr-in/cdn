@@ -49,9 +49,9 @@ async function populateCaseAdvocateOptions(mid) {
     try {
       var persons = await dbDexieManager.getAllRecords(dbnm, "c");
       var boardCap =
-        typeof maxNoOfAdvOnBoard !== "undefined"
-          ? Number(maxNoOfAdvOnBoard) || 9
-          : 9;
+        typeof window[my1uzr.worknOnPg]?.clientConfig?.cust_da_const?.maxNoOfAdvOnBoard !== "undefined"
+          ? Number(window[my1uzr.worknOnPg]?.clientConfig?.cust_da_const?.maxNoOfAdvOnBoard) || 1
+          : 1;
       var missed = [];
       for (var i = 0; i < ids.length && count < boardCap; i++) {
         var p = null;
