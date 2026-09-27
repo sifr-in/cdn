@@ -12,10 +12,14 @@ const moduLst = [
     { "a":",-0,", "b": "Manage Driver", "c": "fa-truck", "d": "driver_panel", "e": "#fd7e14" },
     { "a":",-100,", "b": "Driver Upload Img", "c": "fa-truck-loading", "d": "showDrvBilingPanel", "e": "#17a2b8" },
     { "a":",100,", "b": "Driver Orders", "c": "fa-truck-loading", "d": "showMyDrvPanel", "e": "#17a2b8" },
-    { "a":",84,88,78,", "b": "Recent Orders", "c": "fa-clock", "d": "recent", "e": "#0dcaf0" }
+    { "a":",84,88,78,77,", "b": "Recent Orders", "c": "fa-clock", "d": "recent", "e": "#0dcaf0" }
 ];
 moduLst.hook = "onModuLstAllowed";
 window[my1uzr.worknOnPg].moduLst = moduLst;
+const inTbls = ["dontCret~", "pubilc~77,78", "72~p,s,c", "81~c,o,os", "82~s", "83~p", "86~s,p", "88~os,od", "100~p,od", "104~"];
+const cust_const = [
+    { "a": "driverimageupload", "b": 1, "c": "more customiztaion", "d": "if value is 1 driver will be able to take photo of delivary and upload", "u": "url-explaining-video" }
+];
 window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
     window[my1uzr.worknOnPg].allowedModulesMenuItems = allowedModules || [];
     const menuItems = allowedModules.map(m => ({ icon: m.c, label: m.b, action: m.d, color: m.e }));
@@ -71,7 +75,7 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
         //{ "a": 26, "u": "git/mn_or.js", "c": "showManageOrders", "r": "showManageOrders" },
         { "a": 27, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/o/up_prod.js", "c": "showUpdateProduct", "r": "showUpdateProduct" },
         //{ "a": 27, "u": "git/up_prod.js", "c": "showUpdateProduct", "r": "showUpdateProduct" },
-        { "a": 28, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9eec64b/o/mn_ct.js", "c": "showManageCategories", "r": "showManageCategories" },
+        { "a": 28, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@87ed17f/o/mn_ct.js", "c": "showManageCategories", "r": "showManageCategories" },
         //{ "a": 28, "u": "git/mn_ct.js", "c": "showManageCategories", "r": "showManageCategories" },
         { "a": 29, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@72bbbd3/o/mn_drvr.js", "c": "showDriverPanel", "r": "showDriverPanel" },
         //{ "a": 29, "u": "git/mn_drvr.js", "c": "showDriverPanel", "r": "showDriverPanel" },
@@ -353,6 +357,7 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
                 window[my1uzr.worknOnPg].categorys = [];
                 console.warn('Could not load o.da, using defaults:', e);
             });
+            window.driverimageupload = window[my1uzr.worknOnPg]?.clientConfig?.cust_da_const?.driverimageupload;
             const createResult = await dbDexieManager.handleNwTables("loader", dbnm, tblsRequired);
             tblFailureCount = createResult.failureCount;
 
