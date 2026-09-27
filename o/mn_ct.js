@@ -56,7 +56,6 @@
             return false;
         }
 
-        payload0.vw = 1;
         payload0.fn = 104;
         //payload0.cata = categoryList;
         payload0.drml = "sambodhisarang.in";
@@ -72,7 +71,7 @@
         document.body.appendChild(_ldDiv);
 
         try {
-            const response = await fnj3("https://my1.in/5/a.php", payload0, 1, true, null, 20000, 0, 2, 1);
+            const response = await fnj3("https://my1.in/2/t.php", payload0, 1, true, null, 20000, 0, 2, 1);
             var _ldEl = document.getElementById(_ldId);
             if (_ldEl) _ldEl.remove();
             if (response && response.su == 1) {
