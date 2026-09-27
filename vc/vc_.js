@@ -6,9 +6,9 @@
 (function () {
  'use strict';
 
- var DA_URL = './vc.da';
- var SAVE_URL = './vc_da.php';
- var GMAPS_KEY = '';                    // fill to switch the picker to Google Maps JS
+  var DA_URL = './vc.da';
+  var DESIGN_CSS_BASE = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@fba9a74/vc/';
+  var GMAPS_KEY = '';                    // fill to switch the picker to Google Maps JS
  var NOMINATIM = 'https://nominatim.openstreetmap.org';
  var $ = function (id) { return document.getElementById(id); };
 
@@ -157,6 +157,8 @@
   '.vd-in.blank input[type=color]{width:100%;height:38px}',
   '.vd-hint{font-size:11px;color:var(--mut);margin-top:3px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}',
   '.vd-hint .p{font-family:Consolas,monospace;background:#f1f5f9;border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:#475569}',
+  '.vd-hint .p a{color:var(--A2);text-decoration:none;word-break:break-all}',
+  '.vd-hint .p a:hover{text-decoration:underline}',
   '.vd-hint .e{color:#dc2626;font-weight:600;display:none}',
   '.vd-in.bad input,.vd-in.bad textarea,.vd-in.bad select{border-color:#dc2626!important;box-shadow:0 0 0 3px rgba(220,38,38,.12)!important}',
   '.vd-in.bad .e{display:inline}',
@@ -544,16 +546,25 @@
   return /^(lat|lng|lon|longitude|latitude)$/.test(normalizeKey(key));
  }
 
- function renderField(key, value, path) {
-  var def = defForValue(key, value);
-  var req = requiredRuleFor(path);
-  var mapBtn = isGeoKey(key) && path.length > 1
-   ? '<button type="button" class="vd-mapbtn" data-p="' + escAttr(JSON.stringify(path)) + '">Pick on map</button>'
-   : '';
-  return '<li class="vd-li' + (req ? ' vd-req' : '') + '" data-k="' + escAttr(key) + '" data-kind="p"><div class="vd-row"><label for="f-' + escAttr(key) + '">' + esc(titleCase(key)) + '</label>' +
-   '<div class="vd-in">' + fieldInput(key, value, path) + mapBtn +
-   '<div class="vd-hint"><span class="p">' + esc(def.pattern) + '</span><span class="e">' + (req ? 'required' : 'invalid') + '</span></div></div></div></li>';
- }
+  function designCssUrl(value) {
+   var m = String(value == null ? '' : value).trim().match(/^vc?([1-9]\d*)$/i);
+   return m ? DESIGN_CSS_BASE + 'vc' + m[1] + '.css' : '';
+  }
+
+  function renderField(key, value, path) {
+   var def = defForValue(key, value);
+   var req = requiredRuleFor(path);
+   var mapBtn = isGeoKey(key) && path.length > 1
+    ? '<button type="button" class="vd-mapbtn" data-p="' + escAttr(JSON.stringify(path)) + '">Pick on map</button>'
+    : '';
+   var dUrl = (String(key) === 'design') ? designCssUrl(value) : '';
+   var designNote = dUrl
+    ? '<span class="p">css: <a href="' + escAttr(dUrl) + '" target="_blank" rel="noopener">' + esc(dUrl) + '</a></span>'
+    : '';
+   return '<li class="vd-li' + (req ? ' vd-req' : '') + '" data-k="' + escAttr(key) + '" data-kind="p"><div class="vd-row"><label for="f-' + escAttr(key) + '">' + esc(titleCase(key)) + '</label>' +
+    '<div class="vd-in">' + fieldInput(key, value, path) + mapBtn +
+    '<div class="vd-hint">' + designNote + '<span class="p">' + esc(def.pattern) + '</span><span class="e">' + (req ? 'required' : 'invalid') + '</span></div></div></div></li>';
+  }
 
  /* ================= wiring ================= */
 
