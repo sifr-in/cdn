@@ -2,8 +2,8 @@ window.appcss = null;
 let xtraj_payload = null;
 async function set_owner() {
  const pathParts = window.location.pathname.split('/').filter(p => p);
- const eo = pathParts[0] || window.ownr_eo;
- const ec = pathParts[1] || window.ownr_ec;
+ const eo = window?.ownr_eo || pathParts[0];
+ const ec = window?.ownr_ec || pathParts[1];
  window.appOwner = {
   tn: `${eo}_${ec}`.replace(/\./g, "_"),
   eo: eo,
@@ -40,6 +40,18 @@ function clearPayload0() {
  Object.assign(window.payload0, keep);
 }
 window.suppressModals = false;
+
+window.getGoogleDriveImageUrl = function getGoogleDriveImageUrl(value, thumbnail) {
+ if (!value) return '';
+ value = String(value).trim();
+ var parts = value.split(/\s+/);
+ if (parts.length >= 1 && /^[A-Za-z0-9_-]{20,}$/.test(parts[0])) {
+  var fileId = thumbnail && parts[1] ? parts[1] : parts[0];
+  return 'https://lh3.googleusercontent.com/d/' + fileId + '=s0?authuser=0';
+ }
+ return value;
+}
+
 // Vanilla JS modal functions - no Bootstrap required
 window.showelsemodal = function (errorMsg) {
  if (window.suppressModals) { window.suppressModals = false; return false; }
@@ -204,33 +216,33 @@ var escapeHTML = function (str) {
 };
 
 async function chkModuLstAgainstFNF(moduLst) {
-    let temp11 = [];
-    if (
-        typeof dbDexieManager === "undefined" ||
-        typeof dbDexieManager.getAllRecords !== "function"
-    ) {
-        return temp11;
-    }
-    const tableHandal_f = await dbDexieManager.getAllRecords(dbnm, 'f');
-    moduLst.forEach(module => {
-        // Convert ",82,72,86," → ["82", "72", "86"]
-        const moduleIds = module.a
-            .split(',')
-            .filter(id => id !== '');
-        // Check whether ANY module ID matches record.h
-        const isMatched = tableHandal_f.some(record =>
-            moduleIds.includes(String(record.h))
-        );
-        if (isMatched) {
-            // Remove "a" before adding
-            const { a, ...moduleWithoutA } = module;
-            temp11.push(moduleWithoutA);
-        }
-    });
-    if(temp11.length === 0)
-      console.log("Allowed Menu Count: "+ temp11);
-    temp11.hook = moduLst.hook || "onModuLstAllowed";
-    return temp11;
+ let temp11 = [];
+ if (
+  typeof dbDexieManager === "undefined" ||
+  typeof dbDexieManager.getAllRecords !== "function"
+ ) {
+  return temp11;
+ }
+ const tableHandal_f = await dbDexieManager.getAllRecords(dbnm, 'f');
+ moduLst.forEach(module => {
+  // Convert ",82,72,86," → ["82", "72", "86"]
+  const moduleIds = module.a
+   .split(',')
+   .filter(id => id !== '');
+  // Check whether ANY module ID matches record.h
+  const isMatched = tableHandal_f.some(record =>
+   moduleIds.includes(String(record.h))
+  );
+  if (isMatched) {
+   // Remove "a" before adding
+   const { a, ...moduleWithoutA } = module;
+   temp11.push(moduleWithoutA);
+  }
+ });
+ if (temp11.length === 0)
+  console.log("Allowed Menu Count: " + temp11);
+ temp11.hook = moduLst.hook || "onModuLstAllowed";
+ return temp11;
 }
 
 const monthFullNms = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -491,30 +503,30 @@ function loadPromiseScript(url) {
    link.onload = resolve;
    link.onerror = reject;
    document.head.appendChild(link);
-} else {
-    // It's a JS file
-    // Duplicate handling: a tag in the DOM may still be downloading or have
-    // failed. If we already loaded it, resolve; else remove the stale tag so
-    // the retry actually re-downloads.
-    const existingScript = document.querySelector(`script[src="${url}"]`);
-    if (existingScript) {
-     if (existingScript.dataset.htLoaded === "1") {
-      resolve();
-      return;
-     }
-     existingScript.remove();
-    }
-
-    const script = document.createElement("script");
-    script.onload = function () {
-     const tag = document.querySelector(`script[src="${url}"]`);
-     if (tag) tag.dataset.htLoaded = "1";
+  } else {
+   // It's a JS file
+   // Duplicate handling: a tag in the DOM may still be downloading or have
+   // failed. If we already loaded it, resolve; else remove the stale tag so
+   // the retry actually re-downloads.
+   const existingScript = document.querySelector(`script[src="${url}"]`);
+   if (existingScript) {
+    if (existingScript.dataset.htLoaded === "1") {
      resolve();
-    };
-    script.onerror = reject;
-    script.src = url;
-    document.head.appendChild(script);
+     return;
+    }
+    existingScript.remove();
    }
+
+   const script = document.createElement("script");
+   script.onload = function () {
+    const tag = document.querySelector(`script[src="${url}"]`);
+    if (tag) tag.dataset.htLoaded = "1";
+    resolve();
+   };
+   script.onerror = reject;
+   script.src = url;
+   document.head.appendChild(script);
+  }
  });
 }
 async function loadCshScriptsSequentially(...scriptIds) {
@@ -719,117 +731,87 @@ async function loadExe2Fn(id_as_a, pFNarams = [], pSCRParams = []) {
   let loader = null;
 
   try {
-  // Validate required global objects
-  if (typeof my1uzr === 'undefined') {
-   throw new Error('my1uzr object not found');
-  }
-
-  if (!my1uzr.worknOnPg) {
-   throw new Error('my1uzr.worknOnPg not defined');
-  }
-
-  if (!window[my1uzr.worknOnPg]) {
-   throw new Error(`window["${my1uzr.worknOnPg}"] not found`);
-  }
-
-  if (!window[my1uzr.worknOnPg].csh || !Array.isArray(window[my1uzr.worknOnPg].csh)) {
-   throw new Error(`window["${my1uzr.worknOnPg}"].csh array not found`);
-  }
-
-  // Find the configuration by id
-  const config = window[my1uzr.worknOnPg].csh.find(item => item.a === id_as_a);
-  if (!config) {
-   throw new Error(`Configuration with id ${id_as_a} not found in csh array.`);
-  }
-
-  // Validate config properties
-  if (!config.u) {
-   throw new Error(`Script URL (u) not found in configuration with id ${id_as_a}`);
-  }
-
-  if (!config.c) {
-   throw new Error(`Functions to check (c) not found in configuration with id ${id_as_a}`);
-  }
-
-  if (!config.r) {
-   throw new Error(`Functions to run (r) not found in configuration with id ${id_as_a}`);
-  }
-
-  const { u: scriptUrl, c: fnsToChk, r: fnsToRun } = config;
-
-  // Validate pSCRParams for loader handling
-  if (!Array.isArray(pSCRParams)) {
-   throw new Error('pSCRParams must be an array');
-  }
-
-  // Handle loader based on pSCRParams
-  if (pSCRParams[0] === 1) {
-   // Create new dynamic loader
-   if (typeof createDynamicLoader !== 'function') {
-    throw new Error('createDynamicLoader function not found');
+   // Validate required global objects
+   if (typeof my1uzr === 'undefined') {
+    throw new Error('my1uzr object not found');
    }
-   loader = createDynamicLoader('Loading...', null);
-  } else if (pSCRParams[0] === 0) {
-   if (!pSCRParams[1]) {
-    throw new Error('Loader ID required when pSCRParams[0] is 0');
+
+   if (!my1uzr.worknOnPg) {
+    throw new Error('my1uzr.worknOnPg not defined');
    }
-   // Use existing loader by ID
-   loader = document.getElementById(pSCRParams[1]);
-   if (!loader) {
-    console.warn(`Loader with ID "${pSCRParams[1]}" not found`);
-   } else {
-    loader.style.display = 'block';
+
+   if (!window[my1uzr.worknOnPg]) {
+    throw new Error(`window["${my1uzr.worknOnPg}"] not found`);
    }
-  }
 
-  // Validate loadPromiseScript function exists
-  if (typeof loadPromiseScript !== 'function') {
-   throw new Error('loadPromiseScript function not found');
-  }
-
-  // Split comma-separated function names and trim whitespace
-  const functionsToCheck = fnsToChk.split(',').map(fn => fn.trim());
-  const missingFunctions = [];
-
-  // Check if all functions exist
-  for (const fnName of functionsToCheck) {
-   if (typeof window[fnName] !== 'function') {
-    missingFunctions.push(fnName);
+   if (!window[my1uzr.worknOnPg].csh || !Array.isArray(window[my1uzr.worknOnPg].csh)) {
+    throw new Error(`window["${my1uzr.worknOnPg}"].csh array not found`);
    }
-  }
 
-  if (missingFunctions.length === 0) {
-   // All functions exist, execute fnsToRun if provided
-   if (fnsToRun && fnsToRun.trim() !== '') {
-    const functionsToRun = fnsToRun.split(',').map(fn => fn.trim());
+   // Find the configuration by id
+   const config = window[my1uzr.worknOnPg].csh.find(item => item.a === id_as_a);
+   if (!config) {
+    throw new Error(`Configuration with id ${id_as_a} not found in csh array.`);
+   }
 
-    // Execute functions sequentially and wait for each to complete
-    for (const fnName of functionsToRun) {
-     if (typeof window[fnName] === 'function') {
-      const result = window[fnName](...pFNarams);
-      // If function returns a Promise, wait for it
-      if (result instanceof Promise) {
-       await result;
-      }
-     } else {
-      console.warn(`Function "${fnName}" not found for execution.`);
-     }
+   // Validate config properties
+   if (!config.u) {
+    throw new Error(`Script URL (u) not found in configuration with id ${id_as_a}`);
+   }
+
+   if (!config.c) {
+    throw new Error(`Functions to check (c) not found in configuration with id ${id_as_a}`);
+   }
+
+   if (!config.r) {
+    throw new Error(`Functions to run (r) not found in configuration with id ${id_as_a}`);
+   }
+
+   const { u: scriptUrl, c: fnsToChk, r: fnsToRun } = config;
+
+   // Validate pSCRParams for loader handling
+   if (!Array.isArray(pSCRParams)) {
+    throw new Error('pSCRParams must be an array');
+   }
+
+   // Handle loader based on pSCRParams
+   if (pSCRParams[0] === 1) {
+    // Create new dynamic loader
+    if (typeof createDynamicLoader !== 'function') {
+     throw new Error('createDynamicLoader function not found');
+    }
+    loader = createDynamicLoader('Loading...', null);
+   } else if (pSCRParams[0] === 0) {
+    if (!pSCRParams[1]) {
+     throw new Error('Loader ID required when pSCRParams[0] is 0');
+    }
+    // Use existing loader by ID
+    loader = document.getElementById(pSCRParams[1]);
+    if (!loader) {
+     console.warn(`Loader with ID "${pSCRParams[1]}" not found`);
+    } else {
+     loader.style.display = 'block';
     }
    }
-  } else {
-   // Some functions are missing, load the script
-   await loadPromiseScript(scriptUrl);
 
-   // Check again after loading the script
-   const stillMissing = [];
+   // Validate loadPromiseScript function exists
+   if (typeof loadPromiseScript !== 'function') {
+    throw new Error('loadPromiseScript function not found');
+   }
+
+   // Split comma-separated function names and trim whitespace
+   const functionsToCheck = fnsToChk.split(',').map(fn => fn.trim());
+   const missingFunctions = [];
+
+   // Check if all functions exist
    for (const fnName of functionsToCheck) {
     if (typeof window[fnName] !== 'function') {
-     stillMissing.push(fnName);
+     missingFunctions.push(fnName);
     }
    }
 
-   if (stillMissing.length === 0) {
-    // All functions now exist, execute fnsToRun if provided
+   if (missingFunctions.length === 0) {
+    // All functions exist, execute fnsToRun if provided
     if (fnsToRun && fnsToRun.trim() !== '') {
      const functionsToRun = fnsToRun.split(',').map(fn => fn.trim());
 
@@ -847,27 +829,57 @@ async function loadExe2Fn(id_as_a, pFNarams = [], pSCRParams = []) {
      }
     }
    } else {
-    throw new Error(`Functions "${stillMissing.join(', ')}" not found after loading script.`);
+    // Some functions are missing, load the script
+    await loadPromiseScript(scriptUrl);
+
+    // Check again after loading the script
+    const stillMissing = [];
+    for (const fnName of functionsToCheck) {
+     if (typeof window[fnName] !== 'function') {
+      stillMissing.push(fnName);
+     }
+    }
+
+    if (stillMissing.length === 0) {
+     // All functions now exist, execute fnsToRun if provided
+     if (fnsToRun && fnsToRun.trim() !== '') {
+      const functionsToRun = fnsToRun.split(',').map(fn => fn.trim());
+
+      // Execute functions sequentially and wait for each to complete
+      for (const fnName of functionsToRun) {
+       if (typeof window[fnName] === 'function') {
+        const result = window[fnName](...pFNarams);
+        // If function returns a Promise, wait for it
+        if (result instanceof Promise) {
+         await result;
+        }
+       } else {
+        console.warn(`Function "${fnName}" not found for execution.`);
+       }
+      }
+     }
+    } else {
+     throw new Error(`Functions "${stillMissing.join(', ')}" not found after loading script.`);
+    }
+   }
+  } catch (e) {
+   console.error('loadExe2Fn params:', { id_as_a, pFNarams, pSCRParams });
+   console.error('Error:', e.message);
+   alert(`Error: ${e.message}. Please retry or contact support.`);
+  } finally {
+   // Hide loader
+   if (pSCRParams[0] === 1 && loader) {
+    // Remove dynamic loader
+    if (typeof loader.removeLoader === 'function') {
+     loader.removeLoader();
+    } else {
+     console.warn('Loader does not have removeLoader method');
+    }
+   } else if (pSCRParams[0] === 0 && loader) {
+    // Hide existing loader
+    loader.style.display = 'none';
    }
   }
- } catch (e) {
-  console.error('loadExe2Fn params:', { id_as_a, pFNarams, pSCRParams });
-  console.error('Error:', e.message);
-  alert(`Error: ${e.message}. Please retry or contact support.`);
- } finally {
-  // Hide loader
-  if (pSCRParams[0] === 1 && loader) {
-   // Remove dynamic loader
-   if (typeof loader.removeLoader === 'function') {
-    loader.removeLoader();
-   } else {
-    console.warn('Loader does not have removeLoader method');
-   }
-  } else if (pSCRParams[0] === 0 && loader) {
-   // Hide existing loader
-   loader.style.display = 'none';
-  }
- }
  })();
 
  __loadExe2FnInflight[key] = run;
@@ -2619,92 +2631,92 @@ window.PICKER_DATE_FORMAT = 'yyyy-MM-dd HH:mm';
 window.tdDepsPromise = null;
 
 window.loadDatePickerDependencies = function () {
-  if (typeof tempusDominus !== 'undefined') return Promise.resolve();
-  if (!window.tdDepsPromise) {
-    window.tdDepsPromise = new Promise((resolve, reject) => {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = `https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@${window.PICKER_TD_VERSION}/dist/css/tempus-dominus.min.css`;
-      link.onerror = () => reject(new Error('Failed to load Tempus Dominus CSS'));
-      document.head.appendChild(link);
+ if (typeof tempusDominus !== 'undefined') return Promise.resolve();
+ if (!window.tdDepsPromise) {
+  window.tdDepsPromise = new Promise((resolve, reject) => {
+   const link = document.createElement('link');
+   link.rel = 'stylesheet';
+   link.href = `https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@${window.PICKER_TD_VERSION}/dist/css/tempus-dominus.min.css`;
+   link.onerror = () => reject(new Error('Failed to load Tempus Dominus CSS'));
+   document.head.appendChild(link);
 
-      const popper = document.createElement('script');
-      popper.src = 'https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js';
-      popper.onerror = () => reject(new Error('Failed to load Popper.js'));
-      popper.onload = () => {
-        const script = document.createElement('script');
-        script.src = `https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@${window.PICKER_TD_VERSION}/dist/js/tempus-dominus.min.js`;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load Tempus Dominus JS'));
-        document.head.appendChild(script);
-      };
-      document.head.appendChild(popper);
-    });
-    window.tdDepsPromise.catch(() => { window.tdDepsPromise = null; });
-  }
-  return window.tdDepsPromise;
+   const popper = document.createElement('script');
+   popper.src = 'https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js';
+   popper.onerror = () => reject(new Error('Failed to load Popper.js'));
+   popper.onload = () => {
+    const script = document.createElement('script');
+    script.src = `https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@${window.PICKER_TD_VERSION}/dist/js/tempus-dominus.min.js`;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Tempus Dominus JS'));
+    document.head.appendChild(script);
+   };
+   document.head.appendChild(popper);
+  });
+  window.tdDepsPromise.catch(() => { window.tdDepsPromise = null; });
+ }
+ return window.tdDepsPromise;
 };
 
 // Format as "YYYY-MM-DD HH:mm" (the storage/validation format used everywhere)
 window.formatForPicker = function (date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${year}-${month}-${day} ${hours}:${minutes}`;
+ const year = date.getFullYear();
+ const month = String(date.getMonth() + 1).padStart(2, '0');
+ const day = String(date.getDate()).padStart(2, '0');
+ const hours = String(date.getHours()).padStart(2, '0');
+ const minutes = String(date.getMinutes()).padStart(2, '0');
+ return `${year}-${month}-${day} ${hours}:${minutes}`;
 };
 
 window.parsePickerValue = function (val) {
-  if (!val) return null;
-  const parts = String(val).trim().split(/[\sT]+/);
-  const d = parts[0].split('-').map(Number);
-  const t = (parts[1] || '00:00').split(':').map(Number);
-  if (!d[0] || !d[1] || !d[2]) return null;
-  // Tempus Dominus DateTime extends native Date -> month is 0-based
-  return new tempusDominus.DateTime(d[0], d[1] - 1, d[2], t[0] || 0, t[1] || 0, t[2] || 0);
+ if (!val) return null;
+ const parts = String(val).trim().split(/[\sT]+/);
+ const d = parts[0].split('-').map(Number);
+ const t = (parts[1] || '00:00').split(':').map(Number);
+ if (!d[0] || !d[1] || !d[2]) return null;
+ // Tempus Dominus DateTime extends native Date -> month is 0-based
+ return new tempusDominus.DateTime(d[0], d[1] - 1, d[2], t[0] || 0, t[1] || 0, t[2] || 0);
 };
 
 window.MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 window.MONTH_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 window.isDesktopView = function () {
-  return window.innerWidth > 768;
+ return window.innerWidth > 768;
 };
 
 window.formatLongDisplay = function (val) {
-  if (!val) return '';
-  const parts = String(val).trim().split(/[\sT]+/);
-  const d = (parts[0] || '').split('-');
-  if (d.length < 3) return val;
-  const month = window.MONTH_FULL[Number(d[1]) - 1] || d[1];
-  const day = String(d[2]).padStart(2, '0');
-  const base = `${day}/${month}/${d[0]}`;
-  const t = (parts[1] || '').split(':').map(Number);
-  if (!t.length || isNaN(t[0])) return base;
-  let h = t[0] % 24;
-  const ampm = h >= 12 ? 'pm' : 'am';
-  h = h % 12;
-  if (h === 0) h = 12;
-  const min = String(t[1] || 0).padStart(2, '0');
-  return `${base} ${String(h).padStart(2, '0')}:${min}${ampm}`;
+ if (!val) return '';
+ const parts = String(val).trim().split(/[\sT]+/);
+ const d = (parts[0] || '').split('-');
+ if (d.length < 3) return val;
+ const month = window.MONTH_FULL[Number(d[1]) - 1] || d[1];
+ const day = String(d[2]).padStart(2, '0');
+ const base = `${day}/${month}/${d[0]}`;
+ const t = (parts[1] || '').split(':').map(Number);
+ if (!t.length || isNaN(t[0])) return base;
+ let h = t[0] % 24;
+ const ampm = h >= 12 ? 'pm' : 'am';
+ h = h % 12;
+ if (h === 0) h = 12;
+ const min = String(t[1] || 0).padStart(2, '0');
+ return `${base} ${String(h).padStart(2, '0')}:${min}${ampm}`;
 };
 
 window.formatShortDisplay = function (val) {
-  if (!val) return '';
-  if (window.isDesktopView()) return window.formatLongDisplay(val);
-  const parts = String(val).trim().split(/[\sT]+/);
-  const d = (parts[0] || '').split('-');
-  if (d.length < 3) return val;
-  return String(d[2]).padStart(2, '0') + '/' + (window.MONTH_SHORT[Number(d[1]) - 1] || d[1]);
+ if (!val) return '';
+ if (window.isDesktopView()) return window.formatLongDisplay(val);
+ const parts = String(val).trim().split(/[\sT]+/);
+ const d = (parts[0] || '').split('-');
+ if (d.length < 3) return val;
+ return String(d[2]).padStart(2, '0') + '/' + (window.MONTH_SHORT[Number(d[1]) - 1] || d[1]);
 };
 
 // Inject picker toolbar CSS (OK/Zero buttons + toolbar grid) once, so styling works without b.js/appcss
 window.injectTDPickerCss = function () {
-  if (document.getElementById('td-picker-self-contained-css')) return;
-  const styleEl = document.createElement('style');
-  styleEl.id = 'td-picker-self-contained-css';
-  styleEl.innerHTML = `
+ if (document.getElementById('td-picker-self-contained-css')) return;
+ const styleEl = document.createElement('style');
+ styleEl.id = 'td-picker-self-contained-css';
+ styleEl.innerHTML = `
  .tempus-dominus-widget.show { position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; margin: 0 !important; z-index: 9999 !important; box-shadow: 0 .5rem 1rem rgba(0,0,0,.35); border-radius: 8px; max-height: 85vh; overflow-y: auto }
  .tempus-dominus-widget .arrow { display: none }
  .tempus-dominus-widget .toolbar [data-action="close"] { width: auto; height: auto; padding: .05rem .28rem; font-size: .72rem; line-height: 1; border-radius: .17rem; color: #fff }
@@ -2716,224 +2728,229 @@ window.injectTDPickerCss = function () {
  .tempus-dominus-widget .toolbar .td-ok-btn { order: 4 !important; position: static !important; transform: none !important }
  .tempus-dominus-widget .toolbar [data-action="togglePicker"] { order: 5 !important; justify-self: end !important; margin-right: 1.4rem !important }
 `;
-  document.head.appendChild(styleEl);
+ document.head.appendChild(styleEl);
 };
 
 window.initDateTimePicker = async function (inputId, options) {
-  options = options || {};
-  const el = document.getElementById(inputId);
-  if (!el) return null;
-  await window.loadDatePickerDependencies();
-  window.injectTDPickerCss();
+ options = options || {};
+ const el = document.getElementById(inputId);
+ if (!el) return null;
+ await window.loadDatePickerDependencies();
+ window.injectTDPickerCss();
 
-  // mode: 'datetime' (default) | 'date' (date-only) | 'time' (time-only)
-  const mode = options.mode === 'date' || options.mode === 'time' ? options.mode : 'datetime';
-  const PICKER_FORMAT = mode === 'date' ? 'yyyy-MM-dd' : mode === 'time' ? 'HH:mm' : window.PICKER_DATE_FORMAT;
+ // mode: 'datetime' (default) | 'date' (date-only) | 'time' (time-only)
+ const mode = options.mode === 'date' || options.mode === 'time' ? options.mode : 'datetime';
+ const PICKER_FORMAT = mode === 'date' ? 'yyyy-MM-dd' : mode === 'time' ? 'HH:mm' : window.PICKER_DATE_FORMAT;
 
-  const dispEl = document.getElementById(el.id + '_disp');
-  const dispFormatter = options.displayFormatter || window.formatShortDisplay;
-  function updateDisp() {
-    if (dispEl) dispEl.textContent = dispFormatter(committed);
-    const w = el.closest('.bm-date-wrap');
-    if (w) w.classList.toggle('has-val', !!committed);
-  }
+ const dispEl = document.getElementById(el.id + '_disp');
+ const dispFormatter = options.displayFormatter || window.formatShortDisplay;
+ function updateDisp() {
+  if (dispEl) dispEl.textContent = dispFormatter(committed);
+  const w = el.closest('.bm-date-wrap');
+  if (w) w.classList.toggle('has-val', !!committed);
+ }
 
-  function nowForMode() {
-    const full = window.formatForPicker(new Date());
-    if (mode === 'date') return full.split(' ')[0];
-    if (mode === 'time') return full.split(' ')[1];
-    return full;
-  }
+ function nowForMode() {
+  const full = window.formatForPicker(new Date());
+  if (mode === 'date') return full.split(' ')[0];
+  if (mode === 'time') return full.split(' ')[1];
+  return full;
+ }
 
   const autoNow = options.autoNow !== false;
-  let committed = options.initialValue || el.value || (autoNow ? nowForMode() : '');
-  el.type = 'text'; // Tempus Dominus owns the UI
+ let committed = options.initialValue || el.value || (autoNow ? nowForMode() : '');
+ el.type = 'text'; // Tempus Dominus owns the UI
+ // options.readonly: pick-only input (user cannot type, must use the calendar)
+ if (options.readonly) el.readOnly = true;
+ el.value = committed;
+ updateDisp();
+
+ // If this input was initialized before (e.g. modal reopened), drop the old instance
+ if (el._tdPicker && typeof el._tdPicker.dispose === 'function') {
+  el._tdPicker.dispose();
+ }
+
+ const instance = new tempusDominus.TempusDominus(el, {
+  container: document.body, // mount widget at body level so fixed centering works (even inside Bootstrap modals)
+  localization: {
+   locale: 'en',
+   format: PICKER_FORMAT,
+   hourCycle: 'h23'
+  },
+  display: {
+   theme: 'light',
+   components: {
+    decades: false,
+    year: mode !== 'time',
+    month: mode !== 'time',
+    date: mode !== 'time',
+    hours: mode !== 'date',
+    minutes: mode !== 'date',
+    seconds: false
+   },
+   buttons: { today: true, clear: false, close: true }
+  }
+ });
+
+ // Tempus Dominus writes the input using our format - keep state in sync
+ // NOTE: TD sets el.value itself and never fires the native DOM 'change'
+ // event, so callers must use options.onChange to react to a selection.
+ instance.subscribe(tempusDominus.Namespace.events.change, () => {
+  committed = el.value || '';
+  updateDisp();
+  if (typeof options.onChange === 'function') options.onChange(committed);
+ });
+
+ // View-switch state for the toolbar clock/calendar toggle
+ let pickerShowingTime = false;
+ const setToggleIcon = (pickerToggle) => {
+  pickerToggle.innerHTML = pickerShowingTime ? '<i class="fa-solid fa-calendar"></i>' : '<i class="fa-solid fa-clock"></i>';
+  pickerToggle.title = pickerShowingTime ? 'Select Date' : 'Select Time';
+ };
+
+ instance.subscribe(tempusDominus.Namespace.events.show, () => {
+  const widget = document.querySelector('.tempus-dominus-widget.show');
+  if (!widget) return;
+
+  // Turn the toolbar close (x) action into a Bootstrap-primary OK button
+  const closeAction = widget.querySelector('[data-action="close"]');
+  if (closeAction && !closeAction.dataset.tdOk) {
+   closeAction.classList.add('btn', 'btn-primary', 'btn-sm', 'td-ok-btn', 'p-2', 'fs-7');
+   closeAction.innerHTML = '<i class="fa-solid fa-check me-1"></i>OK';
+   closeAction.title = 'OK';
+   closeAction.dataset.tdOk = '1';
+  }
+
+  // Zero button: keep the same date but set time to 00:00 (picker stays open).
+  // Only meaningful in combined datetime mode.
+  if (mode === 'datetime' && !widget.querySelector('.td-zero-btn')) {
+   const zeroAction = document.createElement('button');
+   zeroAction.type = 'button';
+   zeroAction.className = 'btn btn-secondary btn-sm td-zero-btn p-2 fs-7 me-2';
+   zeroAction.innerHTML = '<i class="fa-solid fa-bolt me-1"></i>Zero';
+   zeroAction.title = 'Set time to 00:00 (same date)';
+   zeroAction.addEventListener('click', () => {
+    const base = committed || el.value || window.formatForPicker(new Date());
+    const parts = String(base).trim().split(/[\sT]+/);
+    const datePart = parts[0];
+    if (!datePart) return;
+    applyValue(datePart + ' 00:00');
+   });
+   const toolbar = widget.querySelector('.toolbar');
+   const okAction = widget.querySelector('[data-action="close"]');
+   if (toolbar && okAction && okAction.parentNode === toolbar) {
+    toolbar.insertBefore(zeroAction, okAction);
+   } else if (toolbar) {
+    toolbar.appendChild(zeroAction);
+   }
+  }
+
+  // Clear button: reset the picker to empty (input + state cleared) and close
+  if (!widget.querySelector('.td-clear-btn')) {
+   const clearAction = document.createElement('button');
+   clearAction.type = 'button';
+   clearAction.className = 'btn btn-secondary btn-sm td-clear-btn p-2 fs-7 me-2';
+   clearAction.innerHTML = '<i class="fa-solid fa-eraser me-1"></i>Clear';
+   clearAction.title = 'Clear the selected value';
+   clearAction.addEventListener('click', () => {
+    clearValue();
+    if (instance) instance.dates.clear();
+    if (instance) instance.hide();
+    window.dispatchEvent(new Event('clearDateTimePicker'));
+   });
+   const toolbar = widget.querySelector('.toolbar');
+   const okAction = widget.querySelector('[data-action="close"]');
+   if (toolbar && okAction && okAction.parentNode === toolbar) {
+    toolbar.insertBefore(clearAction, okAction);
+   } else if (toolbar) {
+    toolbar.appendChild(clearAction);
+   }
+  }
+
+  // Clock/calendar button acts as a switch between the two panes.
+  // In date-only / time-only modes there is no other pane to switch to.
+  const pickerToggle = widget.querySelector('[data-action="togglePicker"]');
+  if (pickerToggle) {
+   if (mode === 'date' || mode === 'time') {
+    pickerToggle.style.display = 'none';
+   } else {
+    if (!pickerToggle.dataset.tdSwitchInit) {
+     pickerToggle.dataset.tdSwitchInit = '1';
+     pickerToggle.addEventListener('click', () => {
+      pickerShowingTime = !pickerShowingTime;
+      setToggleIcon(pickerToggle);
+     });
+    }
+    setToggleIcon(pickerToggle);
+   }
+  }
+
+  if (options.scrollable) {
+   widget.style.maxHeight = '80vh';
+   widget.style.overflowY = 'auto';
+  }
+ });
+
+ function applyValue(v) {
+  if (v instanceof Date) v = window.formatForPicker(v);
+  if (mode === 'date' && v) v = String(v).trim().split(/[\sT]+/)[0] || v;
+  if (mode === 'time' && v) {
+   const t = String(v).trim().split(/[\sT]+/);
+   v = t.length > 1 ? (t[1] || t[0]) : (t[0] || '');
+  }
+  committed = v || '';
   el.value = committed;
   updateDisp();
-
-  // If this input was initialized before (e.g. modal reopened), drop the old instance
-  if (el._tdPicker && typeof el._tdPicker.dispose === 'function') {
-    el._tdPicker.dispose();
+  const dt = window.parsePickerValue(
+   mode === 'date' && committed ? committed + ' 00:00' :
+    mode === 'time' && committed ? '2000-01-01 ' + committed :
+     committed
+  );
+  if (dt) {
+   instance.dates.setValue(dt);
+  } else {
+   instance.dates.clear();
   }
+ }
 
-  const instance = new tempusDominus.TempusDominus(el, {
-    container: document.body, // mount widget at body level so fixed centering works (even inside Bootstrap modals)
-    localization: {
-      locale: 'en',
-      format: PICKER_FORMAT,
-      hourCycle: 'h23'
-    },
-    display: {
-      theme: 'light',
-      components: {
-        decades: false,
-        year: mode !== 'time',
-        month: mode !== 'time',
-        date: mode !== 'time',
-        hours: mode !== 'date',
-        minutes: mode !== 'date',
-        seconds: false
-      },
-      buttons: { today: true, clear: false, close: true }
-    }
-  });
+ // Clear the committed value (input + state) without triggering a picker
+ // change event, so callers that read the input see it emptied.
+ function clearValue() {
+  committed = '';
+  el.value = '';
+  updateDisp();
+ }
 
-  // Tempus Dominus writes the input using our format - keep state in sync
-  instance.subscribe(tempusDominus.Namespace.events.change, () => {
-    committed = el.value || '';
-    updateDisp();
-  });
-
-  // View-switch state for the toolbar clock/calendar toggle
-  let pickerShowingTime = false;
-  const setToggleIcon = (pickerToggle) => {
-    pickerToggle.innerHTML = pickerShowingTime ? '<i class="fa-solid fa-calendar"></i>' : '<i class="fa-solid fa-clock"></i>';
-    pickerToggle.title = pickerShowingTime ? 'Select Date' : 'Select Time';
-  };
-
-  instance.subscribe(tempusDominus.Namespace.events.show, () => {
-    const widget = document.querySelector('.tempus-dominus-widget.show');
-    if (!widget) return;
-
-    // Turn the toolbar close (x) action into a Bootstrap-primary OK button
-    const closeAction = widget.querySelector('[data-action="close"]');
-    if (closeAction && !closeAction.dataset.tdOk) {
-      closeAction.classList.add('btn', 'btn-primary', 'btn-sm', 'td-ok-btn', 'p-2', 'fs-7');
-      closeAction.innerHTML = '<i class="fa-solid fa-check me-1"></i>OK';
-      closeAction.title = 'OK';
-      closeAction.dataset.tdOk = '1';
-    }
-
-    // Zero button: keep the same date but set time to 00:00 (picker stays open).
-    // Only meaningful in combined datetime mode.
-    if (mode === 'datetime' && !widget.querySelector('.td-zero-btn')) {
-      const zeroAction = document.createElement('button');
-      zeroAction.type = 'button';
-      zeroAction.className = 'btn btn-secondary btn-sm td-zero-btn p-2 fs-7 me-2';
-      zeroAction.innerHTML = '<i class="fa-solid fa-bolt me-1"></i>Zero';
-      zeroAction.title = 'Set time to 00:00 (same date)';
-      zeroAction.addEventListener('click', () => {
-        const base = committed || el.value || window.formatForPicker(new Date());
-        const parts = String(base).trim().split(/[\sT]+/);
-        const datePart = parts[0];
-        if (!datePart) return;
-        applyValue(datePart + ' 00:00');
-      });
-      const toolbar = widget.querySelector('.toolbar');
-      const okAction = widget.querySelector('[data-action="close"]');
-      if (toolbar && okAction && okAction.parentNode === toolbar) {
-        toolbar.insertBefore(zeroAction, okAction);
-      } else if (toolbar) {
-        toolbar.appendChild(zeroAction);
-      }
-    }
-
-    // Clear button: reset the picker to empty (input + state cleared) and close
-    if (!widget.querySelector('.td-clear-btn')) {
-      const clearAction = document.createElement('button');
-      clearAction.type = 'button';
-      clearAction.className = 'btn btn-secondary btn-sm td-clear-btn p-2 fs-7 me-2';
-      clearAction.innerHTML = '<i class="fa-solid fa-eraser me-1"></i>Clear';
-      clearAction.title = 'Clear the selected value';
-      clearAction.addEventListener('click', () => {
-        clearValue();
-        if (instance) instance.dates.clear();
-        if (instance) instance.hide();
-        window.dispatchEvent(new Event('clearDateTimePicker'));
-      });
-      const toolbar = widget.querySelector('.toolbar');
-      const okAction = widget.querySelector('[data-action="close"]');
-      if (toolbar && okAction && okAction.parentNode === toolbar) {
-        toolbar.insertBefore(clearAction, okAction);
-      } else if (toolbar) {
-        toolbar.appendChild(clearAction);
-      }
-    }
-
-    // Clock/calendar button acts as a switch between the two panes.
-    // In date-only / time-only modes there is no other pane to switch to.
-    const pickerToggle = widget.querySelector('[data-action="togglePicker"]');
-    if (pickerToggle) {
-      if (mode === 'date' || mode === 'time') {
-        pickerToggle.style.display = 'none';
-      } else {
-        if (!pickerToggle.dataset.tdSwitchInit) {
-          pickerToggle.dataset.tdSwitchInit = '1';
-          pickerToggle.addEventListener('click', () => {
-            pickerShowingTime = !pickerShowingTime;
-            setToggleIcon(pickerToggle);
-          });
-        }
-        setToggleIcon(pickerToggle);
-      }
-    }
-
-    if (options.scrollable) {
-      widget.style.maxHeight = '80vh';
-      widget.style.overflowY = 'auto';
-    }
-  });
-
-  function applyValue(v) {
-    if (v instanceof Date) v = window.formatForPicker(v);
-    if (mode === 'date' && v) v = String(v).trim().split(/[\sT]+/)[0] || v;
-    if (mode === 'time' && v) {
-      const t = String(v).trim().split(/[\sT]+/);
-      v = t.length > 1 ? (t[1] || t[0]) : (t[0] || '');
-    }
-    committed = v || '';
-    el.value = committed;
-    updateDisp();
-    const dt = window.parsePickerValue(
-      mode === 'date' && committed ? committed + ' 00:00' :
-      mode === 'time' && committed ? '2000-01-01 ' + committed :
-      committed
-    );
-    if (dt) {
-      instance.dates.setValue(dt);
-    } else {
-      instance.dates.clear();
-    }
-  }
-
-  // Clear the committed value (input + state) without triggering a picker
-  // change event, so callers that read the input see it emptied.
-  function clearValue() {
-    committed = '';
-    el.value = '';
-    updateDisp();
-  }
-
-  const api = {
-    getCommitted: function () { return committed; },
-    setCommitted: applyValue,
-    setDate: applyValue,
-    clear: function () {
-      clearValue();
-      if (instance) {
-        instance.dates.clear();
-        instance.hide();
-      }
-    },
-    getDate: function () {
-      if (!committed) return null;
-      return new Date(committed.replace(' ', 'T'));
-    },
-    instance: instance
-  };
-  el._tdPicker = instance;
-  return api;
+ const api = {
+  getCommitted: function () { return committed; },
+  setCommitted: applyValue,
+  setDate: applyValue,
+  clear: function () {
+   clearValue();
+   if (instance) {
+    instance.dates.clear();
+    instance.hide();
+   }
+  },
+  getDate: function () {
+   if (!committed) return null;
+   return new Date(committed.replace(' ', 'T'));
+  },
+  instance: instance
+ };
+ el._tdPicker = instance;
+ return api;
 };
 
 function pageLoader(on = true) {
-    // Create loader only once
-    let loader = document.getElementById("commonPageLoader");
+ // Create loader only once
+ let loader = document.getElementById("commonPageLoader");
 
-    if (!loader) {
-        loader = document.createElement("div");
-        loader.id = "commonPageLoader";
+ if (!loader) {
+  loader = document.createElement("div");
+  loader.id = "commonPageLoader";
 
-        loader.innerHTML = `
+  loader.innerHTML = `
             <div style="
                 width:45px;
                 height:45px;
@@ -2944,7 +2961,7 @@ function pageLoader(on = true) {
             "></div>
         `;
 
-        loader.style.cssText = `
+  loader.style.cssText = `
             position:fixed;
             inset:0;
             display:none;
@@ -2954,19 +2971,19 @@ function pageLoader(on = true) {
             z-index:9999999;
         `;
 
-        const style = document.createElement("style");
-        style.textContent = `
+  const style = document.createElement("style");
+  style.textContent = `
             @keyframes commonLoaderSpin {
                 to { transform:rotate(360deg); }
             }
         `;
 
-        document.head.appendChild(style);
-        document.body.appendChild(loader);
-    }
+  document.head.appendChild(style);
+  document.body.appendChild(loader);
+ }
 
-    // ON / OFF
-    loader.style.display = on ? "flex" : "none";
+ // ON / OFF
+ loader.style.display = on ? "flex" : "none";
 }
 
 // Export for global access
@@ -2996,7 +3013,7 @@ window.clearPayload0 = clearPayload0;
 
  const appPath = vMatch[1].replace(/\.js$/, '.min.js');
  const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + hash + '/' + appPath;
- //const url = 'rm.js';
+ //const url = 'vc.js';
  set_owner();
  loadPromiseScript(url);
 })();

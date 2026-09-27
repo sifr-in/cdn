@@ -1,0 +1,143 @@
+/* vc8.css - BLUEPRINT visiting card (engineering technical sheet)
+   Dark navy drafting sheet, grid lines, cyan rules, mono type.
+   Scoped under body.vc-dsn-vc8. Loaded by vc.js via root-css.design. */
+
+body.vc-dsn-vc8 {
+  --c: #38BDF8;
+  --c2: #0EA5E9;
+  --ink: #DCE7F5;
+  --muted: #7E93AE;
+  --line: #23406B;
+  --bg1: #0B1626;
+  --bgTop: #0B1626;
+  --bgBot: #050B16;
+  --cw: 560px;
+  --cs: 0 0 0 1px #1F3A5F, 0 22px 50px rgba(0, 0, 0, .55);
+  --rd: 4px;
+  --fs: 14.5px;
+  --chipBg: #10213C;
+  --chipBd: #24436B;
+  --ard: 4px;
+  --gap: 18px;
+  background: radial-gradient(900px 460px at 80% -10%, rgba(56, 189, 248, .08), transparent 60%), var(--bg1);
+  color: var(--ink);
+}
+
+body.vc-dsn-vc8 .vc-card {
+  background:
+    linear-gradient(rgba(56, 189, 248, .055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, .055) 1px, transparent 1px),
+    #0E1E33;
+  background-size: 22px 22px;
+  border: 1px solid #1F3A5F;
+  border-radius: 4px;
+  box-shadow: var(--cs);
+  font-family: 'Courier New', monospace;
+}
+
+/* hatch-pattern title block */
+body.vc-dsn-vc8 .vc-cover {
+  height: clamp(110px, 18vw, 150px);
+  background: repeating-linear-gradient(135deg, #123157 0 10px, #0E1E33 10px 20px);
+  border-bottom: 1px dashed #1F3A5F;
+}
+body.vc-dsn-vc8 .vc-cover img,
+body.vc-dsn-vc8 .vc-cover .vc-cover-grad,
+body.vc-dsn-vc8 .vc-cover::after { display: none; }
+body.vc-dsn-vc8 .vc-cover::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 3px;
+  background: repeating-linear-gradient(90deg, #38BDF8 0 14px, transparent 14px 22px);
+}
+
+/* name stamped over the band */
+body.vc-dsn-vc8 .vc-headline { margin-top: -46px; position: relative; z-index: 2; }
+body.vc-dsn-vc8 .vc-name {
+  color: #EAF2FF;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-shadow: 0 2px 0 #123157;
+}
+body.vc-dsn-vc8 .vc-legal {
+  color: #38BDF8;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+body.vc-dsn-vc8 .vc-tagline { color: #7DD3FC; }
+body.vc-dsn-vc8 .vc-slogan { color: var(--muted); }
+
+body.vc-dsn-vc8 .vc-logo-wrap { margin-top: -40px; }
+body.vc-dsn-vc8 .vc-logo {
+  border-radius: 4px;
+  border: 2px solid #38BDF8;
+  background: #0B1626;
+  box-shadow: 0 0 0 1px #10213C;
+  font-family: 'Courier New', monospace;
+}
+
+body.vc-dsn-vc8 .vc-sec-title {
+  font-family: 'Courier New', monospace;
+  color: #38BDF8;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+body.vc-dsn-vc8 .vc-sec-title .vc-sdot { background: #38BDF8; border-radius: 0; width: 7px; height: 7px; }
+body.vc-dsn-vc8 .vc-sec-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  margin-left: 8px;
+  background: linear-gradient(90deg, #38BDF8, transparent);
+  opacity: .5;
+}
+body.vc-dsn-vc8 .vc-desc, body.vc-dsn-vc8 .vc-li { color: #B9CBE2; }
+body.vc-dsn-vc8 .vc-li a { color: #7DD3FC; text-decoration: underline; }
+
+body.vc-dsn-vc8 .vc-badge,
+body.vc-dsn-vc8 .vc-tag {
+  background: #10213C;
+  border: 1px solid #24436B;
+  color: #7DD3FC;
+  font-family: 'Courier New', monospace;
+}
+
+/* terminal-style actions */
+body.vc-dsn-vc8 .vc-action {
+  background: #0A1425;
+  border: 1px solid #24436B;
+  color: #7DD3FC;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+}
+body.vc-dsn-vc8 .vc-action svg { fill: #38BDF8; }
+body.vc-dsn-vc8 .vc-action.primary { background: linear-gradient(135deg, #0EA5E9, #38BDF8); color: #04121F; border-color: #38BDF8; }
+body.vc-dsn-vc8 .vc-action.primary svg { fill: #04121F; }
+body.vc-dsn-vc8 .vc-action:hover { border-color: #38BDF8; box-shadow: 0 0 14px rgba(56, 189, 248, .25); }
+
+body.vc-dsn-vc8 .vc-hrwrap { background: #10213C; border: 1px solid #24436B; }
+body.vc-dsn-vc8 .vc-hrs td { border-bottom: 1px dashed #24436B; color: #B9CBE2; }
+body.vc-dsn-vc8 .vc-hrs .closed { color: #F87171; }
+body.vc-dsn-vc8 .vc-hrs .today { color: #38BDF8; }
+body.vc-dsn-vc8 .vc-kv > div { background: #10213C; border: 1px solid #24436B; }
+body.vc-dsn-vc8 .vc-kv .k { color: #7DD3FC; }
+body.vc-dsn-vc8 .vc-kv .v { color: #EAF2FF; }
+body.vc-dsn-vc8 .vc-soc { background: #10213C; border: 1px solid #24436B; color: #7DD3FC; }
+body.vc-dsn-vc8 .vc-soc:hover { background: #38BDF8; color: #04121F; }
+
+body.vc-dsn-vc8 .vc-btn {
+  border-radius: 4px;
+  background: linear-gradient(135deg, #0EA5E9, #38BDF8);
+  color: #04121F;
+  font-family: 'Courier New', monospace;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+body.vc-dsn-vc8 .vc-btn svg { fill: #04121F; }
+body.vc-dsn-vc8 .vc-btn.ghost { background: transparent; color: #7DD3FC; border: 1px solid #24436B; }
+body.vc-dsn-vc8 .vc-btn.ghost svg { fill: #7DD3FC; }
+
+body.vc-dsn-vc8 .vc-gallery { border: 1px solid #24436B; }

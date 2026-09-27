@@ -1,0 +1,167 @@
+/* vc4.css - Cobalt & Slate, WAVE ICONS DOCK visiting card
+   Scoped under body.vc-dsn-vc4. Loaded by vc.js via root-css.design.
+   Layout: the action buttons sink to the bottom and become a wavy
+   icon dock, with the Save/Share bar below it. */
+
+body.vc-dsn-vc4 {
+  --c: #1d4ed8;
+  --c2: #94a3b8;
+  --ink: #1d2733;
+  --muted: #64748b;
+  --line: #dbe3ee;
+  --bg1: #eef2f7;
+  --bgTop: #e8eef6;
+  --bgBot: #dde5f0;
+  --cw: 560px;
+  --cs: 0 24px 60px rgba(15, 23, 42, .18), 0 2px 6px rgba(15, 23, 42, .06);
+  --rd: 12px;
+  --fs: 15px;
+  --chipBg: #eef4ff;
+  --chipBd: #c9d9f5;
+  --ard: 10px;
+  --gap: 18px;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(255, 255, 255, .7), transparent 45%),
+    radial-gradient(circle at 90% 90%, rgba(29, 78, 216, .05), transparent 45%),
+    var(--bg1);
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--ink);
+}
+
+body.vc-dsn-vc4 .vc-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 24px 55px rgba(15, 23, 42, .16), 0 2px 8px rgba(15, 23, 42, .05);
+  border-radius: var(--rd);
+}
+
+body.vc-dsn-vc4 .vc-cover {
+  height: clamp(96px, 17vw, 132px);
+  background: linear-gradient(120deg, #1e40af, #1d4ed8 55%, #3b82f6);
+  box-shadow: inset 0 -6px 0 rgba(15, 23, 42, .15);
+}
+
+body.vc-dsn-vc4 .vc-cover::after { display: none; }
+body.vc-dsn-vc4 .vc-cover .vc-cover-grad { background: linear-gradient(180deg, rgba(15, 23, 42, .08), rgba(15, 23, 42, .38)); }
+
+body.vc-dsn-vc4 .vc-logo {
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .28);
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  font-weight: 800;
+}
+
+body.vc-dsn-vc4 .vc-name { font-weight: 800; letter-spacing: -.3px; }
+body.vc-dsn-vc4 .vc-legal { letter-spacing: .6px; text-transform: uppercase; font-size: 11px; }
+body.vc-dsn-vc4 .vc-tagline { font-weight: 700; letter-spacing: .2px; }
+body.vc-dsn-vc4 .vc-slogan { color: var(--muted); font-style: normal; }
+
+body.vc-dsn-vc4 .vc-sec-title { font-weight: 800; letter-spacing: 1px; }
+body.vc-dsn-vc4 .vc-sec-title .vc-sdot { background: var(--c); width: 10px; height: 10px; }
+
+body.vc-dsn-vc4 .vc-badge,
+body.vc-dsn-vc4 .vc-tag {
+  background: #eef4ff;
+  border: 1px solid #c9d9f5;
+}
+
+body.vc-dsn-vc4 .vc-li a { color: #1d4ed8; }
+
+body.vc-dsn-vc4 .vc-hrwrap { background: #eef4ff; border: 1px solid #c9d9f5; }
+body.vc-dsn-vc4 .vc-hrs td { border-bottom: 1px dashed #dbe3ee; }
+
+body.vc-dsn-vc4 .vc-kv > div { background: #f8fafc; border: 1px solid #dbe3ee; }
+
+body.vc-dsn-vc4 .vc-soc { background: #eef4ff; border: 1px solid #c9d9f5; }
+body.vc-dsn-vc4 .vc-soc:hover { background: var(--c); color: #fff; }
+
+/* ---- body becomes a column so the dock can sink to the bottom ---- */
+body.vc-dsn-vc4 .vc-body { display: flex; flex-direction: column; }
+
+/* ---- the actions dock: wavy top edge, round icon buttons ---- */
+body.vc-dsn-vc4 .vc-sec-actions {
+  order: 99;
+  position: relative;
+  margin-top: 26px;
+  padding: 6px clamp(8px, 2vw, 16px) 18px;
+  background: linear-gradient(180deg, #1e40af, #1d4ed8 60%, #94a3b8);
+  border-radius: 0 0 18px 18px;
+}
+
+/* wave crest on top of the dock */
+body.vc-dsn-vc4 .vc-sec-actions::before {
+  content: "";
+  position: absolute;
+  top: -16px; left: 0; right: 0;
+  height: 16px;
+  background: url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='40'%20height='16'%20viewBox='0%200%2040%2016'%3E%3Cpath%20d='M0%208%20Q10%200%2020%208%20T40%208%20V16%20H0%20Z'%20fill='%231e40af'/%3E%3C/svg%3E") repeat-x 0 100%/40px 16px;
+  pointer-events: none;
+}
+
+body.vc-dsn-vc4 .vc-sec-actions .vc-actions {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 2px;
+}
+
+body.vc-dsn-vc4 .vc-sec-actions .vc-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: clamp(60px, 10.5vw, 72px);
+  height: clamp(60px, 10.5vw, 72px);
+  margin: 0 auto;
+  padding: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(255, 255, 255, .14);
+  border: 1px solid rgba(255, 255, 255, .3);
+  font-size: 10.5px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, .18);
+}
+
+body.vc-dsn-vc4 .vc-sec-actions .vc-action svg { width: 24px; height: 24px; }
+
+body.vc-dsn-vc4 .vc-sec-actions .vc-action:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, .26);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, .28);
+}
+
+body.vc-dsn-vc4 .vc-sec-actions .vc-action.primary {
+  background: #fff;
+  color: var(--c);
+  border-color: #fff;
+}
+
+/* ---- footer: slim panel under the dock ---- */
+body.vc-dsn-vc4 .vc-card .vc-foot {
+  order: 100;
+  margin-top: 12px;
+  padding: 10px;
+  background: #eef4ff;
+  border: 1px solid #c9d9f5;
+  border-radius: 14px;
+  grid-template-columns: 1fr 1fr;
+}
+
+body.vc-dsn-vc4 .vc-card .vc-btn {
+  background: var(--c);
+  color: #fff;
+  border: 1px solid var(--c);
+  border-radius: 10px;
+}
+body.vc-dsn-vc4 .vc-card .vc-btn.ghost { background: #fff; color: var(--c); border: 1.5px solid #c9d9f5; }
+body.vc-dsn-vc4 .vc-card .vc-btn.ghost svg { fill: var(--c); }
+
+/* ---- narrow screens: dock wraps 2-3 per row ---- */
+@media (max-width: 639px) {
+  body.vc-dsn-vc4 .vc-sec-actions .vc-actions { grid-template-columns: repeat(3, 1fr); }
+  body.vc-dsn-vc4 .vc-sec-actions .vc-action {
+    width: 58px;
+    height: 58px;
+  }
+}

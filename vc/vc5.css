@@ -1,0 +1,227 @@
+/* vc5.css - Charcoal & Copper, VERTICAL BRAND COLUMN visiting card
+   Scoped under body.vc-dsn-vc5. Loaded by vc.js via root-css.design.
+   Layout: a vertical brand strip on the left holds the logo + name +
+   tagline (the cover becomes that strip); the rest of the info sits in
+   a ruled editorial column on the right. Stacked below 640px. */
+
+body.vc-dsn-vc5 {
+  --c: #191a1d;
+  --c2: #b87333;
+  --ink: #23262b;
+  --muted: #6d665e;
+  --line: #ddd4c6;
+  --bg1: #eae6df;
+  --bgTop: #f0ece5;
+  --bgBot: #dcd5ca;
+  --cw: 560px;
+  --cs: 0 26px 60px rgba(23, 22, 20, .16), 0 2px 8px rgba(23, 22, 20, .05);
+  --rd: 6px;
+  --fs: 15px;
+  --chipBg: #f1ece4;
+  --chipBd: #ddd4c6;
+  --ard: 6px;
+  --gap: 22px;
+  background:
+    radial-gradient(circle at 82% 12%, rgba(184, 115, 51, .08), transparent 40%),
+    radial-gradient(circle at 12% 88%, rgba(255, 255, 255, .45), transparent 50%),
+    var(--bg1);
+  font-family: Georgia, "Times New Roman", serif;
+  color: var(--ink);
+}
+
+/* ---- card: brand column + content column ---- */
+body.vc-dsn-vc5 .vc-card {
+  background: #f4f1ec;
+  border: 1px solid #d8d0c2;
+  box-shadow: 0 22px 52px rgba(23, 22, 20, .15);
+  border-radius: var(--rd);
+  display: grid;
+  grid-template-columns: clamp(116px, 22vw, 172px) 1fr;
+  grid-auto-rows: auto;
+}
+
+/* ---- the cover becomes the full-height brand strip ---- */
+body.vc-dsn-vc5 .vc-cover {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: clamp(116px, 22vw, 172px);
+  height: auto;
+  border-bottom: 0;
+  border-right: 3px solid #b87333;
+  background: linear-gradient(180deg, #26262a, #191a1d);
+  z-index: 0;
+}
+
+body.vc-dsn-vc5 .vc-cover img { opacity: .5; }
+
+body.vc-dsn-vc5 .vc-cover::after { display: none; }
+
+body.vc-dsn-vc5 .vc-cover .vc-cover-grad {
+  background: linear-gradient(180deg, rgba(184, 115, 51, .18), transparent 40%, rgba(184, 115, 51, .24));
+}
+
+body.vc-dsn-vc5 .vc-editbtn { top: 10px; right: 10px; }
+
+/* ---- the logo + profile stack live over the strip ---- */
+body.vc-dsn-vc5 .vc-logo-wrap {
+  grid-column: 1;
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  padding: 22px 10px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+body.vc-dsn-vc5 .vc-logo {
+  background: linear-gradient(135deg, #2b2b30, #191a1d);
+  border: 2px solid #b87333;
+  box-shadow: 0 0 0 1px rgba(184, 115, 51, .45), 0 12px 26px rgba(23, 22, 20, .42);
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+}
+
+body.vc-dsn-vc5 .vc-headline {
+  grid-column: 1;
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 12px 10px 18px;
+  color: #f4f1ec;
+}
+
+body.vc-dsn-vc5 .vc-name {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  letter-spacing: .4px;
+  font-size: clamp(18px, 4vw, 24px);
+  color: #f4f1ec;
+}
+
+body.vc-dsn-vc5 .vc-owner { color: rgba(244, 241, 236, .85); justify-content: center; }
+body.vc-dsn-vc5 .vc-owner svg { fill: rgba(244, 241, 236, .85); }
+
+body.vc-dsn-vc5 .vc-legal { letter-spacing: .5px; font-size: 10.5px; text-transform: uppercase; color: rgba(244, 241, 236, .72); }
+
+body.vc-dsn-vc5 .vc-tagline { font-weight: 700; color: #d99150; letter-spacing: .4px; font-size: 12.5px; }
+body.vc-dsn-vc5 .vc-slogan { color: rgba(244, 241, 236, .78); }
+
+body.vc-dsn-vc5 .vc-badges { justify-content: center; }
+body.vc-dsn-vc5 .vc-badge {
+  background: rgba(255, 255, 255, .14);
+  border: 1px solid rgba(255, 255, 255, .32);
+  color: #f4f1ec;
+}
+
+/* ---- content column with editorial rules ---- */
+body.vc-dsn-vc5 .vc-body {
+  grid-column: 2;
+  grid-row: 1 / -1;
+  padding: 18px clamp(12px, 3vw, 26px) 16px 10px;
+}
+
+body.vc-dsn-vc5 .vc-body > .vc-sec:not(.vc-sec-actions):not(.vc-sec-social) {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 4px;
+}
+
+body.vc-dsn-vc5 .vc-sec-title {
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: 1.1px;
+}
+body.vc-dsn-vc5 .vc-sec-title .vc-sdot { background: #b87333; border-radius: 0; width: 14px; height: 3px; }
+
+body.vc-dsn-vc5 .vc-badge,
+body.vc-dsn-vc5 .vc-tag {
+  background: #f1ece4;
+  border: 1px solid #c9bda8;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+body.vc-dsn-vc5 .vc-action {
+  background: #f1ece4;
+  border: 1px solid #c9bda8;
+  border-radius: var(--ard);
+  font-family: Georgia, "Times New Roman", serif;
+}
+body.vc-dsn-vc5 .vc-action:hover { box-shadow: 0 8px 16px rgba(23, 22, 20, .12); }
+body.vc-dsn-vc5 .vc-action.primary { background: var(--c); color: #f4f1ec; border: 1px solid var(--c); }
+
+body.vc-dsn-vc5 .vc-li a { color: #8a4d18; }
+
+body.vc-dsn-vc5 .vc-hrwrap { background: #f1ece4; border: 1px solid #c9bda8; }
+body.vc-dsn-vc5 .vc-hrs td { border-bottom: 1px dashed #ddd4c6; }
+
+body.vc-dsn-vc5 .vc-kv > div { background: #f1ece4; border: 1px solid #ddd4c6; }
+
+body.vc-dsn-vc5 .vc-soc { background: #f1ece4; border: 1px solid #c9bda8; }
+body.vc-dsn-vc5 .vc-soc:hover { background: var(--c); color: #f4f1ec; }
+
+body.vc-dsn-vc5 .vc-card .vc-foot {
+  border-top: 2px double #b87333;
+  padding-top: 12px;
+  margin-top: 18px;
+}
+
+body.vc-dsn-vc5 .vc-btn {
+  background: var(--c);
+  color: #f4f1ec;
+  border: 1px solid var(--c);
+  border-radius: 6px;
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: .4px;
+}
+body.vc-dsn-vc5 .vc-btn.ghost { background: #f4f1ec; color: var(--c); border: 1.5px solid #b87333; }
+body.vc-dsn-vc5 .vc-btn.ghost svg { fill: var(--c); }
+
+/* ---- narrow screens: strip becomes a normal cover banner ---- */
+@media (max-width: 639px) {
+  body.vc-dsn-vc5 .vc-card { display: block; }
+
+  body.vc-dsn-vc5 .vc-cover {
+    position: relative;
+    left: auto; top: auto; bottom: auto;
+    width: auto;
+    height: clamp(150px, 34vw, 190px);
+    border-right: 0;
+    border-bottom: 3px solid #b87333;
+  }
+  body.vc-dsn-vc5 .vc-cover img { opacity: 1; }
+
+  body.vc-dsn-vc5 .vc-logo-wrap {
+    grid-column: auto;
+    margin-top: clamp(-56px, -11vw, -42px);
+    padding: 0 clamp(14px, 4vw, 22px);
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: flex-start;
+  }
+
+  body.vc-dsn-vc5 .vc-headline {
+    grid-column: auto;
+    text-align: left;
+    padding: clamp(8px, 2vw, 12px) clamp(14px, 4vw, 22px) 0;
+    color: var(--ink);
+  }
+  body.vc-dsn-vc5 .vc-name { color: var(--ink); font-size: clamp(22px, 6.8vw, 30px); }
+  body.vc-dsn-vc5 .vc-owner { color: var(--c); justify-content: flex-start; }
+  body.vc-dsn-vc5 .vc-owner svg { fill: var(--c); }
+  body.vc-dsn-vc5 .vc-legal { color: var(--muted); }
+  body.vc-dsn-vc5 .vc-tagline { color: #b87333; font-size: clamp(13px, 3.8vw, 15px); }
+  body.vc-dsn-vc5 .vc-slogan { color: var(--muted); }
+  body.vc-dsn-vc5 .vc-badges { justify-content: flex-start; }
+  body.vc-dsn-vc5 .vc-badge {
+    background: #f1ece4;
+    border: 1px solid #c9bda8;
+    color: var(--c);
+  }
+
+  body.vc-dsn-vc5 .vc-body {
+    grid-column: auto;
+    grid-row: auto;
+    padding: 6px clamp(12px, 3vw, 20px) clamp(14px, 2.4vw, 20px);
+  }
+}

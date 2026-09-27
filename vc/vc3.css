@@ -1,0 +1,229 @@
+/* vc3.css - Forest & Brass, LEFT SIDEBAR visiting card
+   Scoped under body.vc-dsn-vc3. Loaded by vc.js via root-css.design.
+   Layout: brand rail on the left holds the action links + social icons,
+   all other info sits in the right column. Stacked below 640px. */
+
+body.vc-dsn-vc3 {
+  --c: #2f4a3c;
+  --c2: #a8783a;
+  --ink: #1f2622;
+  --muted: #6f7a68;
+  --line: #cfc6b2;
+  --bg1: #ede9df;
+  --bgTop: #f2eee5;
+  --bgBot: #dfd9c9;
+  --cw: 560px;
+  --cs: 0 20px 48px rgba(31, 38, 34, .16);
+  --rd: 8px;
+  --fs: 15px;
+  --chipBg: #f0ecdf;
+  --chipBd: #cfc6b2;
+  --ard: 8px;
+  --gap: 20px;
+  background:
+    linear-gradient(90deg, rgba(168, 120, 58, .04) 1px, transparent 1px) 0 0 / 42px 42px,
+    radial-gradient(circle at 85% 90%, rgba(47, 74, 60, .06), transparent 50%),
+    var(--bg1);
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--ink);
+}
+
+body.vc-dsn-vc3 .vc-card {
+  background: #f7f3e9;
+  border: 1px solid #cfc6b2;
+  box-shadow: 0 18px 44px rgba(31, 38, 34, .14);
+  border-radius: var(--rd);
+}
+
+body.vc-dsn-vc3 .vc-cover {
+  height: clamp(96px, 17vw, 132px);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, .06), transparent 50%),
+    linear-gradient(135deg, #39573f, #2f4a3c);
+  border-bottom: 4px solid #a8783a;
+}
+
+body.vc-dsn-vc3 .vc-cover::after { display: none; }
+body.vc-dsn-vc3 .vc-cover .vc-cover-grad { background: linear-gradient(180deg, rgba(31, 38, 34, .04), rgba(31, 38, 34, .4)); }
+
+body.vc-dsn-vc3 .vc-logo {
+  border-radius: 14px;
+  border: 3px solid #a8783a;
+  box-shadow: 0 8px 20px rgba(31, 38, 34, .22);
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  font-weight: 800;
+}
+
+body.vc-dsn-vc3 .vc-name {
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: clamp(19px, 5.6vw, 24px);
+  color: var(--ink);
+}
+
+body.vc-dsn-vc3 .vc-legal { letter-spacing: 1.4px; text-transform: uppercase; font-size: 11px; }
+
+body.vc-dsn-vc3 .vc-tagline { font-weight: 700; color: #7c5a1f; letter-spacing: .5px; }
+body.vc-dsn-vc3 .vc-slogan { color: var(--muted); font-style: normal; }
+
+/* ---- body becomes a rail + content arrangement ---- */
+body.vc-dsn-vc3 .vc-body {
+  position: relative;
+  padding: 2px clamp(12px, 2.4vw, 22px) clamp(14px, 2.2vw, 20px) 0;
+}
+
+/* the action rail: full-height brand column on the left */
+body.vc-dsn-vc3 .vc-sec-actions {
+  position: absolute;
+  top: 10px; left: 0; bottom: 0;
+  width: clamp(112px, 20vw, 168px);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px 12px;
+  background: linear-gradient(160deg, var(--c), var(--c2));
+  border-radius: 0 18px 0 0;
+  box-shadow: 0 6px 16px rgba(31, 38, 34, .18);
+  z-index: 0;
+}
+
+body.vc-dsn-vc3 .vc-sec-actions .vc-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+  width: 100%;
+}
+
+body.vc-dsn-vc3 .vc-sec-actions .vc-action {
+  flex-direction: row;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: none;
+  text-align: left;
+  gap: 9px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  color: #f7f3e9;
+  background: rgba(255, 255, 255, .13);
+  border: 1px solid rgba(255, 255, 255, .24);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  font-size: 11px;
+}
+
+body.vc-dsn-vc3 .vc-sec-actions .vc-action svg { width: 18px; height: 18px; }
+
+body.vc-dsn-vc3 .vc-sec-actions .vc-action:hover {
+  transform: translateX(3px);
+  background: rgba(255, 255, 255, .22);
+  box-shadow: 0 8px 18px rgba(31, 38, 34, .22);
+}
+
+body.vc-dsn-vc3 .vc-sec-actions .vc-action.primary {
+  background: #f7f3e9;
+  color: var(--c);
+  border-color: #f7f3e9;
+}
+
+/* social icons docked to the bottom of the rail */
+body.vc-dsn-vc3 .vc-sec-social {
+  position: absolute;
+  left: 0; bottom: 16px;
+  width: clamp(112px, 20vw, 168px);
+  margin: 0;
+  padding: 0 12px;
+  display: flex;
+  justify-content: center;
+  z-index: 1;
+}
+
+body.vc-dsn-vc3 .vc-sec-social .vc-sec-title { display: none; }
+
+body.vc-dsn-vc3 .vc-social { justify-content: center; gap: 8px; flex-wrap: nowrap; }
+
+body.vc-dsn-vc3 .vc-soc {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  color: #f7f3e9;
+  background: rgba(255, 255, 255, .15);
+  border: 1px solid rgba(255, 255, 255, .3);
+}
+body.vc-dsn-vc3 .vc-soc:hover { background: #f7f3e9; color: var(--c); }
+
+/* right column clearance for every other section + the footer */
+body.vc-dsn-vc3 .vc-body > .vc-sec:not(.vc-sec-actions):not(.vc-sec-social),
+body.vc-dsn-vc3 .vc-card .vc-foot {
+  margin-left: clamp(128px, 22vw, 196px);
+}
+
+body.vc-dsn-vc3 .vc-sec-title { font-weight: 800; letter-spacing: 1.6px; }
+body.vc-dsn-vc3 .vc-sec-title .vc-sdot { background: var(--c2); border-radius: 2px; }
+
+body.vc-dsn-vc3 .vc-badge,
+body.vc-dsn-vc3 .vc-tag {
+  background: #f0ecdf;
+  border: 1px solid #b9ad92;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+
+body.vc-dsn-vc3 .vc-li a { color: #3a5a48; }
+
+body.vc-dsn-vc3 .vc-hrwrap { background: #f0ecdf; border: 1px solid #b9ad92; }
+body.vc-dsn-vc3 .vc-hrs td { border-bottom: 1px dashed #cfc6b2; }
+
+body.vc-dsn-vc3 .vc-kv > div { background: #f0ecdf; border: 1px solid #cfc6b2; }
+
+body.vc-dsn-vc3 .vc-btn {
+  background: var(--c);
+  color: #f7f3e9;
+  border: 1px solid var(--c);
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  font-weight: 800;
+}
+body.vc-dsn-vc3 .vc-btn.ghost { background: #f7f3e9; color: var(--c); border: 1.5px solid #a8783a; }
+body.vc-dsn-vc3 .vc-btn.ghost svg { fill: var(--c); }
+
+/* ---- narrow screens: rail becomes a stacked block ---- */
+@media (max-width: 639px) {
+  body.vc-dsn-vc3 .vc-body {
+    position: static;
+    padding: 6px clamp(12px, 3vw, 22px) clamp(14px, 2.4vw, 22px);
+  }
+  body.vc-dsn-vc3 .vc-sec-actions {
+    position: static;
+    width: auto;
+    margin: 6px 0 4px;
+    border-radius: 14px;
+    padding: 12px;
+  }
+  body.vc-dsn-vc3 .vc-sec-actions .vc-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  body.vc-dsn-vc3 .vc-sec-actions .vc-action {
+    justify-content: center;
+    text-align: center;
+    padding: 9px 6px;
+  }
+  body.vc-dsn-vc3 .vc-sec-social {
+    position: static;
+    width: auto;
+    margin: 0 0 2px;
+    padding: 8px 12px 12px;
+    justify-content: flex-start;
+  }
+  body.vc-dsn-vc3 .vc-social { justify-content: flex-start; gap: 10px; }
+  body.vc-dsn-vc3 .vc-body > .vc-sec:not(.vc-sec-actions):not(.vc-sec-social),
+  body.vc-dsn-vc3 .vc-card .vc-foot {
+    margin-left: 0;
+  }
+}

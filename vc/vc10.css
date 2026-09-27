@@ -1,0 +1,172 @@
+/* vc10.css - EDITORIAL visiting card (magazine stripe bar)
+   Near-black sheet, red left spine, condensed masthead type.
+   Scoped under body.vc-dsn-vc10. Loaded by vc.js via root-css.design. */
+
+body.vc-dsn-vc10 {
+  --c: #E23D28;
+  --c2: #B02A19;
+  --ink: #F2EEE6;
+  --muted: #8B8F98;
+  --line: #2A2F36;
+  --bg1: #101418;
+  --bgTop: #15191F;
+  --bgBot: #0A0D11;
+  --cw: 540px;
+  --cs: 0 22px 50px rgba(0, 0, 0, .55);
+  --rd: 2px;
+  --fs: 14.5px;
+  --chipBg: #22272E;
+  --chipBd: #343B44;
+  --ard: 2px;
+  --gap: 16px;
+  background:
+    radial-gradient(800px 400px at 20% -10%, rgba(226, 61, 40, .1), transparent 60%),
+    var(--bg1);
+  color: var(--ink);
+}
+
+body.vc-dsn-vc10 .vc-card {
+  background: #171B21;
+  border: 1px solid #232930;
+  border-radius: 2px;
+  box-shadow: var(--cs);
+  overflow: hidden;
+  position: relative;
+}
+
+/* red spine stripe, full height on the left */
+body.vc-dsn-vc10 .vc-card::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 16px;
+  background: #E23D28;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* content starts after the spine */
+body.vc-dsn-vc10 .vc-cover,
+body.vc-dsn-vc10 .vc-logo-wrap,
+body.vc-dsn-vc10 .vc-headline,
+body.vc-dsn-vc10 .vc-body,
+body.vc-dsn-vc10 .vc-foot {
+  margin-left: 16px;
+}
+
+/* masthead band */
+body.vc-dsn-vc10 .vc-cover {
+  height: clamp(110px, 18vw, 150px);
+  background: #171B21;
+  border-bottom: 1px solid #2A2F36;
+}
+body.vc-dsn-vc10 .vc-cover img,
+body.vc-dsn-vc10 .vc-cover .vc-cover-grad,
+body.vc-dsn-vc10 .vc-cover::after { display: none; }
+body.vc-dsn-vc10 .vc-cover::before {
+  content: "";
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 120px;
+  height: 4px;
+  background: #E23D28;
+}
+
+/* name big, bleeding over the band */
+body.vc-dsn-vc10 .vc-headline { margin-top: -52px; position: relative; z-index: 3; }
+body.vc-dsn-vc10 .vc-logo-wrap { margin-top: -44px; z-index: 2; }
+body.vc-dsn-vc10 .vc-logo {
+  width: clamp(66px, 17vw, 84px);
+  height: clamp(66px, 17vw, 84px);
+  border-radius: 2px;
+  border: 1px solid #E23D28;
+  background: #101418;
+  box-shadow: 0 0 0 3px #171B21, 0 0 0 4px #2A2F36;
+}
+body.vc-dsn-vc10 .vc-name {
+  font-family: 'Arial Narrow', 'Franklin Gothic Medium', Impact, sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -.5px;
+  color: #F2EEE6;
+  font-size: clamp(28px, 8.5vw, 40px);
+  line-height: .95;
+}
+body.vc-dsn-vc10 .vc-legal {
+  font-family: 'Arial Narrow', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #E23D28;
+  font-weight: 700;
+  font-size: 11px;
+}
+body.vc-dsn-vc10 .vc-tagline { color: #C8CBD2; font-weight: 600; }
+body.vc-dsn-vc10 .vc-slogan { color: var(--muted); }
+
+body.vc-dsn-vc10 .vc-body { padding-top: 22px; }
+body.vc-dsn-vc10 .vc-sec {
+  margin-top: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #2A2F36;
+}
+body.vc-dsn-vc10 .vc-sec:last-child { border-bottom: 0; }
+body.vc-dsn-vc10 .vc-sec-title {
+  font-family: 'Arial Narrow', 'Franklin Gothic Medium', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #E23D28;
+  font-weight: 800;
+}
+body.vc-dsn-vc10 .vc-sec-title .vc-sdot { background: #E23D28; width: 14px; height: 3px; border-radius: 0; }
+body.vc-dsn-vc10 .vc-desc, body.vc-dsn-vc10 .vc-li { color: #C8CBD2; }
+body.vc-dsn-vc10 .vc-li a { color: #E23D28; text-decoration: none; border-bottom: 1px solid #E23D28; }
+
+body.vc-dsn-vc10 .vc-badge,
+body.vc-dsn-vc10 .vc-tag {
+  background: #22272E;
+  border: 1px solid #343B44;
+  color: #C8CBD2;
+  font-family: 'Arial Narrow', sans-serif;
+}
+
+/* actions as editorial text rows */
+body.vc-dsn-vc10 .vc-actions { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 6px; }
+body.vc-dsn-vc10 .vc-action {
+  background: transparent;
+  border: 0;
+  border-top: 1px solid #343B44;
+  border-radius: 0;
+  color: #C8CBD2;
+  gap: 4px;
+  padding: 8px 4px;
+  font-family: 'Arial Narrow', sans-serif;
+  font-weight: 700;
+}
+body.vc-dsn-vc10 .vc-action svg { width: 18px; height: 18px; fill: #E23D28; }
+body.vc-dsn-vc10 .vc-action:hover { border-top-color: #E23D28; color: #F2EEE6; box-shadow: none; transform: none; }
+body.vc-dsn-vc10 .vc-action.primary { background: none; border-top-color: #E23D28; color: #E23D28; }
+
+body.vc-dsn-vc10 .vc-hrwrap { background: #22272E; border: 1px solid #343B44; }
+body.vc-dsn-vc10 .vc-hrs td { border-bottom: 1px solid #2A2F36; color: #C8CBD2; }
+body.vc-dsn-vc10 .vc-hrs .closed { color: #F87171; }
+body.vc-dsn-vc10 .vc-hrs .today { color: #E23D28; }
+body.vc-dsn-vc10 .vc-hrwrap .vc-hricon { color: #E23D28; }
+body.vc-dsn-vc10 .vc-kv > div { background: #22272E; border: 1px solid #343B44; }
+body.vc-dsn-vc10 .vc-kv .k { color: #E23D28; }
+body.vc-dsn-vc10 .vc-kv .v { color: #F2EEE6; }
+body.vc-dsn-vc10 .vc-soc { background: #22272E; border: 1px solid #343B44; color: #C8CBD2; }
+body.vc-dsn-vc10 .vc-soc:hover { background: #E23D28; color: #fff; }
+
+body.vc-dsn-vc10 .vc-btn {
+  background: #E23D28;
+  color: #fff;
+  border-radius: 2px;
+  font-family: 'Arial Narrow', 'Franklin Gothic Medium', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+body.vc-dsn-vc10 .vc-btn svg { fill: #fff; }
+body.vc-dsn-vc10 .vc-btn.ghost { background: #171B21; color: #E23D28; border: 1px solid #E23D28; }
+body.vc-dsn-vc10 .vc-btn.ghost svg { fill: #E23D28; }
+
+body.vc-dsn-vc10 .vc-gallery { border: 1px solid #343B44; border-radius: 2px; }

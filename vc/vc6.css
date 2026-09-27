@@ -1,0 +1,181 @@
+/* vc6.css - CONCERT PASS visiting card (ticket stub)
+   Deep-teal stub column, burnt-amber details, cream ticket stock.
+   Scoped under body.vc-dsn-vc6. Loaded by vc.js via root-css.design. */
+
+body.vc-dsn-vc6 {
+  --c: #0F766E;
+  --c2: #134E4A;
+  --ink: #241F14;
+  --muted: #8A7F5F;
+  --line: #D9CDAC;
+  --bg1: #EFE7D3;
+  --bgTop: #F1EAD8;
+  --bgBot: #D9CDAC;
+  --cw: 560px;
+  --cs: 0 18px 44px rgba(15, 118, 110, .28);
+  --rd: 10px;
+  --fs: 14.5px;
+  --chipBg: #F4EDDA;
+  --chipBd: #D9CDAC;
+  --ard: 8px;
+  --gap: 16px;
+  background:
+    radial-gradient(700px 360px at 12% -6%, rgba(224, 165, 38, .16), transparent 60%),
+    radial-gradient(700px 420px at 100% 110%, rgba(15, 118, 110, .18), transparent 60%),
+    var(--bg1);
+  color: var(--ink);
+}
+
+body.vc-dsn-vc6 .vc-card {
+  background: #FBF7E9;
+  border: 1px solid #D9CDAC;
+  border-radius: 10px 6px 6px 10px;
+  box-shadow: var(--cs);
+  overflow: hidden;
+  position: relative;
+}
+
+/* left stub column */
+body.vc-dsn-vc6 .vc-card::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 92px;
+  background: linear-gradient(180deg, #0F766E, #134E4A);
+  z-index: 4;
+}
+
+/* perforation holes punched along the seam */
+body.vc-dsn-vc6 .vc-card::after {
+  content: "";
+  position: absolute;
+  left: 92px; top: 0; bottom: 0;
+  width: 12px;
+  background-image: radial-gradient(circle at 50% 50%, var(--bg1) 5px, transparent 6px);
+  background-size: 12px 26px;
+  background-position: 0 13px;
+  z-index: 4;
+  pointer-events: none;
+}
+
+/* push main content right of the stub */
+body.vc-dsn-vc6 .vc-cover,
+body.vc-dsn-vc6 .vc-headline,
+body.vc-dsn-vc6 .vc-body,
+body.vc-dsn-vc6 .vc-foot {
+  margin-left: 104px;
+}
+body.vc-dsn-vc6 .vc-headline { padding-left: 2px; padding-right: clamp(14px, 4vw, 20px); }
+body.vc-dsn-vc6 .vc-body { padding-left: 2px; padding-right: clamp(14px, 4vw, 20px); }
+
+/* striped ticket header */
+body.vc-dsn-vc6 .vc-cover {
+  height: clamp(150px, 24vw, 200px);
+  background:
+    repeating-linear-gradient(135deg, transparent 0 14px, rgba(224, 165, 38, .22) 14px 28px),
+    linear-gradient(135deg, #0F766E, #134E4A);
+}
+body.vc-dsn-vc6 .vc-cover img,
+body.vc-dsn-vc6 .vc-cover .vc-cover-grad,
+body.vc-dsn-vc6 .vc-cover::after { display: none; }
+
+body.vc-dsn-vc6 .vc-logo-wrap { margin-left: 96px; padding-left: clamp(10px, 3vw, 16px); }
+body.vc-dsn-vc6 .vc-logo {
+  border: 3px solid #FBF7E9;
+  background: linear-gradient(135deg, #E0A526, #C8860F);
+  box-shadow: 0 6px 14px rgba(15, 20, 10, .3);
+}
+
+body.vc-dsn-vc6 .vc-name {
+  color: #241F14;
+  font-family: 'Arial Narrow', 'Segoe UI', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+body.vc-dsn-vc6 .vc-legal {
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: 11px;
+  color: #7A7128;
+}
+body.vc-dsn-vc6 .vc-tagline { color: #B7791F; font-weight: 700; }
+body.vc-dsn-vc6 .vc-slogan { color: var(--muted); }
+
+/* sections as perforated ticket rows */
+body.vc-dsn-vc6 .vc-sec {
+  border-bottom: 1px dashed #CDBD96;
+  padding-bottom: 12px;
+}
+body.vc-dsn-vc6 .vc-sec:last-child { border-bottom: 0; padding-bottom: 0; }
+body.vc-dsn-vc6 .vc-sec-title {
+  font-family: 'Arial Narrow', 'Segoe UI', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #6B5B2E;
+}
+body.vc-dsn-vc6 .vc-sec-title .vc-sdot { background: #E0A526; width: 9px; height: 9px; border-radius: 2px; }
+
+body.vc-dsn-vc6 .vc-desc, body.vc-dsn-vc6 .vc-li { color: #3A3220; }
+body.vc-dsn-vc6 .vc-li a { color: #0F766E; text-decoration: underline; text-underline-offset: 2px; }
+
+body.vc-dsn-vc6 .vc-badge,
+body.vc-dsn-vc6 .vc-tag {
+  background: #F4EDDA;
+  border: 1px solid #D9CDAC;
+  color: #7A5A12;
+}
+
+body.vc-dsn-vc6 .vc-action {
+  background: #FBF7E9;
+  border: 1.5px solid #D9CDAC;
+  border-radius: 8px;
+  color: #0F766E;
+}
+body.vc-dsn-vc6 .vc-action.primary { background: #0F766E; border-color: #0F766E; color: #FBF7E9; }
+body.vc-dsn-vc6 .vc-action:hover { box-shadow: 0 6px 14px rgba(15, 118, 110, .18); transform: translateY(-2px); }
+
+body.vc-dsn-vc6 .vc-hrwrap { background: #F4EDDA; border: 1px solid #D9CDAC; }
+body.vc-dsn-vc6 .vc-hrs td { border-bottom: 1px dashed #CDBD96; color: #3A3220; }
+body.vc-dsn-vc6 .vc-kv > div { background: #F4EDDA; border: 1px solid #D9CDAC; }
+body.vc-dsn-vc6 .vc-kv .v { color: #241F14; }
+body.vc-dsn-vc6 .vc-soc { background: #F4EDDA; border: 1px solid #D9CDAC; color: #0F766E; }
+body.vc-dsn-vc6 .vc-soc:hover { background: #0F766E; color: #FBF7E9; }
+
+/* barcode strip above the footer */
+body.vc-dsn-vc6 .vc-body::after {
+  content: "";
+  display: block;
+  height: 20px;
+  margin-top: 18px;
+  background:
+    repeating-linear-gradient(90deg, #241F14 0 2px, transparent 2px 4px,
+      #241F14 4px 7px, transparent 7px 8px,
+      #241F14 8px 9px, transparent 9px 12px,
+      #241F14 12px 16px, transparent 16px 17px);
+  opacity: .75;
+}
+
+body.vc-dsn-vc6 .vc-btn {
+  border-radius: 8px;
+  background: #0F766E;
+  border: 1px solid #0F766E;
+  font-family: 'Arial Narrow', 'Segoe UI', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+body.vc-dsn-vc6 .vc-btn.ghost { background: #FBF7E9; color: #0F766E; border: 1.5px solid #0F766E; }
+body.vc-dsn-vc6 .vc-btn.ghost svg { fill: #0F766E; }
+
+body.vc-dsn-vc6 .vc-gallery { border: 1px solid #D9CDAC; }
+
+/* narrow the stub on phones */
+@media (max-width: 420px) {
+  body.vc-dsn-vc6 .vc-card::before { width: 56px; }
+  body.vc-dsn-vc6 .vc-card::after { left: 56px; }
+  body.vc-dsn-vc6 .vc-cover,
+  body.vc-dsn-vc6 .vc-headline,
+  body.vc-dsn-vc6 .vc-body,
+  body.vc-dsn-vc6 .vc-foot { margin-left: 68px; }
+  body.vc-dsn-vc6 .vc-logo-wrap { margin-left: 60px; }
+}

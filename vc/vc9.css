@@ -1,0 +1,161 @@
+/* vc9.css - ORIGAMI visiting card (paper fold collage)
+   Ivory paper, diagonal crease, folded corner, layered paper slips.
+   Scoped under body.vc-dsn-vc9. Loaded by vc.js via root-css.design. */
+
+body.vc-dsn-vc9 {
+  --c: #6A5675;
+  --c2: #7C9063;
+  --ink: #4A4350;
+  --muted: #8B8377;
+  --line: #E0D7C4;
+  --bg1: #F1EBDF;
+  --bgTop: #F7F2E8;
+  --bgBot: #E2D9C6;
+  --cw: 550px;
+  --cs: 0 18px 42px rgba(90, 80, 60, .2);
+  --rd: 4px;
+  --fs: 14.5px;
+  --chipBg: #FFFDF6;
+  --chipBd: #E4DACA;
+  --ard: 6px;
+  --gap: 16px;
+  background:
+    radial-gradient(700px 380px at 10% -8%, rgba(124, 144, 99, .16), transparent 60%),
+    radial-gradient(600px 380px at 100% 110%, rgba(106, 86, 117, .12), transparent 60%),
+    var(--bg1);
+  color: var(--ink);
+}
+
+body.vc-dsn-vc9 .vc-card {
+  background: #FBF7EE;
+  border: 1px solid #DFD5C0;
+  border-radius: 4px;
+  box-shadow: var(--cs);
+  overflow: hidden;
+}
+
+/* diagonal fold crease across the sheet */
+body.vc-dsn-vc9 .vc-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(112deg,
+    transparent 0 47.5%,
+    rgba(120, 100, 70, .16) 48% 49.2%,
+    transparent 49.7%);
+}
+
+/* paper tooth/speckle */
+body.vc-dsn-vc9 .vc-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .35;
+  z-index: 1;
+  background: radial-gradient(rgba(120, 110, 80, .18) 0.7px, transparent 0.8px);
+  background-size: 7px 7px;
+}
+
+/* cover = folded paper sash */
+body.vc-dsn-vc9 .vc-cover {
+  height: clamp(140px, 24vw, 190px);
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, .06) 0 10px, transparent 10px 20px),
+    linear-gradient(135deg, #8FA27A, #7C9063);
+  border-bottom: 1px solid #CBD4B6;
+}
+body.vc-dsn-vc9 .vc-cover img,
+body.vc-dsn-vc9 .vc-cover .vc-cover-grad,
+body.vc-dsn-vc9 .vc-cover::after { display: none; }
+
+/* folded corner (top-right flap) */
+body.vc-dsn-vc9 .vc-cover::before {
+  content: "";
+  position: absolute;
+  top: 0; right: 0;
+  z-index: 2;
+  width: 0; height: 0;
+  border-top: 62px solid #EFE8D6;
+  border-left: 62px solid transparent;
+}
+
+body.vc-dsn-vc9 .vc-logo-wrap { margin-top: clamp(-52px, -10vw, -38px); }
+body.vc-dsn-vc9 .vc-logo {
+  border-radius: 6px;
+  border: 3px solid #FBF7EE;
+  background: linear-gradient(135deg, #6A5675, #4E3D5A);
+  box-shadow: 0 0 0 1px #CFC4AE;
+}
+
+body.vc-dsn-vc9 .vc-name {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  color: #3F3A45;
+  letter-spacing: .3px;
+  text-shadow: 0 1px 0 #fff;
+}
+body.vc-dsn-vc9 .vc-legal {
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 11px;
+  color: var(--muted);
+}
+body.vc-dsn-vc9 .vc-tagline { color: #6A5675; font-weight: 700; }
+body.vc-dsn-vc9 .vc-slogan { color: var(--muted); }
+
+/* sections as layered paper slips */
+body.vc-dsn-vc9 .vc-sec {
+  background: #FFFDF6;
+  border: 1px solid #E4DACA;
+  border-left: 3px solid #7C9063;
+  border-radius: 6px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 6px rgba(100, 90, 70, .06);
+}
+body.vc-dsn-vc9 .vc-sec-gallery { padding: 10px; }
+body.vc-dsn-vc9 .vc-sec-title {
+  font-family: Georgia, serif;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #8A816F;
+}
+body.vc-dsn-vc9 .vc-sec-title .vc-sdot { background: #6A5675; border-radius: 0; }
+body.vc-dsn-vc9 .vc-desc, body.vc-dsn-vc9 .vc-li { color: #4A4350; }
+body.vc-dsn-vc9 .vc-li a { color: #6A5675; text-decoration: underline; }
+
+body.vc-dsn-vc9 .vc-badge,
+body.vc-dsn-vc9 .vc-tag {
+  background: #F6F1E3;
+  border: 1px solid #E4DACA;
+  font-family: Georgia, serif;
+}
+
+body.vc-dsn-vc9 .vc-action {
+  background: #FFFDF6;
+  border: 1px solid #E4DACA;
+  border-radius: 6px;
+  color: #6A5675;
+  font-family: Georgia, serif;
+}
+body.vc-dsn-vc9 .vc-action.primary { background: #6A5675; color: #FBF7EE; border-color: #6A5675; }
+body.vc-dsn-vc9 .vc-action:hover { box-shadow: 0 6px 12px rgba(100, 90, 70, .16); }
+
+body.vc-dsn-vc9 .vc-hrwrap { background: #FFFDF6; border: 1px solid #E4DACA; }
+body.vc-dsn-vc9 .vc-hrs td { border-bottom: 1px dashed #DFD5C0; }
+body.vc-dsn-vc9 .vc-kv > div { background: #FFFDF6; border: 1px solid #E4DACA; }
+body.vc-dsn-vc9 .vc-soc { background: #FFFDF6; border: 1px solid #E4DACA; color: #6A5675; }
+body.vc-dsn-vc9 .vc-soc:hover { background: #6A5675; color: #FBF7EE; }
+
+body.vc-dsn-vc9 .vc-btn {
+  background: linear-gradient(135deg, #8FA27A, #7C9063);
+  border-radius: 6px;
+  font-family: Georgia, serif;
+}
+body.vc-dsn-vc9 .vc-btn.ghost { background: #FBF7EE; color: #6A5675; border: 1.5px solid #6A5675; }
+body.vc-dsn-vc9 .vc-btn.ghost svg { fill: #6A5675; }
+
+body.vc-dsn-vc9 .vc-gallery { border: 1px solid #E4DACA; border-radius: 6px; }

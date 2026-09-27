@@ -1,0 +1,139 @@
+/* vc7.css - INSTANT POLAROID visiting card
+   Thick white photo frame + handwritten caption, sticker logo.
+   Scoped under body.vc-dsn-vc7. Loaded by vc.js via root-css.design. */
+
+body.vc-dsn-vc7 {
+  --c: #4E4A40;
+  --c2: #6E695C;
+  --ink: #38342B;
+  --muted: #8A8678;
+  --line: #E4E0D4;
+  --bg1: #ECE7D9;
+  --bgTop: #F3EFE2;
+  --bgBot: #DED8C6;
+  --cw: 540px;
+  --cs: 0 2px 4px rgba(70, 60, 40, .05), 0 18px 40px rgba(70, 60, 40, .16);
+  --rd: 4px;
+  --fs: 14.5px;
+  --chipBg: #F4F0E4;
+  --chipBd: #DED8CB;
+  --ard: 10px;
+  --gap: 18px;
+  background:
+    radial-gradient(700px 360px at 15% -5%, rgba(224, 178, 60, .12), transparent 60%),
+    radial-gradient(600px 400px at 100% 108%, rgba(120, 110, 80, .1), transparent 60%),
+    var(--bg1);
+  color: var(--ink);
+}
+
+body.vc-dsn-vc7 .vc-card {
+  background: #fff;
+  border: 1px solid #EDE9DC;
+  border-radius: var(--rd);
+  box-shadow: var(--cs);
+  padding-bottom: 10px;
+}
+
+/* framed photo: white mount around the image */
+body.vc-dsn-vc7 .vc-cover {
+  background: #fff;
+  height: clamp(170px, 34vw, 250px);
+  padding: 12px 12px 0;
+  border-radius: 2px 2px 0 0;
+}
+body.vc-dsn-vc7 .vc-cover img {
+  position: relative;
+  inset: auto;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 2px;
+  filter: saturate(.92) contrast(1.03);
+}
+body.vc-dsn-vc7 .vc-cover .vc-cover-grad,
+body.vc-dsn-vc7 .vc-cover::after { display: none; }
+
+/* sticker logo pulling onto the frame */
+body.vc-dsn-vc7 .vc-logo-wrap { margin-top: -34px; padding: 0 clamp(14px, 4vw, 22px); }
+body.vc-dsn-vc7 .vc-logo {
+  width: clamp(72px, 18vw, 92px);
+  height: clamp(72px, 18vw, 92px);
+  border: 3px solid #fff;
+  background: linear-gradient(135deg, #2B3A45, #4C6A7A);
+  box-shadow: 0 0 0 1px #CFC9B8, 0 8px 16px rgba(60, 50, 30, .25);
+  font-family: 'Brush Script MT', 'Segoe Script', Georgia, cursive;
+}
+
+/* handwritten caption under the photo + film-strip rule */
+body.vc-dsn-vc7 .vc-headline { text-align: center; padding: 10px clamp(14px, 4vw, 22px) 0; }
+body.vc-dsn-vc7 .vc-name {
+  font-family: 'Brush Script MT', 'Segoe Script', 'Comic Sans MS', cursive;
+  font-weight: 700;
+  font-size: clamp(26px, 8vw, 36px);
+  color: var(--ink);
+  line-height: 1.1;
+}
+body.vc-dsn-vc7 .vc-legal {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+body.vc-dsn-vc7 .vc-tagline { font-family: 'Brush Script MT', cursive; font-weight: 600; color: var(--c); font-size: clamp(15px, 4.5vw, 18px); }
+body.vc-dsn-vc7 .vc-slogan { font-style: italic; color: var(--muted); }
+body.vc-dsn-vc7 .vc-headline::after {
+  content: "";
+  display: block;
+  width: 70%;
+  margin: 10px auto 2px;
+  height: 10px;
+  background: repeating-linear-gradient(90deg, #4E4A40 0 5px, #fff 5px 9px);
+  opacity: .5;
+}
+
+body.vc-dsn-vc7 .vc-body { padding-top: 2px; }
+body.vc-dsn-vc7 .vc-sec { margin-top: 14px; }
+body.vc-dsn-vc7 .vc-sec-title {
+  font-family: Georgia, serif;
+  justify-content: center;
+  text-transform: none;
+  letter-spacing: .4px;
+  color: var(--muted);
+  font-weight: 700;
+}
+body.vc-dsn-vc7 .vc-sec-title .vc-sdot { display: none; }
+body.vc-dsn-vc7 .vc-desc, body.vc-dsn-vc7 .vc-li { color: var(--ink); }
+body.vc-dsn-vc7 .vc-li a { color: #4C6A7A; text-decoration: underline; text-underline-offset: 2px; }
+
+body.vc-dsn-vc7 .vc-badge,
+body.vc-dsn-vc7 .vc-tag {
+  background: #F4F0E4;
+  border: 1px solid #DED8CB;
+  font-family: Georgia, serif;
+}
+
+body.vc-dsn-vc7 .vc-action {
+  background: #F4F0E4;
+  border: 1px solid #DED8CB;
+  border-radius: 12px;
+  font-family: Georgia, serif;
+  color: var(--c);
+}
+body.vc-dsn-vc7 .vc-action.primary { background: var(--c); color: #fff; border-color: var(--c); }
+
+body.vc-dsn-vc7 .vc-hrwrap { background: #F7F4EA; border: 1px solid #DED8CB; }
+body.vc-dsn-vc7 .vc-hrs td { border-bottom: 1px dashed #DDD6C5; }
+body.vc-dsn-vc7 .vc-kv > div { background: #F7F4EA; border: 1px solid #DED8CB; }
+body.vc-dsn-vc7 .vc-soc { background: #F7F4EA; border: 1px solid #DED8CB; color: var(--c); }
+body.vc-dsn-vc7 .vc-soc:hover { background: var(--c); color: #fff; }
+
+body.vc-dsn-vc7 .vc-btn {
+  background: linear-gradient(135deg, var(--c2), var(--c));
+  border-radius: 12px;
+  font-family: Georgia, serif;
+}
+body.vc-dsn-vc7 .vc-btn.ghost { background: #fff; color: var(--c); border: 1.5px solid var(--c); }
+body.vc-dsn-vc7 .vc-btn.ghost svg { fill: var(--c); }
+
+body.vc-dsn-vc7 .vc-gallery { border: 1px solid #DED8CB; border-radius: 8px; }

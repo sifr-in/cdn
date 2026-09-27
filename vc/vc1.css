@@ -1,0 +1,167 @@
+/* vc1.css - Classic Ivory, WAVE SPLIT visiting card
+   Scoped under body.vc-dsn-vc1. Loaded by vc.js via root-css.design. */
+
+body.vc-dsn-vc1 {
+  --c: #3f4b5c;
+  --c2: #5a6b7d;
+  --ink: #2b3238;
+  --muted: #7a756a;
+  --line: #d8d2c4;
+  --bg1: #e9e6e0;
+  --bgTop: #efede8;
+  --bgBot: #d9d5cd;
+  --cw: 540px;
+  --cs: 0 2px 3px rgba(43, 50, 56, .06), 0 14px 34px rgba(43, 50, 56, .12);
+  --rd: 6px;
+  --fs: 14.5px;
+  --chipBg: #f3efe6;
+  --chipBd: #d8d2c4;
+  --ard: 12px;
+  --gap: 20px;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, .4), transparent 55%),
+    radial-gradient(circle at 85% 88%, rgba(43, 50, 56, .05), transparent 50%),
+    var(--bg1);
+  font-family: Georgia, "Times New Roman", serif;
+  color: var(--ink);
+}
+
+/* ---- card: padded bottom so the wave strip has its own lane ---- */
+body.vc-dsn-vc1 .vc-card {
+  background: #faf7f0;
+  border: 1px solid #d8d2c4;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, .5),
+    0 16px 34px rgba(43, 50, 56, .14);
+  border-radius: var(--rd);
+  padding-bottom: 16px;
+}
+
+/* ---- arched, wave-cut cover ---- */
+body.vc-dsn-vc1 .vc-cover {
+  height: clamp(140px, 26vw, 210px);
+  border-bottom: 0;
+  border-radius: 0 0 clamp(150px, 34vw, 300px) clamp(150px, 34vw, 300px) / 0 0 clamp(30px, 6vw, 56px) clamp(30px, 6vw, 56px);
+  background:
+    repeating-linear-gradient(135deg, transparent 0 10px, rgba(255, 255, 255, .05) 10px 20px),
+    linear-gradient(135deg, var(--c2), var(--c));
+}
+
+body.vc-dsn-vc1 .vc-cover::after { display: none; }
+body.vc-dsn-vc1 .vc-cover .vc-cover-grad { background: linear-gradient(180deg, rgba(43, 50, 56, .08), rgba(43, 50, 56, .5)); }
+
+/* crest seam floating just above the arch */
+body.vc-dsn-vc1 .vc-cover::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 8px;
+  height: 22px;
+  background: url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='120'%20height='22'%20viewBox='0%200%20120%2022'%3E%3Cpath%20d='M0%2010%20Q12%200%2024%2010%20T48%2010%20T72%2010%20T96%2010%20T120%2010%20V22%20H0%20Z'%20fill='%23ffffff'%20opacity='0.32'/%3E%3C/svg%3E") repeat-x 0 100%/120px 22px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ---- wave divider where the body rides up under the arch ---- */
+body.vc-dsn-vc1 .vc-body::before {
+  content: "";
+  display: block;
+  height: 16px;
+  margin: 2px clamp(0px, 1vw, 12px) 0;
+  background: url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='48'%20height='16'%20viewBox='0%200%2048%2016'%3E%3Cpath%20d='M0%208%20Q12%200%2024%208%20T48%208%20V16%20H0%20Z'%20fill='%233f4b5c'%20opacity='0.16'/%3E%3C/svg%3E") repeat-x center/48px 16px;
+}
+
+/* ---- bottom wave strip ---- */
+body.vc-dsn-vc1 .vc-card::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 16px;
+  background: url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='120'%20height='16'%20viewBox='0%200%20120%2016'%3E%3Cpath%20d='M0%208%20Q12%200%2024%208%20T48%208%20T72%208%20T96%208%20T120%208%20V16%20H0%20Z'%20fill='%233f4b5c'%20opacity='0.14'/%3E%3C/svg%3E") repeat-x 0 0/120px 16px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ---- logo: organic blob overlapping the arch ---- */
+body.vc-dsn-vc1 .vc-logo-wrap {
+  margin-top: clamp(-66px, -12vw, -50px);
+  padding-left: clamp(16px, 5vw, 26px);
+}
+
+body.vc-dsn-vc1 .vc-logo {
+  border-radius: 44% 56% 40% 60% / 52% 44% 56% 48%;
+  border: 3px solid #faf7f0;
+  box-shadow: 0 0 0 1px #b9b2a2, 0 8px 18px rgba(43, 50, 56, .2);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+body.vc-dsn-vc1 .vc-name {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  letter-spacing: .3px;
+}
+
+body.vc-dsn-vc1 .vc-legal {
+  font-style: italic;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+body.vc-dsn-vc1 .vc-tagline { font-weight: 700; letter-spacing: .2px; }
+
+/* ---- section titles get a wave underline ---- */
+body.vc-dsn-vc1 .vc-sec-title {
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: 1px;
+}
+
+body.vc-dsn-vc1 .vc-sec-title .vc-sdot { background: var(--c); }
+
+body.vc-dsn-vc1 .vc-sec-title::after {
+  content: "";
+  flex: 1;
+  height: 8px;
+  margin-left: 8px;
+  background: url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='8'%20viewBox='0%200%2024%208'%3E%3Cpath%20d='M0%204%20Q6%200%2012%204%20T24%204%20V8%20H0%20Z'%20fill='%23a89f8c'/%3E%3C/svg%3E") repeat-x 0 50%/24px 8px;
+  opacity: .55;
+}
+
+body.vc-dsn-vc1 .vc-badge,
+body.vc-dsn-vc1 .vc-tag {
+  background: #f3efe6;
+  border: 1px solid #c4bcab;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+}
+
+body.vc-dsn-vc1 .vc-action {
+  background: #f3efe6;
+  border: 1px solid #c4bcab;
+  border-radius: 16px 6px 16px 6px;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+body.vc-dsn-vc1 .vc-action:hover { box-shadow: 0 6px 14px rgba(43, 50, 56, .14); }
+body.vc-dsn-vc1 .vc-action.primary { background: var(--c); color: #faf7f0; border: 1px solid var(--c); }
+
+body.vc-dsn-vc1 .vc-li a { color: #5a5f6b; text-decoration: underline; text-underline-offset: 2px; }
+body.vc-dsn-vc1 .vc-desc, body.vc-dsn-vc1 .vc-li { color: var(--ink); }
+
+body.vc-dsn-vc1 .vc-hrwrap { background: #f3efe6; border-color: #c4bcab; }
+body.vc-dsn-vc1 .vc-hrs td { border-bottom: 1px dashed #d8d2c4; }
+
+body.vc-dsn-vc1 .vc-kv > div { background: #f3efe6; border: 1px solid #d8d2c4; }
+
+body.vc-dsn-vc1 .vc-soc { background: #f3efe6; border: 1px solid #c4bcab; }
+body.vc-dsn-vc1 .vc-soc:hover { background: var(--c); color: #faf7f0; }
+
+body.vc-dsn-vc1 .vc-btn {
+  background: var(--c);
+  border: 1px solid var(--c);
+  border-radius: 8px 20px 8px 20px;
+  font-family: Georgia, "Times New Roman", serif;
+}
+body.vc-dsn-vc1 .vc-btn.ghost { background: #faf7f0; color: var(--c); border: 1.5px solid var(--c); }
+body.vc-dsn-vc1 .vc-btn.ghost svg { fill: var(--c); }
+
+body.vc-dsn-vc1 .vc-gallery { border-color: #c4bcab; }
