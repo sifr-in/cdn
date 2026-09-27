@@ -1,9 +1,9 @@
 // ks.js - Court Case Register
 const tblsRequired = ["f", "fp", "cs", "c", "a", "cs91"];
-const inTbls = ["96~cs,a,c91,c", "108~cs,a,c91,c", "107~cs,a,c91,c", "98~cs,a,c91,c", "92~cs,a,c91,c", "101~cs,a", "99~a", "91~a"];
+const inTbls = ["dontCret~cs91", "pubilc~","96~cs,a,c91,c", "108~cs,a,c91,c", "107~cs,a,c91,c", "98~cs,a,c91,c", "92~cs,a,c91,c", "101~cs,a", "99~a", "91~a"];
 const cust_const = [
  {
-  "a": "advOnBoardCount", "b": 0, "c": "more customiztaion", "d": "number of advocates that can be assigned case", "u": "url-explaining-video"
+  "a": "maxNoOfAdvOnBoard", "b": 9, "c": "more customiztaion", "d": "number of advocates that can be assigned case", "u": "url-explaining-video"
  }];
 const moduLst = [
  {
@@ -120,7 +120,7 @@ const dontRestartAfterLogin = 1;
    },
    {
     a: 25,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@aa6cfeb/ks/addNewCase.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@100357e/ks/addNewCase.js",
     c: "showAddCaseModal,toggleCNRFields,toggleMoreDetails,saveCase,openEditCaseModal,updateCaseRecord,switchEditTab,openMemberSelector,selectFilerParty,selectAnswererParty",
     r: " ",
    },
@@ -168,7 +168,7 @@ const dontRestartAfterLogin = 1;
    },
    {
     a: 31,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@aa6cfeb/ks/ks_da.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@100357e/ks/ks_da.js",
     c: "showPrintSettings",
     r: "showPrintSettings",
    },
@@ -202,6 +202,17 @@ const dontRestartAfterLogin = 1;
   } catch (dbError) {
    console.error("❌ Database error:", dbError);
   }
+  try {
+  var resp = await fetch("ks.da");
+  if (!resp.ok) throw new Error("HTTP " + resp.status);
+  var cfg = await resp.json();
+  if (!cfg || typeof cfg !== "object") throw new Error("bad config");
+  
+  window[my1uzr.worknOnPg].clientConfig = cfg;
+ } catch (err) {
+  console.error("Failed to load ks.da:", err);
+  window[my1uzr.worknOnPg].clientConfig = {};
+ }
 
   await recomputeAllowedModules();
 
