@@ -118,8 +118,21 @@ function findTableADisplayForCase(csId, date) {
   return null;
 }
 
+function parseCs91CaseNo(g) {
+  var s = String(g == null ? "" : g).trim();
+  if (!/^\d+$/.test(s)) return { no: "", year: "" };
+  if (s.length === 15)
+    return { no: s.slice(6, 11).replace(/^0+/, ""), year: s.slice(11, 15) };
+  if (s.length > 4)
+    return {
+      no: s.slice(0, -4).replace(/^0+/, ""),
+      year: s.slice(-4),
+    };
+  return { no: s.replace(/^0+/, ""), year: "" };
+}
+
 function cs91CaseNoPrefix(s) {
-  return String(s == null ? "" : s).substring(0, 8);
+  return parseCs91CaseNo(s).no;
 }
 
 function getCaseDisplayId(record) {
@@ -128,14 +141,6 @@ function getCaseDisplayId(record) {
     return csRec ? csRec.a : "-";
   }
   return record.a;
-}
-
-function parseCs91NoYear(cnr) {
-  var s = String(cnr == null ? "" : cnr).trim().toUpperCase();
-  if (!/^[A-Z]{4}\d{12}$/.test(s)) return null;
-  var no6 = s.substring(6, 12).replace(/^0+/, "");
-  var year = s.substring(12, 16);
-  return { no: no6 || "", year: /^\d{4}$/.test(year) ? year : "" };
 }
 
 function getCaseDisplayRecord(record) {
@@ -152,6 +157,7 @@ function getCaseDisplayRecord(record) {
       f: record.f,
     };
     var cs = findCsByCs91Link(record.a);
+    var pn91 = parseCs91CaseNo(cr.g);
     if (cs) {
       r91.k = cs.k;
       r91.l = cs.l;
@@ -164,10 +170,14 @@ function getCaseDisplayRecord(record) {
       r91.j = cs.j || cr.j;
       if (cs.g) r91.g = cs.g;
       else if (cr.k) r91.g = cr.k;
-      if (cs.h) r91.h = cs.h;
-      else if (cr.g) r91.h = cs91CaseNoPrefix(cr.g);
-      if (cs.i) r91.i = cs.i;
-      else if (cr.s) r91.i = cr.s;
+      if (pn91.no) {
+        r91.h = pn91.no;
+        r91.i = pn91.year || cs.i || cr.s || "";
+      } else {
+        if (cs.h) r91.h = cs.h;
+        if (cs.i) r91.i = cs.i;
+        else if (cr.s) r91.i = cr.s;
+      }
       if (cs.q) r91.q = cs.q;
       else if (cr.j) r91.q = cr.j;
       if (cs.n) r91.n = cs.n;
@@ -176,16 +186,11 @@ function getCaseDisplayRecord(record) {
       else if (cr.m) r91.o = cr.m;
     } else {
       r91.g = cr.k;
-      r91.h = cr.g ? cs91CaseNoPrefix(cr.g) : "";
-      r91.i = cr.s;
+      r91.h = pn91.no;
+      r91.i = pn91.year || cr.s || "";
       r91.q = cr.j;
       r91.n = cr.l;
       r91.o = cr.m;
-    }
-    var pcn = parseCs91NoYear(cr.e || record.e);
-    if (pcn) {
-      r91.h = pcn.no;
-      r91.i = pcn.year;
     }
     return r91;
   }
@@ -196,17 +201,16 @@ function getCaseDisplayRecord(record) {
   }
   if (!r.q && cr.j) r.q = cr.j;
   if (!r.g && cr.k) r.g = cr.k;
-  if (!r.h && cr.g) r.h = cs91CaseNoPrefix(cr.g);
-  if (!r.i && cr.s) r.i = cr.s;
+  var pnCs = isCs91Record(cr) ? parseCs91CaseNo(cr.g) : { no: "", year: "" };
+  if (pnCs.no) {
+    r.h = pnCs.no;
+    r.i = pnCs.year || r.i || cr.s || "";
+  } else {
+    if (!r.h) r.h = cs91CaseNoPrefix(cr.g);
+    if (!r.i && cr.s) r.i = cr.s;
+  }
   if (!r.n && cr.l) r.n = cr.l;
   if (!r.o && cr.m) r.o = cr.m;
-  if (Number(record.f) > 0 && cr && cr.e) {
-    var p = parseCs91NoYear(cr.e);
-    if (p) {
-      r.h = p.no;
-      r.i = p.year;
-    }
-  }
   return r;
 }
 
@@ -634,13 +638,11 @@ window.buildSource2DisplayRecord = function (rec) {
   }
   if (r.g === "" || r.g == null) {
     r.g = cr.k;
-    var gn = String(cr.g == null ? "" : cr.g);
-    if (gn.length >= 4) {
-      var year = gn.substring(gn.length - 4);
-      var no = gn.substring(0, gn.length - 4);
-      r.h = no;
-      r.i = year;
-    }
+    var pn2 = parseCs91CaseNo(cr.g);
+    if (pn2.no) {
+      r.h = pn2.no;
+      r.i = pn2.year || cr.s || "";
+    } else if (!r.i && cr.s) r.i = cr.s;
     if (r.n === "" || r.n == null) r.n = cr.l;
     if (r.o === "" || r.o == null) r.o = cr.m;
   }

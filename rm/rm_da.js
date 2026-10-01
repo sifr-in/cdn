@@ -2,7 +2,7 @@
 // Fetches rm.da directly, POSTs to 3/c.php (fn 104)
 // Entry point: showPrintSettings() called from openAdminFromMenu("settings")
 
-const SETTINGS_SAVE_URL = "https://my1.in/5/a.php";
+const SETTINGS_SAVE_URL = "https://my1.in/2/t.php";
 const SETTINGS_SAVE_FN = 104;
 const SETTINGS_DRML = "sambodhisarang.in";
 

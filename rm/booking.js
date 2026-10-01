@@ -70,11 +70,49 @@ function syncDateInputs() {
   if (b) b.value = checkOut;
 }
 
-function roomGuestLimits() {
-  var maxAdults = window[my1uzr.worknOnPg].clientConfig?.HT_CFG.maxAdults;
-  var maxChildren = window[my1uzr.worknOnPg].clientConfig?.HT_CFG.maxChildren;
-  if (maxAdults < 1) maxAdults = 1;
-  return { maxAdults: maxAdults, maxChildren: maxChildren, maxTotal: 0 };
+function roomGuestLimits(room) {
+  var cfg = window[my1uzr.worknOnPg].clientConfig?.HT_CFG || {};
+  var maxAdults = parseInt(cfg.maxAdults, 10);
+  var maxChildren = parseInt(cfg.maxChildren, 10);
+  if (!isFinite(maxAdults) || maxAdults < 1) maxAdults = 1;
+  if (!isFinite(maxChildren) || maxChildren < 0) maxChildren = 0;
+  var policy =
+    room && typeof htRoomOccupancyPolicy === "function"
+      ? htRoomOccupancyPolicy(room)
+      : null;
+  return {
+    maxAdults: maxAdults,
+    maxChildren: maxChildren,
+    maxTotal: 0,
+    roomCapacity: policy ? policy.capacity : 0,
+    roomMaxOccupancy: policy ? policy.maxOccupancy : 0,
+  };
+}
+
+// Re-filter the room list the moment the party changes, so a guest never has to
+// re-run a search to see which rooms still fit. Also drops a selected
+// combination that the new party size has invalidated, otherwise the details
+// view would keep pricing rooms that no longer sleep everyone.
+function refilterHomeForParty() {
+  if (currentView !== "home") return;
+  if (
+    comboSelection &&
+    comboSelection.key &&
+    typeof publicComboOptions === "function" &&
+    typeof htPublicParty === "function"
+  ) {
+    var party = htPublicParty();
+    var stillOffered = publicComboOptions(party.adults, party.childAges).some(
+      function (opt) {
+        return opt.key === comboSelection.key;
+      },
+    );
+    if (!stillOffered) {
+      comboSelection = null;
+      if (typeof refreshSummary === "function") refreshSummary();
+    }
+  }
+  renderHome();
 }
 
 function changeAdult(delta) {
@@ -86,7 +124,7 @@ function changeAdult(delta) {
   adults = next;
   setCounts();
   refreshSummary();
-  if (roomFilterActive && currentView === "home") renderHome();
+  refilterHomeForParty();
 }
 
 function changeChild(delta) {
@@ -104,12 +142,14 @@ function changeChild(delta) {
   setCounts();
   renderChildStrip();
   refreshSummary();
-  if (roomFilterActive && currentView === "home") renderHome();
+  refilterHomeForParty();
 }
 
 function setChildAge(i, v) {
   childAges[i] = parseInt(v, 10);
+  renderChildStrip();
   refreshSummary();
+  refilterHomeForParty();
 }
 
 function toggleChildStrip() {
@@ -119,8 +159,17 @@ function toggleChildStrip() {
 }
 
 function ageOptions(sel) {
+  var cfg = window[my1uzr.worknOnPg].clientConfig?.HT_CFG || {};
+  var room = typeof getRoom === "function" ? getRoom() : null;
+  var freeMax =
+    typeof htRoomOccupancyPolicy === "function"
+      ? htRoomOccupancyPolicy(room).childAgeFreeMax
+      : cfg.childAgeFreeMax != null
+        ? Number(cfg.childAgeFreeMax)
+        : 8;
+  var maxAge = cfg.childAgeMax != null ? Number(cfg.childAgeMax) : 17;
   var html = "";
-  for (var a = 0; a <= window[my1uzr.worknOnPg].clientConfig?.HT_CFG.childAgeMax; a++) {
+  for (var a = 0; a <= maxAge; a++) {
     html +=
       '<option value="' +
       a +
@@ -129,7 +178,7 @@ function ageOptions(sel) {
       ">" +
       a +
       " yrs" +
-      (a > window[my1uzr.worknOnPg].clientConfig?.HT_CFG.childAgeFreeMax ? " \u00b7 paid" : " \u00b7 free") +
+      (a > freeMax ? " \u00b7 adult-equivalent" : " \u00b7 free") +
       "</option>";
   }
   return html;
@@ -153,6 +202,14 @@ function ageInputsHtml() {
 
 function renderChildStrip() {
   var wrap = el("childStrip");
+  var cfg = window[my1uzr.worknOnPg].clientConfig?.HT_CFG || {};
+  var room = typeof getRoom === "function" ? getRoom() : null;
+  var freeMax =
+    typeof htRoomOccupancyPolicy === "function"
+      ? htRoomOccupancyPolicy(room).childAgeFreeMax
+      : cfg.childAgeFreeMax != null
+        ? Number(cfg.childAgeFreeMax)
+        : 8;
   if (children === 0) {
     wrap.classList.add("ht-hidden");
     wrap.innerHTML = "";
@@ -163,7 +220,9 @@ function renderChildStrip() {
     '<div class="ht-child-strip"><div class="container"><div class="inner">' +
     '<div class="cs-head">' +
     '<i class="fa-solid fa-children"></i> <span>Child Ages</span>' +
-    '<span class="cs-note">Ages 8 &amp; under stay free</span>' +
+     '<span class="cs-note">Ages ' +
+     freeMax +
+     " &amp; under stay free; older children count as adults</span>" +
     '<button class="cs-toggle" onclick="toggleChildStrip()" aria-label="Toggle child ages">' +
     '<i class="fa-solid fa-chevron-up"></i></button>' +
     "</div>" +
@@ -184,13 +243,17 @@ function setCounts() {
 
 function navSearch() {
   roomFilterActive = true;
-  if (typeof applyAvailabilityFilterToHome === "function") {
-    applyAvailabilityFilterToHome();
+  // Both dates set: the date fields' onchange (rm.js) already ran the filter and
+  // re-rendered the list, so there is nothing left to rebuild - just take the
+  // guest to the results, which is the scroll the dates already do.
+  if (roomAvailFilter && currentView === "home") {
+    scrollToSearchResults();
     return;
   }
-  if (currentView !== "home") showHome();
-  else renderHome();
-  scrollToRoomList();
+  // A single date filters nothing, or we are off the home view where there is no
+  // room list to scroll to (switchView hides #viewHome), so the full path runs
+  // and showHome() brings that list back.
+  applyAvailabilityFilterToHome();
 }
 
 function clearRoomFilter() {
@@ -199,19 +262,246 @@ function clearRoomFilter() {
 }
 
 /* ---------- Date-based room availability filter (public) ---------- */
-function publicRoomIsAvailable(r, from, to) {
+function publicRoomId(r) {
+  if (!r) return "";
+  var value =
+    r.a != null && r.a !== ""
+      ? r.a
+      : r.id != null && r.id !== ""
+        ? r.id
+        : r.e != null && r.e !== ""
+          ? r.e
+          : r.no != null && r.no !== ""
+            ? r.no
+            : "";
+  return value === "" ? "" : String(value);
+}
+
+// A booking row names exactly one room (a combination is one row per room), so
+// normalise that single id before comparing. bookingRecords is always the
+// normalised display schema - every assignment maps through normalizeBookingRow
+// (rm.js) - where j is the room id and e is the check-in date, so reading e
+// here compared a date against a room id and never matched. Only a raw
+// payload-shaped row (e = room id, g/h = dates) still needs the e fallback;
+// the date sniff mirrors beLoadBookedDates (adminBooking.js).
+function publicBookingRoomId(b) {
+  if (!b) return "";
+  var isDateShape = /^\d{4}-\d{2}-\d{2}/.test(
+    String(b.e == null ? "" : b.e).trim(),
+  );
+  var raw = isDateShape ? b.j : b.e != null && b.e !== "" ? b.e : b.j;
+  if (typeof adRoomId === "function") return adRoomId(raw);
+  if (Array.isArray(raw)) raw = raw[0];
+  return raw == null || raw === "" ? "" : String(raw);
+}
+
+function publicRoomHasBookingOverlap(r, from, to) {
   if (!r || !from || !to || to <= from) return false;
-  var key = String(r.id != null ? r.id : r.no != null ? r.no : "");
-  if (typeof bookingRecords === "undefined" || !bookingRecords) return true;
+  var key = publicRoomId(r);
+  if (!key || typeof bookingRecords === "undefined" || !Array.isArray(bookingRecords)) {
+    return false;
+  }
   for (var bi = 0; bi < bookingRecords.length; bi++) {
     var b = bookingRecords[bi];
-    if (!b || !b.j) continue;
-    if (String(b.j) !== key) continue;
-    if (Number(b.o) === 4) continue;
+    if (!b) continue;
+    if (publicBookingRoomId(b) !== key) continue;
+    if (Number(b.o) === 4 || Number(b.oc) === 4) continue;
     if (!b.e || !b.f) continue;
-    if (b.e < to && from < b.f) return false;
+    if (b.e < to && from < b.f) return true;
   }
-  return true;
+  return false;
+}
+
+// True when ANY of the requested rooms clashes with an existing booking.
+function publicRoomsHaveBookingOverlap(rooms, from, to) {
+  var list = Array.isArray(rooms) ? rooms : rooms ? [rooms] : [];
+  for (var i = 0; i < list.length; i++) {
+    if (publicRoomHasBookingOverlap(list[i], from, to)) return true;
+  }
+  return false;
+}
+
+async function publicSelectedRoomHasBookingOverlap(r, from, to) {
+  if (!r || !from || !to || to <= from) return false;
+  if (typeof ensurePublicBookingsLoaded === "function") {
+    await ensurePublicBookingsLoaded();
+  }
+  return publicRoomHasBookingOverlap(r, from, to);
+}
+
+async function publicSelectedRoomsHaveBookingOverlap(rooms, from, to) {
+  if (!from || !to || to <= from) return false;
+  if (typeof ensurePublicBookingsLoaded === "function") {
+    await ensurePublicBookingsLoaded();
+  }
+  return publicRoomsHaveBookingOverlap(rooms, from, to);
+}
+
+function publicRoomIsAvailable(r, from, to) {
+  if (!r || !from || !to || to <= from) return false;
+  return !publicRoomHasBookingOverlap(r, from, to);
+}
+
+function showRoomBookedConflictMessage() {
+  var cfg =
+    window[my1uzr.worknOnPg]?.clientConfig?.cust_da_const || {};
+  var message =
+    cfg.msgOnBookButtonifRoomBooked ||
+    "This room is already booked for the selected dates.";
+  if (typeof showMessageModal === "function") {
+    showMessageModal("Info", message, false);
+  } else {
+    window.alert(message);
+  }
+}
+
+async function bookRoomNow(id) {
+  var wanted = String(id);
+  var room = null;
+  for (var i = 0; i < roomRecords.length; i++) {
+    if (String(roomRecords[i].id) === wanted) {
+      room = roomRecords[i];
+      break;
+    }
+  }
+  var cfg =
+    window[my1uzr.worknOnPg]?.clientConfig?.cust_da_const || {};
+  if (cfg.showRoomAvalOnHomePg != 1 && typeof openRoomBooking === "function") {
+    await openRoomBooking();
+  }
+  if (await publicSelectedRoomHasBookingOverlap(room, checkIn, checkOut)) {
+    showRoomBookedConflictMessage();
+    return;
+  }
+  showRoomDetails(wanted);
+}
+
+/* ---------- Room combinations ---------- */
+var publicComboCache = { key: "", options: [] };
+
+// Cheapest first so the recommendation order is stable. With dates chosen the
+// comparison uses what the stay actually costs per night, so a weekend-priced
+// set cannot outrank a cheaper one that happens to be listed higher.
+function publicRoomRate(r) {
+  if (typeof htStayRate === "function") {
+    var stay = htStayRate(r);
+    if (stay && stay.dated) return stay.avg;
+  }
+  return Number(r && r.pricePerNight) || 0;
+}
+
+function publicComboKey(ids) {
+  return htComboKey(ids);
+}
+
+// Every combination of currently bookable rooms that can sleep the party, best
+// first. The search itself lives in rm.js (htComboOptions) so the admin flow
+// can offer the same sets; this wrapper only supplies the public room pool, the
+// date filter and a cache.
+//
+// The public list is wider than the admin picker on purpose: combinations are
+// offered even when a single room could take the party, so a guest can also see
+// a set of the smaller rooms, and sets of up to four rooms are considered rather
+// than stopping at the first room count that fits.
+//
+// With nothing in the stepper there is no party to search against and the search
+// stops. rm.da's showAllOptionsOfRoomsOnInit lifts that: the empty party then
+// ranks every two- and three-room set by price, so the hotel's stay options are
+// all on the page before the guest has picked anyone.
+function publicComboOptions(adultCount, childAges) {
+  var party =
+    typeof htPublicParty === "function"
+      ? htPublicParty()
+      : { adults: adultCount, childAges: childAges || [] };
+  var occ = htOccupancyPool([{}], party.adults, party.childAges);
+  var noParty = !occ.effectiveOccupancy;
+  if (noParty && !htShowAllRoomOptions()) return [];
+  // rm.da's showOnlyCombosAbovePersons can also name a band of party sizes that is
+  // shown single rooms and no combinations. Answered here rather than only where
+  // the section is drawn, so "is this set on offer" has one answer for all three
+  // callers: the section is left out, a set already picked is dropped when the party
+  // size moves into the band (refilterHomeForParty), and bookComboNow will not
+  // price a set the hotel has chosen to hide.
+  if (typeof htCombosHiddenForParty === "function" && htCombosHiddenForParty()) {
+   return [];
+  }
+  var pool = roomRecords.filter(function (r) {
+    if (checkIn && checkOut && typeof publicRoomIsAvailable === "function") {
+      return publicRoomIsAvailable(r, checkIn, checkOut);
+    }
+    return true;
+  });
+  // Availability is part of the key, so a late booking load cannot leave a
+  // stale combination behind that includes a sold-out room.
+  var cacheKey =
+    occ.adults +
+    "|" +
+    (occ.childAges || []).join(",") +
+    "|" +
+    checkIn +
+    "|" +
+    checkOut +
+    "|" +
+    pool
+      .map(function (r) {
+        return r.id + ":" + publicRoomRate(r);
+      })
+      .join(",");
+  if (publicComboCache.key === cacheKey) return publicComboCache.options;
+  publicComboCache = {
+   key: cacheKey,
+   options: htComboOptions(pool, party.adults, party.childAges, {
+    rateOf: publicRoomRate,
+    // Four rooms is a lot of empty rooms to put in front of a guest who has not
+    // said how many of them are staying, so the party-less list stops at three.
+    maxRooms: noParty ? 3 : 4,
+    allSizes: true,
+    allowWithSingleFit: true,
+    allowEmptyParty: noParty,
+    // The list order the hotel has chosen. cheapestAllIn (rm.da
+    // showCombosCheapestFirst) ranks by what the guest pays, cheap to expensive,
+    // mixing two-, three- and four-room sets in one list; without it the
+    // fallback below blocks the list by room count instead, cheapest within each
+    // size. Neither needs the "no surcharge needed" test to come first - that is
+    // what used to push every set charging for its extra guests behind every set
+    // that did not, leaving the two-room set a party of six would have chosen
+    // last of 375.
+    cheapestAllIn:
+     typeof htCombosRankByAllInPrice === "function" && htCombosRankByAllInPrice(),
+    cheapestWithinSize: true,
+   }),
+  };
+  return publicComboCache.options;
+}
+
+function publicComboByKey(key) {
+  var party = typeof htPublicParty === "function" ? htPublicParty() : null;
+  if (!party) return null;
+  var list = publicComboOptions(party.adults, party.childAges);
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].key === key) return list[i];
+  }
+  return null;
+}
+
+function combinations(list, size) {
+  return htCombinations(list, size);
+}
+
+
+async function bookComboNow(key) {
+  var combo = publicComboByKey(key);
+  if (!combo) return;
+  var cfg = window[my1uzr.worknOnPg]?.clientConfig?.cust_da_const || {};
+  if (cfg.showRoomAvalOnHomePg != 1 && typeof openRoomBooking === "function") {
+    await openRoomBooking();
+  }
+  if (await publicSelectedRoomsHaveBookingOverlap(combo.rooms, checkIn, checkOut)) {
+    showRoomBookedConflictMessage();
+    return;
+  }
+  if (typeof setComboSelection === "function") setComboSelection(combo);
+  switchView("details");
 }
 
 function scrollToRoomList() {
@@ -219,13 +509,26 @@ function scrollToRoomList() {
   if (list) list.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+// After a search the first room list is not always the answer: with no free
+// single room it is missing, or it holds only the extra-guest-charge rooms
+// while the combinations sit further down. Land on the combinations then.
+function scrollToSearchResults() {
+  if (lastSearchSingleCount === 0 && lastSearchComboCount > 0) {
+    var combos = document.getElementById("htComboSection");
+    if (combos) {
+      combos.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+  }
+  scrollToRoomList();
+}
+
 window.applyAvailabilityFilterToHome = async function () {
   roomAvailFilter = !!(checkIn && checkOut);
-  if (!roomAvailFilter) {
-    if (currentView === "home") renderHome();
-    return;
-  }
-  if (!window.__pubBookingsLoaded) {
+  // Only a date-bounded search needs the booking rows. The old no-dates early
+  // return skipped showHome() entirely, so a search that only moved the stepper
+  // appeared to do nothing; it re-renders now, just without the scroll below.
+  if (roomAvailFilter && !window.__pubBookingsLoaded) {
     try {
       await ensurePublicBookingsLoaded();
     } catch (e) {
@@ -234,7 +537,10 @@ window.applyAvailabilityFilterToHome = async function () {
   }
   if (currentView !== "home") showHome();
   else renderHome();
-  scrollToRoomList();
+  // Only a date-bounded search has a result set worth taking the guest to. With
+  // a single date (or none) the filter narrows nothing, and the unconditional
+  // scroll made the page jump on every date change.
+  if (roomAvailFilter) scrollToSearchResults();
 };
 
 window.clearAvailFilter = function () {
@@ -245,7 +551,9 @@ window.clearAvailFilter = function () {
 
 /* ---------- Summary sheet & bottom bar ---------- */
 function renderSummarySheet() {
-  el("paySheet").innerHTML =
+ var pay = el("paySheet");
+ if (!pay) return;
+ pay.innerHTML =
     '<div class="ht-sheet" id="paySheetPanel">' +
     '<div class="sheet-handle"></div>' +
     '<div class="sheet-title">Booking Summary</div>' +
@@ -291,7 +599,7 @@ function ensureBeCalStyle() {
     ".be-cal-day.booked{background:#fdecea;color:#d23f3f;font-weight:700;cursor:not-allowed;text-decoration:line-through;opacity:.9;}" +
     ".be-cal-day.past{background:#f4f2ec;color:#c8c0b2;cursor:not-allowed;text-decoration:line-through;opacity:.75;}" +
     ".be-cal-day.in{background:#e4f6e7;color:#1d7a3a;font-weight:600;}" +
-    ".be-cal-leg{display:flex;gap:12px;margin-top:8px;padding-top:8px;border-top:1px solid #eee8da;font-size:11px;color:#8a5a2b;}" +
+    ".be-cal-leg{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;padding-top:8px;border-top:1px solid #eee8da;font-size:11px;color:#8a5a2b;}" +
     ".be-cal-leg i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:4px;}" +
     ".be-cal-leg .lg-booked{background:#fdecea;border:1px solid #d23f3f;}" +
     ".be-cal-leg .lg-in{background:#e4f6e7;border:1px solid #1d7a3a;}" +
@@ -388,18 +696,29 @@ async function ensureBeCheckinField() {
     wrap.appendChild(input);
 
     var sheetPanel = el("paySheetPanel");
+    var paySheetEl = el("paySheet");
     var hostDiv = document.createElement("div");
     hostDiv.className = "be-date-host";
     hostDiv.innerHTML =
       '<div style="font-size:13px;font-weight:700;color:#e8dfc8;margin-bottom:6px;">' +
       '<i class="fa-solid fa-calendar-days me-1"></i> Stay Dates</div>';
     hostDiv.appendChild(wrap);
+    // #paySheetPanel is created by renderSummarySheet and holds the sheet
+    // title, the summary and this field, so the field has to live inside it or
+    // relocateSummaryPanel orphans it on desktop.
+    if (!sheetPanel && paySheetEl && typeof renderSummarySheet === "function") {
+      renderSummarySheet();
+      if (typeof refreshSummary === "function") refreshSummary();
+      sheetPanel = el("paySheetPanel");
+    }
     if (sheetPanel) {
       var old = sheetPanel.querySelector(".be-date-host");
       if (old) old.remove();
       sheetPanel.insertBefore(hostDiv, sheetPanel.firstChild);
+    } else if (paySheetEl) {
+      paySheetEl.appendChild(hostDiv);
     } else {
-      el("paySheet").appendChild(hostDiv);
+      return false;
     }
   } else {
     var inp = document.querySelector(".be-date-host #beCheckinPublic");
@@ -423,40 +742,12 @@ function renderBottomBar() {
 }
 
 async function openSummarySheet() {
-  // Ensure the public bookingRecords (bookings) are loaded from the local DB so
-  // we can detect whether the currently selected room is already booked for the
-  // chosen dates. ht.js's adminLoadDataFromDB() only does this on admin flows,
-  // so we load lazily here for the public details page.
-  if (!window.__pubBookingsLoaded) {
-    await ensurePublicBookingsLoaded();
-  }
-
   var curRoom = getRoom();
-  var roomKey = curRoom ? String(curRoom.id || curRoom.no || "") : "";
-  var from = checkIn;
-  var to = checkOut;
-
-  // Clash detection (mirrors availability.getOverlapCount): the room already
-  // has an active (non-cancelled) booking overlapping [from, to).
-  var clash = false;
-  if (roomKey && from && to) {
-    for (var i = 0; i < bookingRecords.length; i++) {
-      var bk = bookingRecords[i];
-      if (String(bk.j) !== roomKey) continue;
-      if (Number(bk.o) === 4) continue;
-      if (!bk.e || !bk.f) continue;
-      if (bk.e < to && from < bk.f) {
-        clash = true;
-        break;
-      }
-    }
+  if (await publicSelectedRoomHasBookingOverlap(curRoom, checkIn, checkOut)) {
+    showRoomBookedConflictMessage();
+    return;
   }
 
-  // The stay-dates field reuses the admin booking flow's beCheckin/beOpenCalendar
-  // date-range picker (module 46). ensureBeCheckinField() loads it as needed,
-  // seeds bookingState from the current public selection, builds/updates the
-  // #beCheckinPublic field inside the panel, and keeps the bookingState->public
-  // flow in sync. Call it here so the field is always present on open.
   var calOk = await ensureBeCheckinField();
   if (!calOk) {
     showMessageModal("Info", "Date calendar unavailable.", false);
@@ -468,18 +759,18 @@ async function openSummarySheet() {
     if (h && h.scrollIntoView)
       h.scrollIntoView({ behavior: "smooth", block: "start" });
   } else {
-    el("paySheet").classList.add("open");
-    el("payOverlay").classList.add("open");
+    var paySheetEl = el("paySheet");
+    var payOverlayEl = el("payOverlay");
+    if (paySheetEl) paySheetEl.classList.add("open");
+    if (payOverlayEl) payOverlayEl.classList.add("open");
   }
-
-  // Only when the room is already booked for the selected dates does the sheet
-  // auto-open the calendar. Otherwise the field is just shown for manual edits.
-  if (clash) beOpenCalendar("beCheckinPublic", null);
 }
 
 function closeSummarySheet() {
-  el("paySheet").classList.remove("open");
-  el("payOverlay").classList.remove("open");
+ var paySheetEl = el("paySheet");
+ var payOverlayEl = el("payOverlay");
+ if (paySheetEl) paySheetEl.classList.remove("open");
+ if (payOverlayEl) payOverlayEl.classList.remove("open");
 }
 
 /* ---------- Package & add-on picks ---------- */
@@ -569,28 +860,48 @@ function clearPublicStayDates() {
 function calcBooking(nightsOverride) {
   var room = getRoom();
   if (!room) return null;
+  var rooms = typeof selectedComboRooms === "function" && selectedComboRooms().length
+    ? selectedComboRooms()
+    : [room];
   var calcN = nightsBetween(checkIn, checkOut);
   var nights = nightsOverride != null
     ? nightsOverride
     : (isFinite(calcN) && calcN > 0 ? calcN : 1);
 
-  var paidChildren = childAges.filter(function (a) {
-    return a > window[my1uzr.worknOnPg].clientConfig?.HT_CFG.childAgeFreeMax;
-  }).length;
-  var chargeable = adults + paidChildren;
+  // Pooled across every selected room: a combination is judged on its combined
+  // normal and max occupancy, not room by room.
+  var occupancy = htOccupancyPool(rooms, adults, childAges);
+  var paidChildren = occupancy.paidChildren;
+  var chargeable = occupancy.effectiveOccupancy;
   var totalGuests = adults + children;
-  var freeChildren = children - paidChildren;
+  var freeChildren = occupancy.freeChildren;
 
-  var dr = buildDayRates(room, checkIn, nights);
-  var full = dr.total;
-  var dayRates = dr.dayRates;
+  // Every room bills its own nights, so a combination is the sum of its rooms.
+  var full = 0;
+  var dayRates = [];
+  var roomNightCosts = [];
+  rooms.forEach(function (rr) {
+   var dr = buildDayRates(rr, checkIn, nights);
+   full += dr.total;
+   roomNightCosts.push({ room: rr, nights: nights, cost: dr.total });
+   dayRates = dayRates.concat(
+    dr.dayRates.map(function (d) {
+     return { date: d.date, total: d.total, roomId: rr.id };
+    })
+   );
+  });
   var discountAmt = 0;
 
-  var includedGuests = 2;
-  var extraAdults = Math.max(0, adults - includedGuests);
-  var extraAdultsRate = window[my1uzr.worknOnPg].clientConfig?.HT_CFG?.extraAdultsCharge || 0;
+  var includedGuests = occupancy.capacity;
+  var extraAdults = occupancy.extraAdultUnits;
+  var paidChildUnits = occupancy.paidChildUnits;
+  var cfg = window[my1uzr.worknOnPg].clientConfig?.HT_CFG || {};
+  var extraAdultsRate = cfg.extraAdultsCharge || 0;
+  var childRate = cfg.paidChildCharge || 0;
   var adultFee = extraAdults * extraAdultsRate * nights;
-  var childFee = paidChildren * (window[my1uzr.worknOnPg].clientConfig?.HT_CFG.paidChildCharge || 0) * nights;
+  // Over-age children spilling past the pooled normal occupancy are charged at
+  // paidChildCharge; children within it cost nothing.
+  var childFee = paidChildUnits * childRate * nights;
   var occupancyFee = adultFee + childFee;
 
   var pkg = null;
@@ -607,7 +918,7 @@ function calcBooking(nightsOverride) {
     }
   });
 
-  var gst = hotel.gst != null ? hotel.gst : 0;
+  var gst = htGstRate();
   // All listed prices are GST-exclusive: the subtotal below is the taxable
   // base. GST is charged on top, so the grand total is subtotal + tax.
   var subtotal = full - discountAmt + occupancyFee + packageCost + addonCost;
@@ -616,6 +927,10 @@ function calcBooking(nightsOverride) {
 
   return {
     room: room,
+    rooms: rooms,
+    roomCount: rooms.length,
+    isCombo: rooms.length > 1,
+    comboKey: typeof currentComboKey === "function" ? currentComboKey() : "",
     nights: nights,
     checkin: checkIn,
     checkout: checkOut,
@@ -623,16 +938,23 @@ function calcBooking(nightsOverride) {
     adults: adults,
     children: children,
     paidChildren: paidChildren,
+    adultEquivalentChildren: occupancy.adultEquivalentChildren,
     freeChildren: freeChildren,
     chargeable: chargeable,
+    effectiveOccupancy: occupancy.effectiveOccupancy,
+    maxOccupancy: occupancy.maxOccupancy,
     totalGuests: totalGuests,
     includedGuests: includedGuests,
     extraAdults: extraAdults,
+    extraAdultUnits: extraAdults,
     extraAdultsRate: extraAdultsRate,
     adultFee: adultFee,
+    paidChildUnits: paidChildUnits,
     childFee: childFee,
-    childRate: window[my1uzr.worknOnPg].clientConfig?.HT_CFG?.paidChildCharge || 0,
+    childRate: childRate,
+    occupancy: occupancy,
     roomCostFull: full,
+    roomNightCosts: roomNightCosts,
     roomRateIncl: roomNightRate(room, checkIn || todayStr()),
     discountAmt: discountAmt,
     discountPercent: 0,
@@ -711,8 +1033,10 @@ function summaryHtml(s, opts) {
       "</b> Child" +
       (s.children > 1 ? "ren" : "") +
       " (" +
-      s.freeChildren +
-      " free)"
+       s.freeChildren +
+       " free, " +
+       s.paidChildren +
+       " adult-equivalent)"
       : "") +
     " \u00b7 <b>" +
     s.chargeable +
@@ -723,7 +1047,30 @@ function summaryHtml(s, opts) {
   var rows = srow(
     "Room \u00b7 " + s.nights + " night" + (s.nights > 1 ? "s" : ""),
     fmtMoney(s.roomCostFull),
-  ); if (s.discountAmt > 0) {
+  );
+  // A combination keeps each room on its own line so the pay sheet shows what
+  // was paid for, room by room, before the combined total.
+  if (s.isCombo && s.rooms && s.rooms.length > 1) {
+   var costs = s.roomNightCosts || [];
+   rows =
+    '<div class="s-row-group">' +
+    s.rooms
+     .map(function (rr, ri) {
+      var line = costs[ri] ? costs[ri].cost : 0;
+      return srow(
+       "Room " + (rr.e || rr.id) + " \u00b7 " + (rr.name || ""),
+       fmtMoney(line),
+      );
+     })
+     .join("") +
+    srow(
+     "Rooms total \u00b7 " + s.nights + " night" + (s.nights > 1 ? "s" : ""),
+     fmtMoney(s.roomCostFull),
+     "sub",
+    ) +
+    "</div>";
+  }
+  if (s.discountAmt > 0) {
     var dLbl =
       s.discountPercent && Number(s.discountPercent) > 0
         ? "Long-stay discount (" + s.discountPercent + "%)"
@@ -743,11 +1090,16 @@ function summaryHtml(s, opts) {
     );
   }
   if (s.childFee > 0) {
+    // Guests always carry one uniform rate, so this prints the familiar
+    // "Child (N x rate)". Only the admin per-child rows, which can price each
+    // child differently, fall back to the per-night total. The strict false
+    // check means a snapshot that never sets the flag keeps today's wording.
     rows += srow(
       "Child (" +
-      s.paidChildren +
-      " \u00d7 " +
-      fmtMoney(s.childRate || 0) +
+      s.paidChildUnits +
+      (s.childRateUniform === false
+        ? ", " + fmtMoney(s.childRateSum) + "/night total"
+        : " × " + fmtMoney(s.childRate || 0)) +
       ")",
       fmtMoney(s.childFee),
     );
@@ -759,19 +1111,145 @@ function summaryHtml(s, opts) {
     for (var ai = 0; ai < s.addonList.length; ai++) {
       var ao = s.addonList[ai];
       rows += srow(
-        "Add-on \u00b7 " + escHtml((ao.addon && ao.addon.name) || "Add-on"),
+        "Add-on \u00b7 " + ((ao.addon && ao.addon.name) || "Add-on"),
         fmtMoney(ao.cost),
       );
     }
   }
+  // Extra Particulars are saved in the row's adt envelope, so a rebuilt bill
+  // hands them over as extraRows. They are part of the charged amount, so they
+  // must be printed like every other line or the rows stop adding up to the
+  // total. Older snapshots carry only the single extraCharges/extraParticular
+  // pair, which is why the fallback below stays.
+  if (s.extraRows && s.extraRows.length) {
+    for (var xi = 0; xi < s.extraRows.length; xi++) {
+      var xr = s.extraRows[xi] || {};
+      var xAmt = Number(xr.price) || 0;
+      // srow escapes its own label, so the raw name goes in here. A negative
+      // extra (the rate adjustment) is a reduction, not a charge.
+      rows += srow(
+        "Extra \u00b7 " + (xr.name || "Charges"),
+        xAmt < 0 ? "\u2212" + fmtMoney(-xAmt) : fmtMoney(xAmt),
+        xAmt < 0 ? "neg" : "",
+      );
+    }
+  } else if (s.extraCharges > 0) {
+    rows += srow(
+      "Extra \u00b7 " + (s.extraParticular || "Charges"),
+      fmtMoney(s.extraCharges),
+    );
+  }
   if (s.mattressCharge > 0) {
     rows += srow("Extra Mattress", fmtMoney(s.mattressCharge));
   }
-  rows += srow("GST " + (s.gst != null ? s.gst : hotel.gst) + "%", fmtMoney(s.tax));
+    rows += srow("GST " + (s.gst != null ? s.gst : htGstRate()) + "%", fmtMoney(s.tax));
   rows +=
     '<div class="s-row s-total"><span>Grand Total</span><span class="amt">' +
     fmtMoney(s.grandTotal) +
     "</span></div>";
+  // A bill has to say what is still due; the live summary sheet shows that in
+  // its own balance area, so these rows are printed for the bill only.
+  if (billPrint) {
+    var recAmt = Math.max(
+      0,
+      Math.round(Number(s.received != null ? s.received : s.advanceAmount) || 0),
+    );
+    if (recAmt > 0) {
+      var remAmt = Math.max(
+        0,
+        Math.round(Number(s.grandTotal) || 0) - recAmt,
+      );
+      rows += srow("Received", "\u2212" + fmtMoney(recAmt));
+      rows += srow(
+        "Remaining",
+        remAmt === 0 ? fmtMoney(0) + " (Settled)" : fmtMoney(remAmt),
+        remAmt === 0 ? "neg" : "",
+      );
+    }
+  }
+
+  // A combination is stored as one booking row per room, so the guest is shown
+  // one paysheet per room with that room's own share, followed by the combined
+  // total they are actually charged.
+  var roomSheets = "";
+  if (s.isCombo && s.rooms && s.rooms.length > 1) {
+    var parts = buildBookingRoomParts(s);
+    if (parts.length > 1) {
+      roomSheets =
+       '<div class="s-room-sheets">' +
+       parts
+        .map(function (part) {
+         var pr = [];
+         pr.push(
+          srow(
+           "Room " +
+            (part.roomNo || part.roomId) +
+            " \u00b7 " +
+            part.nights +
+            " night" +
+            (part.nights > 1 ? "s" : ""),
+           fmtMoney(part.roomCostFull),
+          ),
+         );
+         if (part.adultFee > 0) {
+          pr.push(
+           srow(
+            "Extra adult" +
+             (part.extraAdults > 1 ? "s" : "") +
+             " (" +
+             part.extraAdults +
+             ")",
+            fmtMoney(part.adultFee),
+           ),
+          );
+         }
+         if (part.childFee > 0) {
+          pr.push(
+           srow(
+            "Paid child (" + part.paidChildren + " \u00d7 " +
+             fmtMoney(part.childFee / (part.paidChildren * part.nights)) +
+             ")",
+            fmtMoney(part.childFee),
+           ),
+          );
+         }
+         if (part.packageCost > 0) {
+          pr.push(srow("Package share", fmtMoney(part.packageCost)));
+         }
+         if (part.addonCost > 0) {
+          pr.push(srow("Add-on share", fmtMoney(part.addonCost)));
+         }
+         if (part.extraCharges > 0) {
+          pr.push(srow("Extras", fmtMoney(part.extraCharges)));
+         }
+         if (part.discountAmt > 0) {
+          pr.push(
+           srow("Discount", "\u2212" + fmtMoney(part.discountAmt), "neg"),
+          );
+         }
+         pr.push(
+          srow(
+           "GST " + (part.gst != null ? part.gst : htGstRate()) + "%",
+           fmtMoney(part.tax),
+          ),
+         );
+         return (
+          '<div class="s-room-sheet">' +
+          '<div class="s-room-sheet-head"><i class="fa-solid fa-door-open"></i> ' +
+          escHtml(part.roomName || "Room " + (part.roomNo || part.roomId)) +
+          " \u00b7 paysheet" +
+          "</div>" +
+          '<div class="s-rows">' +
+          pr.join("") +
+          '</div><div class="s-row s-total"><span>Room total</span><span class="amt">' +
+          fmtMoney(part.total) +
+          "</span></div></div>"
+         );
+        })
+        .join("") +
+       "</div>";
+    }
+  }
 
   return (
     '<div class="s-head">' +
@@ -780,7 +1258,7 @@ function summaryHtml(s, opts) {
     escHtml(hotel.name) +
     "</div>" +
     '<div class="s-room" id="sRoomLine">' +
-    escHtml(s.room ? s.room.name : s.roomName) +//(s.room && (s?.room?.name || s.roomName || s?.room?.e)) || "") +
+    escHtml(summaryRoomLine(s)) +
     "</div>" +
     '<div class="s-day-rates">' +
     dayRatesHtml(s) +
@@ -816,6 +1294,7 @@ function summaryHtml(s, opts) {
     '<div class="s-rows">' +
     rows +
     "</div>" +
+    roomSheets +
     (billPrint
       ? ""
       : '<button class="ht-btn ht-btn-ember ht-pay-btn" onclick="finishPreview()">' +
@@ -838,6 +1317,24 @@ function srow(k, v, cls) {
   );
 }
 
+// "Deluxe Room" for a single booking, "Room 5, Room 6 \u00b7 combination" for a set.
+function summaryRoomLine(s) {
+  var rooms = (s && s.rooms) || [];
+  if (s && s.isCombo && rooms.length > 1) {
+    return (
+     "Rooms " +
+     rooms
+      .map(function (rr) {
+       return rr.e || rr.id;
+      })
+      .join(", ") +
+     " \u00b7 combination"
+    );
+  }
+  if (s && s.room) return s.room.name;
+  return (s && s.roomName) || "";
+}
+
 /* ============================================================
    BOOKING PAYLOAD (send-side)
    ------------------------------------------------------------
@@ -849,16 +1346,16 @@ function srow(k, v, cls) {
    e room id (rm) | f booking dtt | g check-in date | h
    check-out date | i actual check-in dtt (planned at create) |
    j actual check-out dtt (planned at create) |
-   k guest info {a adults, b children total, c paid children,
-   d free children, e ages[], f package id} |
-   l facility charges JSON envelope
-   {l: [{a facility id, b unit price}], ado: [selected add-ons],
-   adt: [selected adtnolChrgs]} | m total amount | n discount |
-   o booker id | p booking reference number (server assigned) |
-   q special requests / notes | r/s tax percents.
+    k guest info {a adults, b children total, c adult-equivalent children,
+    d free children, e ages[], f package id} |
+    l facility charges JSON envelope
+    {l: [{a facility id, b unit price}], ado: [selected add-ons],
+    adt: [selected adtnolChrgs]} | m total amount | n discount |
+    o booker id | p booking reference number (server assigned) |
+    q special requests / notes | r/s tax percents.
 
-   Facility ids in l: 1 = room rate, 8 = paid child,
-   9 = extra adult, adons via the ado array.
+    Facility ids in l: 1 = room rate, 8 = legacy paid child,
+    9 = extra adult, adons via the ado array.
    ============================================================ */
 
 function addonFacilityId(name) {
@@ -898,14 +1395,21 @@ function addonFacilityId(name) {
    best-effort sync - the booking preview modal (payAmount) is
    the only UI feedback.
 
-   payload0.p is ONE flat object shaped 1:1 to the zrb table
-   (see section header above). Boot-time refresh lives in core/ht.js with its
-   own endpoint (refreshFromServer, rfsh.php).
+   payload0.p is an ARRAY of row objects, one per selected room, a
+   single room included. Every row is a real booking of its own and
+   carries its own share of the money, so the rows re-add to the
+   combined grand total. Boot-time refresh lives in core/ht.js with
+   its own endpoint (refreshFromServer, rfsh.php).
    ============================================================ */
 async function sendBookingPayload(paySnap) {
   var snap = paySnap || paySnapLatch || lastSnap || calcBooking();
   if (!snap) return;
-  var room = snap.room;
+  var rooms = getBookingRooms(snap);
+
+  if (await publicSelectedRoomsHaveBookingOverlap(rooms, checkIn, checkOut)) {
+    showRoomBookedConflictMessage();
+    return false;
+  }
 
   var nowDtt = todayStr() + " " + new Date().toTimeString().slice(0, 5);
 
@@ -915,50 +1419,67 @@ async function sendBookingPayload(paySnap) {
     );
     if (!ok) return false;
   }
-  var charges = [];
-  if (snap.roomRateIncl > 0) {
-    charges.push({ a: 1, b: snap.roomRateIncl }); // room rate per night
+
+  // Money is split first; every row is then written from its own part, so a row
+  // can never quote a total the combined stay does not add up to.
+  var parts = buildBookingRoomParts(snap);
+  if (!parts.length) {
+    showelsemodal("Could not price the selected rooms. Try Again!", true);
+    return false;
   }
-  if (snap.extraAdults > 0) {
-    charges.push({ a: 9, b: snap.extraAdultsRate || 0 }); // extra adult
-  }
-  if (snap.paidChildren > 0) {
-    charges.push({ a: 8, b: window[my1uzr.worknOnPg].clientConfig?.HT_CFG?.paidChildCharge || 0 }); // paid child
-  }
-  // Selected add-ons travel in the ado section of the facility-charges JSON.
+
+  // Selected add-ons are charged once for the stay, so the facility lines are
+  // spread across the rooms (equal per-room share of the per-night rate) and the
+  // money split lands on the same rooms in proportion to their room cost.
   // b = the add-on's per-night rate (charged = rate x nights), matching the
   // admin writer. adt (additional charges) is flat and starts empty here.
-  var ado = [];
+  var adoLines = [];
   (snap.addonList || []).forEach(function (x) {
     var fid = addonFacilityId(x.addon.name);
-    if (fid) ado.push({ a: fid, b: x.addon.price || 0 });
+    if (fid) adoLines.push({ a: fid, b: x.addon.price || 0 });
   });
-  // Additional charges (rm.da.adtnolChrgs) are not selectable on the public
-  // side, so adt starts empty but the key is still sent.
-  var adt = [];
+  var adtLines = [];
+  var roomRates = parts.map(function (part, i) {
+    var rr = part.room || {};
+    if (parts.length > 1) return roomNightRate(rr, checkIn || todayStr(), chargeWithAc);
+    return part.roomCostFull > 0
+      ? Math.round(part.roomCostFull / part.nights)
+      : snap.roomRateIncl || 0;
+  });
+  var rows = buildBookingRoomRows(snap, {
+    bookingDtt: nowDtt,
+    checkin: checkIn,
+    checkout: checkOut,
+    packageId: packageId || 0,
+    includeRoomRate: true,
+    roomRates: roomRates,
+    addonShares: htSplitFacilityLines(adoLines, parts.length),
+    extraShares: htSplitFacilityLines(adtLines, parts.length),
+    chargeWithAc: chargeWithAc,
+    bookerId: (typeof my1uzr !== "undefined" && my1uzr && my1uzr.ui) || 0,
+    specialRequests: snap.specialRequests || null,
+  });
+  // The room field is the single room id the server stores (rm.a, falling back
+  // to the room record's own identifiers).
+  if (rows.length) {
+    for (var ri = 0; ri < rows.length; ri++) {
+      var rr2 = parts[ri].room || {};
+      var rawId = rr2.a != null ? rr2.a : rr2.e != null ? rr2.e : rr2.id;
+      rows[ri].e = rawId == null || rawId === "" ? "" : String(rawId);
+    }
+  }
 
   clearPayload0();
-  payload0.p = {
-    e: room ? room.a || room.no || room.e || 0 : 0, // room ID from rm table
-    f: nowDtt, // booking dtt
-    g: checkIn, // check-in date
-    h: checkOut, // check-out date
-    k: JSON.stringify({
-      a: snap.adults,
-      b: snap.children,
-      c: snap.paidChildren,
-      d: snap.freeChildren,
-      e: childAges.slice(),
-      f: packageId || 0,
-    }),
-    l: buildBookingFacilityL(charges, ado, adt, chargeWithAc ? 1 : 0),
-    m: snap.grandTotal,
-    o: (typeof my1uzr !== "undefined" && my1uzr && my1uzr.ui) || 0,
-  };
+  payload0.p = rows;
   if (bpColHidden("cyp")) {
-    var kg = JSON.parse(payload0.p.k);
-    delete kg.f;
-    payload0.p.k = JSON.stringify(kg);
+    payload0.p = payload0.p.map(function (row) {
+      var kg = JSON.parse(row.k);
+      delete kg.f;
+      var copy = {};
+      for (var key in row) if (Object.prototype.hasOwnProperty.call(row, key)) copy[key] = row[key];
+      copy.k = JSON.stringify(kg);
+      return copy;
+    });
   }
   payload0.fn = 113;
   payload0.vw = 1;
@@ -980,7 +1501,7 @@ async function sendBookingPayload(paySnap) {
         1,
       );
       if (resp && resp.su == 1) {
-        await hndlRspo113(resp, snap, room);
+        await hndlRspo113(resp, snap, snap.room);
       } else {
         pendingPay = false;
         paySnapLatch = null;
@@ -1017,19 +1538,29 @@ function buildGuestBookingBillSnap(snap, resp) {
   var cList = (resp && resp.c && resp.c.l) || [];
   if (!rbList.length || !cList.length) return bs;
 
-  var roomId = "";
-  if (bs.room) {
-    var rid =
-      bs.room.a != null ? bs.room.a : bs.room.no != null ? bs.room.no : bs.room.e;
-    if (rid != null) roomId = String(rid);
-  }
+  // The server echoes p.e back in rb.e. One row holds one room, but a
+  // combination sends several rows, so match on any of the booked rooms rather
+  // than only the first.
+  var roomIds = [];
+  var bsRooms = (bs.rooms && bs.rooms.length ? bs.rooms : bs.room ? [bs.room] : []);
+  bsRooms.forEach(function (rr) {
+    var rid = rr.a != null ? rr.a : rr.no != null ? rr.no : rr.e;
+    if (rid != null) roomIds.push(String(rid));
+  });
+  var roomId = roomIds[0] || "";
   var inD = bs.checkin != null ? String(bs.checkin) : "";
   var outD = bs.checkout != null ? String(bs.checkout) : "";
+
+  function rbMatchesRoom(rb) {
+    if (!roomIds.length) return true;
+    var echoed = typeof adRoomId === "function" ? adRoomId(rb.e) : String(rb.e);
+    return roomIds.indexOf(echoed) !== -1;
+  }
 
   var myRb = null;
   for (var i = 0; i < rbList.length; i++) {
     var rb = rbList[i] || {};
-    if (roomId !== "" && String(rb.e) !== roomId) continue;
+    if (!rbMatchesRoom(rb)) continue;
     if (inD && String(rb.g) !== inD) continue;
     if (outD && String(rb.h) !== outD) continue;
     if (!myRb || (parseInt(rb.a, 10) || 0) > (parseInt(myRb.a, 10) || 0)) {
@@ -1088,26 +1619,30 @@ window.hndlRspo113 = async function (resp, snap, room) {
       }
       var dbRc = (await dbDexieManager.getAllRecords(dbnm, "rc")) || [];
       myBookingAll = buildMyBookingAll(dbBk, dbRc);
+      await applyReceiptsToBookings(myBookingAll);
     }
   } catch (e) {
     console.warn("Failed to reload bookings after save:", e);
   }
-  if (typeof clearPublicStayDates === "function") clearPublicStayDates();
-  if (!el("modalOverlay") && !el("billOverlay")) renderAppUI();
-    closeModal();
-    closeSummarySheet();
+   if (typeof clearPublicStayDates === "function") clearPublicStayDates();
+   if (!el("modalOverlay") && !el("billOverlay")) renderAppUI();
+     closeModal();
+     closeSummarySheet();
     var billSnap =
       snap ||
       (typeof lastSnap !== "undefined" && lastSnap) ||
       (typeof calcBooking === "function" ? calcBooking() : null);
-    var item =
-      resp && resp.rc && resp.rc.l
-        ? Object.values(resp.rc.l).find(function (it) {
-            return it && String(it.a) === String(resp.x1);
-          })
-        : null;
-    if (billSnap && item) billSnap.paymentPhonePayGT = item.m;
-    if (billSnap) await startPhonePePayment(billSnap, resp.x1);
+    // A combination is stored as one booking row per room, so the save returns
+    // several ids. One PhonePe charge settles the whole stay, so every id goes
+    // out on the payment and the amount is the combined grand total - not the
+    // first row's share.
+    var bookingIds = bookingIdsFromResp(resp);
+    if (billSnap) {
+      billSnap.bookingIds = bookingIds;
+      if (bookingIds.length) billSnap.a = bookingIds[0];
+      billSnap.paymentPhonePayGT = billSnap.grandTotal;
+    }
+    if (billSnap) await startPhonePePayment(billSnap, bookingIds.join(PP_BOOKING_ID_SEP));
   return true;
  }else {
       pendingPay = false;
@@ -1187,6 +1722,58 @@ function buildMyBookingAll(rbArr, rcArr) {
   return out;
 }
 
+// Stamp the money actually collected against each booking. billStatusOf derives
+// the bill's status from it, and a paysheet that ignores the receipts can call a
+// fully settled stay "Booking Requested". Receipts are matched on td (the
+// booking id), the same way loadBookingReceipts in adminBooking.js reads them.
+async function applyReceiptsToBookings(rows) {
+  var list = Array.isArray(rows) ? rows : [];
+  if (!list.length) return list;
+  var byId = {};
+  for (var i = 0; i < list.length; i++) {
+    if (list[i] && list[i].a != null) byId[String(list[i].a)] = list[i];
+  }
+  var rRows = [];
+  try {
+    if (
+      typeof dbDexieManager !== "undefined" &&
+      typeof dbnm !== "undefined"
+    ) {
+      rRows = (await dbDexieManager.getAllRecords(dbnm, "r")) || [];
+    }
+  } catch (e) {
+    console.warn("Failed to load receipts for bookings:", e);
+    rRows = [];
+  }
+  for (var ri = 0; ri < rRows.length; ri++) {
+    var rc = rRows[ri] || {};
+    var amt = parseFloat(rc.j) || 0;
+    if (amt <= 0) continue;
+   var td = receiptBookingId(rc);
+   if (!td || !byId[td]) continue;
+    byId[td].received = (Number(byId[td].received) || 0) + amt;
+  }
+  for (var bi = 0; bi < list.length; bi++) {
+    var bk = list[bi];
+    if (!bk || bk.received == null) bk.received = 0;
+  }
+  return list;
+}
+
+// Receipts a booking row has collected, normalised to a whole rupee. A row may
+// carry the field (stamped by applyReceiptsToBookings) or a receipt array that
+// the server echoed inline, so both are counted.
+function billReceivedOf(bk) {
+  if (!bk) return 0;
+  var sum = Math.round(Number(bk.received) || 0);
+  if (sum <= 0 && Array.isArray(bk.r)) {
+    for (var i = 0; i < bk.r.length; i++) {
+      sum += Math.round(parseFloat((bk.r[i] || {}).j) || 0);
+    }
+  }
+  return Math.max(0, sum);
+}
+
 function isLoggedIn() {
   return !!(typeof my1uzr !== "undefined" && my1uzr && my1uzr.mk);
 }
@@ -1252,6 +1839,7 @@ async function ensurePublicBookingsLoaded() {
         bookingRecords = dbBk.map(normalizeBookingRow);
       }
       myBookingAll = buildMyBookingAll(dbBk, dbRc);
+      await applyReceiptsToBookings(myBookingAll);
       try {
         var dbC = (await dbDexieManager.getAllRecords(dbnm, "c")) || [];
         if (dbC.length && typeof guestRecords !== "undefined") {
@@ -1269,23 +1857,33 @@ async function ensurePublicBookingsLoaded() {
 
 function bookingSnapFromRecord(bk) {
   if (!bk) return null;
-  var room = null;
-  var raw = typeof getRoomById === "function" ? getRoomById(bk.j) : null;
-  if (raw && typeof mapRmToRoomRecord === "function") {
-    room = mapRmToRoomRecord(raw);
-  }
-  if (!room) {
-    var rmList = (window[my1uzr.worknOnPg].clientConfig &&
-      window[my1uzr.worknOnPg].clientConfig.rm) || [];
+  // A row names exactly one room; a combination is read back as its separate
+  // rows, each with its own room.
+  var rmList = (window[my1uzr.worknOnPg].clientConfig &&
+    window[my1uzr.worknOnPg].clientConfig.rm) || [];
+  var roomId = typeof adRoomId === "function" ? adRoomId(bk.j) : String(bk.j);
+  function resolveRoom(id) {
+    var found = null;
+    if (typeof getRoomById === "function") found = getRoomById(id);
+    if (found && typeof mapRmToRoomRecord === "function") found = mapRmToRoomRecord(found);
+    if (found) return found;
     for (var ri = 0; ri < rmList.length; ri++) {
       var r = rmList[ri];
-      if (r && (String(r.a) === String(bk.j) || String(r.e) === String(bk.j))) {
-        room = typeof mapRmToRoomRecord === "function" ? mapRmToRoomRecord(r) : r;
-        break;
+      if (r && (String(r.a) === String(id) || String(r.e) === String(id) || String(r.id) === String(id))) {
+        return typeof mapRmToRoomRecord === "function" ? mapRmToRoomRecord(r) : r;
       }
     }
+    return null;
   }
-  room = room || { name: bk.s || "Hotel Stay", tagline: "", city: "" };
+  var rooms = [];
+  var rr = roomId ? resolveRoom(roomId) : null;
+  if (rr) rooms.push(rr);
+  var room = rooms[0] || null;
+  if (!room) {
+    room = { name: bk.s || "Hotel Stay", tagline: "", city: "" };
+  } else {
+    rooms = [room];
+  }
   var nights =
     bk.e && bk.f && typeof calcNights === "function"
       ? calcNights(bk.e, bk.f)
@@ -1316,12 +1914,55 @@ function bookingSnapFromRecord(bk) {
     (window[my1uzr.worknOnPg].clientConfig &&
       window[my1uzr.worknOnPg].clientConfig.HT_CFG) ||
     {};
-  var freeMax = cfg.childAgeFreeMax != null ? Number(cfg.childAgeFreeMax) : 8;
-  var paidChildren = ages.filter(function (a) {
-    return Number(a) > freeMax;
-  }).length;
-  var freeChildren = Math.max(0, children - paidChildren);
-  var gst = typeof hotel !== "undefined" && hotel ? hotel.gst || 0 : 0;
+  var occupancy;
+  if (typeof htOccupancyPool === "function") {
+    // This row is a single room; htOccupancyPool handles that as a pool of one.
+    occupancy = htOccupancyPool(rooms, adults, ages);
+  } else if (typeof htEffectiveRoomOccupancy === "function") {
+    occupancy = htEffectiveRoomOccupancy(room, adults, ages);
+  } else {
+    var policy = typeof htRoomOccupancyPolicy === "function"
+      ? htRoomOccupancyPolicy(room)
+      : {
+          capacity: 2,
+          maxOccupancy: cfg.maxOccupancy != null ? Number(cfg.maxOccupancy) : 2,
+          childAgeFreeMax: cfg.childAgeFreeMax != null ? Number(cfg.childAgeFreeMax) : 8,
+        };
+    var adultEquivalentChildren = ages.filter(function (age) {
+      return Number(age) > policy.childAgeFreeMax;
+    }).length;
+    var effectiveOccupancy = adults + adultEquivalentChildren;
+    // Included slots go to the adults first, then to the over-age children, so
+    // whoever is left over is billed at their own rate.
+    var includedForAdults = Math.min(adults, policy.capacity);
+    var includedForChildren = Math.min(
+      adultEquivalentChildren,
+      policy.capacity - includedForAdults,
+    );
+    var extraAdultUnits = adults - includedForAdults;
+    occupancy = {
+      capacity: policy.capacity,
+      maxOccupancy: policy.maxOccupancy,
+      childAgeFreeMax: policy.childAgeFreeMax,
+      adults: adults,
+      children: children,
+      childAges: ages,
+      adultEquivalentChildren: adultEquivalentChildren,
+      paidChildren: adultEquivalentChildren,
+      paidChildUnits: adultEquivalentChildren - includedForChildren,
+      freeChildren: Math.max(0, children - adultEquivalentChildren),
+      effectiveOccupancy: effectiveOccupancy,
+      extraAdultUnits: extraAdultUnits,
+      extraAdults: extraAdultUnits,
+      overflowUnits:
+        extraAdultUnits + (adultEquivalentChildren - includedForChildren),
+      isOverCapacity: effectiveOccupancy > policy.capacity,
+      overMaxOccupancy: effectiveOccupancy > policy.maxOccupancy,
+    };
+  }
+  var paidChildren = occupancy.paidChildren;
+  var freeChildren = occupancy.freeChildren;
+  var gst = htGstRate();
 
   var parsedL = parseBookingFacilityL(bk.l);
   var chargesMain = Array.isArray(parsedL.main) ? parsedL.main : [];
@@ -1329,17 +1970,36 @@ function bookingSnapFromRecord(bk) {
   var chargesAdt = Array.isArray(parsedL.adt) ? parsedL.adt : [];
 
   var rate1 = null;
+  var roomRates = [];
   var rate8 = 0;
+  var rate8Count = 0;
+  // Per-child a:8 rates are only ever all-equal on the public flow; the admin
+  // per-child rows can differ, so track the spread to label the bill honestly.
+  var rate8Min = null;
+  var rate8Max = null;
   var rate9 = 0;
+  var rate9Count = 0;
   var mattressCharge = 0;
   var addonChargeTotal = 0;
   for (var ci = 0; ci < chargesMain.length; ci++) {
     var c = chargesMain[ci] || {};
     var fid = Number(c.a);
-    if (fid === 1) rate1 = Number(c.b) || 0;
-    else if (fid === 3) mattressCharge += Number(c.b) || 0;
-    else if (fid === 8) rate8 += Number(c.b) || 0;
-    else if (fid === 9) rate9 += Number(c.b) || 0;
+    // a combination writes one room-rate line per room.
+    if (fid === 1) {
+      var rv = Number(c.b) || 0;
+      rate1 = rate1 == null ? rv : rate1;
+      roomRates.push(rv);
+    } else if (fid === 3) mattressCharge += Number(c.b) || 0;
+    else if (fid === 8) {
+      var r8 = Number(c.b) || 0;
+      rate8 += r8;
+      rate8Count++;
+      if (rate8Min == null || r8 < rate8Min) rate8Min = r8;
+      if (rate8Max == null || r8 > rate8Max) rate8Max = r8;
+    } else if (fid === 9) {
+      rate9 += Number(c.b) || 0;
+      rate9Count++;
+    }
     else if (fid > 0) addonChargeTotal += Number(c.b) || 0;
   }
 
@@ -1347,15 +2007,48 @@ function bookingSnapFromRecord(bk) {
     room.pricePerNight = rate1;
   }
 
-  var dr = buildDayRates(room, bk.e, nights, parsedL.ac ? true : false);
-  var full = dr.total;
-  var dayRates = dr.dayRates;
+  // Nights for the whole set: each room bills its own rate.
+  var full = 0;
+  var dayRates = [];
+  var roomNightCosts = [];
+  var rateCursor = 0;
+  var roomsToBill = rooms.length ? rooms : [room];
+  roomsToBill.forEach(function (rr) {
+   var dr = buildDayRates(rr, bk.e, nights, parsedL.ac ? true : false);
+   var cost = dr.total;
+   if (roomsToBill.length > 1 && rateCursor < roomRates.length) {
+    var stored = roomRates[rateCursor];
+    if (stored > 0) cost = stored * nights;
+    rateCursor++;
+   }
+   full += cost;
+   roomNightCosts.push({ room: rr, nights: nights, cost: cost });
+   dayRates = dayRates.concat(
+    dr.dayRates.map(function (d) {
+     return { date: d.date, total: d.total, roomId: rr.id };
+    })
+   );
+  });
 
-  var extraAdults = Math.max(0, adults - 2);
+  var extraAdults = Math.max(0, Number(occupancy.extraAdultUnits) || 0);
+  if (rate9 > 0 && extraAdults === 0) {
+    extraAdults = Math.max(1, rate9Count);
+  }
   var extraAdultsRate = Number(cfg.extraAdultsCharge) || 0;
-  var adultFee = extraAdults * (rate9 || extraAdultsRate) * nights;
-  var childFee =
-    paidChildren * (rate8 || Number(cfg.paidChildCharge) || 0) * nights;
+  if (rate9Count > 1) {
+    extraAdultsRate = rate9 / rate9Count;
+  } else if (rate9 > 0 && extraAdultsRate === 0) {
+    extraAdultsRate = rate9;
+  }
+  var adultFee = rate9 > 0
+    ? rate9 * (rate9Count > 1 ? 1 : Math.max(1, extraAdults)) * nights
+    : extraAdults * extraAdultsRate * nights;
+  // Each paid child is its own facility line, so the count comes from the lines
+  // themselves rather than from how many over-age children were present.
+  var paidChildUnits = rate8Count > 0
+    ? rate8Count
+    : Math.max(0, Number(occupancy.paidChildUnits) || 0);
+  var childFee = rate8 > 0 ? rate8 * nights : 0;
   var occupancyFee = adultFee + childFee;
 
   // Add-ons / extras come from their own envelope sections (ado | adt): ado
@@ -1395,9 +2088,35 @@ function bookingSnapFromRecord(bk) {
     addonList.push({ addon: { name: "Add-ons" }, cost: addonChargeTotal });
   }
 
+  // The saved row names its package in k.f and the package is a PERCENTAGE of
+  // the room subtotal (calcTotal: pkgAmount = round(roomSubtotal * pct)), so it
+  // is re-priced here exactly as calcTotal did at save time. Without this the
+  // Package line never appeared and the printed total was short by it.
+  var pkgRow = null;
+  var packageCost = 0;
+  var pkgId = k && k.f != null ? Number(k.f) || 0 : 0;
+  if (pkgId > 0) {
+    var pkgRec =
+      typeof getPackageById === "function" ? getPackageById(pkgId) : null;
+    var pkgPct = Number(pkgRec && pkgRec.g) || 0;
+    if (pkgPct !== 0) {
+      pkgRow = { name: (pkgRec && pkgRec.e) || "Package" };
+      packageCost = Math.round(full * pkgPct);
+    }
+  }
+
+  var extraTotal = 0;
+  for (var exi = 0; exi < extraRows.length; exi++) {
+    extraTotal += Number((extraRows[exi] || {}).price) || 0;
+  }
+
   var discountAmt = Math.round(Number(bk.disc) || 0);
   var roomCostFull = full;
-  var subtotal = roomCostFull + occupancyFee + addonCost;
+  // Package and extras are part of the amount that was charged, so they belong
+  // in the taxable base - both used to be dropped here, which is why a rebuilt
+  // bill showed fewer lines than the total it printed.
+  var subtotal =
+    roomCostFull + occupancyFee + packageCost + addonCost + extraTotal;
   var tax = gst > 0 ? Math.round((subtotal * gst) / 100) : 0;
 
   if (subtotal <= 0 && bk.n) {
@@ -1408,11 +2127,46 @@ function bookingSnapFromRecord(bk) {
   }
   var grandTotal = Math.round(subtotal + tax) - discountAmt;
 
+  // The row's own stored amount (bk.n after normalizeBookingRow) is what the
+  // guest was actually charged. A rate that changed after the booking, or a
+  // package whose percentage is no longer in the catalog, would otherwise make
+  // the bill print a total the counter never took. Print the difference as an
+  // explicit adjustment line and let the total match the stored amount. Only a
+  // display-schema row is checked: in the send-side payload letters n is the
+  // discount, not the amount.
+  var isDisplayRow = /^\d{4}-\d{2}-\d{2}/.test(String(bk.e == null ? "" : bk.e).trim());
+  var storedTotal = isDisplayRow ? Math.round(Number(bk.n) || 0) : 0;
+  if (storedTotal > 0 && grandTotal !== storedTotal) {
+    var adjName = pkgId > 0 && packageCost === 0 ? "Package adjustment" : "Rate adjustment";
+    extraRows.push({ name: adjName, price: storedTotal - grandTotal });
+    grandTotal = storedTotal;
+    // Keep the printed GST in step with the adjusted taxable base.
+    tax = gst > 0
+      ? Math.max(0, Math.round(((grandTotal + discountAmt) * gst) / (100 + gst)))
+      : 0;
+  }
+
   return {
     a: bk.a != null ? Number(bk.a) || bk.a : undefined,
+    // Every booking id of the same stay, so the bill's own Pay button charges
+    // the whole stay rather than just this room.
+    bookingIds: stayBookingIds(bk),
     room: room,
+    rooms: roomsToBill,
+    roomCount: roomsToBill.length,
+    isCombo: roomsToBill.length > 1,
+    comboKey: roomsToBill.length > 1
+      ? publicComboKey(roomsToBill.map(function (rr) { return rr.id; }))
+      : "",
     d: bk.d,
-    paid: Number(bk.d) === 1,
+    // Money already collected against this stay (stamped by
+    // applyReceiptsToBookings), so the bill can tell a settled stay from a
+    // requested one instead of always printing "Booking Requested". A total of 0
+    // proves nothing, so it never flips the status on its own.
+    received: billReceivedOf(bk),
+    paid:
+      Number(bk.d) === 1 ||
+      (billReceivedOf(bk) >= grandTotal && grandTotal > 0),
     nights: nights,
     checkin: bk.e,
     checkout: bk.f,
@@ -1429,27 +2183,48 @@ function bookingSnapFromRecord(bk) {
     adults: adults,
     children: children,
     paidChildren: paidChildren,
+    adultEquivalentChildren: occupancy.adultEquivalentChildren,
     freeChildren: freeChildren,
-    chargeable: adults + paidChildren,
+    chargeable: occupancy.effectiveOccupancy,
+    effectiveOccupancy: occupancy.effectiveOccupancy,
+    maxOccupancy: occupancy.maxOccupancy,
     totalGuests: adults + children,
-    includedGuests: 2,
+    includedGuests: occupancy.capacity,
     extraAdults: extraAdults,
-    extraAdultsRate: rate9 || extraAdultsRate,
+    extraAdultUnits: extraAdults,
+    extraAdultsRate: extraAdultsRate,
     adultFee: adultFee,
+    paidChildUnits: paidChildUnits,
     childFee: childFee,
-    childRate: rate8 || Number(cfg.paidChildCharge) || 0,
+    // a:8 is stored per paid child unit, so keep a per-unit rate here for the
+    // summary row and the rebuilt guest bill. childFee stays the line total.
+    childRate: rate8Count > 0 ? rate8 / rate8Count : 0,
+    childRateSum: rate8,
+    childRateUniform: rate8Count > 0 && rate8Min === rate8Max,
+    occupancy: occupancy,
     roomCostFull: roomCostFull,
+    roomNightCosts: roomNightCosts,
     roomRateIncl: roomCostFull > 0 && nights ? Math.round(roomCostFull / nights) : 0,
     discountAmt: discountAmt,
-    discountPercent: 0,
+    // Only the amount is stored (bk.n) - the % the bill prints is implied by it.
+    discountPercent:
+      discountAmt > 0 && subtotal + tax > 0
+        ? Math.round((discountAmt / (subtotal + tax)) * 100 * 100) / 100
+        : 0,
     occupancyFee: occupancyFee,
     mattressCharge: mattressCharge,
     dayRates: dayRates,
-    package: null,
-    packageCost: 0,
+    package: pkgRow,
+    packageCost: packageCost,
     addonList: addonList,
     addonCost: addonCost,
     extraRows: extraRows,
+    extraCharges: extraTotal,
+    extraParticular: extraRows
+      .map(function (x) {
+        return x.name;
+      })
+      .join(", "),
     subtotal: subtotal,
     tax: tax,
     grandTotal: grandTotal,
@@ -1650,7 +2425,7 @@ function closeMyBookingsModal() {
 async function printBookingBill(bk) {
   closeMyBookingsModal();
   if (typeof showBill === "function") {
-    showBill(bookingSnapFromRecord(bk), function () {
+    showBill(ensureSnapGst(bookingSnapFromRecord(bk)), function () {
       if (typeof showHome === "function") showHome();
     });
   } else {
@@ -1667,6 +2442,73 @@ window.printMyBookingById = async function (id) {
   await printBookingBill(bk);
 };
 
+// A combination is one stay held as one row per room, so it arrives here as a
+// joined id list ("51_52_53", possibly with a trailing separator, plus the
+// "-<timestamp>" tail the payment writers append). Reduce it to the lookup keys
+// it carries; parseInt drops that tail, so the last id comes out clean. An
+// optional table prefix ("rc:51") is kept, since that is how the unpaid rows are
+// addressed.
+function ppStayRoomIds(x1) {
+  var raw = Array.isArray(x1) ? x1.map(String) : String(x1 == null ? "" : x1).split("_");
+  var out = [];
+  for (var i = 0; i < raw.length; i++) {
+    var seg = String(raw[i]).trim();
+    var pre = "";
+    var colon = seg.indexOf(":");
+    if (colon > -1) {
+      pre = seg.slice(0, colon + 1);
+      seg = seg.slice(colon + 1);
+    }
+    var id = parseInt(seg, 10);
+    if (!isFinite(id) || id <= 0) continue;
+    var key = pre + id;
+    if (out.indexOf(key) === -1) out.push(key);
+  }
+  return out;
+}
+
+// Only one bill overlay exists at a time (renderBill overwrites modalRoot), so
+// several bills cannot simply be shown one after another - the last would win.
+// Each bill advances the queue from its own onClose, which closeBill fires when
+// the guest dismisses it, so the stays are read one at a time.
+function printBookingBillsSequentially(idList, onAllDone) {
+  var ids = ppStayRoomIds(idList);
+  var done = typeof onAllDone === "function" ? onAllDone : function () {
+    if (typeof showHome === "function") showHome();
+  };
+  if (!ids.length) {
+    done();
+    return [];
+  }
+  closeMyBookingsModal();
+  var i = 0;
+  function next() {
+    if (i >= ids.length) {
+      done();
+      return;
+    }
+    var bk = getMyBookingById(ids[i++]);
+    if (!bk) {
+      // Report the id that is missing, then carry on so the rest still print.
+      showMessageModal(
+        "Info",
+        "Booking not found.",
+        false,
+        next,
+      );
+      return;
+    }
+    showBill(ensureSnapGst(bookingSnapFromRecord(bk)), next);
+  }
+  if (typeof showBill !== "function") {
+    console.log("Print unavailable.");
+    return ids;
+  }
+  next();
+  return ids;
+}
+window.printBookingBillsSequentially = printBookingBillsSequentially;
+
 window.payMyBookingById = async function (id) {
   var bk = getMyBookingById(id);
   if (!bk) {
@@ -1677,8 +2519,14 @@ window.payMyBookingById = async function (id) {
     showelsemodal("This booking is already confirmed & paid.");
     return;
   }
+  // A combination is one row per room but a single stay, and one PhonePe charge
+  // settles all of it, so any row's Pay button sends every id of the stay.
+  var ids = stayBookingIds(bk);
+  if (!ids.length) ids = [String(bk.a)];
   closeMyBookingsModal();
-  await startPhonePePayment(bookingSnapFromRecord(bk), String(bk.a));
+  var snap = ensureSnapGst(bookingSnapFromRecord(bk));
+  snap.bookingIds = ids;
+  await startPhonePePayment(snap, ids.join(PP_BOOKING_ID_SEP));
 };
 
 window.printMyBooking = async function (opt, item) {
@@ -1696,7 +2544,7 @@ window.printMyBooking = async function (opt, item) {
       return;
     }
     if (typeof showBill === "function") {
-      showBill(bookingSnapFromRecord(normalizeBookingRow(bk)), function () {
+      showBill(ensureSnapGst(bookingSnapFromRecord(normalizeBookingRow(bk))), function () {
         if (typeof showHome === "function") showHome();
       });
     } else {
@@ -1723,29 +2571,20 @@ function validateStay() {
   if (!adults || adults < 1) {
     return "Please select at least one adult.";
   }
-  var lim = roomGuestLimits();
-  if (lim.maxTotal && adults + children > lim.maxTotal) {
-    return (
-      escHtml(room.name) +
-      " fits only " +
-      lim.maxTotal +
-      " guests in total. Please adjust the number of adults and children."
-    );
-  }
+  var lim = roomGuestLimits(room);
   if (adults > lim.maxAdults || children > lim.maxChildren) {
     return (
-      escHtml(room.name) +
-      " fits up to " +
+      "Guest limit is " +
       lim.maxAdults +
       " adults and " +
       lim.maxChildren +
-      " children. Please adjust the number of adults and children."
+      " children. Occupancy beyond the room's included capacity is charged as extra occupancy."
     );
   }
   return "";
 }
 
-function finishPreview() {
+async function finishPreview() {
   var msg = validateStay();
   if (msg) {
     showMessageModal("Check Your Stay", msg, true);
@@ -1755,8 +2594,20 @@ function finishPreview() {
     (typeof lastSnap !== "undefined" && lastSnap) ||
     (typeof calcBooking === "function" ? calcBooking() : null);
   if (!s) return;
+  // A combination is several rooms, so every one of them has to be free for
+  // the stay, not just the one the details view happens to point at.
+  if (
+    await publicSelectedRoomsHaveBookingOverlap(
+      getBookingRooms(s),
+      checkIn,
+      checkOut,
+    )
+  ) {
+    showRoomBookedConflictMessage();
+    return;
+  }
   paySnapLatch = s;
-  sendBookingPayload(s);
+  await sendBookingPayload(s);
 }
 
 /* ============================================================
@@ -1768,7 +2619,48 @@ function finishPreview() {
    handlePhonePeReturn() below prints the confirmed booking
    (the server verifies the order via phonepe/redirect.php and
    showPhonePePostData() in rm.js submits it as x1).
+
+   A combination is stored as one booking row per room, so paying
+   it sends every id of the stay in one bookingId, joined with
+   PP_BOOKING_ID_SEP. The uniqueness suffix stays a "-<timestamp>"
+   tail, which the server strips before splitting the ids.
    ============================================================ */
+var PP_BOOKING_ID_SEP = "_";
+
+// Every booking id that belongs to the same stay as bk. A combination produces
+// one row per room and the rows only share a booker (oc) and the stay dates
+// (e / f), so those three fields are what tie a set back together.
+function stayBookingIds(bk) {
+  var ids = [];
+  if (!bk) return ids;
+  var all =
+   typeof myBookingAll !== "undefined" && myBookingAll ? myBookingAll : [];
+  for (var i = 0; i < all.length; i++) {
+    var r = all[i];
+    if (!r || r.a == null) continue;
+    if (String(r.oc) !== String(bk.oc)) continue;
+    if (String(r.e || "") !== String(bk.e || "")) continue;
+    if (String(r.f || "") !== String(bk.f || "")) continue;
+    if (typeof isBookingCancelled === "function" && isBookingCancelled(r)) continue;
+    var rid = String(r.a);
+    if (ids.indexOf(rid) === -1) ids.push(rid);
+  }
+  if (!ids.length && bk.a != null) ids.push(String(bk.a));
+  // Numeric order so the set is always assembled the same way, and the
+  // timestamp lands on the same id for a given stay.
+  ids.sort(function (x, y) {
+    return (parseInt(x, 10) || 0) - (parseInt(y, 10) || 0);
+  });
+  return ids;
+}
+
+// Every snapshot reaches the bill with its GST rate already resolved, so the
+// bill's own fallback never has to guess.
+function ensureSnapGst(s) {
+  if (s && s.gst == null) s.gst = htGstRate();
+  return s;
+}
+
 async function startPhonePePayment(snapArg, orderIdArg) {
   var orderId = orderIdArg != null ? String(orderIdArg) : "";
   var snap = snapArg;
@@ -1776,18 +2668,44 @@ async function startPhonePePayment(snapArg, orderIdArg) {
     if (!orderId) orderId = String(snapArg);
     snap = null;
   }
-  if (!orderId && snap) {
-    orderId =
-      snap.a != null
-        ? String(snap.a)
-        : snap.id != null
-          ? String(snap.id)
-          : snap.bookingId != null
-            ? String(snap.bookingId)
-            : snap.orderId != null
-              ? String(snap.orderId)
-              : "";
+  // The snapshot wins: it carries the whole set for the stay, so the bill's own
+  // Pay button sends every id without booking.js having to be involved.
+  var idList = [];
+  if (snap && Array.isArray(snap.bookingIds) && snap.bookingIds.length) {
+    idList = snap.bookingIds
+      .map(function (v) {
+        return String(v);
+      })
+      .filter(function (v) {
+        return v !== "";
+      });
   }
+  if (!idList.length && orderId) {
+    idList = orderId
+      .split(PP_BOOKING_ID_SEP)
+      .map(function (v) {
+        return v.trim();
+      })
+      .filter(function (v) {
+        return v !== "";
+      });
+  }
+  if (!idList.length && snap) {
+    var single =
+     snap.a != null
+      ? String(snap.a)
+      : snap.id != null
+        ? String(snap.id)
+        : snap.bookingId != null
+          ? String(snap.bookingId)
+          : snap.orderId != null
+            ? String(snap.orderId)
+            : "";
+    if (single) idList = [single];
+  }
+  idList = idList.filter(function (v, i) {
+    return idList.indexOf(v) === i;
+  });
   snap = snap || lastSnap || calcBooking();
   if (!snap) return;
   my1PageLoader(true);
@@ -1797,7 +2715,9 @@ async function startPhonePePayment(snapArg, orderIdArg) {
       snap.paymentPhonePayGT != null
         ? Number(snap.paymentPhonePayGT)
         : snap.grandTotal;
-    var paymentBookingId = orderId ? String(orderId) + "-" + Date.now() : "";
+    var paymentBookingId = idList.length
+      ? idList.join(PP_BOOKING_ID_SEP) + "-" + Date.now()
+      : "";
     var resp = await fetch("phonepe/request.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1825,8 +2745,15 @@ async function startPhonePePayment(snapArg, orderIdArg) {
       "Notice: " + window[my1uzr.worknOnPg].clientConfig.noPaymentGatewayMsg,
     );
     //if (!ok) return false;
+    // Without a gateway the unpaid rows are printed instead. A combination has
+    // one row per room, so print them all, each as its own booking.
+    var printIds = idList.length ? idList : orderId ? [orderId] : [];
     setTimeout(function () {
-        printMyBookingById('rc:'+orderId);
+        printBookingBillsSequentially(
+          printIds.map(function (v) {
+            return "rc:" + v;
+          }),
+        );
       }, 1000);
   }
   return false;

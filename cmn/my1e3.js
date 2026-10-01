@@ -1493,23 +1493,23 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
       if (xhr.status >= 200 && xhr.status < 300) {
        const response = JSON.parse(xhr.responseText);
        if (response) {
-        if (response.ms && response.ms.includes("not registered") && registerAtOwnerIfNotRegistered == 1) {
-         const registrationUrl = "https://my1.in/2/0.php";
-         let registrationPayload = JSON.parse(JSON.stringify(jsonPayload));
-         registrationPayload.tn = appOwner.tn;
-         registrationPayload.fn = 37;
+        // if (response.ms && response.ms.includes("not registered") && registerAtOwnerIfNotRegistered == 1) {
+        //  const registrationUrl = "https://my1.in/2/0.php";
+        //  let registrationPayload = JSON.parse(JSON.stringify(jsonPayload));
+        //  registrationPayload.tn = appOwner.tn;
+        //  registrationPayload.fn = 37;
 
-         return fnj3(registrationUrl, registrationPayload, loginRequired_0_1, async_1, loaderId, timeout, maxRetries, shoLoginByOas2orByPas1, registerAtOwnerIfNotRegistered, showLoader)
-          .then(registrationResponse => {
-           if (registrationResponse && registrationResponse.su == 1) {
-            return fnj3(url, jsonPayload, loginRequired_0_1, async_1, loaderId, timeout, maxRetries, shoLoginByOas2orByPas1, registerAtOwnerIfNotRegistered, showLoader);
-           } else {
-            throw new Error(`Registration failed. contact admin`);
-           }
-          })
-          .then(resolve)
-          .catch(reject);
-        }
+        //  return fnj3(registrationUrl, registrationPayload, loginRequired_0_1, async_1, loaderId, timeout, maxRetries, shoLoginByOas2orByPas1, registerAtOwnerIfNotRegistered, showLoader)
+        //   .then(registrationResponse => {
+        //    if (registrationResponse && registrationResponse.su == 1) {
+        //     return fnj3(url, jsonPayload, loginRequired_0_1, async_1, loaderId, timeout, maxRetries, shoLoginByOas2orByPas1, registerAtOwnerIfNotRegistered, showLoader);
+        //    } else {
+        //     throw new Error(`Registration failed. contact admin`);
+        //    }
+        //   })
+        //   .then(resolve)
+        //   .catch(reject);
+        // }
         resolve(response);
        } else {
         reject(new Error(response.ms || "API call was not successful"));
@@ -3013,7 +3013,7 @@ window.clearPayload0 = clearPayload0;
 
  const appPath = vMatch[1].replace(/\.js$/, '.min.js');
  const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + hash + '/' + appPath;
- //const url = 'vc.js';
+ //const url = 'ks.js';
  set_owner();
  loadPromiseScript(url);
 })();

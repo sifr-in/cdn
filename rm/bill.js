@@ -271,8 +271,9 @@ function billRowsHtml(s) {
       rows +=
         '<tr><td>Paid for Child (' +
         s.calc.paidChildren +
-        " \u00d7 \u20B9" +
-        s.calc.childRate +
+        (s.calc.childRatesActive
+          ? ", ₹" + s.calc.childRateSum + "/night total"
+          : " × ₹" + s.calc.childRate) +
         ")</td><td class=\"amt\">" +
         fmtMoney(s.calc.childAdj) +
         "</td></tr>";
@@ -323,7 +324,7 @@ function billRowsHtml(s) {
     }
     rows +=
       '<tr><td>Taxes \u00b7 GST ' +
-      (s.gst != null ? s.gst : htGST) +
+      (s.gst != null ? s.gst : htGstRate()) +
       "%</td><td class=\"amt\">" +
       fmtMoney(s.calc.tax) +
       "</td></tr>";
@@ -405,8 +406,9 @@ function billRowsHtml(s) {
     rows +=
       '<tr><td>Paid for Child (' +
       s.paidChildren +
-      " \u00d7 \u20B9" +
-      fmtMoney(s.childRate) +
+      (s.childRateUniform === false
+        ? ", ₹" + fmtMoney(s.childRateSum) + "/night total"
+        : " × ₹" + fmtMoney(s.childRate)) +
       ")</td><td class=\"amt\">" +
       fmtMoney(s.childFee) +
       "</td></tr>";
@@ -443,7 +445,7 @@ function billRowsHtml(s) {
   });
   rows +=
     '<tr><td>Taxes \u00b7 GST ' +
-    (s.gst != null ? s.gst : hotel.gst) +
+    (s.gst != null ? s.gst : htGstRate()) +
     "%</td><td class=\"amt\">" +
     fmtMoney(s.tax) +
     "</td></tr>";
@@ -570,7 +572,10 @@ function showBill(snap, onClose) {
     return;
   }
   billOnClose = typeof onClose === "function" ? onClose : null;
-  if (!billNo) billNo = buildBillNo();
+  // A bill number identifies ONE bill, so it is minted per bill rather than
+  // once per page load. Otherwise every bill of a combination printed the same
+  // number, and a bill reopened later still carried the first one's.
+  billNo = buildBillNo();
   billBooker = billBookerFromSnap(s);
   if (billBooker) {
     renderBill(s);

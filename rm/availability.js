@@ -25,11 +25,25 @@ function isBookingCancelled(bk) {
   return Number(bk.o) === 4 || Number(bk.oc) === 4;
 }
 
+// A booking's room reference is the payload's `e` field and is a single room
+// id string: a combination is stored as one row per room, so a row never holds
+// more than one room. Normalise to a non-empty id string, or "" when absent.
+function adRoomId(value) {
+  if (value == null) return "";
+  // Rows saved while the field was briefly wrapped in a one-element array still
+  // coerce to the same id, so those keep resolving without a list of rooms.
+  var v = Array.isArray(value) ? value[0] : value;
+  if (v == null || v === "") return "";
+  return String(v);
+}
+
 function getOverlapCount(roomId, checkin, checkout, excludeBookingId) {
   var count = 0;
+  var wanted = adRoomId(roomId);
   for (var i = 0; i < bookingRecords.length; i++) {
     var bk = bookingRecords[i];
-    if (String(bk.j) !== String(roomId)) continue;
+    // One room per row, so a room is held when the row names it.
+    if (!wanted || adRoomId(bk.j) !== wanted) continue;
     if (isBookingCancelled(bk)) continue; // cancelled bookings do not block
     if (!bk.e || !bk.f) continue;
     // Update mode: the booking being edited must not clash with its own dates.
@@ -43,7 +57,7 @@ function getOverlapCount(roomId, checkin, checkout, excludeBookingId) {
       if (excludeBookingId) {
         console.warn(
           "[CLASH] room:",
-          String(bk.j),
+          bk.j,
           bk.e,
           "->",
           bk.f,
@@ -92,11 +106,6 @@ function getActiveBookingsOnDate(dateStr) {
   });
 }
 
-// SINGLE GST SOURCE: change this one value when the government rate changes.
-// Used by availability.js (calcTotal), the booking form label, the booking
-// payload (z.gst) and the bill generator (modules/bill.js).
-var htGST = 5;
-
 // Age rules: 0-4 free, 5-11 half, 12+ full
 function getAgeRate(age) {
   if (age < 5) return 0;
@@ -125,15 +134,39 @@ function calcTotal(opts) {
   // children up to childAgeFreeMax are free; older children pay a flat
   // childRate per night. Without childRate, falls back to getAgeRate as a
   // percentage of the room rate for legacy callers.
+  //
+  // Callers that need per-room pooling (a combo booking) or the adults-first
+  // allocation pass a precomputed `occupancy` block instead of the flat
+  // adults/includedAdults pair; see rm.js htOccupancyPool. It decides how many
+  // extra-adult units and how many paid-child units a set of rooms produces.
+  var occ = opts.occupancy && typeof opts.occupancy === "object" ? opts.occupancy : null;
   var childAdj = 0;
   var paidChildren = 0;
+  var adultEquivalentChildren = 0;
+  var freeChildren = 0;
+  var extraAdults = 0;
   var freeMax =
     opts.childAgeFreeMax != null
       ? opts.childAgeFreeMax
       : typeof window[my1uzr.worknOnPg].clientConfig?.HT_CFG !== "undefined"
         ? window[my1uzr.worknOnPg].clientConfig?.HT_CFG.childAgeFreeMax
         : 8;
-  if (opts.childRate != null) {
+  if (occ) {
+    // occ separates the two counts that used to be conflated: paidChildren is
+    // every over-age child, paidChildUnits only those pushed past the pooled
+    // normal occupancy. Only the latter is billed, so only the latter is a
+    // "paid" child; free children come straight from the pool as well.
+    adultEquivalentChildren = Math.max(0, Number(occ.paidChildren) || 0);
+    paidChildren = Math.max(0, Number(occ.paidChildUnits) || 0);
+    freeChildren = Math.max(
+      0,
+      occ.freeChildren != null
+        ? Number(occ.freeChildren) || 0
+        : childAges.length - adultEquivalentChildren,
+    );
+    extraAdults = Math.max(0, Number(occ.extraAdultUnits) || 0);
+    childAdj = paidChildren * (Number(opts.childRate) || 0) * nights;
+  } else if (opts.childRate != null) {
     var childRates = opts.childRates || [];
     for (var i = 0; i < childAges.length; i++) {
       if (childAges[i] > freeMax) {
@@ -145,16 +178,67 @@ function calcTotal(opts) {
         childAdj += cr * nights;
       }
     }
+    adultEquivalentChildren = paidChildren;
+    freeChildren = Math.max(0, childAges.length - paidChildren);
   } else {
     for (var c = 0; c < childAges.length; c++) {
       if (childAges[c] > freeMax) paidChildren++;
       childAdj += nights * roomRate * getAgeRate(childAges[c]);
     }
+    adultEquivalentChildren = paidChildren;
+    freeChildren = Math.max(0, childAges.length - paidChildren);
+  }
+
+  // Per-child rates (the admin Booking Entry rows) are the operator's decision:
+  // every over-age child is billed its own rate per night, and a rate of 0 means
+  // the child is not charged - which is how a child the pool seats inside the
+  // included capacity stays free, and how the operator waives one deliberately.
+  // A rate list is therefore honoured as soon as it is supplied; when none is
+  // supplied the pool's own split above stands, so the public booking flow
+  // prices exactly as it did before.
+  var perChildRates = Array.isArray(opts.childRates) ? opts.childRates : null;
+  // A supplied list is the operator's decision, so it prices every over-age
+  // child - including one explicitly rated 0, which means "do not charge this
+  // child". Presence of the list, not a non-zero value in it, is what makes it
+  // authoritative; that is why this is kept separate from childRatesActive
+  // below, which only asks whether anything is actually being charged.
+  var childRatesAuthoritative = !!(perChildRates && perChildRates.length);
+  var childRateSum = 0;
+  var rateCharged = 0;
+  var rateFirst = null;
+  var rateUniform = true;
+  if (childRatesAuthoritative) {
+    for (var pr = 0; pr < childAges.length; pr++) {
+      if (childAges[pr] > freeMax) {
+        var prc = Math.max(0, parseFloat(perChildRates[pr]) || 0);
+        if (prc > 0) {
+          rateCharged++;
+          childRateSum += prc;
+          // Every charged child is priced alike, so the bill can keep printing
+          // one "N x rate" figure instead of a per-night total.
+          if (rateFirst == null) rateFirst = prc;
+          else if (prc !== rateFirst) rateUniform = false;
+        }
+      }
+    }
+  }
+  // Drives the bill wording only: a flat config rate is printed unless at least
+  // one child carries a rate. An all-zero list still charges nobody, so it must
+  // not be announced as a per-child rate.
+  var childRatesActive = rateCharged > 0;
+  if (childRatesAuthoritative) {
+    paidChildren = rateCharged;
+    childAdj = childRateSum * nights;
   }
 
   // Extra adults over the room's included guests pay a flat rate per night.
-  var includedAdults = opts.includedAdults != null ? opts.includedAdults : 2;
-  var extraAdults = Math.max(0, (opts.adults || 0) - includedAdults);
+  var includedAdults =
+    occ && occ.capacity != null
+      ? occ.capacity
+      : opts.includedAdults != null
+        ? opts.includedAdults
+        : 2;
+  if (!occ) extraAdults = Math.max(0, (opts.adults || 0) - includedAdults);
   var extraGuestRate =
     opts.extraGuestRate != null
       ? opts.extraGuestRate
@@ -167,27 +251,49 @@ function calcTotal(opts) {
     addonsTotal += addons[j].price || 0;
   }
   // All prices are GST-exclusive: the subtotal below is the taxable base,
-  // GST is charged on top and the total is what the customer pays.
+  // GST is charged on top and the total is what the customer pays. The rate
+  // comes from rm.da's "gst" (clientConfig.gst) unless a caller overrides it,
+  // which is what the per-room splitter does to keep every row on one rate.
+  var gstRate = opts.gst != null ? Number(opts.gst) || 0 : htGstRate();
   var subtotal =
     roomSubtotal + childAdj + adultAdj + pkgAmount + addonsTotal + extraCharges;
-  var tax = htGST > 0 ? Math.round((subtotal * htGST) / 100) : 0;
+  var tax = gstRate > 0 ? Math.round((subtotal * gstRate) / 100) : 0;
   var total = subtotal + tax;
 
   return {
     nights: nights,
     roomSubtotal: Math.round(roomSubtotal),
     childAdj: Math.round(childAdj),
-    paidChildren: paidChildren,
-    freeChildren: Math.max(0, childAges.length - paidChildren),
+    paidChildren: occ ? adultEquivalentChildren : paidChildren,
+    paidChildUnits: occ ? paidChildren : null,
+    freeChildren: freeChildren,
     childRate: opts.childRate || 0,
+    childRateSum: childRateSum,
+    childRatesActive: childRatesActive,
+    // True when the flat config rate applies (no per-child rates) or every
+    // charged child happens to share one rate.
+    childRateUniform: !childRatesActive || rateUniform,
     extraAdults: extraAdults,
+    extraAdultUnits: occ ? extraAdults : null,
+    includedAdults: includedAdults,
+    capacity: occ && occ.capacity != null ? occ.capacity : null,
+    maxOccupancy: occ && occ.maxOccupancy != null ? occ.maxOccupancy : null,
+    // Whether the party overruns the max occupancy comes from the pool, not
+    // from re-deriving it here (which would miss in-capacity paid children).
+    overMaxOccupancy: occ
+      ? occ.overMaxOccupancy != null
+        ? !!occ.overMaxOccupancy
+        : (Number(occ.effectiveOccupancy) || 0) >
+          (Number(occ.maxOccupancy) || 0)
+      : false,
     adultAdj: Math.round(adultAdj),
     extraGuestRate: extraGuestRate,
     pkgAmount: pkgAmount,
     addonsTotal: Math.round(addonsTotal),
     extraCharges: Math.round(extraCharges),
     subtotal: Math.round(subtotal),
-    tax: tax,
+    gst: gstRate,
+    tax: Math.round(tax),
     total: Math.round(total),
   };
 }
