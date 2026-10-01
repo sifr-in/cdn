@@ -126,7 +126,7 @@ const dontRestartAfterLogin = 1;
    },
    {
     a: 26,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8133b05/ks/allCases.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@caafdee/ks/allCases.js",
     c: "showAllCases,showHome",
     r: " ",
    },
