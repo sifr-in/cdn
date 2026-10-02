@@ -247,27 +247,16 @@ function savedBookingIdList(v) {
   return out;
 }
 
-// The booking ids a save created, from both sources it echoes them on: x1 and
-// the created rows of the rb echo (rb.l, an array or keyed by id). Order is kept
-// and duplicates dropped, so one row per room prints its own bill exactly once.
+// The booking ids a save created, from x1 alone: it carries exactly the rows this
+// save wrote. The rb echo alongside it is the table's rows, so reading it as well
+// queues bills for bookings this save never touched.
 function savedBookingIdsFromResp(resp) {
   if (!resp || typeof resp !== "object") return [];
   var out = savedBookingIdList(resp.x1);
-  var rbL = resp.rb && resp.rb.l;
-  var rows = Array.isArray(rbL)
-    ? rbL
-    : rbL && typeof rbL === "object"
-      ? Object.keys(rbL).map(function (k) {
-          return rbL[k];
-        })
-      : [];
-  for (var j = 0; j < rows.length; j++) {
-    if (!rows[j]) continue;
-    var ids = savedBookingIdList(rows[j].a);
-    for (var i = 0; i < ids.length; i++) {
-      if (out.indexOf(ids[i]) === -1) out.push(ids[i]);
-    }
-  }
+  // Numeric order so the bill queue always prints a stay's rooms the same way.
+  out.sort(function (x, y) {
+    return (parseInt(x, 10) || 0) - (parseInt(y, 10) || 0);
+  });
   return out;
 }
 

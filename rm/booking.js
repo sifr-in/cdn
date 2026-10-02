@@ -1608,6 +1608,12 @@ function buildGuestBookingBillSnap(snap, resp) {
 
 window.hndlRspo113 = async function (resp, snap, room) {
   if (resp && resp.su == 1) {
+  // The new ids are read here, off x1 alone, because handl_rm_rspons below
+  // can rewrite the response. A combination is stored as one booking row per
+  // room, so the save returns several ids. One PhonePe charge settles the whole
+  // stay, so every id goes out on the payment and the amount is the combined
+  // grand total - not the first row's share.
+  var bookingIds = bookingIdsFromResp(resp);
   await handl_rm_rspons(resp);
   if (typeof beBookedDatesCache !== "undefined") beBookedDatesCache = {};
   window.__pubBookingsLoaded = false;
@@ -1632,15 +1638,43 @@ window.hndlRspo113 = async function (resp, snap, room) {
       snap ||
       (typeof lastSnap !== "undefined" && lastSnap) ||
       (typeof calcBooking === "function" ? calcBooking() : null);
-    // A combination is stored as one booking row per room, so the save returns
-    // several ids. One PhonePe charge settles the whole stay, so every id goes
-    // out on the payment and the amount is the combined grand total - not the
-    // first row's share.
-    var bookingIds = bookingIdsFromResp(resp);
+    // Only the ids x1 reported for this save are set here, so the payment
+    // cannot pick up a row from anywhere else.
     if (billSnap) {
       billSnap.bookingIds = bookingIds;
       if (bookingIds.length) billSnap.a = bookingIds[0];
       billSnap.paymentPhonePayGT = billSnap.grandTotal;
+    }
+    // The booking is saved here and paid for on the next step, so the status
+    // mail is sent on both. The guest is taken from the save response rather
+    // than the signed-in guest, because a guest can reach this without one.
+    // Awaited on purpose: the payment below navigates the page away, and a
+    // request still in flight would be cancelled by that navigation. The wait is
+    // capped so a slow mail host cannot hold up the payment.
+    try {
+      if (bookingIds.length && typeof sendRoomBookingStatusMail === "function") {
+        var mailGuestSnap =
+          typeof buildGuestBookingBillSnap === "function"
+            ? buildGuestBookingBillSnap(billSnap, resp)
+            : null;
+        await sendRoomBookingStatusMail(
+          bookingIds.join(PP_BOOKING_ID_SEP),
+          {
+            timeout: 8000,
+            guest:
+              mailGuestSnap && mailGuestSnap.email
+                ? {
+                    name: mailGuestSnap.guestName,
+                    mobile: mailGuestSnap.contact,
+                    address: mailGuestSnap.address,
+                    email: mailGuestSnap.email,
+                  }
+                : null,
+          },
+        );
+      }
+    } catch (mailErr) {
+      console.warn("Room Booking Status mail skipped:", mailErr);
     }
     if (billSnap) await startPhonePePayment(billSnap, bookingIds.join(PP_BOOKING_ID_SEP));
   return true;
@@ -2706,6 +2740,19 @@ async function startPhonePePayment(snapArg, orderIdArg) {
   idList = idList.filter(function (v, i) {
     return idList.indexOf(v) === i;
   });
+  // NOTE: for success testing - keep as is, do not use now. Simulates a
+  // completed PhonePe payment so the paid leg can run without a gateway.
+  // To use again: set paymentGatewayAfterSuccessTesting = 1 in rm.da and uncomment.
+  // var cfgGa = window[my1uzr.worknOnPg]?.clientConfig?.cust_da_const || {};
+  // if (cfgGa.paymentGatewayAfterSuccessTesting == 1 && idList.length) {
+  //   window.ppPostData = {
+  //     orderId: idList.join(PP_BOOKING_ID_SEP) + "-" + Date.now(),
+  //   };
+  //   await showPhonePePostData();
+  //   pendingPay = false;
+  //   paySnapLatch = null;
+  //   return false;
+  // }
   snap = snap || lastSnap || calcBooking();
   if (!snap) return;
   my1PageLoader(true);
