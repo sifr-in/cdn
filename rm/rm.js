@@ -11,11 +11,13 @@ const moduLst = [
 ];
 window[my1uzr.worknOnPg].moduLst = moduLst;
 moduLst.hook = "onModuLstAllowed";
-const inTbls = ["dontCret~", "pubilc~113,116,111", "85~c,rb,rc,r", "103~r", "104~", "106~rm", "111~rb", "112~rb,c,r", "113~rb,rc,c", "114~rb,c", "115~rb_h,rb", "116~rb,r"];
+//104-creates .da
+const inTbls = ["dontCret~", "pubilc~113,116,111", "2/l-85~c,rb,rc,r", "2/p-103~r", "2/t-104~", "2/q-106~rm", "4/a-111~rb", "2/s-112~rb,c,r", "3/c-113~rb,rc,c", "2/s-114~rb,c", "2/t-115~rb_h,rb", "3/c-116~rb,r"];
 const cust_const = [
  { "a": "paymentGatewayIntegrated", "b": 0, "c": "more customiztaion", "d": "if value is 1 payment gatewy will be shown, else manual booking", "u": "url-explaining-video" },
  { "a": "showRoomAvalOnHomePg", "b": 1, "c": "more cust...", "d": "if 1 'already-booked' data is fetched on home-page load, to show `already booked` on first page itself", "u": "url-explaining-video" },
  { "a": "msgOnBookButtonifRoomBooked", "b": "This room is already booked for the selected dates.", "c": "more customiztaion", "d": "message to be shown, if room is already booked (useful when person clicks 'view all rooms' after applying booking dates & rooms have been filtered)", "u": "url-explaining-video" }
+ // I comment it in code and this discription for now keep as is - { "a": "paymentGatewayAfterSuccessTesting", "b": 0, "c": "more customiztaion", "d": "if value is 1 payment gatewy will be not showing shown and go to direct success part (success testing perpose, not use for now needs to handle backend also for now 0), else manual booking", "u": "url-explaining-video" }
 ];
 window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
  window[my1uzr.worknOnPg].allowedModulesMenuItems = allowedModules || [];
@@ -24,8 +26,7 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
 window[my1uzr.worknOnPg].flsht = 3;
 window[my1uzr.worknOnPg].flshu = "";
 window[my1uzr.worknOnPg].lodErrMs = "press back & open the app again;";
-window[my1uzr.worknOnPg].emptBodyMs =
- "Welcome to Hotel Shri Vimaleshwar Executive;";
+window[my1uzr.worknOnPg].emptBodyMs = "Welcome to Hotel Shri Vimaleshwar Executive;";
 window[my1uzr.worknOnPg].colsToHide = "n,";
 window[my1uzr.worknOnPg].dtFormat = "dd-mm-yyyy";
 window[my1uzr.worknOnPg].shodateofberthForEi = 1;
@@ -76,7 +77,11 @@ async function showPhonePePostData() {
   payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "rb" }, { tb: "r" }]);
   var resp = await fnj3("https://my1.in/3/c.php", payload0, 1, true, null, 20000, 0, 1, 1);
   if (resp && resp.su == 1) {
-   await handl_rm_rspons(resp);
+    // Read the ids off x1 before handl_rm_rspons below, which can rewrite the
+    // response. This mail carries the paid status, so it cannot depend on what
+    // the handler leaves behind.
+    var paidIds = resp.x1;
+    await handl_rm_rspons(resp);
    await adminLoadDataFromDB();
    try {
     if (
@@ -84,13 +89,20 @@ async function showPhonePePostData() {
      typeof dbnm !== "undefined" &&
      typeof buildMyBookingAll === "function"
     ) {
-     var dbBk = (await dbDexieManager.getAllRecords(dbnm, "rb")) || [];
-     var dbRc = (await dbDexieManager.getAllRecords(dbnm, "rc")) || [];
-     myBookingAll = buildMyBookingAll(dbBk, dbRc);
+      var dbBk = (await dbDexieManager.getAllRecords(dbnm, "rb")) || [];
+      var dbRc = (await dbDexieManager.getAllRecords(dbnm, "rc")) || [];
+      myBookingAll = buildMyBookingAll(dbBk, dbRc);
+     }
+    } catch (e) {
+     console.warn("Failed to reload bookings after payment:", e);
     }
-   } catch (e) {
-    console.warn("Failed to reload bookings after payment:", e);
-   }
+    // Its own guard, so a Dexie reload failure above cannot silently swallow
+    // the paid-status mail.
+    try {
+     if (typeof buildMyBookingAll === "function") sendRoomBookingStatusMail(paidIds);
+    } catch (mailErr) {
+     console.warn("Room Booking Status mail skipped:", mailErr);
+    }
     my1PageLoader(true);
     setTimeout(function () {
      // A combination comes back as one joined id ("51_52_53"), one row per room.
@@ -110,10 +122,292 @@ async function showPhonePePostData() {
   showMessageModal("Info", "Error: " + err?.message || err, false);
  }
 
- console.log("📦 PhonePe payload received:", data);
- console.log("📦 Sifr payload received:", resp);
- return true;
+  console.log("📦 PhonePe payload received:", data);
+  console.log("📦 Sifr payload received:", resp);
+  return true;
 }
+
+var MEL_MAIL_SUBJECT = "Room Booking Status";
+
+var MEL_MAIL_CSS = [
+ "body{margin:0;padding:0;background:#f4efe3;}",
+ ".m-card{width:100%;max-width:640px;background:#fffdf8;border:1px solid #e6dcc6;border-radius:14px;}",
+ ".m-in{font-family:Arial,Helvetica,sans-serif;}",
+ ".m-serif{font-family:Georgia,'Times New Roman',serif;}",
+ ".m-h1{font-size:19px;font-weight:700;color:#1f1b15;line-height:1.2;}",
+ ".m-tag{font-size:12px;color:#8a7c66;margin-top:3px;}",
+ ".m-sub{font-size:12px;color:#6b6152;line-height:1.6;}",
+ ".m-lbl{font-size:10.5px;letter-spacing:.4px;text-transform:uppercase;color:#a08f6d;}",
+ ".m-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.3px;padding:5px 11px;border-radius:999px;border:1px solid #c9a45c;background:#fbf5e6;color:#8a6d2f;}",
+ ".m-badge-ok{border-color:#7cb083;background:#eef7ee;color:#1f7a3f;}",
+ ".m-sheet{border:1px solid #e6dcc6;border-left:3px solid #c9a45c;border-radius:10px;background:#fdfaf1;padding:12px 14px 6px;margin-top:14px;}",
+ ".m-sheet-h{font-size:13.5px;font-weight:700;color:#8a6d2f;margin-bottom:8px;}",
+ ".m-foot{font-size:11px;color:#9e9478;line-height:1.6;text-align:center;}",
+ "table{border-collapse:collapse;}",
+ "i.fa-solid{display:none!important;}",
+ ".s-head{display:block!important;border-bottom:1px dashed #e0d3ae;padding-bottom:10px;margin-bottom:10px;}",
+ ".s-hotel{font-family:Georgia,'Times New Roman',serif;font-size:18px;font-weight:700;color:#1f1b15;line-height:1.15;}",
+ ".s-room{color:#8a6d2f;font-size:13px;margin-top:2px;}",
+ ".s-day-rates{margin-top:6px;}",
+ ".s-day-rate{display:table;width:100%;font-size:12px;padding:3px 0;color:#6b6152;}",
+ ".s-day-name{display:table-cell;vertical-align:top;}",
+ ".s-day-price{display:table-cell;vertical-align:top;text-align:right;white-space:nowrap;font-weight:600;color:#3a3226;padding-left:12px;}",
+ ".s-stay{font-size:12.5px;color:#6b6152;margin:8px 0 6px;}",
+ ".s-guests{font-size:12px;color:#7a7062;margin-bottom:6px;line-height:1.6;}",
+ ".s-guests b{color:#2a2419;}",
+ ".s-rows{border-top:1px dashed #e6dcc6;margin-top:6px;padding-top:4px;}",
+ ".s-row{display:table;width:100%;font-size:13px;padding:7px 0;color:#2f2a20;}",
+ ".s-row>span{display:table-cell;vertical-align:top;}",
+ ".s-row .amt{text-align:right;white-space:nowrap;font-weight:600;padding-left:12px;}",
+ ".s-row.neg .amt{color:#1f7a3f;}",
+ ".s-row.s-total{border-top:1px solid #e6dcc6;margin-top:8px;padding-top:12px;font-weight:700;font-size:15px;color:#1f1b15;}",
+ ".s-row.s-total .amt{font-family:Georgia,'Times New Roman',serif;font-size:20px;color:#a8863f;}",
+ ".s-ac-tag{display:inline-block;margin-top:8px;font-size:11px;font-weight:700;letter-spacing:.4px;padding:5px 10px;border:1px solid #c9a45c;border-radius:999px;background:#fbf5e6;color:#8a6d2f;}",
+ ".s-ac-tag b{color:#1f1b15;}",
+ ".s-row-group{border-left:2px solid #e0d3ae;margin:6px 0 8px;padding-left:11px;}",
+ ".s-row-group .s-row{color:#4a4234;font-size:12.5px;}",
+ ".s-row-group .s-row.sub{border-top:1px dashed #e6dcc6;margin-top:3px;padding-top:7px;font-weight:700;color:#2a2419;}",
+ ".s-room-sheets{margin-top:12px;}",
+ ".s-room-sheet{border:1px solid #e6dcc6;border-left:3px solid #c9a45c;border-radius:10px;padding:10px 12px 4px;background:#fdfaf1;margin-bottom:10px;}",
+ ".s-room-sheet-head{font-family:Georgia,'Times New Roman',serif;font-size:13.5px;font-weight:700;color:#a8863f;margin-bottom:6px;}",
+ ".s-room-sheet .s-row{color:#4a4234;font-size:12.5px;}",
+ ".s-room-sheet .s-row.s-total{font-size:13.5px;color:#1f1b15;}",
+ ".s-room-sheet .s-row.s-total .amt{font-size:16px;}",
+ "@media only screen and (max-width:620px){.m-card{border-radius:0!important;}.m-pad{padding:14px!important;}}",
+].join("");
+
+function melBillNo() {
+  var d = new Date();
+  var p = function (n) {
+   return String(n).length < 2 ? "0" + n : String(n);
+  };
+  return (
+   "HT-" +
+   d.getFullYear() +
+   p(d.getMonth() + 1) +
+   p(d.getDate()) +
+   "-" +
+   Math.floor(1000 + Math.random() * 9000)
+  );
+}
+
+function melIssueDate() {
+  var d = new Date();
+  return (
+   d.getDate() + " " + (MONTHS[d.getMonth()] || "") + " " + d.getFullYear()
+  );
+}
+
+function melRowsFallback(sp) {
+  return (
+   '<div class="s-row"><span>Grand Total</span><span class="amt">' +
+   fmtMoney(sp.grandTotal) +
+   "</span></div>"
+  );
+}
+
+// A saved row always carries its stay dates, but the mail must never print a
+// raw "NaN" if one is ever missing, so an unparseable date reads as "-".
+function melMailDate(v) {
+  if (v == null || v === "") return "-";
+  var d = parseDate(v);
+  return d && !isNaN(d.getTime()) ? fmtDate(v) : "-";
+}
+
+function melPaysheetMailHtml(parts, booker, billNo) {
+  var h = hotel || {};
+  var sp0 = parts[0].snap;
+  var st = parts[0].st || { label: "Booking Requested", ok: false };
+  var nights = Number(sp0.nights) || 0;
+  var stay =
+   melMailDate(sp0.checkin) +
+   " \u2192 " +
+   melMailDate(sp0.checkout) +
+   (nights ? " \u00b7 " + nights + " night" + (nights > 1 ? "s" : "") : "");
+  var sheets = "";
+  for (var i = 0; i < parts.length; i++) {
+   var sp = parts[i].snap;
+   var roomLabel =
+    (sp.room && sp.room.name) ||
+    (parts[i].bk && parts[i].bk.s) ||
+    (parts.length > 1 ? "Room " + (i + 1) : "");
+   sheets +=
+    '<div class="m-sheet">' +
+    '<div class="m-sheet-h m-serif">Paysheet' +
+    (roomLabel ? " \u00b7 " + escHtml(roomLabel) : "") +
+    "</div>" +
+    (typeof summaryHtml === "function"
+     ? summaryHtml(sp, { billPrint: true })
+     : melRowsFallback(sp)) +
+    "</div>";
+  }
+  var cells = [
+   ["Guest Name", booker.name],
+   ["Mobile", booker.contact],
+   ["Address", booker.address],
+   ["Email", booker.email],
+  ];
+  var cellHtml = "";
+  for (var c = 0; c < cells.length; c++) {
+   cellHtml +=
+    '<td width="50%" style="padding:6px 10px 6px 0;vertical-align:top;">' +
+    '<div class="m-lbl">' +
+    escHtml(cells[c][0]) +
+    "</div>" +
+    '<div class="m-sub" style="color:#2a2419;">' +
+    escHtml(cells[c][1] || "-") +
+    "</div></td>";
+  }
+  return (
+   '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+   '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+   "<title>" + escHtml(MEL_MAIL_SUBJECT) + "</title>" +
+   '<style>' + MEL_MAIL_CSS + "</style></head>" +
+   '<body class="m-in"><div style="display:none;max-height:0;overflow:hidden;">' +
+   escHtml(MEL_MAIL_SUBJECT + " \u00b7 " + (booker.name || "Guest")) +
+   "</div>" +
+   '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4efe3;"><tr><td align="center" style="padding:18px 10px;">' +
+   '<table role="presentation" class="m-card" width="640" cellpadding="0" cellspacing="0"><tr><td class="m-pad" style="padding:22px 24px 6px;">' +
+   '<table width="100%" cellpadding="0" cellspacing="0"><tr>' +
+   '<td style="vertical-align:top;">' +
+   '<div class="m-h1 m-serif">' + escHtml(h.name || "Hotel") + "</div>" +
+   (h.tagline ? '<div class="m-tag">' + escHtml(h.tagline) + "</div>" : "") +
+   '<div class="m-tag">' +
+   escHtml([h.address || h.city || "", h.phone || ""].filter(Boolean).join(" \u00b7 ")) +
+   "</div></td>" +
+   '<td align="right" style="vertical-align:top;white-space:nowrap;">' +
+   '<div class="m-h1 m-serif" style="font-size:15px;">' + escHtml(MEL_MAIL_SUBJECT) + "</div>" +
+   '<div class="m-tag">Bill No <b>' + escHtml(billNo) + "</b></div>" +
+   '<div class="m-tag">' + escHtml(melIssueDate()) + "</div>" +
+   "</td></tr></table>" +
+   '<div style="margin-top:14px;"><span class="m-badge' +
+   (st.ok ? " m-badge-ok" : "") +
+   '">' + escHtml(st.label) + "</span></div>" +
+   '<div class="m-sub" style="margin-top:10px;">' + escHtml(stay) + "</div>" +
+'<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr>' +
+    cellHtml +
+    "</tr></table>" +
+    sheets +
+    "</td></tr></table></td></tr></table></body></html>"
+  );
+}
+
+// opts.guest is the guest the caller already resolved (name/mobile/address/
+// email), used when the guest is not a signed-in my1uzr one yet. opts.timeout
+// caps the wait, for callers that hold up a page navigation of their own.
+async function sendRoomBookingStatusMail(idList, opts) {
+  try {
+   if (
+    typeof ppStayRoomIds !== "function" ||
+    typeof getMyBookingById !== "function" ||
+    typeof bookingSnapFromRecord !== "function"
+   ) {
+    return false;
+   }
+   var ids = ppStayRoomIds(idList);
+   if (!ids.length) return false;
+   var parts = [];
+   for (var i = 0; i < ids.length; i++) {
+    var bk = getMyBookingById(ids[i]);
+    if (!bk) continue;
+    var snap =
+     typeof ensureSnapGst === "function"
+      ? ensureSnapGst(bookingSnapFromRecord(bk))
+      : bookingSnapFromRecord(bk);
+    if (!snap) continue;
+    var st =
+     typeof myBookingsStatus === "function"
+      ? myBookingsStatus(bk)
+      : { label: "Booking Requested", ok: false, paid: false };
+    var mailSnap = Object.assign({}, snap);
+    if (st.paid) {
+     mailSnap.paid = true;
+     mailSnap.received = Math.round(Number(snap.grandTotal) || 0);
+    }
+    if (st.cancelled) {
+     mailSnap.paid = false;
+     mailSnap.received = 0;
+    }
+    parts.push({ snap: mailSnap, bk: bk, st: st });
+   }
+   if (!parts.length) return false;
+    var booker = null;
+    if (typeof resolveBookerInfo === "function") {
+     try {
+      booker = await resolveBookerInfo(parts[0].snap);
+     } catch (be) {
+      booker = null;
+     }
+    }
+    if (!booker && opts && opts.guest && opts.guest.email) booker = opts.guest;
+   var toMail = (booker && booker.email) || "";
+   var guestName = (booker && booker.name) || "";
+   var contact = (booker && booker.mobile) || "";
+   var address = (booker && booker.address) || "";
+   for (var p = 0; p < parts.length; p++) {
+    var s0 = parts[p].snap;
+    if (!toMail && s0.email) toMail = String(s0.email);
+    if (!guestName && s0.guestName) guestName = String(s0.guestName);
+    if (!contact && s0.contact) contact = String(s0.contact);
+    if (!address && s0.address) address = String(s0.address);
+   }
+   if (!toMail) {
+    console.warn("Room Booking Status mail skipped: guest has no email address.");
+    return false;
+   }
+   var html = melPaysheetMailHtml(
+    parts,
+    {
+     name: guestName,
+     contact: contact,
+     address: address,
+     email: toMail,
+    },
+melBillNo(),
+    );
+    var mailWait =
+     opts && Number(opts.timeout) > 0 ? Number(opts.timeout) : 20000;
+    var ctl =
+     typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timer = window.setTimeout(function () {
+     if (ctl) ctl.abort();
+    }, mailWait);
+   var resp = await fetch(window[my1uzr.worknOnPg]?.clientConfig?.mailToCustomer, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+    body: new URLSearchParams({
+     nm: guestName,
+     nu: toMail,
+     sj: MEL_MAIL_SUBJECT,
+     ms: html,
+     hpt: "",
+    }).toString(),
+    signal: ctl ? ctl.signal : undefined,
+   });
+   window.clearTimeout(timer);
+   var out = null;
+   try {
+    out = await resp.json();
+   } catch (je) {
+    out = null;
+   }
+   if (resp.ok && out && out.su == 1) {
+    console.log("📧 Room Booking Status mail sent to " + toMail);
+    return true;
+   }
+   console.warn(
+    "Room Booking Status mail not sent: " +
+     resp.status +
+     " " +
+     ((out && out.ms) || "no response body"),
+   );
+   return false;
+  } catch (e) {
+   console.warn("Room Booking Status mail failed:", e);
+   return false;
+  }
+}
+window.sendRoomBookingStatusMail = sendRoomBookingStatusMail;
 (async function () {
  // Loads the Google Fonts stylesheet from JS rather than index.html, so a
  // blocked or slow CDN can never stall first paint, and the HTML stays free of
@@ -227,7 +521,7 @@ async function showPhonePePostData() {
    },
    {
     a: 20,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@caafdee/rm/booking.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ae456ec/rm/booking.js",
     c: "openSummarySheet,calcBooking",
     r: " ",
    },
@@ -270,7 +564,7 @@ async function showPhonePePostData() {
    },
    {
     a: 46,
-     u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@caafdee/rm/adminBooking.js",
+     u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ae456ec/rm/adminBooking.js",
      c: "openBookingModal,saveBooking",
     r: " ",
    },
@@ -301,7 +595,7 @@ async function showPhonePePostData() {
    { "a": 52, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b7740c3/cmn/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
    { "a": 53, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fcbc516/cmn/my1rp.js", "c": "open_my1rp", "r": "open_my1rp" },
    { "a": 106, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/addRoom.js", "c": "showAddRoom,setAddRoomHero,updateThumb,publishAddRoom,resetAddRoomForm,editRoom", "r": " " },
-   { "a": 112, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@caafdee/rm/adminBooking.js", "c": "openBookingModal,saveBooking", "r": " " },
+   { "a": 112, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ae456ec/rm/adminBooking.js", "c": "openBookingModal,saveBooking", "r": " " },
     { "a": 43, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@caafdee/rm/billCombo.js", "c": " ", "r": " " }
    ];
  }
@@ -3201,10 +3495,12 @@ function buildBookingRoomParts(snap) {
   return parts;
 }
 
-// Pull the created booking ids out of a save response. The server echoes the
-// ids in x1 (a scalar for one row, a list for several) and repeats them on the
-// echoed rc/rb records, so read BOTH sources and merge them rather than
-// stopping at the first one that yields anything.
+// Pull the created booking ids out of a save response. x1 is the ONLY source:
+// it carries exactly the rows this save wrote, so it is the only list that can
+// be paid for. The rc/rb records echoed alongside it are the whole table's
+// rows, so reading them as well drags unrelated ids into the payment.
+// x1 arrives as a scalar for one row and as a list for a combination, and it
+// may come back as an array or keyed by id.
 // A combined booking id is "12_13_14-<timestamp>": the ids are joined with an
 // underscore and the writers append a "-<timestamp>" uniqueness tail.
 var PP_ID_SEP_RE = /[_,\s]+/;
@@ -3224,21 +3520,21 @@ function bookingIdsFromResp(resp) {
       });
   }
   if (!resp || typeof resp !== "object") return out;
-  push(resp.x1);
-  ["rc", "rb"].forEach(function (tb) {
-    var list = resp[tb] && resp[tb].l;
-    // The echoed rows come back either as an array or keyed by id.
-    var rows = Array.isArray(list)
-      ? list
-      : list && typeof list === "object"
-        ? Object.keys(list).map(function (k) {
-            return list[k];
-          })
-        : [];
-    rows.forEach(function (row) {
-      if (!row || typeof row !== "object") return;
-      push(row.a != null ? row.a : row.bkId != null ? row.bkId : null);
+  var x1 = resp.x1;
+  // The list comes back either as an array or keyed by index.
+  if (Array.isArray(x1)) {
+    x1.forEach(push);
+  } else if (x1 && typeof x1 === "object") {
+    Object.keys(x1).forEach(function (k) {
+      push(x1[k]);
     });
+  } else {
+    push(x1);
+  }
+  // Numeric order so the set is always assembled the same way, and the
+  // timestamp lands on the same id for a given stay.
+  out.sort(function (x, y) {
+    return (parseInt(x, 10) || 0) - (parseInt(y, 10) || 0);
   });
   return out;
 }
@@ -7675,7 +7971,7 @@ window.updateRoomStatus = async function (roomId, status) {
   ]);
 
   var resp = await fnj3(
-   "https://my1.in/2/update.php",
+   "https://google.com/2/update.php",
    payload0,
    1,
    true,
