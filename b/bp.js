@@ -1,3 +1,15 @@
+const bpNoImage = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+ '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">' +
+ '<rect width="200" height="200" fill="#f8f9fa"/>' +
+ '<g fill="none" stroke="#adb5bd" stroke-width="6">' +
+ '<rect x="45" y="55" width="110" height="90" rx="8"/>' +
+ '<circle cx="110" cy="85" r="10"/>' +
+ '<path d="M45 130l35-28 25 20 30-25 30 33"/>' +
+ '</g>' +
+ '<text x="100" y="170" font-family="Arial, sans-serif" font-size="14" fill="#adb5bd" text-anchor="middle">No Image</text>' +
+ '</svg>'
+);
+
 async function set_deup_prod_innerHTML(...params) {
  // Create modal using existing function
  const { contentElement, modalInstance } = create_modal_dynamically('productsModal');
@@ -19,16 +31,16 @@ async function set_deup_prod_innerHTML(...params) {
    const actualIndex = startIndex + index;
    return `
                     <div class="col-12 product-card" data-prod-name="${item.gn.toLowerCase()}">
-                        <div class="card product-card-item h-100" data-prod-id="${item.a}" tabindex="0">
+                        <div class="card product-card-item h-100 border border-dark" data-prod-id="${item.a}" tabindex="0">
                             <div class="row g-0 h-100">
                                 <!-- Image on left - 25% width -->
                                 <div class="col-3">
                                     <div class="h-100 d-flex align-items-center bg-light" style="min-height: 120px;">
-                                        <img src="${item.gu || '/favicon.ico'}" 
+                                        <img src="${getGoogleDriveImageUrl(item.gu) || bpNoImage}" 
                                              alt="${item.gn}" 
-                                             class="img-fluid w-100 h-100" 
-                                             style="object-fit: cover;"
-                                             onerror="this.src='/favicon.ico'">
+                                             class="img-fluid rounded" 
+                                             style="max-width: 100%; height: auto; max-height: 120px; object-fit: cover;"
+                                             onerror="this.src=bpNoImage">
                                     </div>
                                 </div>
                                 <!-- Content on right - 75% width -->
@@ -117,7 +129,7 @@ async function set_deup_prod_innerHTML(...params) {
         <div class="modal-header border-bottom bg-light sticky-top" style="z-index: 1055;">
             <h5 class="modal-title fw-bold">Products Management</h5>
             <div class="d-flex gap-2 w-50">
-                <input type="text" class="form-control" id="productSearch" placeholder="Search products by name..." aria-label="Search products">
+                <input type="text" class="form-control border border-dark" id="productSearch" placeholder="Search products by name..." aria-label="Search products">
                 <button class="btn btn-outline-secondary" type="button" id="clearSearch">
                     <i class="fas fa-times"></i>
                 </button>
@@ -294,38 +306,38 @@ async function set_deup_prod_innerHTML(...params) {
                     <div class="col-12 mb-4">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Current Main Image; Stock id ${item.a}</label>
-                            <div class="border rounded p-3 text-center bg-light mb-2">
-                                <img src="${item.gu || '/favicon.ico'}" 
+                            <div class="border border-dark rounded p-3 text-center bg-light mb-2">
+                                <img src="${getGoogleDriveImageUrl(item.gu) || bpNoImage}" 
                                      alt="Current Main Image" 
                                      class="img-fluid rounded"
-                                     style="max-height: 200px; object-fit: contain;"
-                                     onerror="this.src='/favicon.ico'"
+                                     style="max-width: 100%; height: auto; max-height: 200px; object-fit: cover;"
+                                     onerror="this.src=bpNoImage"
                                      id="currentMainImage">
-                                <div class="mt-2 text-muted small">
+                                <div class="mt-2 text-muted small border border-dark rounded">
                                     ${item.gu || 'No main image URL set'}
                                 </div>
                             </div>
                             <label for="newMainImage" class="form-label">New Main Image URL (gu)</label>
-                            <input type="url" class="form-control" id="newMainImage" value="${item.gu || ''}" placeholder="https://example.com/main-image.jpg">
+                            <input type="url" class="form-control border border-dark" id="newMainImage" value="${item.gu || ''}" placeholder="https://example.com/main-image.jpg">
                         </div>
                     </div>
                     
                     <div class="col-12 mb-4">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Current Thumbnail Image</label>
-                            <div class="border rounded p-3 text-center bg-light mb-2">
-                                <img src="${item.hu || '/favicon.ico'}" 
+                            <div class="border border-dark rounded p-3 text-center bg-light mb-2">
+                                <img src="${getGoogleDriveImageUrl(item.hu) || bpNoImage}" 
                                      alt="Current Thumbnail" 
                                      class="img-fluid rounded"
-                                     style="max-height: 150px; object-fit: contain;"
-                                     onerror="this.src='/favicon.ico'"
+                                     style="max-width: 100%; height: auto; max-height: 150px; object-fit: cover;"
+                                     onerror="this.src=bpNoImage"
                                      id="currentThumbImage">
-                                <div class="mt-2 text-muted small">
+                                <div class="mt-2 text-muted small border border-dark rounded">
                                     ${item.hu || 'No thumbnail URL set'}
                                 </div>
                             </div>
                             <label for="newThumbImage" class="form-label">New Thumbnail URL (hu)</label>
-                            <input type="url" class="form-control" id="newThumbImage" value="${item.hu || ''}" placeholder="https://example.com/thumbnail.jpg">
+                            <input type="url" class="form-control border border-dark" id="newThumbImage" value="${item.hu || ''}" placeholder="https://example.com/thumbnail.jpg">
                         </div>
                     </div>
                     
@@ -333,17 +345,17 @@ async function set_deup_prod_innerHTML(...params) {
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="productName" class="form-label fw-bold">Prod Nm (gn) ID ${item.g}</label>
-                                <input type="text" class="form-control" id="productName" value="${item.gn}" required>
+                                <input type="text" class="form-control border border-dark" id="productName" value="${item.gn}" required>
                             </div>
                             <div class="col-md-6">
                                 <div class="row">
                                     <div class="col-6 mb-3">
                                         <label for="productStock" class="form-label fw-bold">Stock Q (i)</label>
-                                        <input type="number" class="form-control" id="productStock" value="${item.i}" required>
+                                        <input type="number" class="form-control border border-dark" id="productStock" value="${item.i}" required>
                                     </div>
                                     <div class="col-6 mb-3">
                                         <label for="productPrice" class="form-label fw-bold">Price (k)</label>
-                                        <input type="number" class="form-control" id="productPrice" value="${item.k}" step="0.01" required>
+                                        <input type="number" class="form-control border border-dark" id="productPrice" value="${item.k}" step="0.01" required>
                                     </div>
                                 </div>
                             </div>
@@ -487,12 +499,12 @@ async function set_deup_prod_innerHTML(...params) {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="text-center mb-3">
-                    <img src="${item.gu || '/favicon.ico'}" 
+                <div class="text-center mb-3 border border-dark rounded p-3 bg-light">
+                    <img src="${getGoogleDriveImageUrl(item.gu) || bpNoImage}" 
                          alt="${item.gn}" 
                          class="img-fluid rounded" 
-                         style="max-height: 100px;"
-                         onerror="this.src='/favicon.ico'">
+                         style="max-width: 100%; height: auto; max-height: 100px; object-fit: cover;"
+                         onerror="this.src=bpNoImage">
                 </div>
                 <p>Are you sure you want to delete product?</p>
                 <p><strong>"${item.gn}"</strong></p>

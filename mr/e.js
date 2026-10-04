@@ -1,4 +1,4 @@
-function applyDefaultValues(profileData) {
+﻿function applyDefaultValues(profileData) {
  // Check if default values exist
  const defaultVals = window[my1uzr.worknOnPg]?.defaFieldVals;
  if (!defaultVals || !Array.isArray(defaultVals) || defaultVals.length === 0) {
@@ -33,22 +33,169 @@ function applyDefaultValues(profileData) {
 
 function safeReload() {
  try {
-  // For Android WebView - use native reload
-  if (typeof Android !== 'undefined' && Android.reloadPage) {
-   Android.reloadPage();
-  } else if (typeof Android !== 'undefined') {
-   // Fallback for Android without reloadPage
-   window.location.href = window.location.href.split('?')[0] + '?_t=' + Date.now();
-  } else {
-   // For regular browsers
-   location.reload();
-  }
+   // For Android WebView - use native reload
+   if (typeof Android !== 'undefined' && Android.reloadPage) {
+    Android.reloadPage();
+   } else if (typeof Android !== 'undefined') {
+    // Fallback for Android without reloadPage
+    window.location.href = window.location.href.split('?')[0] + '?_t=' + Date.now();
+   } else {
+    // For regular browsers
+    location.reload();
+   }
  } catch (e) {
   console.error('Reload failed:', e);
   window.location.href = window.location.href.split('?')[0] + '?_t=' + Date.now();
  }
 }
-window.relation_with_regr = [{ "a": 1, "e": "खुद - Self" }, { "a": 2, "e": "माता - Mother" }, { "a": 3, "e": "पिता - Father" }, { "a": 4, "e": "चाचा - Father's Brother" }, { "a": 5, "e": "चाची - Father's Brother's Wife" }, { "a": 6, "e": "मामा - Mother's Brother" }, { "a": 7, "e": "मामी - Mother's Brother's Wife" }, { "a": 8, "e": "बुआ - Father's Sister" }, { "a": 9, "e": "फूफा - Father's Sister's Husband" }, { "a": 10, "e": "भाई - Brother" }, { "a": 11, "e": "बहन - Sister" }, { "a": 12, "e": "जीजाजी - Sister's Husband" }, { "a": 13, "e": "भाभी - Brother's Wife" }, { "a": 14, "e": "भतीजा" }, { "a": 15, "e": "भतीजी" }, { "a": 16, "e": "बेटा - Son" }, { "a": 17, "e": "बेटी - Daughter" }, { "a": 18, "e": "दामाद - Daughter's Husband" }, { "a": 19, "e": "बहू - Son's Wife" }, { "a": 20, "e": "ससुर - Husband's Father" }, { "a": 21, "e": "सास - Husband's Mother" }, { "a": 22, "e": "साला - Wife's Brother" }, { "a": 23, "e": "साली - Wife's Sister" }, { "a": 24, "e": "दादा - Father's Father" }, { "a": 25, "e": "दादी - Father's Mother" }, { "a": 26, "e": "नाना - Mother's Father" }, { "a": 27, "e": "नानी - Mother's Mother" }, { "a": 28, "e": "चचेरा भाई - Father's Brother's Son" }, { "a": 29, "e": "चचेरी बहन - Father's Brother's Daughter" }, { "a": 30, "e": "ममेरा भाई - Mother's Brother's Son" }, { "a": 31, "e": "ममेरी बहन - Mother's Brother's Daughter" }, { "a": 32, "e": "रिश्तेदार - Relative" }, { "a": 33, "e": "दोस्त - Friend" }, { "a": 34, "e": "पड़ोसी - Neighbour" }];
+// ==================== lazy image loading (view-profile) ====================
+// The view-profile modal is built while the modal is still display:none, so a
+// bare IntersectionObserver can stall on an unrendered subtree. These helpers
+// keep one shared observer and add a shown.bs.modal safety net that picks up
+// anything still pending once Bootstrap has actually painted the modal.
+let __mraImgObserver = null;
+
+function __mraGetImgObserver() {
+ if (__mraImgObserver) return __mraImgObserver;
+ if (typeof IntersectionObserver !== 'function') return null;
+ __mraImgObserver = new IntersectionObserver(function (entries) {
+  entries.forEach(function (entry) {
+   if (!entry.isIntersecting) return;
+   __mraImgObserver.unobserve(entry.target);
+   __mraLoadImg(entry.target);
+  });
+ }, { rootMargin: '300px 0px' });
+ return __mraImgObserver;
+}
+
+// Assigns the deferred src. No-op once data-src is gone, so it is safe to call
+// from the observer, the modal-show safety net and the fallback path.
+function __mraLoadImg(img) {
+ if (!img) return;
+ const src = img.getAttribute('data-src');
+ if (!src) return;
+ img.removeAttribute('data-src');
+ img.src = src;
+}
+
+// Loads every still-pending image inside `root` that is now in (or near) the
+// viewport, and re-observes the rest so they load on scroll.
+function __mraSweepPendingImgs(root) {
+ if (!root || typeof root.querySelectorAll !== 'function') return;
+ const observer = __mraGetImgObserver();
+ const pending = root.querySelectorAll('img[data-src]');
+ Array.prototype.forEach.call(pending, function (img) {
+  if (!observer) { __mraLoadImg(img); return; }
+  const rect = img.getBoundingClientRect();
+  const nearViewport = rect.top < (window.innerHeight || 0) + 300 && rect.bottom > -300;
+  if (nearViewport) {
+   observer.unobserve(img);
+   __mraLoadImg(img);
+  } else {
+   observer.observe(img);
+  }
+ });
+}
+
+function mraLazyLoadImage(img, url) {
+ if (!img || !url) return;
+ img.setAttribute('data-src', url);
+ img.classList.add('lazy-load-img');
+ // Cheap fallback for engines with native lazy loading; the data-src gate above
+ // is what actually defers the request.
+ img.setAttribute('loading', 'lazy');
+ img.setAttribute('decoding', 'async');
+
+ const observer = __mraGetImgObserver();
+ if (!observer) { __mraLoadImg(img); return; }
+ observer.observe(img);
+}
+window.mraLazyLoadImage = mraLazyLoadImage;
+
+// Hidden-modal safety net: the view-profile modal is built while it is still
+// display:none, so a pending image can stay unobserved until Bootstrap paints
+// it. Bootstrap dispatches shown.bs.modal on the modal element itself, so a
+// capturing listener on document sees it for every modal and binds only once.
+// This has to live here rather than per image: callers invoke the helper
+// before attaching the img, so closest('.modal') would not resolve yet.
+if (typeof document !== 'undefined' && !document.__mraLazyModalBound) {
+ document.__mraLazyModalBound = true;
+ document.addEventListener('shown.bs.modal', function (e) {
+  __mraSweepPendingImgs(e && e.target);
+ }, true);
+}
+
+// The my1img picker (csh 51) is optional: an app whose csh list has no entry
+// for it would otherwise render a button that can only ever fail.
+function mraHasImagePicker() {
+ const csh = (typeof my1uzr !== 'undefined' && my1uzr.worknOnPg) ? window[my1uzr.worknOnPg]?.csh : null;
+ return Array.isArray(csh) && csh.some(function (item) { return item && item.a === 51; });
+}
+// ==================== end lazy image loading ====================
+
+window.relation_with_regr = [{ "a": 1, "e": "à¤–à¥à¤¦ - Self" }, { "a": 2, "e": "à¤®à¤¾à¤¤à¤¾ - Mother" }, { "a": 3, "e": "à¤ªà¤¿à¤¤à¤¾ - Father" }, { "a": 4, "e": "à¤šà¤¾à¤šà¤¾ - Father's Brother" }, { "a": 5, "e": "à¤šà¤¾à¤šà¥€ - Father's Brother's Wife" }, { "a": 6, "e": "à¤®à¤¾à¤®à¤¾ - Mother's Brother" }, { "a": 7, "e": "à¤®à¤¾à¤®à¥€ - Mother's Brother's Wife" }, { "a": 8, "e": "à¤¬à¥à¤† - Father's Sister" }, { "a": 9, "e": "à¤«à¥‚à¤«à¤¾ - Father's Sister's Husband" }, { "a": 10, "e": "à¤­à¤¾à¤ˆ - Brother" }, { "a": 11, "e": "à¤¬à¤¹à¤¨ - Sister" }, { "a": 12, "e": "à¤œà¥€à¤œà¤¾à¤œà¥€ - Sister's Husband" }, { "a": 13, "e": "à¤­à¤¾à¤­à¥€ - Brother's Wife" }, { "a": 14, "e": "à¤­à¤¤à¥€à¤œà¤¾" }, { "a": 15, "e": "à¤­à¤¤à¥€à¤œà¥€" }, { "a": 16, "e": "à¤¬à¥‡à¤Ÿà¤¾ - Son" }, { "a": 17, "e": "à¤¬à¥‡à¤Ÿà¥€ - Daughter" }, { "a": 18, "e": "à¤¦à¤¾à¤®à¤¾à¤¦ - Daughter's Husband" }, { "a": 19, "e": "à¤¬à¤¹à¥‚ - Son's Wife" }, { "a": 20, "e": "à¤¸à¤¸à¥à¤° - Husband's Father" }, { "a": 21, "e": "à¤¸à¤¾à¤¸ - Husband's Mother" }, { "a": 22, "e": "à¤¸à¤¾à¤²à¤¾ - Wife's Brother" }, { "a": 23, "e": "à¤¸à¤¾à¤²à¥€ - Wife's Sister" }, { "a": 24, "e": "à¤¦à¤¾à¤¦à¤¾ - Father's Father" }, { "a": 25, "e": "à¤¦à¤¾à¤¦à¥€ - Father's Mother" }, { "a": 26, "e": "à¤¨à¤¾à¤¨à¤¾ - Mother's Father" }, { "a": 27, "e": "à¤¨à¤¾à¤¨à¥€ - Mother's Mother" }, { "a": 28, "e": "à¤šà¤šà¥‡à¤°à¤¾ à¤­à¤¾à¤ˆ - Father's Brother's Son" }, { "a": 29, "e": "à¤šà¤šà¥‡à¤°à¥€ à¤¬à¤¹à¤¨ - Father's Brother's Daughter" }, { "a": 30, "e": "à¤®à¤®à¥‡à¤°à¤¾ à¤­à¤¾à¤ˆ - Mother's Brother's Son" }, { "a": 31, "e": "à¤®à¤®à¥‡à¤°à¥€ à¤¬à¤¹à¤¨ - Mother's Brother's Daughter" }, { "a": 32, "e": "à¤°à¤¿à¤¶à¥à¤¤à¥‡à¤¦à¤¾à¤° - Relative" }, { "a": 33, "e": "à¤¦à¥‹à¤¸à¥à¤¤ - Friend" }, { "a": 34, "e": "à¤ªà¤¡à¤¼à¥‹à¤¸à¥€ - Neighbour" }];
+
+function mraApplyProfileImageData(profile) {
+ if (typeof window.applyProfileImageData === 'function') return window.applyProfileImageData(profile);
+ const imageData = (typeof window.mrResolveProfileImages === 'function')
+  ? window.mrResolveProfileImages(profile.u)
+  : { display: null, thumbnail: null };
+ if (imageData.thumbnail) {
+  profile.thumbnail = imageData.thumbnail;
+  profile.originalImage = imageData.display || imageData.thumbnail;
+ } else if (profile.ut) {
+  profile.thumbnail = profile.ut;
+  profile.originalImage = profile.ut;
+ } else {
+  profile.thumbnail = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNFMEUwRTAiLz48dGV4dCB4PSIxNTAiIHk9IjEwNSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM5RTlFOUUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkltYWdlIE5vdDwvdGV4dD48dGV4dCB4PSIxNTAiIHk9IjEyNSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM5RTlFOUUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkF2YWlsYWJsZTwvdGV4dD48L3N2Zz4=';
+  profile.originalImage = null;
+ }
+ return profile;
+}
+
+// Refreshes every UI surface that depends on the signed-in profile, in place,
+// so a successful save does not need a full page reload.
+function refreshUiAfterMrSave(response) {
+ try {
+  const rec = response && response.mr && response.mr.l && response.mr.l[0];
+  if (!rec) return;
+
+  const saved = mraApplyProfileImageData(Object.assign({}, (window.myEinMR || {}), rec));
+
+  window.myEinMR = saved;
+  try { localStorage.setItem(appOwner.tn + '_myEinMR', JSON.stringify(saved)); } catch (e) { }
+
+  const listId = saved.a != null ? String(saved.a) : (saved.w != null ? String(saved.w) : null);
+  if (listId && Array.isArray(window.profilesData)) {
+   const idx = window.profilesData.findIndex(p => (p.a != null && String(p.a) === listId) || (p.a == null && p.w != null && String(p.w) === listId));
+   if (idx > -1) window.profilesData[idx] = Object.assign({}, window.profilesData[idx], saved);
+   else window.profilesData.unshift(saved);
+  }
+
+  if (listId && typeof window.createProfileCard === 'function') {
+   const container = document.getElementById('profiles-container');
+   if (container) {
+    const oldCard = container.querySelector('[data-profile-id="' + listId + '"]');
+    const freshCard = window.createProfileCard(saved);
+    if (oldCard) oldCard.replaceWith(freshCard);
+    if (typeof window.initLazyLoadImages === 'function') window.initLazyLoadImages();
+   }
+  }
+
+  if (window.mrDrawerInstance && typeof window.mrDrawerInstance.updateProfile === 'function') {
+   window.mrDrawerInstance.updateProfile({ imageUrl: saved.thumbnail, name: saved.m, mobile: saved.l });
+  }
+
+  if (saved.d1 != null) {
+   window.profileUnlockCount = saved.d1;
+   const usedCount = (window.appData && window.appData.usedCount) || 0;
+   window.remainingProflCnt = window.profileUnlockCount - usedCount;
+  }
+ } catch (e) {
+  console.error('Error refreshing UI after save:', e);
+ }
+}
+window.refreshUiAfterMrSave = refreshUiAfterMrSave;
 
 window.marital_status = [{ "a": 0, "e": "-" }, { "a": 1, "e": "Never Married" }, { "a": 2, "e": "Divorced" }, { "a": 3, "e": "Widow/er" }, { "a": 4, "e": "In Marriage" }, { "a": 5, "e": "Annulled" }, { "a": 6, "e": "Awaiting Divorce" }];
 window.mr_leavng_stts = [{ "a": -1, "e": "got married" }, { "a": -2, "e": "dis-satisfaction on your portal" }, { "a": -3, "e": "something personal;" }];
@@ -58,6 +205,70 @@ window.mr_bsns_typs = [{ "a": 0, "e": "-" }, { "a": 1, "e": "IT & Software Devel
 window.entryStatus = [{ "a": 0, "e": "Entry" }, { "a": 1, "e": "Accepted" }, { "a": 2, "e": "Under process" }, { "a": 127, "e": "denied" }];
 window.bloodGroups = [{ "a": 0, "e": "-" }, { "a": 1, "e": "A positive (A+)" }, { "a": 2, "e": "A negative (A-)" }, { "a": 3, "e": "B positive (B+)" }, { "a": 4, "e": "B negative (B-)" }, { "a": 5, "e": "AB positive (AB+)" }, { "a": 6, "e": "AB negative (AB-)" }, { "a": 7, "e": "O positive (O+)" }, { "a": 8, "e": "O negative (O-)" }];
 window.var_genders = [{ "a": 0, "e": "-" }, { "a": 1, "e": "male" }, { "a": 2, "e": "female" }, { "a": 3, "e": "prefer not to say" }];
+
+// ==================== my1img (csh 51) integration ====================
+// dims[0] -> g1 (thumbnail), dims[1] -> g2 (display)
+const imgObjDimensRqd3 = ["600x600px-64kb", "1080x1080px-512kb"];
+let mraImgPickTarget = null;
+
+function mraParseImgInputValue(value) {
+  try {
+   // Must also accept '[' : a gallery value is a JSON array. Failing to parse it
+   // would reset the array and drop previously picked images.
+   if (typeof value === 'string' &&
+    (value.trim().startsWith('{') || value.trim().startsWith('['))) return JSON.parse(value);
+  } catch (e) { }
+  return null;
+}
+
+// Writes the picked data URLs into the hidden input and refreshes the preview.
+// No upload step: the data URL is what gets saved, via the normal main endpoint.
+window.afterimagesetcallrun3 = function (obj) {
+  const target = mraImgPickTarget;
+  mraImgPickTarget = null;
+
+  if (!target) {
+   console.warn('my1img callback fired without an active pick target.');
+   return;
+  }
+
+  const g1 = (obj && obj.g1) || '';
+  const g2 = (obj && obj.g2) || (obj && obj.url) || '';
+  const displayUrl = g2 || g1;
+  const thumbUrl = g1 || g2;
+
+  if (!displayUrl && !thumbUrl) return;
+
+  const input = document.getElementById(target.inputId);
+  if (!input) {
+   console.warn('my1img callback: input ' + target.inputId + ' not found.');
+   return;
+  }
+
+  const picked = { a: displayUrl, b: thumbUrl };
+
+  if (target.isGallery) {
+   let arr = [];
+   const parsed = mraParseImgInputValue(input.value);
+   if (Array.isArray(parsed)) arr = parsed;
+   arr.push(picked);
+   input.value = JSON.stringify(arr);
+   setGalleryImages(target.inputId, input.value, target.divId, target.key, target.fullObject);
+  } else {
+   input.value = JSON.stringify(picked);
+   prepImgByURL(target.inputId, input.value, target.divId, target.key, target.fullObject);
+  }
+
+  if (typeof showToast === 'function') {
+   showToast(target.isGallery ? 'Image added to gallery!' : 'Image selected!', {
+    duration: 2000,
+    position: 'top',
+    type: 'success',
+    dismissible: true
+   });
+  }
+};
+// ==================== end my1img integration ====================
 
 async function cmn_prep_data_set_to_var(...arg) {
  const varNm = arg[0];
@@ -529,20 +740,26 @@ function setGalleryImages(inputId, value, divId, key, fullObject) {
  // Clear previous content
  divElement.innerHTML = '';
 
- // Parse the value
- let imagesArray = [];
- try {
-  if (typeof value === 'string') {
-   imagesArray = JSON.parse(value);
-  } else if (Array.isArray(value)) {
-   imagesArray = value;
+  // Parse the value. Each element is either a "tok1 tok2" pair string or the
+  // legacy {"a":display,"b":thumbnail} object. `raw` is kept so a delete can
+  // re-serialize the array in the same format it was stored in.
+  let imagesArray = [];
+  if (typeof window.mrResolveGalleryImages === 'function') {
+   imagesArray = window.mrResolveGalleryImages(value);
+  } else {
+   try {
+    if (typeof value === 'string') {
+     imagesArray = JSON.parse(value);
+    } else if (Array.isArray(value)) {
+     imagesArray = value;
+    }
+   } catch (e) {
+    console.error('Error parsing gallery images:', e);
+    imagesArray = [];
+   }
   }
- } catch (e) {
-  console.error('Error parsing gallery images:', e);
-  imagesArray = [];
- }
 
- const showAddButton = fullObject && fullObject.canAdd > 0;
+ const showAddButton = fullObject && fullObject.canAdd > 0 && mraHasImagePicker();
 
  // Create a wrapper container
  const wrapper = document.createElement('div');
@@ -553,11 +770,14 @@ function setGalleryImages(inputId, value, divId, key, fullObject) {
  galleryGrid.className = 'mra_-gallery-grid';
  galleryGrid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;';
 
- // Add existing images
- imagesArray.forEach((img, index) => {
-  const thumbnailUrl = img.b;
-  const originalUrl = img.a;
-  if (!thumbnailUrl || !originalUrl) return;
+  // Add existing images
+  // rawEntries mirrors imagesArray so a delete can write back the untouched
+  // stored values instead of the resolved view models.
+  const rawEntries = imagesArray.map(img => img.raw);
+  imagesArray.forEach((img, index) => {
+   const thumbnailUrl = img.thumbnail;
+   const originalUrl = img.display;
+   if (!thumbnailUrl || !originalUrl) return;
 
   const imageItem = document.createElement('div');
   imageItem.style.cssText = 'position:relative;cursor:pointer;border-radius:8px;overflow:hidden;aspect-ratio:1;transition:transform 0.2s ease,box-shadow 0.2s ease;';
@@ -571,19 +791,21 @@ function setGalleryImages(inputId, value, divId, key, fullObject) {
   };
 
   const imgElement = document.createElement('img');
-  imgElement.src = thumbnailUrl;
+  mraLazyLoadImage(imgElement, thumbnailUrl);
   imgElement.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
 
   // Delete button
   const deleteBtn = document.createElement('div');
-  deleteBtn.innerHTML = '×';
+  deleteBtn.innerHTML = 'Ã—';
   deleteBtn.style.cssText = 'position:absolute;top:5px;right:5px;width:20px;height:20px;background:rgba(255,0,0,0.7);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;opacity:0;transition:opacity 0.2s;z-index:2;';
   deleteBtn.onclick = (e) => {
    e.stopPropagation();
    imagesArray.splice(index, 1);
+   rawEntries.splice(index, 1);
+   const remaining = JSON.stringify(rawEntries);
    const input = document.getElementById(inputId);
-   if (input) input.value = JSON.stringify(imagesArray);
-   setGalleryImages(inputId, JSON.stringify(imagesArray), divId, key, fullObject);
+   if (input) input.value = remaining;
+   setGalleryImages(inputId, remaining, divId, key, fullObject);
   };
 
   imageItem.appendChild(deleteBtn);
@@ -628,154 +850,38 @@ function setGalleryImages(inputId, value, divId, key, fullObject) {
   };
 
   // Store a flag to prevent multiple clicks
-  let isUploading = false;
+  let isPicking = false;
 
-  addButton.onclick = (e) => {
+  addButton.onclick = async (e) => {
    e.stopPropagation();
    e.preventDefault();
 
-   if (isUploading) {
-    console.log('Upload already in progress');
+   if (isPicking) {
+    console.log('Image picker already open');
     return;
    }
 
-   isUploading = true;
-   // addButton.disabled = true;
-//   addButton.style.opacity = '0.6';
-//   addButton.style.cursor = 'not-allowed';
+   isPicking = true;
 
-   console.log('Add button clicked - opening file picker');
+   try {
+    mraImgPickTarget = { inputId, divId, key, fullObject, isGallery: true };
+    // 4th arg '' = no preload; a gallery has no single current image.
+    await loadExe2Fn(51, [window.afterimagesetcallrun3, imgObjDimensRqd3, 0, ''], [1]);
+   } catch (error) {
+    console.error('my1img error:', error);
+    mraImgPickTarget = null;
 
-   // Create file input
-   const fileInput = document.createElement('input');
-   fileInput.type = 'file';
-   fileInput.accept = 'image/*';
-   fileInput.style.display = 'none';
-   document.body.appendChild(fileInput);
-
-   fileInput.onchange = async () => {
-    if (fileInput.files.length === 0) {
-     document.body.removeChild(fileInput);
-     isUploading = false;
-     addButton.disabled = false;
-     addButton.style.opacity = '1';
-     addButton.style.cursor = 'pointer';
-     return;
-    }
-
-    const file = fileInput.files[0];
-    console.log('File selected:', file.name);
-
-    // Show loader
-    const loaderId = 'gallery_upload_loader';
-    let loader = document.getElementById(loaderId);
-    if (!loader) {
-     loader = createDynamicLoader2(loaderId, 'Uploading...', null);
-    } else {
-     loader.style.display = 'flex';
-    }
-
-    const updateMsg = (msg) => {
-     const ldr = document.getElementById(loaderId);
-     if (ldr) {
-      const msgEl = ldr.querySelector('.mra_loader-message');
-      if (msgEl) msgEl.textContent = msg;
-     }
-    };
-
-    try {
-     const clientName = fullObject?.c || (window[my1uzr?.worknOnPg] ? window[my1uzr.worknOnPg].driveMl : 'default');
-     const folderName = fullObject?.m || 'my1_mr';
-     const thumbnailSize = parseInt(fullObject?.thumbnailSize) || 200;
-     const resizeBy = parseInt(fullObject?.resizeBy) || 0;
-
-     updateMsg('Generating thumbnail...');
-     const thumbnailFile = await resizeImageToThumbnail(file, thumbnailSize, resizeBy);
-
-     updateMsg('Uplodin ...');
-
-     const formData = new FormData();
-     formData.append('original_file', file);
-     formData.append('thumbnail_file', thumbnailFile);
-     formData.append('client', clientName);
-     formData.append('folder', folderName);
-
-     const response = await fetch('https://my1.in/drive_upload.php', {
-      method: 'POST',
-      body: formData
+    if (typeof showToast === 'function') {
+     showToast('Could not open image picker: ' + error.message, {
+      duration: 3000,
+      position: 'top',
+      type: 'error',
+      dismissible: true
      });
-
-     const result = await response.json();
-
-     if (loader && loader.hideLoader) {
-      loader.hideLoader();
-     } else {
-      const ldr = document.getElementById(loaderId);
-      if (ldr) ldr.style.display = 'none';
-     }
-
-     if (!result.su || result.su !== 1) {
-      throw new Error(result.ms || 'Upload failed');
-     }
-
-     // Get existing gallery
-     const input = document.getElementById(inputId);
-     let existingGallery = [];
-     if (input && input.value) {
-      try {
-       const parsed = JSON.parse(input.value);
-       if (Array.isArray(parsed)) {
-        existingGallery = parsed;
-       }
-      } catch (e) { }
-     }
-
-     // Add new image
-     existingGallery.push({
-      a: result.da.original.directUrl,
-      b: result.da.thumbnail.directUrl
-     });
-     const newGalleryValue = JSON.stringify(existingGallery);
-
-     if (input) {
-      input.value = newGalleryValue;
-     }
-
-     // Refresh gallery
-     setGalleryImages(inputId, newGalleryValue, divId, key, fullObject);
-
-     if (typeof showToast === 'function') {
-      showToast('Image added to gallery!', {
-       duration: 3000,
-       position: 'top',
-       type: 'success',
-       dismissible: true
-      });
-     }
-
-    } catch (error) {
-     console.error('Upload error:', error);
-     const ldr = document.getElementById(loaderId);
-     if (ldr) ldr.style.display = 'none';
-
-     if (typeof showToast === 'function') {
-      showToast('Upload failed: ' + error.message, {
-       duration: 3000,
-       position: 'top',
-       type: 'error',
-       dismissible: true
-      });
-     }
-    } finally {
-     document.body.removeChild(fileInput);
-     isUploading = false;
-     addButton.disabled = false;
-     addButton.style.opacity = '1';
-     addButton.style.cursor = 'pointer';
     }
-   };
-
-   fileInput.click();
+   } finally {
+    isPicking = false;
+   }
   };
 
   addButtonContainer.appendChild(addButton);
@@ -798,44 +904,36 @@ function prepImgByURL(inputId, value, divId, key, fullObject) {
  // Clear previous content
  divElement.innerHTML = '';
 
- // Parse value - handle both string URL and JSON string formats
- let imageUrl = null;
- let thumbnailUrl = null;
- let originalUrl = null;
+  // Parse value. Accepts the token format ("tok1 tok2"), the legacy
+  // {"a":display,"b":thumbnail} object, and an already-resolved URL/data URL.
+  let imageUrl = null;
+  let thumbnailUrl = null;
+  let originalUrl = null;
 
- try {
-  // Try to parse as JSON first (new format: {"a":"original","b":"thumbnail"})
-  if (typeof value === 'string' && value.trim().startsWith('{')) {
-   const parsed = JSON.parse(value);
-   if (parsed && typeof parsed === 'object') {
-    originalUrl = parsed.a;
-    thumbnailUrl = parsed.b;
-    imageUrl = thumbnailUrl || originalUrl;  // Prefer thumbnail for display
-   }
-  } else if (typeof value === 'string') {
-   // Old format: direct URL string
-   imageUrl = value;
-   originalUrl = value;
-   thumbnailUrl = value;
-  } else if (typeof value === 'object' && value !== null) {
-   // Direct object format
-   originalUrl = value.a;
-   thumbnailUrl = value.b;
+  if (typeof window.mrResolveProfileImages === 'function') {
+   const imgs = window.mrResolveProfileImages(value);
+   thumbnailUrl = imgs.thumbnail;
+   originalUrl = imgs.display;
    imageUrl = thumbnailUrl || originalUrl;
+  } else if (typeof value === 'string' && value.trim().startsWith('{')) {
+   try {
+    const parsed = JSON.parse(value);
+    originalUrl = parsed && parsed.a;
+    thumbnailUrl = parsed && parsed.b;
+    imageUrl = thumbnailUrl || originalUrl;
+   } catch (e) {
+    imageUrl = value; originalUrl = value; thumbnailUrl = value;
+   }
+  } else {
+   imageUrl = value; originalUrl = value; thumbnailUrl = value;
   }
- } catch (e) {
-  // Not JSON, treat as direct URL string
-  imageUrl = value;
-  originalUrl = value;
-  thumbnailUrl = value;
- }
 
  // Create main container
  const mainContainer = document.createElement('div');
  mainContainer.style.cssText = 'position: relative; width: 100%; margin-top: 8px;';
 
  // Check if edit button should be shown
- const showEditButton = fullObject && fullObject.canEdit === true;
+ const showEditButton = fullObject && fullObject.canEdit === true && mraHasImagePicker();
 
  // Check if value is valid URL
  const hasImage = imageUrl && imageUrl.trim() !== '';
@@ -847,7 +945,7 @@ function prepImgByURL(inputId, value, divId, key, fullObject) {
 
   // Create image element with full width
   const imgElement = document.createElement('img');
-  imgElement.src = imageUrl;
+  mraLazyLoadImage(imgElement, imageUrl);
   imgElement.alt = 'Preview image';
   imgElement.style.cssText = 'width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.2s ease; display: block; object-fit: cover;';
 
@@ -942,144 +1040,40 @@ function prepImgByURL(inputId, value, divId, key, fullObject) {
    editBtn.style.boxShadow = 'none';
   };
 
-  // Prevent multiple uploads
-  let isUploading = false;
+  // Prevent multiple picks
+  let isPicking = false;
 
-  editBtn.onclick = (e) => {
+  editBtn.onclick = async (e) => {
    e.stopPropagation();
    e.preventDefault();
 
-   if (isUploading) {
-    console.log('Upload already in progress');
+   if (isPicking) {
+    console.log('Image picker already open');
     return;
    }
 
-   isUploading = true;
-   //   editBtn.disabled = true;
-//   editBtn.style.opacity = '0.6';
-//   editBtn.style.cursor = 'not-allowed';
+   isPicking = true;
 
-   // Create file input
-   const fileInput = document.createElement('input');
-   fileInput.type = 'file';
-   fileInput.accept = 'image/*';
-   fileInput.style.display = 'none';
-   document.body.appendChild(fileInput);
+   try {
+    mraImgPickTarget = { inputId, divId, key, fullObject, isGallery: false };
+    // 4th arg preloads the image already stored for this field, so 'Change Image'
+    // opens the modal showing the current picture. Prefer the full-size original.
+    await loadExe2Fn(51, [window.afterimagesetcallrun3, imgObjDimensRqd3, 0, originalUrl || imageUrl || ''], [1]);
+   } catch (error) {
+    console.error('my1img error:', error);
+    mraImgPickTarget = null;
 
-   fileInput.onchange = async () => {
-    if (fileInput.files.length === 0) {
-     document.body.removeChild(fileInput);
-     isUploading = false;
-     editBtn.disabled = false;
-     editBtn.style.opacity = '1';
-     editBtn.style.cursor = 'pointer';
-     return;
-    }
-
-    const file = fileInput.files[0];
-    console.log('File selected for single image:', file.name);
-
-    // Show loader
-    const loaderId = 'single_image_upload_loader';
-    let loader = document.getElementById(loaderId);
-    if (!loader) {
-     loader = createDynamicLoader2(loaderId, 'Uploading...', null);
-    } else {
-     loader.style.display = 'flex';
-    }
-
-    const updateMsg = (msg) => {
-     const ldr = document.getElementById(loaderId);
-     if (ldr) {
-      const msgEl = ldr.querySelector('.mra_loader-message');
-      if (msgEl) msgEl.textContent = msg;
-     }
-    };
-
-    try {
-     // Get parameters from fullObject
-     const clientName = fullObject?.c || (window[my1uzr?.worknOnPg] ? window[my1uzr.worknOnPg].driveMl : 'default');
-     const folderName = fullObject?.m || 'my1_mr';
-     const thumbnailSize = parseInt(fullObject?.thumbnailSize) || 200;
-     const resizeBy = parseInt(fullObject?.resizeBy) || 0;
-
-     updateMsg('Generating thumbnail...');
-     const thumbnailFile = await resizeImageToThumbnail(file, thumbnailSize, resizeBy);
-
-     updateMsg('Uploading to...');
-
-     const formData = new FormData();
-     formData.append('original_file', file);
-     formData.append('thumbnail_file', thumbnailFile);
-     formData.append('client', clientName);
-     formData.append('folder', folderName);
-
-     const response = await fetch('https://my1.in/drive_upload.php', {
-      method: 'POST',
-      body: formData
+    if (typeof showToast === 'function') {
+     showToast('Could not open image picker: ' + error.message, {
+      duration: 3000,
+      position: 'top',
+      type: 'error',
+      dismissible: true
      });
-
-     const result = await response.json();
-
-     if (loader && loader.hideLoader) {
-      loader.hideLoader();
-     } else {
-      const ldr = document.getElementById(loaderId);
-      if (ldr) ldr.style.display = 'none';
-     }
-
-     if (!result.su || result.su !== 1) {
-      throw new Error(result.ms || 'Upload failed');
-     }
-
-     // Prepare the value object with original and thumbnail URLs
-     const imageValueObj = {
-      a: result.da.original.directUrl,   // original URL
-      b: result.da.thumbnail.directUrl   // thumbnail URL
-     };
-
-     // Update input value with JSON string
-     const input = document.getElementById(inputId);
-     if (input) {
-      input.value = JSON.stringify(imageValueObj);
-     }
-
-     // Refresh the preview by calling prepImgByURL again
-     // This will now correctly parse the JSON string format
-     prepImgByURL(inputId, JSON.stringify(imageValueObj), divId, key, fullObject);
-
-     if (typeof showToast === 'function') {
-      showToast('Image updated successfully!', {
-       duration: 3000,
-       position: 'top',
-       type: 'success',
-       dismissible: true
-      });
-     }
-
-    } catch (error) {
-     console.error('Upload error:', error);
-     const ldr = document.getElementById(loaderId);
-     if (ldr) ldr.style.display = 'none';
-
-     if (typeof showToast === 'function') {
-      showToast('Upload failed: ' + error.message, {
-       duration: 3000,
-       position: 'top',
-       type: 'error',
-       dismissible: true
-      });
-     }
-    } finally {
-     document.body.removeChild(fileInput);
-     isUploading = false;
-     editBtn.disabled = false;
-     editBtn.style.opacity = '1';
-     editBtn.style.cursor = 'pointer';
     }
-   };
-
-   fileInput.click();
+   } finally {
+    isPicking = false;
+   }
   };
 
   editContainer.appendChild(editBtn);
@@ -1232,7 +1226,7 @@ function setSiblingTags(inputId, value, divId, key, fullObject) {
 
    if (cleanSibling === '3') {
     displayText = 'Self';
-    icon = '👤';
+    icon = 'ðŸ‘¤';
    } else {
     try {
      let clean = cleanSibling.replace(/^"|"$/g, '');
@@ -1253,13 +1247,13 @@ function setSiblingTags(inputId, value, divId, key, fullObject) {
       let typeText = '';
       if (type === '1') {
        typeText = 'Brother';
-       icon = '👨';
+       icon = 'ðŸ‘¨';
       } else if (type === '2') {
        typeText = 'Sister';
-       icon = '👩';
+       icon = 'ðŸ‘©';
       } else {
        typeText = '';
-       icon = '👤';
+       icon = 'ðŸ‘¤';
       }
 
       let ageText = '';
@@ -1280,12 +1274,12 @@ function setSiblingTags(inputId, value, divId, key, fullObject) {
       displayText = partsArray.join(' | ');
      } else {
       displayText = clean;
-      icon = '👤';
+      icon = 'ðŸ‘¤';
      }
     } catch (e) {
      console.log('Error parsing sibling:', cleanSibling, e);
      displayText = cleanSibling;
-     icon = '👤';
+     icon = 'ðŸ‘¤';
     }
    }
 
@@ -1297,7 +1291,7 @@ function setSiblingTags(inputId, value, divId, key, fullObject) {
     width: 24px;
     text-align: center;
    `;
-   iconSpan.textContent = icon || '👤';
+   iconSpan.textContent = icon || 'ðŸ‘¤';
 
    // Create text element
    const textSpan = document.createElement('span');
@@ -1563,7 +1557,7 @@ async function saveProfileChanges(inputId, value, divId, key, fullObject) {
 
   // Set form data to x2
   payload0.x2 = cleaned;
-
+  payload0.drml = window[my1uzr.worknOnPg]?.clientConfig?.drml;
   console.log('Payload0:', payload0);
   let urlPart = "f.php";
   if (fn == 68) {
@@ -1586,11 +1580,12 @@ async function saveProfileChanges(inputId, value, divId, key, fullObject) {
    localStorage.removeItem(draftKey);
 
    // Call the response handler if available
-   if (typeof hndl_mr_rspo === 'function') {
-    hndl_mr_rspo(response, 1, null, null);
-   } else if (typeof hndl_mrrspo === 'function') {
-    hndl_mrrspo(response, 1, null, null, payload0);
-   }
+    if (typeof hndl_mr_rspo === 'function') {
+     hndl_mr_rspo(response, 1, null, null);
+    } else if (typeof hndl_mrrspo === 'function') {
+     hndl_mrrspo(response, 0, null, null, payload0);
+     refreshUiAfterMrSave(response);
+    }
 
    // Show success message
    if (typeof showToast === 'function') {

@@ -1,5 +1,6 @@
 // prt_stng.js - Print Settings Editor
 const imgObjDimensRqd = ["500x500"];
+const showOnOpenThis = 1;
 const DEFAULT_LOGO = "https://i.postimg.cc/gJ62yjJf/my1.jpg";
 function resolveLogoUrl(value) {
  const raw = value ? String(value).trim() : '';
@@ -297,11 +298,11 @@ function resolveLogoUrl(value) {
                         <div class="card-body text-center pt-0">
                             <img id="prtStngLogoPreview" class="border border-dark" src="${resolveLogoUrl(logoUrl)}" alt="Logo Preview" 
                                 style="max-width:200px;max-height:100px;object-fit:contain;cursor:pointer;display:inline-block;"
-                                onclick="(async () => { await loadExe2Fn(24, [afterimagesetcallrun, imgObjDimensRqd], [1]); })();"
+                                onclick="(async () => { await loadExe2Fn(24, [afterimagesetcallrun, typeof imgObjDimensRqd !== 'undefined' ? imgObjDimensRqd : '', typeof showOnOpenThis !== 'undefined' ? showOnOpenThis : 0], [1]); })();"
                                 onload="this.style.display='inline-block';var el=document.getElementById('prtStngLogoError');if(el)el.style.display='none';"
                                 onerror="this.style.display='none';var el=document.getElementById('prtStngLogoError');if(el)el.style.display='block';">
                             <div id="prtStngLogoError" class="text-muted small" style="display:none;cursor:pointer;"
-                                onclick="(async () => { await loadExe2Fn(24, [afterimagesetcallrun, imgObjDimensRqd], [1]); })();">
+                                onclick="(async () => { await loadExe2Fn(24, [afterimagesetcallrun, typeof imgObjDimensRqd !== 'undefined' ? imgObjDimensRqd : '', typeof showOnOpenThis !== 'undefined' ? showOnOpenThis : 0], [1]); })();">
                                 <i class="fas fa-image fa-2x mb-1 d-block" style="opacity:0.4;"></i>
                                 Logo preview will appear here
                             </div>
@@ -413,11 +414,12 @@ function resolveLogoUrl(value) {
    payload0.vw = 1;
    payload0.fn = 104; // Function number for print settings
    payload0.drml = "sambodhisarang.in";
+   payload0.appNm = "b";
    payload0.prt_stng = settings;
 
    try {
 
-    const response = await fnj3("https://my1.in/3/c.php", payload0, 1, true, null, 20000, 0, 2, 1);
+    const response = await fnj3("https://my1.in/2/t.php", payload0, 1, true, null, 20000, 0, 2, 1);
 
     if (response && response.su == 1) {
      if (typeof showToast === 'function') {
