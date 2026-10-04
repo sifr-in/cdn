@@ -843,7 +843,9 @@
  window.open_addimage = function (...arg) {
   console.log('open_addimage called');
 
-  window._afterImageSet = typeof arg === 'function' ? arg[0] : null;
+  // arg is a rest parameter, so it is always an array-like object and never a
+  // function itself. The callback is the FIRST element, so test arg[0].
+  window._afterImageSet = typeof arg !== 'undefined' && arg.length > 0 && typeof arg[0] === 'function' ? arg[0] : null;
   window._imgObjDimensRqd = typeof arg !== 'undefined' && Array.isArray(arg[1]) ? arg[1].slice() : ["500x500"];
   window._showOnOpenThis = typeof arg !== 'undefined' ? arg[2] : 0;
   // Remove existing modal if any
@@ -852,12 +854,25 @@
    existingModal.remove();
   }
 
-  const existingImgUrl = document.getElementById('dpLinkHidden')?.value || '';
+  // 4th arg optionally preloads an existing image. Falls back to the legacy
+  // dpLinkHidden field so any other caller keeps working unchanged.
+  const existingImgUrl = (typeof arg !== 'undefined' && typeof arg[3] === 'string' && arg[3] !== '')
+   ? arg[3]
+   : (document.getElementById('dpLinkHidden')?.value || '');
+
+  // existingImgUrl is caller/data supplied and gets written into HTML attributes
+  // below, so escape it for attribute context.
+  const escAttr = s => String(s)
+   .replace(/&/g, '&amp;')
+   .replace(/"/g, '&quot;')
+   .replace(/</g, '&lt;')
+   .replace(/>/g, '&gt;');
+  const existingImgUrlAttr = escAttr(existingImgUrl);
 
   const dims = Array.isArray(window._imgObjDimensRqd) ? window._imgObjDimensRqd : [];
   const previewCount = dims.length ? 1 + dims.length : 3;
 
-  let hiddenInputsHTML = '<input type="hidden" id="upCataPopFinalImageUrl" value="' + existingImgUrl + '">';
+  let hiddenInputsHTML = '<input type="hidden" id="upCataPopFinalImageUrl" value="' + existingImgUrlAttr + '">';
   for (let j = 1; j < previewCount; j++) {
    hiddenInputsHTML += '<input type="hidden" id="upCataPopG' + j + 'Input" value="">';
   }
@@ -946,7 +961,7 @@
                                 <div class="tab-pane fade show active" id="upUrlPane" role="tabpanel">
                                     <input type="url" name="h" id="upCataPopImageUrlInput"
                                            class="form-control form-control-sm border border-dark"
-                                           value="${existingImgUrl}" placeholder="https://example.com/image.jpg"
+                                           value="${existingImgUrlAttr}" placeholder="https://example.com/image.jpg"
                                            oninput="if(this.value && !this.value.startsWith('data:')) { upImgUrlInput(this); }">
                                 </div>
                                 <div class="tab-pane fade border border-dark" id="upUploadPane" role="tabpanel">
@@ -1192,7 +1207,9 @@
   }
 
   // Hide add button
-  const btn = document.querySelector('.section-card .btn-outline-secondary');
+  // Scoped to the modal: the previous document-wide '.section-card ...' match could
+  // hide an unrelated button on the host page. This app manages its own buttons.
+  const btn = document.querySelector('#addImageModal .section-card .btn-outline-secondary');
   if (btn) {
    btn.style.display = 'none';
   }
@@ -1226,7 +1243,9 @@
   const previewContainer = document.getElementById('dpPreviewContainer');
   if (previewContainer) previewContainer.style.display = 'none';
 
-  const btn = document.querySelector('.section-card .btn-outline-secondary');
+  // Scoped to the modal: the previous document-wide '.section-card ...' match could
+  // hide an unrelated button on the host page. This app manages its own buttons.
+  const btn = document.querySelector('#addImageModal .section-card .btn-outline-secondary');
   if (btn) btn.style.display = '';
 
   console.log('Profile image removed');
