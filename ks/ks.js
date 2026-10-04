@@ -1,52 +1,21 @@
 // ks.js - Court Case Register
 const tblsRequired = ["f", "fp", "cs", "c", "a", "cs91"];
-const inTbls = ["dontCret~cs91", "pubilc~","96~cs,a,c91,c", "108~cs,a,c91,c", "107~cs,a,c91,c", "98~cs,a,c91,c", "92~cs,a,c91,c", "101~cs,a", "99~a", "91~a"];
+const inTbls = ["dontCret~cs91", "pubilc~", "2/t-72~cs", "2/m-91~a", "2/m-92~cs,a,c91,c", "2/n-96~cs,a,c91,c", "2/n-98~cs,a,c91,c", "2/o-99~a", "2/o-101~cs,a", "2/r-107~cs,a,c91,c", "2/r-108~cs,a,c91,c"];
 const cust_const = [
  {
   "a": "maxNoOfAdvOnBoard", "b": 9, "c": "more customiztaion", "d": "number of advocates that can be assigned case", "u": "url-explaining-video"
  }];
 const moduLst = [
- {
-  a: ",108,107,98,92,101,",
-  b: "Add New Case",
-  c: "fa-plus-circle",
-  d: "addNew",
-  e: "#20c997",
- },
- {
-  a: ",92,   91,99,96,",//96 k.js refresh, 99 nextDate.js updateNhEntry/updateNextDateRecord,91 nextDate.js save next Hearing
-  b: "All Cases",
-  c: "fa-list-ul",
-  d: "allCases",
-  e: "#0d6efd",
- },
- {
-  a: ",92,",
-  b: "Check New Data",
-  c: "fa-sync-alt",
-  d: "checkNewData",
-  e: "#fd7e14",
- },
- {
-  a: ",92,",
-  b: "Clear All Data",
-  c: "fa-trash",
-  d: "clearAllData",
-  e: "#dc3545",
- },
- {
-  a: ",92,",
-  b: "Settings",
-  c: "fa-cog",
-  d: "settings",
-  e: "#6c757d",
- },
+    { a: ",108,107,98,92,101,", b: "Add New Case", c: "fa-plus-circle", d: "addNew", e: "#20c997" },
+    { a: ",92,   ,72,91,99,96,", b: "All Cases", c: "fa-list-ul", d: "allCases", e: "#0d6efd" }, // 96 k.js refresh, 99 nextDate.js updateNhEntry/updateNextDateRecord, 91 nextDate.js save next Hearing
+    { a: ",92,", b: "Check New Data", c: "fa-sync-alt", d: "checkNewData", e: "#fd7e14" },
+    { a: ",92,", b: "Clear All Data", c: "fa-trash", d: "clearAllData", e: "#dc3545" },
+    { a: ",92,", b: "Settings", c: "fa-cog", d: "settings", e: "#6c757d" }
 ];
 moduLst.hook = "onModuLstAllowed";
 window[my1uzr.worknOnPg].moduLst = moduLst;
 window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
  window[my1uzr.worknOnPg].allowedModulesMenuItems = allowedModules || [];
- renderSidebarMenu();
 };
 
 const sho_da_tkLimit = 1;
@@ -112,21 +81,17 @@ const dontRestartAfterLogin = 1;
     a: 8,
     u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1xi.min.js",
    },
-   {
-    a: 20,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@aa6cfeb/ks/sidebar.js",
-    c: "handleMenuAction,toggleSidebar",
-    r: " ",
-   },
-   {
+    {
     a: 25,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@100357e/ks/addNewCase.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@30cfa42/ks/addNewCase.js",
+    //u: "addNewCase.js",
     c: "showAddCaseModal,toggleCNRFields,toggleMoreDetails,saveCase,openEditCaseModal,updateCaseRecord,switchEditTab,openMemberSelector,selectFilerParty,selectAnswererParty",
     r: " ",
    },
    {
     a: 26,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@caafdee/ks/allCases.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@30cfa42/ks/allCases.js",
+    //u: "allCases.js",
     c: "showAllCases,showHome",
     r: " ",
    },
@@ -150,7 +115,7 @@ const dontRestartAfterLogin = 1;
    },
    {
     a: 24,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@aa6cfeb/ks/printRecords.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@30cfa42/ks/printRecords.js",
     c: "printDashboard",
     r: " ",
    },
@@ -183,24 +148,24 @@ const dontRestartAfterLogin = 1;
  }
 
  try {
-  console.log("🚀 Starting Court Case Register App...");
+  console.log("­ƒÜÇ Starting Court Case Register App...");
 
   let result1 = await loadCshScriptsSequentially(1, 2, 3, 4, 5, 8, 30, 33);
   if (!result1.success)
    throw new Error("Failed to load required scripts: " + result1.error);
 
-  console.log("📦 Creating database tables for:", dbnm);
+  console.log("­ƒôª Creating database tables for:", dbnm);
   try {
    const createResult = await dbDexieManager.handleNwTables("loader", dbnm, tblsRequired);
    tblFailureCount = createResult.failureCount;
    console.log(
-    "✅ Database initialized:",
+    "Ô£à Database initialized:",
     dbnm,
     "| Failure count:",
     createResult.failureCount,
    );
   } catch (dbError) {
-   console.error("❌ Database error:", dbError);
+   console.error("ÔØî Database error:", dbError);
   }
   try {
   var resp = await fetch("ks.da");
@@ -216,43 +181,73 @@ const dontRestartAfterLogin = 1;
 
   await recomputeAllowedModules();
 
-  console.log("📦 Loading modules...");
+  console.log("­ƒôª Loading modules...");
   await loadExe2Fn(22);
-  console.log("✅ messageModal loaded");
+  console.log("Ô£à messageModal loaded");
   await loadExe2Fn(21);
-  console.log("✅ ks_h loaded");
+  console.log("Ô£à ks_h loaded");
   await loadExe2Fn(23);
-  console.log("✅ nextDate loaded");
+  console.log("Ô£à nextDate loaded");
   await loadExe2Fn(24);
-  console.log("✅ printRecords loaded");
-  await loadExe2Fn(20);
-  console.log("✅ sidebar loaded");
-  var baseHandleMenuAction = window.handleMenuAction;
+  console.log("Ô£à printRecords loaded");
+  // Define sidebar handlers in ks.js (no external sidebar.js dependency)
+  window.toggleSidebar = toggleSidebar;
   window.handleMenuAction = function (action) {
-   if (action === "settings") {
-    toggleSidebar();
-    setTimeout(function () {
-     loadExe2Fn(31);
-    }, 300);
-    return;
-   }
-   baseHandleMenuAction(action);
+    var skipSidebar = window._skipSidebarOnMenu;
+    window._skipSidebarOnMenu = false;
+
+    if (skipSidebar) {
+      if (action === "settings") {
+        setTimeout(function () {
+          loadExe2Fn(31);
+        }, 0);
+        return;
+      }
+      if (action === "addNew")
+        setTimeout(function () { showAddCaseModal(); }, 0);
+      else if (action === "allCases")
+        setTimeout(function () { showAllCases(); }, 0);
+      else if (action === "checkNewData")
+        setTimeout(function () { refreshFromServer(); }, 0);
+      else if (action === "clearAllData")
+        setTimeout(function () { showClearCacheModal(); }, 0);
+      return;
+    }
+
+    // Normal clicks: toggle sidebar as before
+    if (typeof toggleSidebar === "function") toggleSidebar();
+    if (action === "settings") {
+      setTimeout(function () {
+        loadExe2Fn(31);
+      }, 300);
+      return;
+    }
+    if (action === "addNew")
+      setTimeout(function () { showAddCaseModal(); }, 300);
+    else if (action === "allCases")
+      setTimeout(function () { showAllCases(); }, 300);
+    else if (action === "checkNewData")
+      setTimeout(function () { refreshFromServer(); }, 300);
+    else if (action === "clearAllData")
+      setTimeout(function () { showClearCacheModal(); }, 300);
   };
+  console.log("Ô£à sidebar handlers ready");
   await loadExe2Fn(25);
-  console.log("✅ addNewCase loaded");
+  console.log("Ô£à addNewCase loaded");
+  installUpdateRecordWrapper();
   await loadExe2Fn(26);
-  console.log("✅ allCases loaded");
+  console.log("Ô£à allCases loaded");
   await loadExe2Fn(27);
-  console.log("✅ ei loaded");
+  console.log("Ô£à ei loaded");
 
   injectKSStyles();
 
   await loadDataFromDB();
 
   renderAppUI();
-  console.log("✅ App UI rendered - Premium Bootstrap Design");
+  console.log("Ô£à App UI rendered - Premium Bootstrap Design");
  } catch (e) {
-  console.error("❌ App initialization error:", e);
+  console.error("ÔØî App initialization error:", e);
   document.getElementById("main_body").innerHTML =
    '<div class="d-flex justify-content-center align-items-center" style="min-height:100vh;">' +
    '<div class="card-premium p-4 text-center" style="max-width:400px;">' +
@@ -308,25 +303,33 @@ function isModuleAllowed(code) {
  });
 }
 
+function toggleSidebar() {
+  var sidebar = document.getElementById("appSidebar");
+  var overlay = document.getElementById("sidebarOverlay");
+  if (sidebar) sidebar.classList.toggle("open");
+  if (overlay) overlay.classList.toggle("visible");
+}
+window.toggleSidebar = toggleSidebar;
+
 function renderSidebarMenu() {
- var nav = document.querySelector("#appSidebar .sidebar-menu");
- if (!nav) return;
- nav.innerHTML = sidebarItems
-  .filter(function (it) {
-   return isModuleAllowed(it.mod);
-  })
-  .map(function (it) {
-   return (
-    '<a class="sidebar-item" onclick="handleMenuAction(\'' +
-    it.act +
-    '\')" role="button"><i class="fas ' +
-    it.ic +
-    '"></i> ' +
-    it.lb +
-    "</a>"
-   );
-  })
-  .join("");
+  var nav = document.querySelector("#appSidebar .sidebar-menu");
+  if (!nav) return;
+  nav.innerHTML = sidebarItems
+   .filter(function (it) {
+    return isModuleAllowed(it.mod);
+   })
+   .map(function (it) {
+    return (
+     '<a class="sidebar-item" onclick="handleMenuAction(\'' +
+     it.act +
+     '\')" role="button"><i class="fas ' +
+     it.ic +
+     '"></i> ' +
+     it.lb +
+     "</a>"
+    );
+   })
+   .join("");
 }
 
 async function recomputeAllowedModules() {
@@ -347,6 +350,11 @@ async function recomputeAllowedModules() {
  }
 }
 
+async function openAdminFromMenu(action) {
+  window._skipSidebarOnMenu = true;
+  await handleMenuAction(action);
+}
+
 function loadMy1ctr() {
  (async () => { await loadExe2Fn(32, ["dv_to_set_open_my1ctr_processed", 0, 1, 2], [1]); })();
 }
@@ -363,7 +371,8 @@ function getHeaderTitle() {
 
 var defaultVisibleCols = {
  sr: true,
- pdate: true,
+  menu: true,
+  pdate: true,
  court: true,
  adv: true,
  brief: true,
@@ -376,16 +385,37 @@ var defaultVisibleCols = {
  edit: true,
  del: true,
 };
-var visibleCols = JSON.parse(
- localStorage.getItem("ks_visibleCols") || JSON.stringify(defaultVisibleCols),
-);
+var KS_COLS_PREF_V = 2;
+function loadVisibleCols() {
+  var stored = null;
+  try {
+    stored = JSON.parse(localStorage.getItem("ks_visibleCols") || "null");
+  } catch (e) {
+    stored = null;
+  }
+  if (!stored || stored.v !== KS_COLS_PREF_V || !stored.cols) {
+   stored = { cols: {} };
+  }
+  var cols = {};
+  for (var k in defaultVisibleCols) {
+   cols[k] = stored.cols[k] !== false;
+  }
+  return cols;
+}
+function saveVisibleCols() {
+  localStorage.setItem(
+   "ks_visibleCols",
+   JSON.stringify({ v: KS_COLS_PREF_V, cols: visibleCols }),
+  );
+}
+var visibleCols = loadVisibleCols();
 function isColVisible(id) {
- return visibleCols[id] !== false;
+  return visibleCols[id] !== false;
 }
 function toggleCol(id) {
- visibleCols[id] = !visibleCols[id];
- localStorage.setItem("ks_visibleCols", JSON.stringify(visibleCols));
- renderTable();
+  visibleCols[id] = !isColVisible(id);
+  saveVisibleCols();
+  renderTable();
 }
 
 function renderAppUI() {
@@ -444,6 +474,9 @@ function renderAppUI() {
   '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
   (isColVisible("answerer") ? "checked" : "") +
   ' onchange="toggleCol(\'answerer\')" style="margin-right:6px;">Answerer</label>' +
+  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
+  (isColVisible("menu") ? "checked" : "") +
+  ' onchange="toggleCol(\'menu\')" style="margin-right:6px;">Actions</label>' +
   '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
   (isColVisible("edit") ? "checked" : "") +
   ' onchange="toggleCol(\'edit\')" style="margin-right:6px;">Edit</label>' +
@@ -506,7 +539,24 @@ function renderAppUI() {
   "</div>" +
   "</div>" +
   "</div>" +
-  '<div id="casesContainer" class="animate-fade-in-up"></div>';
+  '<div id="casesContainer" class="animate-fade-in-up"></div>' +
+  '<div id="rowActionsMenu" style="display:none;position:absolute;z-index:1080;background:#FFFFFF;border:1px solid var(--gray-light);border-radius:8px;box-shadow:var(--shadow-lg);min-width:212px;padding:4px 0;">' +
+  '<button type="button" onclick="handleRowAction(\'changeJuzeName\')" style="display:flex;width:100%;align-items:center;gap:10px;padding:9px 14px;background:none;border:none;text-align:left;font-size:13px;color:var(--gray-dark);cursor:pointer;" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="this.style.background=\'\'">' +
+  '<i class="fas fa-user-tie" style="color:var(--gold);width:14px;"></i>Change Judge name - only this case' +
+  "</button>" +
+  '<button type="button" onclick="handleRowAction(\'changeAllJuzesName\')" style="display:flex;width:100%;align-items:center;gap:10px;padding:9px 14px;background:none;border:none;text-align:left;font-size:13px;color:var(--gray-dark);cursor:pointer;" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="this.style.background=\'\'">' +
+  '<i class="fas fa-users" style="color:var(--gold);width:14px;"></i>Change Judge name - all cases' +
+  "</button>" +
+  //   '<button type="button" onclick="" style="display:flex;width:100%;align-items:center;gap:10px;padding:9px 14px;background:none;border:none;text-align:left;font-size:13px;color:var(--gray-dark);cursor:pointer;" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="this.style.background=\'\'">' +
+  // '<i class="fas fa-users" style="color:var(--gold);width:14px;"></i>Transfer' +
+  // "</button>" +
+  //   '<button type="button" onclick="" style="display:flex;width:100%;align-items:center;gap:10px;padding:9px 14px;background:none;border:none;text-align:left;font-size:13px;color:var(--gray-dark);cursor:pointer;" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="this.style.background=\'\'">' +
+  // '<i class="fas fa-users" style="color:var(--gold);width:14px;"></i>Pull Serials' +
+  // "</button>" +
+  //   '<button type="button" onclick="" style="display:flex;width:100%;align-items:center;gap:10px;padding:9px 14px;background:none;border:none;text-align:left;font-size:13px;color:var(--gray-dark);cursor:pointer;" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="this.style.background=\'\'">' +
+  // '<i class="fas fa-users" style="color:var(--gold);width:14px;"></i>Attach Files' +
+  // "</button>" +
+  "</div>";
 
  var searchInput = document.getElementById("searchBox");
  if (searchInput) {
@@ -573,6 +623,7 @@ window.refreshFromServer = async function () {
    showMessageModal("Info", "Server communication not available", false);
    return;
   }
+  clearPayload0();
   payload0.fn = 96;
   payload0.vw = 1;
   payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [
@@ -592,7 +643,7 @@ window.refreshFromServer = async function () {
    1,
    1,
   );
-  console.log("📥 Refresh:", response);
+  console.log("­ƒôÑ Refresh:", response);
   if (response && response.su == 1) {
    hndlRspo96(response);
   } else {
@@ -622,12 +673,339 @@ window.toggleColVisPanel = function () {
  }
 };
 
+var _ksRowMenuContext = null;
+function openRowMenu(event, rec, dv, cdCur) {
+  event.stopPropagation();
+  var menu = document.getElementById("rowActionsMenu");
+  if (!menu) return;
+  _ksRowMenuContext = { rec: rec, dv: dv, cdCur: cdCur };
+  menu.style.display = "block";
+  var btn = event.currentTarget || event.target;
+  var rect = btn.getBoundingClientRect();
+  var below = rect.bottom + 4;
+  var above = rect.top - menu.offsetHeight - 4;
+  var top =
+    below + menu.offsetHeight > window.innerHeight && above > 0 ? above : below;
+  menu.style.top = top + window.scrollY + "px";
+  var left = rect.right - menu.offsetWidth;
+  if (left < 0) left = 0;
+  menu.style.left = left + window.scrollX + "px";
+}
+function closeRowMenu() {
+  var menu = document.getElementById("rowActionsMenu");
+  if (menu) menu.style.display = "none";
+  _ksRowMenuContext = null;
+}
+function handleRowAction(action) {
+  var ctx = _ksRowMenuContext || {};
+  if (action === "changeJuzeName") {
+    if (typeof changeJuzeName === "function") changeJuzeName(ctx.rec, ctx);
+  }
+  if (action === "changeAllJuzesName") {
+    if (typeof changeAllJuzesName === "function") changeAllJuzesName(ctx.rec, ctx);
+  }
+  closeRowMenu();
+}
+function installUpdateRecordWrapper() {
+  if (typeof window.updateCaseRecord !== "function") return;
+  if (window.updateCaseRecord._ksWrapped) return;
+  var base = window.updateCaseRecord;
+  var wrapper = async function () {
+    if (payload0.cd !== 2) payload0.cd = 1;
+    return base.apply(this, arguments);
+  };
+  wrapper._ksWrapped = true;
+  window.updateCaseRecord = wrapper;
+}
+
+function isKsCs91Record(rec) {
+  if (!rec) return false;
+  if (typeof isCs91Record === "function") return !!isCs91Record(rec);
+  return rec.tmt !== undefined;
+}
+
+function collectJudgeCaseIds(desigName) {
+  var d = String(desigName || "").trim();
+  var out = [];
+  var seen = {};
+  if (!d) return out;
+  var recs91 =
+    (typeof caseRecords91 !== "undefined" && caseRecords91) ||
+    window.caseRecords91 ||
+    [];
+  for (var i = 0; i < recs91.length; i++) {
+    var cr = recs91[i];
+    if (!cr || String(cr.j || "").trim() !== d) continue;
+    var cs =
+      typeof findCsByCs91Link === "function" ? findCsByCs91Link(cr.a) : null;
+    if (cs && cs.a != null && !seen[cs.a]) {
+      seen[cs.a] = 1;
+      out.push(cs.a);
+    }
+  }
+  return out;
+}
+
+function changeJuzeName(caseRecord, context) {
+  var rec = (context && context.rec) || caseRecord;
+  if (!rec) {
+    showMessageModal("Info", "No record selected.", false);
+    return;
+  }
+  showJuzeNameModal(rec, { all: false });
+}
+
+function changeAllJuzesName(caseRecord, context) {
+  var rec = (context && context.rec) || caseRecord;
+  if (!rec) {
+    showMessageModal("Info", "No record selected.", false);
+    return;
+  }
+  showJuzeNameModal(rec, { all: true });
+}
+
+function showJuzeNameModal(rec, opts) {
+  opts = opts || {};
+  if (!rec) {
+    showMessageModal("Info", "No record selected.", false);
+    return;
+  }
+  if (isKsCs91Record(rec)) {
+    showMessageModal(
+      "Info",
+      "Judge name change is not available for E-Court (CNR) records.",
+      false,
+    );
+    return;
+  }
+  // var disp =
+  //   typeof getCaseDisplayRecord === "function" ? getCaseDisplayRecord(rec) : rec;
+  var cr =
+    typeof getCaseCs91Fallback === "function" ? getCaseCs91Fallback(rec) : null;
+  var courtName = rec.q || "";
+  var desigName = (cr && cr.j) || "";
+  var desig = String(desigName).trim();
+  var mid = "juzeNameModal_" + Date.now();
+  var ids = opts.all ? collectJudgeCaseIds(desig) : [];
+  window._ksJuzeCtx = {
+    rec: rec,
+    court: String(courtName).trim(),
+    desig: desig,
+    all: !!opts.all,
+    count: ids.length,
+  };
+  var affectHtml = "";
+  if (opts.all) {
+    affectHtml =
+      '<div class="form-group-premium mb-2">' +
+      '<label class="form-label-premium mb-1">Cases affected:</label>' +
+      '<div class="form-control-premium" style="background:var(--gray-surface);font-weight:600;">' +
+      ids.length +
+      (ids.length === 1 ? " case" : " cases") +
+      " with this designation</div></div>";
+  }
+  var html =
+    '<div class="modal fade" id="' +
+    mid +
+    '" tabindex="-1" aria-hidden="true">' +
+    '<div class="modal-dialog modal-dialog-centered">' +
+    '<div class="modal-content animate-scale-in shadow-xl" style="border:3px solid var(--navy);border-radius:12px;overflow:hidden;">' +
+    '<div class="modal-header bg-navy-gradient text-gold" style="padding:14px 18px;border-bottom:3px solid var(--gold);">' +
+    '<h6 class="modal-title fw-bold" style="font-size:15px;letter-spacing:0.5px;"><i class="fas fa-user-tie me-2 text-gold"></i>CHANGE JUDGE NAME</h6>' +
+    '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>' +
+    '<div class="modal-body p-3">' +
+    '<div class="form-group-premium mb-2">' +
+    '<label class="form-label-premium mb-1">Court name:</label>' +
+    '<div class="form-control-premium" style="background:var(--gray-surface);font-weight:600;">' +
+    (courtName ? escHtml(courtName) : '<span class="text-muted">Court name not available</span>') +
+    "</div></div>" +
+    '<div class="form-group-premium mb-2">' +
+    '<label class="form-label-premium mb-1">Designation name:</label>' +
+    '<div class="form-control-premium" style="background:var(--gray-surface);font-weight:600;">' +
+    (desigName ? escHtml(desigName) : '<span class="text-muted">Designation name not available</span>') +
+    "</div></div>" +
+    affectHtml +
+    '<div class="form-group-premium mb-0">' +
+    '<label class="form-label-premium mb-1" for="juzeNewName">New judge name:</label>' +
+    '<input type="text" id="juzeNewName" class="form-control-premium" maxlength="12" placeholder="Enter new judge name" autocomplete="off" spellcheck="false" oninput="this.value=this.value.replace(/[^A-Za-z0-9]/g,\'\').slice(0,12)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();saveJuzeName(\'' +
+    mid +
+    '\');}">' +
+    '<div class="form-hint">Maximum 12 characters, letters and digits only.</div>' +
+    "</div></div>" +
+    '<div class="modal-footer" style="padding:12px 18px;border-top:2px solid var(--gray-bg);display:flex;justify-content:flex-end;gap:8px;">' +
+    '<button type="button" class="btn-premium btn-premium-secondary" data-bs-dismiss="modal">Cancel</button>' +
+    '<button type="button" class="btn-premium btn-premium-primary" onclick="saveJuzeName(\'' +
+    mid +
+    '\')"><i class="fas fa-check me-1"></i> OK</button>' +
+    "</div></div></div>";
+  document.body.insertAdjacentHTML("beforeend", html);
+  var modalEl = document.getElementById(mid);
+  new bootstrap.Modal(modalEl).show();
+  setTimeout(function () {
+    var input = document.getElementById("juzeNewName");
+    if (input) input.focus();
+  }, 250);
+  modalEl.addEventListener("hidden.bs.modal", function () {
+    window._ksJuzeCtx = null;
+    this.remove();
+  });
+}
+
+async function saveJuzeName(mid) {
+  var ctx = window._ksJuzeCtx || {};
+  var rec = ctx.rec;
+  if (!rec) {
+    showMessageModal("Info", "No record selected.", false);
+    return;
+  }
+  if (isKsCs91Record(rec)) {
+    showMessageModal(
+      "Info",
+      "Judge name change is not available for E-Court (CNR) records.",
+      false,
+    );
+    return;
+  }
+  var input = document.getElementById("juzeNewName");
+  var val = input ? String(input.value || "").trim() : "";
+  if (!val) {
+    showMessageModal("Info", "Please enter new judge name.", false);
+    return;
+  }
+  if (!/^[A-Za-z0-9]{1,12}$/.test(val)) {
+    showMessageModal("Info", "Only letters and digits allowed (max 12).", false);
+    return;
+  }
+  if (ctx.court && val === ctx.court) {
+    showMessageModal("Info", "New judge name is same as current.", false);
+    return;
+  }
+  var ids = rec.a;
+  var allCount = 0;
+  if (ctx.all) {
+    if (!ctx.desig) {
+      showMessageModal(
+        "Info",
+        "Designation name not available for this record.",
+        false,
+      );
+      return;
+    }
+    ids = collectJudgeCaseIds(ctx.desig);
+    if (ids.length === 0) {
+      showMessageModal("Info", "No cases found with this designation.", false);
+      return;
+    }
+    allCount = ids.length;
+  }
+  var modalEl = document.getElementById(mid);
+  if (modalEl) {
+    var inst = bootstrap.Modal.getInstance(modalEl);
+    if (inst) inst.hide();
+  }
+  await new Promise(function (r) { setTimeout(r, 300); });
+  try {
+    await updateCaseRecordJudgeName(ids, val, allCount);
+  } catch (e) {
+    showMessageModal("Error", e && e.message ? e.message : "Update failed", true);
+  }
+}
+
+async function updateCaseRecordJudgeName(recId, newJudgeName, count) {
+  var isArr = Array.isArray(recId);
+  var ids = isArr
+    ? recId.filter(function (v) {
+        return v != null && v !== "";
+      })
+    : recId == null || recId === ""
+      ? []
+      : [recId];
+  var jName = String(newJudgeName || "").trim();
+  if (ids.length === 0) {
+    showMessageModal("Info", "No record selected.", false);
+    return;
+  }
+  if (!jName) {
+    showMessageModal("Info", "Please enter new judge name.", false);
+    return;
+  }
+  clearPayload0();
+  payload0.x1 = isArr ? ids : ids[0]; //Id (one case) or Id array (all cases)
+  payload0.p = { q: jName };
+  payload0.vw = 1;
+  payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "cs" }]);
+  payload0.fn = 72;
+  payload0.cd = 2;
+  console.log(
+    "📤 Update Judge Name:",
+    "a=" + (isArr ? ids.join(",") : ids[0]),
+    JSON.stringify(payload0.p),
+  );
+  try {
+    if (typeof fnj3 !== "function") {
+      showMessageModal("Info", "Server communication not available", false);
+      return;
+    }
+    var jResponse = await fnj3(
+      "https://my1.in/2/t.php",
+      payload0,
+      1,
+      true,
+      null,
+      20000,
+      0,
+      1,
+      1,
+    );
+    console.log("📥 Server:", jResponse);
+    if (jResponse && jResponse.su == 1) {
+      await hndlRspo72(jResponse, { courtName: jName, count: count || 0 });
+    } else {
+      showMessageModal("Info", jResponse?.ms || "Record not updated", false);
+    }
+  } catch (e) {
+    showMessageModal("Info", "Error: " + e.message, false);
+  } finally {
+    payload0.cd = 1;
+  }
+}
+
+async function hndlRspo72(response, ctx) {
+  ctx = ctx || {};
+  await handl_ks_rspons(response);
+  await loadDataFromDB();
+  renderTable();
+  var n = parseInt(ctx.count || 0) || 0;
+  if (n > 0) {
+    showMessageModal(
+      "Success",
+      "✅ Judge name updated for " +
+        n +
+        (n === 1 ? " case" : " cases") +
+        ".\n\nNew name: " +
+        (ctx.courtName || ""),
+      false,
+    );
+  } else {
+    showMessageModal(
+      "Success",
+      "✅ Judge name updated successfully!\n\nCourt: " + (ctx.courtName || ""),
+      false,
+    );
+  }
+}
+
 document.addEventListener("click", function (e) {
- var panel = document.getElementById("colVisPanel");
- var btn = document.getElementById("colVisToggle");
- if (panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) {
-  panel.style.display = "none";
- }
+  var panel = document.getElementById("colVisPanel");
+  var btn = document.getElementById("colVisToggle");
+  if (panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) {
+    panel.style.display = "none";
+  }
+  var menu = document.getElementById("rowActionsMenu");
+  var mbtn = e.target.closest ? e.target.closest("#rowActionsMenu button") : null;
+  if (menu && !menu.contains(e.target) && mbtn === null) {
+    closeRowMenu();
+  }
 });
 
-console.log("✅ ks.js ready - Premium Design");
+console.log("Ô£à ks.js ready - Premium Design");
