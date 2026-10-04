@@ -869,6 +869,7 @@ function extractCs91Records(text) {
 }
 
 window.importCasesFromFile = function () {
+  clearPayload0();
   var input = document.createElement("input");
   input.type = "file";
   input.accept = "*";
@@ -1171,6 +1172,7 @@ function showImportResultModal(response) {
 }
 
 window.syncCaseFromECourt = async function () {
+  clearPayload0();
   var cnrInput = document.getElementById("caseCNR");
   if (!cnrInput) return;
   var cnr = (cnrInput.value || "").trim().toUpperCase();
@@ -1302,6 +1304,7 @@ function showECourtSyncResult(response, valid) {
 }
 
 window.saveECourtSync = async function () {
+  clearPayload0();
   var cnrInput = document.getElementById("caseCNR");
   var cnr = (cnrInput && (cnrInput.value || "").trim().toUpperCase()) || "";
   if (!cnr) {
@@ -1585,6 +1588,7 @@ function updateCsvValidation(csvTa) {
 }
 
 window.sendCNRCoutCases = async function (modalId) {
+  clearPayload0();
   var csvTa = document.getElementById("caseCNRCsv");
   var advSel = document.getElementById("caseAdvocate");
   var res = parseCsvCNRs(csvTa ? csvTa.value : "");
@@ -1921,6 +1925,7 @@ window.openEditCaseModal = function (record, cd) {
 };
 
 window.updateCaseRecord = async function () {
+  clearPayload0();
   if (!editingRecordId) {
     showMessageModal("Info", "No record selected for editing.", false);
     return;
@@ -2177,6 +2182,7 @@ window.hndlRspo98 = async function (response, ctx) {
 };
 
 window.saveCase = async function (modalId) {
+  clearPayload0();
   var sourceRadio = document.querySelector(
     'input[name="caseSource_' + modalId + '"]:checked',
   );
