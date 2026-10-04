@@ -214,9 +214,38 @@ function melMailDate(v) {
   return d && !isNaN(d.getTime()) ? fmtDate(v) : "-";
 }
 
+// The status labels the booking code produces (billStatusOf, myBookingsStatus)
+// are written for on-screen badges, so "Partially Paid" and "Cancelled" read
+// oddly as a mail subject on their own. Rebase them onto the "Booking ..."
+// series so every status mail a guest receives is one filterable thread in
+// their inbox, and the guest can tell a cancellation from a confirmation
+// without opening it.
+var MEL_MAIL_SUBJECTS = {
+ "Booking Confirmed": "Booking Confirmed",
+ "Partially Paid": "Booking Partially Paid",
+ "Booking Requested": "Booking Requested",
+ "Cancelled": "Booking Cancelled",
+};
+
+// The one subject shared by the <title>, the preheader and the POST field, so
+// the three cannot drift apart. Falls back to the generic subject when the
+// parts carry no readable status.
+function melMailSubject(parts) {
+ var st = (parts && parts[0] && parts[0].st) || null;
+ var label = st && st.label != null ? String(st.label).trim() : "";
+ var subject = label ? MEL_MAIL_SUBJECTS[label] || label : "";
+ if (!subject) return MEL_MAIL_SUBJECT;
+ var hn =
+  typeof hotel !== "undefined" && hotel && hotel.name != null
+   ? String(hotel.name).trim()
+   : "";
+ return hn ? subject + " \u00b7 " + hn : subject;
+}
+
 function melPaysheetMailHtml(parts, booker, billNo) {
-  var h = hotel || {};
-  var sp0 = parts[0].snap;
+ var h = hotel || {};
+ var subject = melMailSubject(parts);
+ var sp0 = parts[0].snap;
   var st = parts[0].st || { label: "Booking Requested", ok: false };
   var nights = Number(sp0.nights) || 0;
   var stay =
@@ -261,10 +290,10 @@ function melPaysheetMailHtml(parts, booker, billNo) {
   return (
    '<!DOCTYPE html><html><head><meta charset="utf-8">' +
    '<meta name="viewport" content="width=device-width,initial-scale=1">' +
-   "<title>" + escHtml(MEL_MAIL_SUBJECT) + "</title>" +
-   '<style>' + MEL_MAIL_CSS + "</style></head>" +
-   '<body class="m-in"><div style="display:none;max-height:0;overflow:hidden;">' +
-   escHtml(MEL_MAIL_SUBJECT + " \u00b7 " + (booker.name || "Guest")) +
+"<title>" + escHtml(subject) + "</title>" +
+    "<style>" + MEL_MAIL_CSS + "</style></head>" +
+    '<body class="m-in"><div style="display:none;max-height:0;overflow:hidden;">' +
+    escHtml(subject + " \u00b7 " + (booker.name || "Guest")) +
    "</div>" +
    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4efe3;"><tr><td align="center" style="padding:18px 10px;">' +
    '<table role="presentation" class="m-card" width="640" cellpadding="0" cellspacing="0"><tr><td class="m-pad" style="padding:22px 24px 6px;">' +
@@ -292,47 +321,88 @@ function melPaysheetMailHtml(parts, booker, billNo) {
   );
 }
 
+// Report a status mail that did not go out. The console line is always kept;
+// opts.onFail additionally lets a caller surface it (the admin panel shows it),
+// since the send is fire-and-forget and would otherwise pass unnoticed. Returns
+// false so a `return melMailFail(...)` reads as the failure it is.
+function melMailFail(opts, reason) {
+  console.warn("Room Booking Status mail not sent: " + reason);
+  var onFail = opts && typeof opts.onFail === "function" ? opts.onFail : null;
+  if (onFail) {
+    try {
+      onFail(reason);
+    } catch (e) {
+      console.warn("Status mail onFail handler threw:", e);
+    }
+  }
+  return false;
+}
+
 // opts.guest is the guest the caller already resolved (name/mobile/address/
 // email), used when the guest is not a signed-in my1uzr one yet. opts.timeout
 // caps the wait, for callers that hold up a page navigation of their own.
+// opts.parts hands over the paysheet parts ready-made, for callers that cannot
+// resolve the ids themselves. opts.onFail is told why a send did not go out.
 async function sendRoomBookingStatusMail(idList, opts) {
   try {
-   if (
-    typeof ppStayRoomIds !== "function" ||
-    typeof getMyBookingById !== "function" ||
-    typeof bookingSnapFromRecord !== "function"
-   ) {
-    return false;
-   }
-   var ids = ppStayRoomIds(idList);
-   if (!ids.length) return false;
    var parts = [];
-   for (var i = 0; i < ids.length; i++) {
-    var bk = getMyBookingById(ids[i]);
-    if (!bk) continue;
-    var snap =
-     typeof ensureSnapGst === "function"
-      ? ensureSnapGst(bookingSnapFromRecord(bk))
-      : bookingSnapFromRecord(bk);
-    if (!snap) continue;
-    var st =
-     typeof myBookingsStatus === "function"
-      ? myBookingsStatus(bk)
-      : { label: "Booking Requested", ok: false, paid: false };
-    var mailSnap = Object.assign({}, snap);
-    if (st.paid) {
-     mailSnap.paid = true;
-     mailSnap.received = Math.round(Number(snap.grandTotal) || 0);
+   var given = opts && Array.isArray(opts.parts) ? opts.parts : null;
+   if (given && given.length) {
+    // A caller that built the parts itself (the admin panel, which has no
+    // myBookingAll guest cache to look the ids up in) is taken at its word:
+    // re-deriving them here is what silently dropped every admin mail.
+    parts = given;
+   } else {
+    if (
+     typeof ppStayRoomIds !== "function" ||
+     typeof getMyBookingById !== "function" ||
+     typeof bookingSnapFromRecord !== "function"
+    ) {
+     return melMailFail(opts, "the booking cache is not loaded yet");
     }
-    if (st.cancelled) {
-     mailSnap.paid = false;
-     mailSnap.received = 0;
+    var ids = ppStayRoomIds(idList);
+    if (!ids.length) return melMailFail(opts, "no booking was found for this stay");
+    for (var i = 0; i < ids.length; i++) {
+     var bk = getMyBookingById(ids[i]);
+     if (!bk) continue;
+     var snap =
+      typeof ensureSnapGst === "function"
+       ? ensureSnapGst(bookingSnapFromRecord(bk))
+       : bookingSnapFromRecord(bk);
+     if (!snap) continue;
+     var st =
+      typeof myBookingsStatus === "function"
+       ? myBookingsStatus(bk)
+       : { label: "Booking Requested", ok: false, paid: false };
+     var mailSnap = Object.assign({}, snap);
+     if (st.paid) {
+      mailSnap.paid = true;
+      mailSnap.received = Math.round(Number(snap.grandTotal) || 0);
+     }
+     if (st.cancelled) {
+      mailSnap.paid = false;
+      mailSnap.received = 0;
+     }
+     parts.push({ snap: mailSnap, bk: bk, st: st });
     }
-    parts.push({ snap: mailSnap, bk: bk, st: st });
+    if (!parts.length)
+     return melMailFail(opts, "no booking was found for this stay");
    }
-   if (!parts.length) return false;
     var booker = null;
-    if (typeof resolveBookerInfo === "function") {
+    if (given && given.length) {
+     // A caller that built the parts itself already joined the guest onto the
+     // snapshot (rb.o -> c.a), so take the booker from there. resolveBookerInfo
+     // must not run on this path: it matches the *signed-in* my1uzr identity
+     // first and ignores which booking it is mailing about, which in the admin
+     // panel is the staff account - the status mail would go to the wrong guest.
+     if (typeof billBookerFromSnap === "function") {
+      try {
+       booker = billBookerFromSnap(parts[0].snap);
+      } catch (bs) {
+       booker = null;
+      }
+     }
+    } else if (typeof resolveBookerInfo === "function") {
      try {
       booker = await resolveBookerInfo(parts[0].snap);
      } catch (be) {
@@ -352,8 +422,7 @@ async function sendRoomBookingStatusMail(idList, opts) {
     if (!address && s0.address) address = String(s0.address);
    }
    if (!toMail) {
-    console.warn("Room Booking Status mail skipped: guest has no email address.");
-    return false;
+    return melMailFail(opts, "the guest has no email address on file");
    }
    var html = melPaysheetMailHtml(
     parts,
@@ -378,7 +447,7 @@ melBillNo(),
     body: new URLSearchParams({
      nm: guestName,
      nu: toMail,
-     sj: MEL_MAIL_SUBJECT,
+     sj: melMailSubject(parts),
      ms: html,
      hpt: "",
     }).toString(),
@@ -395,16 +464,16 @@ melBillNo(),
     console.log("📧 Room Booking Status mail sent to " + toMail);
     return true;
    }
-   console.warn(
-    "Room Booking Status mail not sent: " +
+   return melMailFail(
+    opts,
+    "the mail server rejected it (" +
      resp.status +
      " " +
-     ((out && out.ms) || "no response body"),
+     ((out && out.ms) || "no response body") +
+     ")",
    );
-   return false;
   } catch (e) {
-   console.warn("Room Booking Status mail failed:", e);
-   return false;
+   return melMailFail(opts, "the request failed (" + (e && e.message) + ")");
   }
 }
 window.sendRoomBookingStatusMail = sendRoomBookingStatusMail;
@@ -497,7 +566,8 @@ window.sendRoomBookingStatusMail = sendRoomBookingStatusMail;
    },
     {
      a: 24,
-     u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@caafdee/rm/bill.js",
+     u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@be0e86f/rm/bill.js",
+     //u: "bill.js",
      c: "showBill,closeBill",
      r: " ",
     },
@@ -521,7 +591,8 @@ window.sendRoomBookingStatusMail = sendRoomBookingStatusMail;
    },
    {
     a: 20,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ae456ec/rm/booking.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@be0e86f/rm/booking.js",
+    //u: "booking.js",
     c: "openSummarySheet,calcBooking",
     r: " ",
    },
@@ -558,13 +629,15 @@ window.sendRoomBookingStatusMail = sendRoomBookingStatusMail;
    },
    {
     a: 44,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e5844db/rm/home.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@be0e86f/rm/home.js",
+    //u: "home.js",
     c: "showDashboard,renderTable",
     r: " ",
    },
    {
     a: 46,
-     u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ae456ec/rm/adminBooking.js",
+     u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@be0e86f/rm/adminBooking.js",
+     //u: "adminBooking.js",
      c: "openBookingModal,saveBooking",
     r: " ",
    },
@@ -595,8 +668,10 @@ window.sendRoomBookingStatusMail = sendRoomBookingStatusMail;
    { "a": 52, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b7740c3/cmn/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
    { "a": 53, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fcbc516/cmn/my1rp.js", "c": "open_my1rp", "r": "open_my1rp" },
    { "a": 106, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/addRoom.js", "c": "showAddRoom,setAddRoomHero,updateThumb,publishAddRoom,resetAddRoomForm,editRoom", "r": " " },
-   { "a": 112, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@ae456ec/rm/adminBooking.js", "c": "openBookingModal,saveBooking", "r": " " },
-    { "a": 43, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@caafdee/rm/billCombo.js", "c": " ", "r": " " }
+   { "a": 112, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@be0e86f/rm/adminBooking.js", "c": "openBookingModal,saveBooking", "r": " " },
+   //{ "a": 112, "u": "adminBooking.js", "c": "openBookingModal,saveBooking", "r": " " },
+    { "a": 43, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@be0e86f/rm/billCombo.js", "c": " ", "r": " " }
+    //{ "a": 43, "u": "billCombo.js", "c": " ", "r": " " }
    ];
  }
 
@@ -4654,26 +4729,6 @@ function htTotalWithGstHtml(amount, note) {
   );
 }
 
-// What the party in the nav stepper owes on top of the room's own nights, over a
-// set of rooms. This is the occupancy term of the paysheet's taxable base and
-// nothing else: calcBooking (booking.js) builds
-//
-//   subtotal = room nights + extraAdults x extraAdultsCharge x nights
-//                        + paidChildUnits x paidChildCharge x nights
-//
-// and its other terms are zero on a search card - the guest has not picked a
-// package or an add-on yet, and the long-stay discount is still hard-wired to 0 -
-// so those two are the whole difference, on both sides of the page.
-//
-// The pool comes from htOccupancyPool, the same call calcBooking makes with the
-// same adults/childAges globals, so included, free and over-age children resolve
-// identically here and on the summary sheet.
-//
-// nights of 0 means no dates are chosen, and the card is quoting a single night:
-// the charge is then counted for one night, which is what the guest would meet on
-// the first night of any stay they pick, rather than silently quoting a room
-// total that hides the surcharge its own "Extra guest charge applies" chip
-// advertises.
 function htPartyCharge(rooms, nights) {
   var pool = htOccupancyPool(rooms, adults, childAges);
   var cfg = window[my1uzr.worknOnPg]?.clientConfig?.HT_CFG || {};
