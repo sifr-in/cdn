@@ -1070,13 +1070,6 @@ function summaryHtml(s, opts) {
     ) +
     "</div>";
   }
-  if (s.discountAmt > 0) {
-    var dLbl =
-      s.discountPercent && Number(s.discountPercent) > 0
-        ? "Long-stay discount (" + s.discountPercent + "%)"
-        : "Discount";
-    rows += srow(dLbl, "\u2212" + fmtMoney(s.discountAmt), "neg");
-  }
   if (s.adultFee > 0) {
     rows += srow(
       "Extra adult" +
@@ -1143,6 +1136,18 @@ function summaryHtml(s, opts) {
     rows += srow("Extra Mattress", fmtMoney(s.mattressCharge));
   }
     rows += srow("GST " + (s.gst != null ? s.gst : htGstRate()) + "%", fmtMoney(s.tax));
+  // Under the tax line, not among the charges above it: bookingSnapFromRecord
+  // charges GST on the gross subtotal and takes the discount off the total
+  // (grandTotal = round(subtotal + tax) - discountAmt), so the deduction is the
+  // last step before the total is struck. Local change, not in the pinned CDN
+  // copy of this file.
+  if (s.discountAmt > 0) {
+    var dLbl =
+      s.discountPercent && Number(s.discountPercent) > 0
+        ? "Discount (" + s.discountPercent + "%)"
+        : "Discount";
+    rows += srow(dLbl, "\u2212" + fmtMoney(s.discountAmt), "neg");
+  }
   rows +=
     '<div class="s-row s-total"><span>Grand Total</span><span class="amt">' +
     fmtMoney(s.grandTotal) +

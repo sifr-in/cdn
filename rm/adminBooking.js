@@ -260,10 +260,6 @@ function savedBookingIdsFromResp(resp) {
   return out;
 }
 
-// Bill snapshot for one saved rb row, with the guest record (table c) and the
-// booking's receipts folded in. Returns null when the row cannot produce a bill.
-// Split out of printBillFromDashboard so a queue of stays can build every bill
-// from a single read of each table.
 function billSnapForDashboardRow(raw, cRows, rRows) {
   if (!raw) return null;
   var snap = null;
@@ -325,6 +321,93 @@ function billSnapForDashboardRow(raw, cRows, rRows) {
     snap.paid = payable > 0 && received >= payable;
   }
   return snap;
+}
+
+// Paysheet parts for a status mail, built from the same rb/c/r rows the bill
+// printer reads. The admin panel never populates myBookingAll - that is the
+// public guest's cache, filled only on the public booking and payment paths - so
+// sendRoomBookingStatusMail cannot resolve these ids on its own and silently
+// dropped every admin mail. The parts are assembled here and handed over.
+//
+// Status comes from billStatusOf(snap), which reads the money actually collected
+// against the row. myBookingsStatus() must not be used here: it reads o === 4 as
+// "Cancelled", but on a booking row o is the booker's guest id, so a booking for
+// guest 4 would be mailed as a cancellation.
+async function bookingMailParts(idList) {
+  var ids = savedBookingIdList(idList);
+  if (!ids.length) return [];
+  var wanted = {};
+  for (var i = 0; i < ids.length; i++) wanted[String(ids[i])] = true;
+  var rbRows = [];
+  var cRows = [];
+  var rRows = [];
+  try {
+    rbRows = (await dbDexieManager.getAllRecords(dbnm, "rb")) || [];
+    cRows = (await dbDexieManager.getAllRecords(dbnm, "c")) || [];
+    rRows = (await dbDexieManager.getAllRecords(dbnm, "r")) || [];
+  } catch (e) {
+    console.warn("Status mail: could not read the booking tables:", e);
+    return [];
+  }
+  var parts = [];
+  for (var r = 0; r < rbRows.length; r++) {
+    var raw = rbRows[r] || {};
+    if (raw.a == null || !wanted[String(raw.a)]) continue;
+    var snap = billSnapForDashboardRow(raw, cRows, rRows);
+    if (!snap) continue;
+    // billSnapForDashboardRow already folded the receipts into snap.received /
+    // snap.paid, so the money on the mail matches the printed bill. st.paid is
+    // deliberately left unset: setting it makes sendRoomBookingStatusMail
+    // overwrite received with the grand total and bill a part-paid stay as paid.
+    parts.push({
+      snap: snap,
+      bk: raw,
+      st:
+        typeof billStatusOf === "function"
+          ? billStatusOf(snap)
+          : { label: "Booking Requested", ok: false },
+    });
+  }
+  return parts;
+}
+
+// A status mail that did not go out. The send is fire-and-forget, so without
+// this the admin is never told and a guest with no email on file never hears.
+function adminMailNotSent(reason) {
+  showMessageModal(
+    "Status mail not sent",
+    "The booking was saved, but the status mail did not go out: " + reason + ".",
+    false,
+  );
+}
+
+// Fire the guest status mail for a save/update. Returns nothing: the caller goes
+// on to print the bills, and this must not hold that up.
+function adminSendBookingStatusMail(ids, why) {
+  if (!ids || !ids.length) return;
+  if (typeof window.sendRoomBookingStatusMail !== "function") {
+    console.warn("Admin booking " + why + ": status mail is unavailable");
+    return;
+  }
+  bookingMailParts(ids)
+    .then(function (parts) {
+      if (!parts.length) {
+        adminMailNotSent("the saved booking could not be read back");
+        return;
+      }
+      return window
+        .sendRoomBookingStatusMail(ids, {
+          parts: parts,
+          timeout: 8000,
+          onFail: adminMailNotSent,
+        })
+        .catch(function (e) {
+          console.warn("Admin booking " + why + ": status mail skipped", e);
+        });
+    })
+    .catch(function (e) {
+      console.warn("Admin booking " + why + ": status mail skipped", e);
+    });
 }
 
 // The local rb row for a booking id, or null.
@@ -1093,7 +1176,7 @@ window.goBookingStep = function (delta) {
   }
 };
 
-function validateBookingStep(step) {
+async function validateBookingStep(step) {
   var mid = bookingModalId;
   if (step === 1) {
     // Guest step: name, contact, optional email, ID proof. Hidden = skipped.
@@ -1315,7 +1398,7 @@ function validateBookingStep(step) {
     }
     return true;
   }
-  if (step === 6) {
+  if (step === 6 && !bookingState.editBookingId) {
     // Summary step: payments come from the Receipt/Payment modal
     // (bookingState.payments, set via window.fnAfterRcptPmt). A combination
     // keeps one list per room, so the over-payment guard uses their sum.
@@ -1325,7 +1408,7 @@ function validateBookingStep(step) {
     bookingState.payStatus = "";
     if (!isABHidden("adv")) {
       var totalPayable = lastCalcTotal - (bookingState.discountAmt || 0);
-      if (sum > totalPayable) {
+      if (sum > totalPayable&& !bookingState.editBookingId) {
         console.error(sum + ">" + totalPayable);
         showMessageModal(
           "Info",
@@ -1333,6 +1416,11 @@ function validateBookingStep(step) {
           false,
         );
         return false;
+      } else if (bookingState.editBookingId) {
+        var ok = await showConfirmModal(
+          "Advance payments: Please confirm more payable added!",
+        );
+        if (!ok) return false;
       }
     }
     return true;
@@ -3341,6 +3429,7 @@ window.saveBooking = async function () {
         await adminLoadDataFromDB();
         showDashboard();
         my1PageLoader(true);
+        adminSendBookingStatusMail(savedBookingIdsFromResp(resp), "save");
         setTimeout(function () {
           // A combination is one row per room, so the save answers with one id
           // per room (x1 is a list like ["55","56"]) - print every created row
@@ -3429,7 +3518,10 @@ window.updateBooking = async function () {
       bookingState.editBookingId = 0;
       await adminLoadDataFromDB();
       showDashboard();
-      showMessageModal("Success", "✅ Booking updated successfully!", false);
+      var idsUpd = savedBookingIdsFromResp(resp);
+      if (!idsUpd.length && bookingId) idsUpd = [String(bookingId)];
+      adminSendBookingStatusMail(idsUpd, "update");
+      showMessageModal("Success", "?o. Booking updated successfully!", false);
     } else {
       showMessageModal("Error", resp?.ms || "Failed to update booking", true);
     }
@@ -4235,7 +4327,7 @@ function beRoomStaySection() {
   h +=
     '<div class="col-12 col-sm-6 col-lg-4">' +
     '<label class="form-label-premium">Select guest</label>' +
-    '<button type="button" class="be-head-btn" onclick="(async () => { await loadExe2Fn(36, [\'no-loader-element\', 1, \'modalContentForEntInd\', \'commonFnToRunAfter_op_ViewCall\', 1, typeof window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_ei_admin_srchGuest !== \'undefined\' ? window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_ei_admin_srchGuest : null], [1]); })()">' +
+    '<button type="button" class="btn-premium btn-premium-primary" onclick="(async () => { await loadExe2Fn(36, [\'no-loader-element\', 1, \'modalContentForEntInd\', \'commonFnToRunAfter_op_ViewCall\', 1, typeof window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_ei_admin_srchGuest !== \'undefined\' ? window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_ei_admin_srchGuest : null], [1]); })()">' +
     '<i class="fas fa-search me-1"></i> Select Guest</button></div>' +
     '</div>' +
     "</div></div></div>";
@@ -4806,19 +4898,19 @@ function beGuestsSection() {
     '<div class="be-sec-body"><div class="row g-3">';
   if (!isABHidden("ad")) {
     h +=
-      '<div class="col-4 col-sm-6 col-lg-4">' +
-      '<label class="form-label-premium">Total Guests</label>' +
-      '<input type="text" id="beTotalGuests" class="form-control-premium fw-bold be-readonly" readonly></div>' +
-      '<div class="col-4 col-sm-6 col-lg-4">' +
-      '<label class="form-label-premium">Male</label>' +
+      '<div class="col-6 col-sm-6 col-lg-6">' +
+      '<label class="form-label-premium">Adult Guests</label>' +
       '<input type="text" id="beMale" min="0" max="9" class="form-control-premium" value="' +
       bookingState.male +
       '" oninput="beRecalc()"></div>' +
-      '<div class="col-4 col-sm-6 col-lg-4">' +
+      '<div class="col-4 col-sm-6 col-lg-4 d-none">' +
       '<label class="form-label-premium">Female</label>' +
       '<input type="text" id="beFemale" min="0" max="9" class="form-control-premium" value="' +
       bookingState.female +
-      '" oninput="beRecalc()"></div>';
+      '" oninput="beRecalc()"></div>' +
+      '<div class="col-6 col-sm-6 col-lg-6">' +
+      '<label class="form-label-premium">Total Guests</label>' +
+      '<input type="text" id="beTotalGuests" class="form-control-premium fw-bold be-readonly border-0" readonly></div>';
   }
   if (!isABHidden("ch")) {
     h +=
@@ -5650,7 +5742,7 @@ function syncBookingEntryToState() {
   ).trim();
 }
 
-function beValidate() {
+async function beValidate() {
   var ci = "";
   if (!isABHidden("name")) {
     var name = (document.getElementById("beGuestName")?.value || "").trim();
@@ -5782,7 +5874,7 @@ function beValidate() {
   // against the gross rejected any advance sitting between "total - discount"
   // and "total", i.e. exactly the range the Balance Due field invites.
   var netPayable = Math.max(0, lastCalcTotal - (bookingState.discountAmt || 0));
-  if (adv > netPayable) {
+  if (adv > netPayable && !bookingState.editBookingId) {
     console.error(adv + ">" + netPayable);
     showMessageModal(
       "Info",
@@ -5790,6 +5882,11 @@ function beValidate() {
       false,
     );
     return false;
+  } else if(bookingState.editBookingId){
+    var ok = await showConfirmModal(
+      "Advance payments: Please confirm more payble added!",
+    );
+    if (!ok) return false;
   }
   return true;
 }

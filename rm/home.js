@@ -393,67 +393,67 @@ window.deleteBookingFromDashboard = function (record) {
   });
 };
 
-window.printBillFromDashboard = async function (bookingId) {
-  var bk = null;
-  for (var bi = 0; bi < bookingRecords.length; bi++) {
-    if (
-      bookingRecords[bi] &&
-      String(bookingRecords[bi].a) === String(bookingId)
-    ) {
-      bk = bookingRecords[bi];
-      break;
-    }
-  }
-  if (!bk) {
-    showMessageModal("Info", "Booking not found. Refresh and try again.", true);
-    return;
-  }
+// window.printBillFromDashboard = async function (bookingId) {
+//   var bk = null;
+//   for (var bi = 0; bi < bookingRecords.length; bi++) {
+//     if (
+//       bookingRecords[bi] &&
+//       String(bookingRecords[bi].a) === String(bookingId)
+//     ) {
+//       bk = bookingRecords[bi];
+//       break;
+//     }
+//   }
+//   if (!bk) {
+//     showMessageModal("Info", "Booking not found. Refresh and try again.", true);
+//     return;
+//   }
 
-  var snap = typeof bookingSnapFromRecord === "function" ? bookingSnapFromRecord(bk) : null;
-  if (!snap) {
-    showMessageModal("Info", "Could not calculate bill. Try again.", true);
-    return;
-  }
+//   var snap = typeof bookingSnapFromRecord === "function" ? bookingSnapFromRecord(bk) : null;
+//   if (!snap) {
+//     showMessageModal("Info", "Could not calculate bill. Try again.", true);
+//     return;
+//   }
 
-  var guestDoc = null;
-  for (var gi = 0; gi < guestRecords.length; gi++) {
-    if (
-      guestRecords[gi] &&
-      String(guestRecords[gi].a) === String(bk.oc)
-    ) {
-      guestDoc = guestRecords[gi];
-      break;
-    }
-  }
+//   var guestDoc = null;
+//   for (var gi = 0; gi < guestRecords.length; gi++) {
+//     if (
+//       guestRecords[gi] &&
+//       String(guestRecords[gi].a) === String(bk.oc)
+//     ) {
+//       guestDoc = guestRecords[gi];
+//       break;
+//     }
+//   }
 
-  snap.guestName = bk.g || (guestDoc ? guestDoc.h || guestDoc.i || "" : "");
-  snap.contact = bk.h || (guestDoc ? guestDoc.e || "" : "");
-  snap.email = guestDoc && typeof billC1Email === "function" ? billC1Email(guestDoc) : "";
-  snap.address = guestDoc && guestDoc.m != null ? String(guestDoc.m) : "";
-  snap.roomName = snap.room
-    ? (typeof htRoomName === "function" ? htRoomName(snap.room) : snap.room.name)
-    : bk.s || "";
-  snap.roomRate = snap.room && typeof htRoomRate === "function"
-    ? parseInt(htRoomRate(snap.room), 10) || 0
-    : 0;
-  snap.roomStatus = snap.room && typeof htRoomStatusLabel === "function"
-    ? htRoomStatusLabel(snap.room.d != null ? snap.room.d : snap.room.k)
-    : "";
-  snap.checkinTime = typeof billTimePart === "function" ? billTimePart(bk.actualCheckin, "") : "";
-  snap.checkoutTime = typeof billTimePart === "function" ? billTimePart(bk.actualCheckout, "") : "";
-  snap.received = bk.received || 0;
+//   snap.guestName = bk.g || (guestDoc ? guestDoc.h || guestDoc.i || "" : "");
+//   snap.contact = bk.h || (guestDoc ? guestDoc.e || "" : "");
+//   snap.email = guestDoc && typeof billC1Email === "function" ? billC1Email(guestDoc) : "";
+//   snap.address = guestDoc && guestDoc.m != null ? String(guestDoc.m) : "";
+//   snap.roomName = snap.room
+//     ? (typeof htRoomName === "function" ? htRoomName(snap.room) : snap.room.name)
+//     : bk.s || "";
+//   snap.roomRate = snap.room && typeof htRoomRate === "function"
+//     ? parseInt(htRoomRate(snap.room), 10) || 0
+//     : 0;
+//   snap.roomStatus = snap.room && typeof htRoomStatusLabel === "function"
+//     ? htRoomStatusLabel(snap.room.d != null ? snap.room.d : snap.room.k)
+//     : "";
+//   snap.checkinTime = typeof billTimePart === "function" ? billTimePart(bk.actualCheckin, "") : "";
+//   snap.checkoutTime = typeof billTimePart === "function" ? billTimePart(bk.actualCheckout, "") : "";
+//   snap.received = bk.received || 0;
 
-  if (typeof buildBillNo === "function") billNo = buildBillNo();
-  if (typeof showBill === "function") {
-    showBill(snap);
-  } else {
-    showMessageModal(
-      "Info",
-      "Bill module not available. Print bill manually.",
-      true,
-    );
-  }
-};
+//   if (typeof buildBillNo === "function") billNo = buildBillNo();
+//   if (typeof showBill === "function") {
+//     showBill(snap);
+//   } else {
+//     showMessageModal(
+//       "Info",
+//       "Bill module not available. Print bill manually.",
+//       true,
+//     );
+//   }
+// };
 
 window.showDashboard = function () {
   setView("home");
