@@ -12,7 +12,7 @@ const moduLst = [
 window[my1uzr.worknOnPg].moduLst = moduLst;
 moduLst.hook = "onModuLstAllowed";
 //104-creates .da
-const inTbls = ["dontCret~", "pubilc~113,116,111", "2/l-85~c,rb,rc,r", "2/p-103~r", "2/t-104~", "2/q-106~rm", "4/a-111~rb", "2/s-112~rb,c,r", "3/c-113~rb,rc,c", "2/s-114~rb,c", "2/t-115~rb_h,rb", "3/c-116~rb,r"];
+const inTbls = ["dontCret:", "pubilc:113,116,111", "2/l-85~c,rb,rc,r", "2/p-103~r", "2/t-104~", "2/q-106~rm", "4/a-111~rb", "2/s-112~rb,c,r", "3/c-113~rb,rc,c", "2/s-114~rb,c", "2/t-115~rb_h,rb", "3/c-116~rb,r"];
 const cust_const = [
  { "a": "paymentGatewayIntegrated", "b": 0, "c": "more customiztaion", "d": "if value is 1 payment gatewy will be shown, else manual booking", "u": "url-explaining-video" },
  { "a": "showRoomAvalOnHomePg", "b": 1, "c": "more cust...", "d": "if 1 'already-booked' data is fetched on home-page load, to show `already booked` on first page itself", "u": "url-explaining-video" },

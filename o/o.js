@@ -1,8 +1,3 @@
-// newproject.js - Main product catalog with left sidebar for mobile + search
-// funtion inside my1.in/3 , my1.in/4 must not be checked in menu list
-//const appData = null;
-//form old 2/l.php fn:85 to:-
-//send .da complete date to 5/a.php fn:104
 const tblsRequired = ["f", "fp", "p", "s", "c", "o", "os", "od", "fn100"];
 const moduLst = [
     { "a":",82,72,86,", "b": "Manage Products", "c": "fa-plus-circle",  "d": "mn_prods", "e": "#198754" },
@@ -16,7 +11,7 @@ const moduLst = [
 ];
 moduLst.hook = "onModuLstAllowed";
 window[my1uzr.worknOnPg].moduLst = moduLst;
-const inTbls = ["dontCret~", "pubilc~77,78", "72~p,s,c", "81~c,o,os", "82~s", "83~p", "86~s,p", "88~os,od", "100~p,od", "104~"];
+const inTbls = ["dontCret:", "pubilc:77,78,84", "2/i-72~p,s,c", "3/a-77~o,os", "4/a-78~p,s", "2/j-81~c,o,os", "2/k-82~s", "2/k-83~p", "3/b-84~o,os", "2/l-86~s,p", "2/l-88~os,od", "2/o-100~p,od", "2/t-104~"];//104 for .da
 const cust_const = [
     { "a": "driverimageupload", "b": 1, "c": "more customiztaion", "d": "if value is 1 driver will be able to take photo of delivary and upload", "u": "url-explaining-video" }
 ];

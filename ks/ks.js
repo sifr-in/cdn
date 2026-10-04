@@ -1,6 +1,6 @@
 // ks.js - Court Case Register
 const tblsRequired = ["f", "fp", "cs", "c", "a", "cs91"];
-const inTbls = ["dontCret~cs91", "pubilc~", "2/t-72~cs", "2/m-91~a", "2/m-92~cs,a,c91,c", "2/n-96~cs,a,c91,c", "2/n-98~cs,a,c91,c", "2/o-99~a", "2/o-101~cs,a", "2/r-107~cs,a,c91,c", "2/r-108~cs,a,c91,c"];
+const inTbls = ["dontCret:cs91", "pubilc:", "2/t-72~cs", "2/m-91~a", "2/m-92~cs,a,c91,c", "2/n-96~cs,a,c91,c", "2/n-98~cs,a,c91,c", "2/o-99~a", "2/o-101~cs,a", "2/r-107~cs,a,c91,c", "2/r-108~cs,a,c91,c"];
 const cust_const = [
  {
   "a": "maxNoOfAdvOnBoard", "b": 9, "c": "more customiztaion", "d": "number of advocates that can be assigned case", "u": "url-explaining-video"

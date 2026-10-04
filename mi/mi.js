@@ -9,8 +9,8 @@ const moduLst = [
  { a: ",75,87,", b: "History", c: "fa-clock-rotate-left", d: "window.toggleAdminPanel(3)", e: "#6c757d" },
  { a: ",-11,-12,", b: "Milk Sangha Form", c: "fa-users", d: "window.toggleAdminPanel(9)", e: "#6f42c1" }
 ];
-const inTbls = ["dontCret~", "pubilc~76", "23~r", "71~mb", "72~", "73~mi", "74~mb", "75~mi", "87~r", "89~mb"];
-//fn:72 must be re check to 2/h
+const inTbls = ["dontCret:", "public:76", "2/b-23~r", "2/h-71~mb", "2/h-72~", "2/h-73~mi", "2/h-74~mb", "2/j-75~mi", "3/a-76~mi,mb,r", "2/l-87~r", "2/m-89~mb"];
+//fn:72 must be re check to 2/h because not found
 const cust_const = [
  {
   "a": "showClntReckonInTbl", "b": 1, "c": "more customiztaion", "d": "show milk reckonning to milker in table view", "u": "url-explaining-video"

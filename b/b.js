@@ -1,3 +1,193 @@
+const tblsRequired = ["c", "f", "fp", "s", "s2", "p", "b", "be", "ba", "i", "r", "mr", "mp"];
+const inTbls = ["dontCret:", "public:", "2/b-2~p,s", "2/b-3~c,b,i,r,ba,p,s,be", "2/b-4~c,b,i,r,ba,p,s,be", "2/b-7~c,b,i,r,ba,p,s,be", "2/1-9~b,be,r,i", "2/b-23~r", "2/b-25~p,s", "2/b-47~r,ba,p,s", "2/o-102~be", "2/p-103~r", "2/t-104~", "2/p-105~r"];//104 for .da
+const moduLst = [
+ { "a": ",2,3,4,7,9,25,104,", "b": "Dashboard", "c": "fa-plus-circle", "d": "mn_prods", "e": "#198754" }
+];
+const cust_const = [];// { "a": "paymentGatewayIntegrated", "b": 0, "c": "more customiztaion", "d": "if value is 1 payment gatewy will be shown, else manual booking", "u": "url-explaining-video" },
+moduLst.hook = "onModuLstAllowed";
+window[my1uzr.worknOnPg].moduLst = moduLst;
+window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
+ const menuItems = allowedModules.map(m => ({ icon: m.c, label: m.b, action: m.d, color: m.e }));
+ window[my1uzr.worknOnPg].adminMenuItems = menuItems;
+ // if (!Array.isArray(window.burgerMenuItems)) window.burgerMenuItems = [];
+ // const actions = new Set(menuItems.map(i => i.action));
+ // window.burgerMenuItems = window.burgerMenuItems.filter(i => !actions.has(i.action));
+ // window.burgerMenuItems.push(...menuItems);
+ // if (typeof createBurgerMenuElements === 'function') createBurgerMenuElements();
+};
+// const xtraFlds_fildsToNeeds = {
+//   "k": {
+//     "lbl": "additional info 1",
+//     "type": "div",
+//     "preProcess": "fnSeparateCowMhas",
+//     "postProcess": "fnCombineCowMhas",
+//     "x": {
+//       "a": { "lbl": "Uniq cow", "type": "text", "placeholder": "Enter Id cow", "ptrn": "^[0-9]{0,2}$", "rq": 1 },
+//       "b": { "lbl": "Uniq mhas", "type": "text", "placeholder": "Enter Id bafelo", "ptrn": "^[0-9]{0,3}$", "rq": 1 }
+//     }
+//   },
+
+//   // "c1": {
+//   //   "i": { "lbl": "Testing birth dt", "type": "text", "placeholder": "Enter birth date", "ptrn": "^[A-Za-z ]{2,50}$", "rq": 1 },
+//   //   "c1": {
+//   //     "lbl": "additional info 2",
+//   //     "type": "div",
+//   //     "x": {
+//   //       "e": { "lbl": "Testing Full Name", "type": "text", "placeholder": "Enter full name", "ptrn": "^[\\s\\S]{2,50}$", "rq": 1 },
+//   //       "f": { "lbl": "Testing Another contact no.", "type": "tel", "placeholder": "Enter 10-digit number", "ptrn": "^[0-9]{10}$" },
+//   //       "g": { "lbl": "Testing Address", "type": "textarea", "placeholder": "Enter address", "ptrn": "^.{5,200}$", "rq": 1, "preProcess": "preAddress", "postProcess": "postAddress", "validate": "validateAddress" },
+//   //       "h": { "lbl": "Testing Aadhaar Card", "type": "file", "ptrn": "image/*" },
+//   //       "i": { "lbl": "Testing Email", "type": "email", "placeholder": "Enter email", "ptrn": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$", "rq": 1 },
+//   //       "j": { "lbl": "Testing Unique ID No.", "type": "text", "placeholder": "Enter Unique ID", "ptrn": "^[A-Za-z0-9 ]{2,50}$", "rq": 1, "maxlength": 8, "uppercase": true, "strip": "[^A-Z0-9]", "preProcess": "preUniqueId", "postProcess": "postUniqueId", "validate": "validateUniqueId" },
+//   //       "n": { "lbl": "Gender", "type": "select", "placeholder": "Select Gender", "rq": 1, "opts": { "0": "Don't know", "1": "Male", "2": "Female" }, "preProcess": "preGender", "postProcess": "postGender", "validate": "validateGender" }
+//   //     }
+//   //   }
+//   // },
+//   // "j": {
+//   //   "lbl": "Candidates Details",
+//   //   "type": "div",
+//   //   "x": {
+//   //     "e": { "lbl": "Age", "type": "number", "placeholder": "Enter age", "ptrn": "^[0-9]{1,3}$", "rq": 1 },
+//   //     "f": { "lbl": "Qualification", "type": "text", "placeholder": "Enter qualification", "ptrn": "^[\\s\\S]{2,100}$", "rq": 1 },
+//   //     "g": { "lbl": "Photo ID", "type": "file", "ptrn": "image/*" },
+//   //     "h": { "lbl": "Post", "type": "select", "placeholder": "Select Post", "rq": 1, "opts": "selectPostForCandidates" },
+//   //     "i": {
+//   //       "lbl": "Experience", "type": "div", "x": {
+//   //         "a": { "lbl": "Company Name", "type": "text", "placeholder": "Enter company name" },
+//   //         "b": { "lbl": "Years of Experience", "type": "text", "placeholder": "Enter years of experience" },
+//   //         "c": { "lbl": "Projects", "type": "textarea", "placeholder": "Enter project details" }
+//   //       }
+//   //     }
+//   //   }
+//   // }
+// };
+// @Samir 
+// ```
+// 1. Title: "J";
+// 2. Mobile number, name, age, qualification, photoId;
+// 3. Post: select from ".da"(Temp.da);
+// 4. Experience(where company name:, Years of Experience:, [
+//     {
+//         "proj":"billing software", "tecs":[{"a":"jqury"/*id*/, "b":"3 months"}, {"a":"bootstrap", "b":"2 months"},{"a":"html", "b":"1 months"},{"a":"css", "b":"3 months"},{"a":"Javascript", "b":"3 months"}], "note":"We/I had used custom frame work systeam that suted dynamic devlopment that requred in the company.", "url":"git / pit / sit.ghhdrjh"
+//     },
+// ])
+// Make it dynamecally;
+// ```
+const showEyeMesuremetsTableInBill = 0;// 0 or undefiend const - don't show, 1 - show tables
+const billingModule = 1;//0 or null = normal; 1= garge / services ; 2=laundry;
+appcss = `
+ :root { --primary-purple: #6f42c1; --secondary-gold: #ffd700; --light-purple: #e2d9f3; --dark-purple: #4a2d7e }
+ body { background-color: var(--light-purple); animation: fadeIn 1s ease-in; min-height: 100vh; display: flex; flex-direction: column }
+ .navbar { background-color: var(--primary-purple) !important; box-shadow: 0 2px 10px rgb(0 0 0 / .1) }
+ .navbar-brand, .nav-link { color: var(--secondary-gold) !important }
+ .nav-link:hover { color: white !important; transition: color 0.3s ease }
+ .navbar-toggler { display: block !important; border: none; padding: .25rem }
+ @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+ @keyframes pulse { 0% { transform: scale(1) } 50% { transform: scale(1.1) } 100% { transform: scale(1) } }
+ .pulse:hover { animation: pulse 1s infinite }
+ .content-container { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center }
+ .main-icon { font-size: 4rem; color: var(--primary-purple); margin-bottom: 1.5rem; animation: pulse 2s infinite }
+ .app-title { color: var(--dark-purple); font-weight: 700; margin-bottom: 1rem }
+ .app-description { color: var(--dark-purple); max-width: 600px; margin-bottom: 2rem }
+ .feature-icon { font-size: 2.5rem; color: var(--primary-purple); margin: 1rem }
+ footer { background-color: var(--primary-purple); color: #fff; padding: .35rem; text-align: center }
+ @media (max-width:768px) { .main-icon { font-size: 3rem } .feature-icon { font-size: 2rem } }
+ .tempus-dominus-widget.show { position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; margin: 0 !important; z-index: 9999 !important; box-shadow: 0 .5rem 1rem rgba(0,0,0,.35); border-radius: 8px; max-height: 85vh; overflow-y: auto }
+ .tempus-dominus-widget .arrow { display: none }
+ .tempus-dominus-widget .toolbar [data-action="close"] { width: auto; height: auto; padding: .05rem .28rem; font-size: .72rem; line-height: 1; border-radius: .17rem; color: #fff }
+ .tempus-dominus-widget .toolbar [data-action="close"]:hover, .tempus-dominus-widget .toolbar [data-action="close"]:focus { color: #fff }
+ .tempus-dominus-widget .toolbar { display: grid !important; grid-template-columns: 1fr auto auto 1fr !important; grid-auto-rows: 40px !important; align-items: center !important }
+ .tempus-dominus-widget .toolbar [data-action="today"] { order: 1 !important; justify-self: start !important; margin-left: .4rem !important }
+ .tempus-dominus-widget .toolbar .td-zero-btn { order: 2 !important; position: static !important; transform: none !important; width: auto !important; height: auto !important; padding: .05rem .28rem; font-size: .72rem; line-height: 1; border-radius: .17rem; color: #fff }
+ .tempus-dominus-widget .toolbar .td-ok-btn { order: 3 !important; position: static !important; transform: none !important }
+ .tempus-dominus-widget .toolbar [data-action="togglePicker"] { order: 4 !important; justify-self: end !important; margin-right: .4rem !important }
+`;
+
+// ==================== Shared datetime picker (Bootstrap - Tempus Dominus) ====================
+const PICKER_TD_VERSION = '6.10.4';
+const PICKER_DATE_FORMAT = 'yyyy-MM-dd HH:mm';
+
+let tdDepsPromise = null;
+function loadDatePickerDependencies() {
+ if (typeof tempusDominus !== 'undefined') return Promise.resolve();
+ if (!tdDepsPromise) {
+  tdDepsPromise = new Promise((resolve, reject) => {
+   const link = document.createElement('link');
+   link.rel = 'stylesheet';
+   link.href = `https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@${PICKER_TD_VERSION}/dist/css/tempus-dominus.min.css`;
+   link.onerror = () => reject(new Error('Failed to load Tempus Dominus CSS'));
+   document.head.appendChild(link);
+
+   const script = document.createElement('script');
+   script.src = `https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@${PICKER_TD_VERSION}/dist/js/tempus-dominus.min.js`;
+   script.onload = () => resolve();
+   script.onerror = () => reject(new Error('Failed to load Tempus Dominus JS'));
+   document.head.appendChild(script);
+  });
+  tdDepsPromise.catch(() => { tdDepsPromise = null; });
+ }
+ return tdDepsPromise;
+}
+
+// Format as "YYYY-MM-DD HH:mm" (the storage/validation format used everywhere)
+function formatForPicker(date) {
+ const year = date.getFullYear();
+ const month = String(date.getMonth() + 1).padStart(2, '0');
+ const day = String(date.getDate()).padStart(2, '0');
+ const hours = String(date.getHours()).padStart(2, '0');
+ const minutes = String(date.getMinutes()).padStart(2, '0');
+ return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
+function parsePickerValue(val) {
+ if (!val) return null;
+ const parts = String(val).trim().split(/[\sT]+/);
+ const d = parts[0].split('-').map(Number);
+ const t = (parts[1] || '00:00').split(':').map(Number);
+ if (!d[0] || !d[1] || !d[2]) return null;
+ // Tempus Dominus DateTime extends native Date -> month is 0-based
+ return new tempusDominus.DateTime(d[0], d[1] - 1, d[2], t[0] || 0, t[1] || 0, t[2] || 0);
+}
+
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+function isDesktopView() {
+ return window.innerWidth > 768;
+}
+
+function formatLongDisplay(val) {
+ if (!val) return '';
+ const parts = String(val).trim().split(/[\sT]+/);
+ const d = (parts[0] || '').split('-');
+ if (d.length < 3) return val;
+ const month = MONTH_FULL[Number(d[1]) - 1] || d[1];
+ const day = String(d[2]).padStart(2, '0');
+ const base = `${day}/${month}/${d[0]}`;
+ const t = (parts[1] || '').split(':').map(Number);
+ if (!t.length || isNaN(t[0])) return base;
+ let h = t[0] % 24;
+ const ampm = h >= 12 ? 'pm' : 'am';
+ h = h % 12;
+ if (h === 0) h = 12;
+ const min = String(t[1] || 0).padStart(2, '0');
+ return `${base} ${String(h).padStart(2, '0')}:${min}${ampm}`;
+}
+
+function formatShortDisplay(val) {
+ if (!val) return '';
+ if (isDesktopView()) return formatLongDisplay(val);
+ const parts = String(val).trim().split(/[\sT]+/);
+ const d = (parts[0] || '').split('-');
+ if (d.length < 3) return val;
+ return String(d[2]).padStart(2, '0') + '/' + (MONTH_SHORT[Number(d[1]) - 1] || d[1]);
+}
+
+// Global datetime picker initializer - one function for all date/time fields.
+// options:
+//   initialValue - pre-set value ("YYYY-MM-DD HH:mm")
+//   autoNow      - default true; set false to leave empty instead of auto-filling current date & time
+//   scrollable   - cap widget height with vertical scroll
 (async function () {
  // window["xtraj_payload"] = {};
  // xtraj_payload.fl = "https://my1.in/2/b.php";
@@ -5,6 +195,7 @@
  // xtraj_payload.fn = 4;
  // xtraj_payload.chkSuOfFn = -1;
  // xtraj_payload.regme = 1;
+ //keep this all commenst at it is:-
 
  window[my1uzr.worknOnPg].csh = [
   { "a": 1, "u": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" },
@@ -20,21 +211,86 @@
   { "a": 10, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@14002e4/b/ba.min.js", "c": "open_bil_inward", "r": "open_bil_inward" },
   //{ "a": 11, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@bc0a572/b/bn.min.js", "c": "set_add_itm_nw_innerHTML", "r": "set_add_itm_nw_innerHTML" },
   { "a": 11, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@cc71958/b/bn.js", "c": "set_add_itm_nw_innerHTML", "r": "set_add_itm_nw_innerHTML" },
-  { "a": 12, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@18ff972/b/bp.min.js", "c": "set_deup_prod_innerHTML", "r": "set_deup_prod_innerHTML" },
+  { "a": 12, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/b/bp.min.js", "c": "set_deup_prod_innerHTML", "r": "set_deup_prod_innerHTML" },
+  //{ "a": 12, "u": "bp.js", "c": "set_deup_prod_innerHTML", "r": "set_deup_prod_innerHTML" },
   { "a": 13, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@a30ac23/b/bPrOp.min.css" },
-  { "a": 14, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@3988bc6/cmn/ei.min.js", "c": "open_entind_crud", "r": "open_entind_crud" },
-  { "a": 15, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@57550ee/cmn/my1lp.min.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
+  { "a": 14, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/ei.min.js", "c": "open_entind_crud", "r": "open_entind_crud" },
+  //{ "a": 14, "u": "ei.js", "c": "open_entind_crud", "r": "open_entind_crud" },
+  { "a": 15, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1lp.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
   { "a": 16, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@4d95515/cmn/my1ap.min.js" },
-  { "a": 17, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@5eed9c9/cmn/my1xi.min.js" },
+  { "a": 17, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/cmn/my1xi.min.js" },
   { "a": 18, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@24bf6ca/cmn/my1drv.min.js" },
-  { "a": 19, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@4f0d0e0/cmn/my1e3.min.js", "c": "fileUploadTesting", "r": "fileUploadTesting" },
+  { "a": 19, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1e3.min.js", "c": "fileUploadTesting", "r": "fileUploadTesting" },
   { "a": 20, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fc84f58/cmn/my1dra.min.js", "c": "upldAnyFile2drv", "r": "upldAnyFile2drv" },
   { "a": 21, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@cc71958/b/be.js", "c": "set_be_innerHTML", "r": "set_be_innerHTML" },
   { "a": 22, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@31fba32/b/bePr.min.js", "c": "sho_bepr_mdl", "r": "sho_bepr_mdl" },
-  { "a": 23, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@cc71958/b/be_da.js", "c": "showPrintSettings", "r": "showPrintSettings" },
-  { "a": 24, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1236a32/cmn/my1img.js", "c": "open_addimage", "r": "open_addimage" },
-  { "a": 25, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1236a32/cmn/clrChe.js", "c": "showClearCacheModal", "r": "showClearCacheModal" }
+  { "a": 23, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/b/be_da.js", "c": "showPrintSettings", "r": "showPrintSettings" },
+  //{ "a": 23, "u": "be_da.js", "c": "showPrintSettings", "r": "showPrintSettings" },
+  { "a": 24, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1img.js", "c": "open_addimage", "r": "open_addimage" },
+  //{ "a": 24, "u": "my1img.js", "c": "open_addimage", "r": "open_addimage" },
+  { "a": 25, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1236a32/cmn/clrChe.js", "c": "showClearCacheModal", "r": "showClearCacheModal" },
+  { "a": 26, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/mr/bi.js", "c": "set_bill_Inverd_innerHTML", "r": "set_bill_Inverd_innerHTML" },
+  { "a": 27, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/mr/get_data.js", "c": "set_get_data_innerHTML", "r": "set_get_data_innerHTML" },
+  { "a": 28, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/mr/rep_coll.js", "c": "set_rep_coll_innerHTML", "r": "set_rep_coll_innerHTML" },
+  { "a": 29 },
+  { "a": 30, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
  ];
+
+ let item1 = null;
+ const csh1 = window[my1uzr.worknOnPg].csh;
+ if (typeof billingModule === 'undefined' || billingModule === 0 || billingModule == null) {
+  item1 = csh1.find(x => x.a === 29);
+  if (item1) {
+   Object.assign(item1, {
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/mr/shoRegItm.js",
+    c: "showAddNormalItemModal",
+    r: "showAddNormalItemModal"
+   });
+  }
+ } else if (billingModule === 1) {
+  item1 = csh1.find(x => x.a === 29);
+  if (item1) {
+   Object.assign(item1, {
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/mr/shoCarwork.js",
+    c: "showAddCarWorkModal",
+    r: "showAddCarWorkModal"
+   });
+  }
+ } else if (billingModule === 2) {
+  item1 = csh1.find(x => x.a === 29);
+  if (item1) {
+   Object.assign(item1, {
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/mr/shoCarwork.js",
+    c: "showAddCarWorkModal",
+    r: "showAddCarWorkModal"
+   });
+  }
+ }
+
+ // Ensure UNIT_DATA is available
+ if (typeof window.UNIT_DATA === 'undefined' || !window.UNIT_DATA || window.UNIT_DATA.length === 0) {
+  window.UNIT_DATA = [
+   { "a": "32", "e": "adult", "f": "adl" }, { "a": "28", "e": "bags", "f": "bag" }, { "a": "22", "e": "box", "f": "box" },
+   { "a": "27", "e": "brass", "f": "brass" }, { "a": "5", "e": "centimeter", "f": "cm" }, { "a": "33", "e": "child", "f": "chi" },
+   { "a": "23", "e": "cubic feet", "f": "cft" }, { "a": "13", "e": "cubic meter", "f": "cum" }, { "a": "19", "e": "days", "f": "day" },
+   { "a": "10", "e": "dozen", "f": "dz" }, { "a": "2", "e": "foot", "f": "ft" }, { "a": "35", "e": "full ticket", "f": "ftk" },
+   { "a": "4", "e": "gram", "f": "gm" }, { "a": "36", "e": "half ticket", "f": "htk" }, { "a": "18", "e": "hours", "f": "hr" },
+   { "a": "3", "e": "kilogram", "f": "kg" }, { "a": "8", "e": "kilometer", "f": "km" }, { "a": "1", "e": "liter", "f": "ltr" },
+   { "a": "6", "e": "meter", "f": "m" }, { "a": "26", "e": "metric tonne", "f": "mt" }, { "a": "7", "e": "milligram", "f": "mg" },
+   { "a": "9", "e": "millilitre", "f": "ml" }, { "a": "37", "e": "millimeter", "f": "mm" }, { "a": "17", "e": "minutes", "f": "min" },
+   { "a": "20", "e": "month", "f": "month" }, { "a": "29", "e": "numbers", "f": "no" }, { "a": "11", "e": "pieces", "f": "pcs" },
+   { "a": "31", "e": "plate", "f": "pl" }, { "a": "25", "e": "running foot", "f": "rft" }, { "a": "15", "e": "running meter", "f": "rmt" },
+   { "a": "16", "e": "seconds", "f": "sec" }, { "a": "12", "e": "service", "f": "srv" }, { "a": "34", "e": "special ticket", "f": "stk" },
+   { "a": "24", "e": "square feet", "f": "sqft" }, { "a": "14", "e": "square meter", "f": "sqm" }, { "a": "30", "e": "units", "f": "ut" },
+   { "a": "21", "e": "year", "f": "year" }
+  ];
+ }
+
+ window.fnCombineCowMhas = function (...objj) { console.log(objj); }
+
+ window.UNIT_MAP = {};
+ window.UNIT_DATA.forEach(function (unit) { window.UNIT_MAP[unit.a] = unit; });
+ window[my1uzr.worknOnPg].reqyTableInBills = 1;
 
  window[my1uzr.worknOnPg].confg = {};
  window[my1uzr.worknOnPg].confg.calcStock = 1;
@@ -42,121 +298,11 @@
  window[my1uzr.worknOnPg].confg.itmNameMxLength = 32;
  window[my1uzr.worknOnPg].confg.addByQR = 1;
  window[my1uzr.worknOnPg].confg.scanDelayQR = 3000;
+ //window[my1uzr.worknOnPg].confg.shodateofberthForEi = 1;
  const shoEyeMsrmntTbl =
   typeof showEyeMesuremetsTableInBill !== "undefined"
    ? showEyeMesuremetsTableInBill == 1
    : null;
-
- window.showelsemodal = function (errorMsg) {
-  if (typeof create_modal_dynamically === 'function') {
-   try {
-    const errorModalId = 'errorModal_' + Date.now();
-    const errorModalResult = create_modal_dynamically(errorModalId);
-    if (errorModalResult) {
-     const { contentElement: errorContent, modalInstance: errorModalInstance, modalElement: errorModalElement } = errorModalResult;
-     setTimeout(() => {
-      const md = errorModalElement.querySelector('.modal-dialog');
-      if (md) {
-       md.classList.add('modal-dialog-centered');
-       md.style.maxWidth = 'auto';
-       md.style.zIndex = '9999';
-       md.style.position = 'relative';
-      }
-      errorModalElement.style.zIndex = '99999';
-     }, 50);
-     errorContent.innerHTML = `<div class="p-4 text-center"><div class="mb-3"><i class="fas fa-exclamation-triangle text-danger" style="font-size:48px;"></i></div><h5 class="text-danger">No Success</h5><p class="text-muted">${errorMsg}</p><button class="btn btn-primary btn-sm mt-2" data-bs-dismiss="modal"><i class="fas fa-check me-1"></i>OK</button></div>`;
-     errorModalInstance.show();
-     return false;
-    }
-   } catch (e) {
-    console.error('Modal creation failed:', e);
-   }
-  }
-  window.showelsemodal(errorMsg);
-  return false;
- };
-
- window.showsuccessmodal = function (successMsg, callback) {
-  if (typeof create_modal_dynamically === 'function') {
-   const successModalId = 'successModal_' + Date.now();
-   const successModalResult = create_modal_dynamically(successModalId);
-   if (successModalResult) {
-    const { contentElement: successContent, modalInstance: successModalInstance, modalElement: successModalElement } = successModalResult;
-    setTimeout(() => {
-     const md = successModalElement.querySelector('.modal-dialog');
-     if (md) { md.classList.add('modal-dialog-centered'); md.style.maxWidth = 'auto'; }
-    }, 50);
-    successContent.innerHTML = `<div class="p-4 text-center"><div class="mb-3"><i class="fas fa-check-circle text-success" style="font-size:48px;"></i></div><h5 class="text-success">Success</h5><p class="text-muted">${successMsg}</p><button class="btn btn-success btn-sm mt-2" data-bs-dismiss="modal"><i class="fas fa-check me-1"></i>OK</button></div>`;
-
-    if (callback) {
-     successModalElement.addEventListener('hidden.bs.modal', function () {
-      callback();
-     }, { once: true });
-    }
-
-    successModalInstance.show();
-    return false;
-   }
-  }
- };
-
- window.showConfirmModal = function (message) {
-  return new Promise((resolve) => {
-   if (typeof create_modal_dynamically !== 'function') {
-    resolve(confirm(message));
-    return;
-   }
-   try {
-    const modalId = 'confirmModal_' + Date.now();
-    const modalResult = create_modal_dynamically(modalId);
-    if (!modalResult) {
-     resolve(confirm(message));
-     return;
-    }
-    const { contentElement, modalInstance, modalElement } = modalResult;
-    setTimeout(() => {
-     const md = modalElement.querySelector('.modal-dialog');
-     if (md) {
-      md.classList.add('modal-dialog-centered');
-      md.style.maxWidth = 'auto';
-      md.style.zIndex = '9999';
-     }
-     modalElement.style.zIndex = '99999';
-    }, 50);
-    let settled = false;
-    contentElement.innerHTML = `
-<div class="p-4">
-<div class="text-center mb-3">
-<i class="fas fa-question-circle text-primary" style="font-size:48px;"></i>
-</div>
-<p class="text-center mb-4" style="white-space: pre-line;">${message}</p>
-<div class="d-flex justify-content-center gap-2">
-<button type="button" class="btn btn-success" id="${modalId}_ok"><i class="fas fa-check me-1"></i>OK</button>
-<button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Cancel</button>
-</div>
-</div>`;
-    const okBtn = contentElement.querySelector('#' + modalId + '_ok');
-    okBtn.addEventListener('click', function () {
-     if (settled) return;
-     settled = true;
-     resolve(true);
-     modalInstance.hide();
-    });
-    modalElement.addEventListener('hidden.bs.modal', function () {
-     modalInstance.dispose();
-     modalElement.remove();
-     if (!settled) {
-      settled = true;
-      resolve(false);
-     }
-    }, { once: true });
-    modalInstance.show();
-   } catch (e) {
-    console.error('Confirm modal creation failed:', e);
-    resolve(confirm(message));
-   }
-   });
-  };
 
  window.allowFloat = function (el, decimals = 2) {
   let v = el.value;
@@ -199,15 +345,14 @@
 
  var PLACEHOLDER_IMG = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23e9ecef"/><text x="50" y="55" text-anchor="middle" font-size="40" fill="%23adb5bd">?</text></svg>');
  window.PLACEHOLDER_IMG = PLACEHOLDER_IMG;
-
  function getMaxDateTables() {
   const t = [{ "tb": 'c' }, { "tb": 'b' }, { "tb": 'i' }, { "tb": 'r' }, { "tb": 'ba' }, { "tb": 'p' }, { "tb": 's' }];
   if (shoEyeMsrmntTbl) t.splice(4, 0, { "tb": 'be', "col": 'eb', "cl": "eb" });
   return t;
  }
 
- let items = [];
- let prods = [];
+ window.items = [];
+ window.prods = [];
  let clientReferrerArray = [];
  let stored_bill = [];
  let stored_eye_msrmnt = [];
@@ -217,11 +362,6 @@
  let mostUsedItems = {}; // Track item usage
  let receivedAmounts = []; // Track received payments
 
- // Date picker deferred-commit state (OK button)
- let receiptPending = null, receiptCommitted = '';
- let deliveryPending = null, deliveryCommitted = '';
- let receivedDateTimePending = null, receivedDateTimeCommitted = '';
- let receiptChanged = false, deliveryChanged = false, receivedDateTimeChanged = false;
  let receiptDatePicker = null, deliveryDatePicker = null, receivedDateTimePicker = null;
 
  function getGoogleDriveImageUrl(value, thumbnail) {
@@ -250,82 +390,140 @@
  });
 
  var styleEl = document.createElement('style');
- styleEl.innerHTML = `
- :root { --primary-purple: #6f42c1; --secondary-gold: #ffd700; --light-purple: #e2d9f3; --dark-purple: #4a2d7e }
- body { background-color: var(--light-purple); animation: fadeIn 1s ease-in; min-height: 100vh; display: flex; flex-direction: column }
- .navbar { background-color: var(--primary-purple) !important; box-shadow: 0 2px 10px rgb(0 0 0 / .1) }
- .navbar-brand, .nav-link { color: var(--secondary-gold) !important }
- .nav-link:hover { color: white !important; transition: color 0.3s ease }
- .navbar-toggler { display: block !important; border: none; padding: .25rem }
- @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
- @keyframes pulse { 0% { transform: scale(1) } 50% { transform: scale(1.1) } 100% { transform: scale(1) } }
- .pulse:hover { animation: pulse 1s infinite }
- .content-container { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center }
- .main-icon { font-size: 4rem; color: var(--primary-purple); margin-bottom: 1.5rem; animation: pulse 2s infinite }
- .app-title { color: var(--dark-purple); font-weight: 700; margin-bottom: 1rem }
- .app-description { color: var(--dark-purple); max-width: 600px; margin-bottom: 2rem }
- .feature-icon { font-size: 2.5rem; color: var(--primary-purple); margin: 1rem }
- footer { background-color: var(--primary-purple); color: #fff; padding: 1rem; text-align: center }
- @media (max-width:768px) { .main-icon { font-size: 3rem } .feature-icon { font-size: 2rem } }
-`;
+ styleEl.innerHTML = appcss;
  document.head.appendChild(styleEl);
 
  document.body.innerHTML = `
 <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #6f42c1 !important; box-shadow: 0 2px 10px rgb(0 0 0 / .1);">
  <div class="container-fluid">
   <button class="navbar-brand btn btn-link" style="border: none; background: none; text-decoration: none; color: #ffd700 !important;"
-   onclick="(async () => { await loadExe2Fn(15, ['dv_to_set_open_shoLgnP_processed', 0, 1, 2], [1]); })()">
+   onclick="(async () => { await loadExe2Fn(30, ['dv_to_set_open_my1ctr_processed', 0, 1, 2], [1]); })()">
    <i class="fa-solid fa-user"></i>Billing Software
   </button>
-  <button class="btn btn-info" style="margin-left:-18px;" type="button" onclick="location.reload()">
-   <span class="text-black"><!--i class="fas fa-plus"></i-->New Bill</span>
+  <button class="btn" style="margin-left:-18px;background:rgba(255, 255, 255, 0.12);border:1px solid rgba(255,255,255,.2);" type="button" onclick="location.reload()">
+   <span class="text-white"><i class="fas fa-plus"></i> New Bill</span>
   </button>
-  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-   <span style="color: #ffd700; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px;">
-    <i class="fas fa-bars"></i>
-   </span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarNav">
-   <ul class="navbar-nav ms-auto">
-    <li class="nav-item" id="sync_all_info">
-     <button class="nav-link btn btn-link" style="border: none; background: none;"><i class="fas fa-sync"></i> Update all data</button>
-    </li>
-    <li class="nav-item" onclick="(async () => { await loadExe2Fn(12, [], [1]); })()">
-     <button class="nav-link btn btn-link" style="border: none; background: none;"><i class="fas fa-info-circle me-1"></i> Manage products</button>
-    </li>
-    <li class="nav-item" onclick="setDefaRmrk()">
-     <button class="nav-link btn btn-link" style="border: none; background: none;"><i class="fas fa-cog me-1"></i> Default Bill Remark</button>
-    </li>
-    <li class="nav-item" onclick="(async () => { await loadExe2Fn(23, [], [1]); })()">
-     <button class="nav-link btn btn-link" style="border: none; background: none;"><i class="fas fa-cog me-1"></i> Settings</button>
-    </li>
-    <li class="nav-item" id="bt_clr_locl_db">
-     <button class="nav-link btn btn-link" style="border: none; background: none;"><i class="fa fa-trash" aria-hidden="true"></i> Clear local db</button>
-    </li>
-   </ul>
-  </div>
+<button class="navbar-toggler" type="button"
+    onclick="toggleNavMenu()">
+    <span style="color:#ffd700;font-size:1.5rem;">
+        <i class="fas fa-bars"></i>
+    </span>
+</button>
+  <div class="collapse" id="navbarNav">
+    <div class="menu-popup">
+
+        <div class="menu-grid">
+
+            <div class="menu-item" id="sync_all_info">
+                <i class="fas fa-sync"></i>
+                <span>Update Data</span>
+            </div>
+
+            <div class="menu-item" onclick="(async()=>{await loadExe2Fn(12,[],[1]);})()">
+                <i class="fas fa-info-circle"></i>
+                <span>Manage Products</span>
+            </div>
+
+            <div class="menu-item" onclick="(async()=>{await loadExe2Fn(26,[],[1]);})()">
+                <i class="fas fa-square-plus"></i>
+                <span>Bill Inward</span>
+            </div>
+
+            <div class="menu-item" onclick="(async()=>{await loadExe2Fn(28,[],[1]);})()">
+                <i class="fas fa-chart-bar"></i>
+                <span>Reports</span>
+            </div>
+
+            <div class="menu-item menu-sub-toggle" id="settings_toggle" onclick="toggleNavSubMenu()">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </div>
+
+        </div>
+
+        <div class="menu-sub-dropdown" id="menuSubDropdown">
+            <div class="menu-item menu-sub-item" onclick="setDefaRmrk()">
+                <i class="fas fa-comment"></i>
+                <span>Default Remark</span>
+            </div>
+            <div class="menu-item menu-sub-item" id="bt_clr_locl_db">
+                <i class="fas fa-trash"></i>
+                <span>Clear Local DB</span>
+            </div>
+            <div class="menu-item menu-sub-item" onclick="(async()=>{await loadExe2Fn(23,[],[1]);})()">
+                <i class="fas fa-store"></i>
+                <span>Shop Info</span>
+            </div>
+        </div>
+
+    </div>
+</div>
  </div>
 </nav>
 <div id="container_blank_main" class="content-container mt-2 mb-2" style="flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center;"></div>
-<footer style="background-color: #6f42c1; color: #fff; padding: 1rem; text-align: center;">
- <p class="mb-0">© <span id="currentYear">${new Date().getFullYear()}</span> Billing Software by sifr. All rights reserved.</p>
+<footer style="background-color: #6f42c1; color: #fff; text-align: center;">
+ <p class="mb-0">© <span id="currentYear">${new Date().getFullYear()}</span> Billing Software by sifr</p>
 </footer>`;
 
  try {
-  const result1 = await loadCshScriptsSequentially(2, 16, 5, 4, 17);
+  let result1;
+  try {
+   if (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].usdInAndroWv === 1)
+    result1 = await loadCshScriptsSequentially(2, 4, 5, 17, 16);
+   else
+    result1 = await loadCshScriptsSequentially(2, 4, 5, 17, 16);
+  } catch (loadErr) {
+   console.warn('Some scripts failed, continuing with available ones');
+   result1 = { success: true };
+  }
 
-  // Initialize Bootstrap navbar collapse after scripts load
-  if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
-   const navCollapseEl = document.getElementById('navbarNav');
-   if (navCollapseEl) {
-    new bootstrap.Collapse(navCollapseEl, { toggle: false });
+  if (result1 && !result1.success) {
+   console.warn('Script load issue, proceeding with form render');
+  }
+  //const result1 = await loadCshScriptsSequentially(2, 4, 5, 17, 16,);
+
+  // Simple deterministic nav menu toggle (no Bootstrap Collapse state machine,
+  // so the menu always hides even if a click lands mid-transition)
+  window.toggleNavSubMenu = function () {
+   const sub = document.getElementById('menuSubDropdown');
+   const toggle = document.getElementById('settings_toggle');
+   if (!sub) return;
+   const open = sub.classList.toggle('menu-open');
+   if (toggle) toggle.classList.toggle('menu-open', open);
+  };
+  window.closeNavSubMenu = function () {
+   const sub = document.getElementById('menuSubDropdown');
+   const toggle = document.getElementById('settings_toggle');
+   if (sub) sub.classList.remove('menu-open');
+   if (toggle) toggle.classList.remove('menu-open');
+  };
+  window.toggleNavMenu = function () {
+   const el = document.getElementById('navbarNav');
+   if (el) el.classList.toggle('show');
+   if (el && !el.classList.contains('show')) {
+    window.closeNavSubMenu();
    }
+  };
+  window.hideNavMenu = function () {
+   const el = document.getElementById('navbarNav');
+   if (el) el.classList.remove('show');
+   window.closeNavSubMenu();
+  };
+  const navCollapseEl = document.getElementById('navbarNav');
+  if (navCollapseEl) {
+   // Hide the nav menu when a menu-item is clicked so it doesn't stay
+   // on top of the modal that opens after the click
+   navCollapseEl.addEventListener('click', function (e) {
+    if (e.target.closest('.menu-item') && !e.target.closest('.menu-sub-toggle')) {
+     hideNavMenu();
+    }
+   });
   }
 
   if (result1.success) {
 
    console.log('SUCCESS:', result1.message);
-   const createResult = await dbDexieManager.handleNwTables("loader", dbnm, ["c", "f", "s", "p", "b", "be", "ba", "i", "r", "mr", "mp"]);
+   const createResult = await dbDexieManager.handleNwTables("loader", dbnm, tblsRequired);
    tblFailureCount = createResult.failureCount;
    const result2 = await loadCshScriptsSequentially(18);
 
@@ -340,18 +538,18 @@
    console.log(`Only ${result1.loadedCount}/${result1.totalScripts} scripts loaded`);
   }
 
-  window.clientConfig = {};
+  window[my1uzr.worknOnPg].clientConfig = {};
   fetch('b.da')
    .then(response => response.json())
    .then(config => {
     if (config && config.print_logo) {
      config.print_logo = getGoogleDriveImageUrl(config.print_logo) || 'https://i.postimg.cc/gJ62yjJf/my1.jpg';
     }
-    window.clientConfig = config;
+    window[my1uzr.worknOnPg].clientConfig = config;
    })
    .catch(err => {
     console.error('Failed to load b.da:', err);
-    window.clientConfig = {};
+    window[my1uzr.worknOnPg].clientConfig = {};
    });
 
   document
@@ -363,13 +561,13 @@
       payload0.fn = 4;
       payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, getMaxDateTables());
       const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
-      if (response.su == 1) {
-       handl_op_rspons(response, 1);
+      if (response && response.su == 1) {
+       hndlRspo4(response, 1);
       } else {
-       window.showelsemodal(response.ms);
+       window.showelsemodal(response?.ms || 'Try Again!');
       }
      } catch (error) {
-      console.error("Initialization failed:", error);
+      console.error("Initlization failed:", error);
      }
     })();
    });
@@ -377,36 +575,15 @@
    .getElementById("bt_clr_locl_db")
    .addEventListener("click", function () {
     (async () => { await loadExe2Fn(25, [], [1]); })();
-
-    // const confirmClr = confirm(`Are you sure you want to clear all data?`);
-    // if (confirmClr) {
-    //  const l308oader = createDynamicLoader();
-    //  document.body.appendChild(l308oader);
-    //  setTimeout(() => {
-    //   (async () => {
-    //    try {
-    //     await dbDexieManager.deleteRecords(dbnm, 'c', null);
-    //     await dbDexieManager.deleteRecords(dbnm, 'b', null);
-    //     await dbDexieManager.deleteRecords(dbnm, 'i', null);
-    //     await dbDexieManager.deleteRecords(dbnm, 'r', null);
-    //     await dbDexieManager.deleteRecords(dbnm, 'be', null);
-    //     await dbDexieManager.deleteRecords(dbnm, 'ba', null);
-    //     await dbDexieManager.deleteRecords(dbnm, 'p', null);
-    //     await dbDexieManager.deleteRecords(dbnm, 's', null);
-    //     window.showelsemodal("all local data cleared;");
-    //     location.reload(true);
-    //    } catch (error) {
-    //     console.error("Initialization failed:", error);
-    //     showToast("Initialization error - please refresh");
-    //    }
-    //   })();
-    //  }, 5000);
-    // }
    });
  } catch (error) {
   console.error("Initialization failed:", error);
   showToast("Initialization error - please refresh");
  }
+
+ window.hndlRspo4 = async function (response) {
+  handl_op_rspons(response, 1);
+ };
 
  // ==================== FUNCTIONS ====================
 
@@ -446,6 +623,67 @@
   audio.play().catch(e => console.log('Audio play failed:', e));
  }
 
+ // Scoped modern styles for the bill-form container-fluid (bill-modern theme)
+ function addBillModernStyles() {
+  if (window.__bmStylesInjected) return;
+  window.__bmStylesInjected = true;
+  const st = document.createElement('style');
+  st.textContent = `
+.bm-scope{max-width:900px;margin:0 auto;padding:6px 10px 20px;--bm-control-height:38px}
+.bm-scope .bm-card{background:#fff;border:1px solid #6c757d;border-radius:14px;box-shadow:0 2px 12px rgba(36,27,69,.07);padding:16px;margin-bottom:14px}
+.bm-scope .bm-head{display:flex;align-items:center;gap:10px;font-weight:700;font-size:.95rem;color:#4a2d7e;margin-bottom:12px}
+.bm-scope .bm-chip{width:32px;height:32px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:#efe9f9;color:#6f42c1;font-size:.85rem;flex-shrink:0}
+.bm-scope .bm-input{border:1.1px solid #525455;border-radius:10px;background:#fbfaff;transition:border-color .2s,box-shadow .2s}
+.bm-scope .bm-input:focus{outline:none;border-color:#8f5fd6;box-shadow:0 0 0 .22rem rgba(111,66,193,.14)}
+.bm-scope .bm-input[readonly]{cursor:pointer;background:#f6f2fd}
+.bm-scope .input-group-text{background:#efe9f9;border-color:#6c757d;color:#4a2d7e;font-size:.85rem}
+.bm-scope .bm-pre{font-weight:800}
+.bm-scope .input-group .bm-input:focus{z-index:0}
+.bm-scope .input-group{min-width:0}
+.bm-scope .input-group .form-control{min-width:0}
+@media(max-width:576px){.bm-scope{padding:4px 6px 16px}.bm-scope .bm-card{padding:12px}.bm-scope .input-group-text{padding:.375rem .5rem;font-size:.78rem}}
+.bm-scope .bm-iconbtn{border:1.5px solid #343a40;background:#fff;color:#6f42c1;border-radius:10px;padding:.48rem .7rem;transition:.2s}
+.bm-scope .bm-iconbtn:hover{background:#efe9f9;border-color:#8f5fd6;color:#4a2d7e}
+.bm-scope .bm-badge{background:#efe9f9;color:#4a2d7e;border-radius:999px;padding:2px 10px;font-size:.78rem;font-weight:700}
+.bm-scope .bm-pill{flex:1 1 0;background:#fff;border:1px solid #6c757d;border-radius:12px;padding:4px .2px;text-align:center;display:flex;align-items:center;justify-content:center;gap:.35rem;white-space:nowrap;min-width:0}
+.bm-scope .bm-pill small{display:inline;color:#7a7492;font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.4px}
+.bm-scope .bm-pill b{font-size:1rem}
+.bm-scope .bm-label{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#7a7492;display:block;margin-bottom:3px}
+.bm-scope .bm-amt{background:#fffbeb;border-color:#f1df9a;font-weight:700}
+.bm-scope .bm-innerbox{border:1px dashed #6c757d;border-radius:12px;padding:10px;background:#fdfcff;margin-bottom:12px}
+.bm-scope .bm-subhead{font-weight:800;font-size:.8rem;letter-spacing:.5px;text-transform:uppercase;color:#7a7492;margin:14px 0 8px}
+.bm-scope .bm-banner{background:linear-gradient(135deg,#6f42c1,#4a2d7e);border-radius:12px;color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;margin-top:14px}
+.bm-scope .bm-banner .text-success{color:#7cfca0 !important}
+.bm-scope .bm-banner .text-warning{color:#ffd700 !important}
+.bm-scope .bm-banner .text-danger{color:#ffb3bc !important}
+.bm-scope .bm-btn{border:none;border-radius:11px;padding:.62rem 1.1rem;font-weight:700;color:#fff;box-shadow:0 4px 12px rgba(36,27,69,.18)}
+.bm-scope .bm-save{background:linear-gradient(135deg,#22c55e,#15803d)}
+.bm-scope .bm-updt{background:linear-gradient(135deg,#fbbf24,#d97706)}
+.bm-scope .bm-print,.bm-scope .bm-add{background:linear-gradient(135deg,#8f5fd6,#6f42c1)}
+.bm-scope .bm-inv-row{width:100%;min-width:0}
+.bm-scope .bm-inv-eye{display:flex;gap:.4rem;flex:0 0 auto}
+.bm-scope .bm-inv-eye .bm-iconbtn{width:var(--bm-control-height);min-width:var(--bm-control-height);height:var(--bm-control-height);padding:0;display:inline-flex;align-items:center;justify-content:center}
+.bm-scope .bm-inv-row>.bm-inv-bill{flex:0 1 180px;width:180px;min-width:130px}
+.bm-scope .bm-inv-row>.bm-inv-date{flex:1 1 0;width:0;min-width:125px}
+.bm-scope .bm-inv-row .bm-iconbtn,.bm-scope .bm-inv-row .input-group,.bm-scope .bm-inv-row .input-group-text,.bm-scope .bm-inv-row .form-control{height:var(--bm-control-height);min-height:var(--bm-control-height)}
+.bm-scope .bm-inv-row .input-group{min-width:0}
+.bm-scope .bm-inv-row .input-group-text{flex:0 0 auto;padding:0 .55rem;display:inline-flex;align-items:center;justify-content:center}
+.bm-scope .bm-inv-row .form-control{min-width:0;padding-top:0;padding-bottom:0}
+.bm-scope .bm-inv-date .form-control{border-top-left-radius:0;border-bottom-left-radius:0}
+.bm-scope .bm-inv-row .bm-date-wrap{position:relative;flex:1 1 0;min-width:0;height:var(--bm-control-height)}
+.bm-scope .bm-date-wrap .bm-date-disp{position:absolute;inset:0;display:flex;align-items:center;padding:0 .6rem;pointer-events:none;white-space:nowrap;overflow:hidden;color:#212529;font-size:.8rem}
+@media(max-width:576px){.bm-scope .bm-inv-row{gap:.35rem !important}.bm-scope .bm-inv-eye .bm-iconbtn{font-size:.75rem}.bm-scope .bm-inv-row>.bm-inv-bill{width:95px;flex-basis:95px;min-width:90px}.bm-scope .bm-inv-row>.bm-inv-date{min-width:80px}.bm-scope .bm-inv-row .input-group-text{padding:0 .4rem;font-size:.72rem}.bm-scope .bm-inv-row .form-control{font-size:.72rem;padding-left:.3rem;padding-right:.3rem}.bm-scope .bm-date-wrap .bm-date-disp{padding:0 .35rem;font-size:.7rem}.bm-scope .bm-pre{font-size:.7rem}}
+.bm-scope .added-item-card{border-color:#6c757d;border-left:4px solid #28a745 !important;border-radius:12px;box-shadow:0 2px 10px rgba(36,27,69,.06)}
+.bm-scope .added-item-image{width:64px;height:64px}
+.bm-scope .bm-date-wrap{position:relative;flex:1 1 0;min-width:0}
+.bm-scope .bm-date-wrap.has-val .form-control{color:transparent;caret-color:transparent}
+.bm-scope .bm-date-wrap .bm-date-disp{position:absolute;inset:0;display:flex;align-items:center;padding:0 .75rem;pointer-events:none;color:#212529;font-size:.95rem}
+.bm-scope .bm-date-wrap .form-control-sm~.bm-date-disp{font-size:.875rem;padding:0 .5rem}
+.bm-scope .bm-date-wrap.text-center .bm-date-disp{justify-content:center}
+`;
+  document.head.appendChild(st);
+ }
+
  async function set_bill_innerHTML(...params) {
   try {
    items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
@@ -461,138 +699,127 @@
    showToast("Initialization error - please refresh");
   }
 
+  addBillModernStyles();
+
   const c_ontainer_blank_main = document.getElementById(params[0]);
   c_ontainer_blank_main.innerHTML = `
-<div class="container-fluid">
-<!-- First Row - 4 columns -->
-<div class="row g-0">
-<div class="col-2">
-<div class="input-group border border-dark">
-<input type="text" class="form-control" style="padding-left:6.5px;" placeholder="Invoice Number" id="invoiceNumber">
-</div>
-</div>
-<div class="col-2 d-flex align-items-center">
-<button class="btn btn-outline-secondary" onclick="showBillCards()" style="margin:0px;">
+<div class="container-fluid bm-scope">
+<div class="bm-card">
+<!-- Invoice Row -->
+<div class="d-flex align-items-center gap-2 flex-nowrap bm-inv-row mb-3 pb-2 mt-2">
+<div class="bm-inv-eye flex-shrink-0">
+<button class="btn bm-iconbtn fs-5" onclick="showBillCards()">
 <i class="fas fa-eye"></i>
 </button>
-<button id="fileUploadTesting" class="btn btn-outline-secondary" onclick="temporary()" style="margin:0px;display:none;">
+<button id="fileUploadTesting" class="btn bm-iconbtn fs-6" onclick="temporary()" style="display:none;">
 <i class="fas fa-eye"></i>
 </button>
 </div>
-<div class="col-4">
-<input type="text" class="form-control border border-dark" id="receiptDate" placeholder="Select Date & Time">
+<div class="input-group bm-inv-bill flex-shrink-0">
+<span class="input-group-text bm-pre fs-6">Bill:</span>
+<input type="text" class="form-control fs-6 fw-bold bm-input" placeholder="Invoice Number" id="invoiceNumber">
 </div>
-<div class="col-4">
-<input type="text" class="form-control border border-dark" id="deliveryDate" placeholder="Select Date & Time">
+<div class="input-group bm-inv-date">
+<span class="input-group-text fs-6"><i class="far fa-calendar"></i></span>
+<div class="bm-date-wrap">
+<input type="text" class="form-control bm-input" id="receiptDate" placeholder="Select Date">
+<span class="bm-date-disp" id="receiptDate_disp"></span>
+</div>
+</div>
+<div class="input-group bm-inv-date">
+<span class="input-group-text fs-6"><i class="fas fa-sync-alt"></i></span>
+<div class="bm-date-wrap">
+<input type="text" class="form-control bm-input" id="deliveryDate" placeholder="Select Date">
+<span class="bm-date-disp" id="deliveryDate_disp"></span>
+</div>
 </div>
 </div>
 
-<!-- Second Row - 2 read-only columns -->
-<div class="row g-0 mb-3">
-<div class="col-6">
-<input id="c_dtls_lient" type="text" class="form-control border border-dark" readonly onclick="(async () => { await loadExe2Fn(14, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall', 1], [1]); })()" placeholder="Customer Details">
+<!-- Customer & Referrer Row -->
+<div class="row g-2 pt-1" style="border-top:1px solid #6c757d;">
+<div class="col-7 col-sm-8">
+<div class="input-group">
+<span class="input-group-text fs-6"><i class="fas fa-user"></i></span>
+<input id="c_dtls_lient" type="text" class="form-control bm-input" readonly onclick="(async () => { await loadExe2Fn(14, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall', 1, typeof window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_forCust !== 'undefined' ? window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_forCust : null], [1]); })()" placeholder="Customer Details">
+</div>
 <input type="hidden" id="clientId">
 </div>
-<div class="col-6">
-<input id="r_dtls_eferrer" type="text" class="form-control border border-dark" readonly onclick="(async () => { await loadExe2Fn(14, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall', 2], [1]); })()" placeholder="Referrer details">
+<div class="col-5 col-sm-4">
+<div class="input-group">
+<span class="input-group-text fs-6"><i class="fas fa-handshake"></i></span>
+<input id="r_dtls_eferrer" type="text" class="form-control bm-input" readonly onclick="(async () => { await loadExe2Fn(14, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall', 2, typeof window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_forRef !== 'undefined' ? window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_forRef : null], [1]); })()" placeholder="Referrer">
+</div>
 <input type="hidden" id="referrerId">
 </div>
 </div>
 
 <!-- Items Container -->
-<div class="row">
-<div class="col-12">
 <div id="billItemsContainer" class="mb-3">
 <!-- Items will be added here dynamically -->
 </div>
-</div>
-</div>
 
-<!-- Added Items Section -->
-<div class="row">
-<div class="col-12">
-<h5>Added Items</h5>
+<!-- Added Items -->
+<div class="bm-subhead" style="margin-top:16px;">Added Items</div>
 <div id="addedItemsContainer">
 <!-- Added items will appear here -->
 </div>
-</div>
-</div>
-
-<!-- Add Item Button -->
-<div id="dv_for_add_itm_btn" class="row mb-3" style="display:none;">
-<div class="col-12 text-center">
-<button class="btn btn-primary" onclick="showAddItemModal()">
+<div id="dv_for_add_itm_btn" class="text-center mt-2" style="display:none;">
+<!--keep this as comment: button class="btn btn-primary" onclick="showAddItemModal()"-->
+<button class="btn bm-btn bm-add mb-3" style="font-size:.85rem;" onclick="(async () => { await loadExe2Fn(29, [], [1]); })();">
 <i class="fas fa-plus-circle me-2"></i>Add Item to Bill
 </button>
 </div>
+
+<!-- Items Summary Pills -->
+<div class="row g-2" id="itemsSummaryRow">
+<div class="col-3"><div class="bm-pill w-100"><small>Itms:</small><b id="totalItems">0</b></div></div>
+<div class="col-3"><div class="bm-pill w-100"><small>Qty:</small><b id="totalQuantity">0</b></div></div>
+<div class="col-6"><div class="bm-pill w-100"><small>Total:</small><b style="color:#198754;">₹<span id="totalPrice">0.00</span></b></div></div>
 </div>
 
-<!-- Items Summary Row (separate from Bill Summary) -->
-<div class="row" id="itemsSummaryRow" style="background-color: #9dceff; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
-<div class="col-12">
-<div class="row text-center">
-<div class="col-3">
-<strong style="color: #495057;">Itms:</strong>
-<span id="totalItems" style="font-weight: bold; color: #212529;">0</span>
-</div>
-<div class="col-3">
-<strong style="color: #495057;">Qty:</strong>
-<span id="totalQuantity" style="font-weight: bold; color: #212529;">0</span>
-</div>
-<div class="col-6">
-<strong style="color: #495057;">Total:</strong>
-<span style="font-weight: bold; color: #28a745;">₹<span id="totalPrice">0.00</span></span>
-</div>
-</div>
-</div>
-</div>
+<!-- Payments -->
+<div id="rcvd_amts_dv">
+<div class="bm-subhead" style="margin-top:16px;">Payments</div>
 
-<!-- Received Amounts Section -->
-<div class="row mt-4" id="rcvd_amts_dv">
-<div class="col-12">
-<div class="card" style="background-color: bisque;">
-<div class="card-body">
-
-<!-- 4. Discount Row -->
-<div class="row mb-3">
-<div class="row g-2">
-<div class="col-6">
-<div class="input-group input-group-sm">
-<span class="input-group-text" style="padding:1px;">Discont %</span>
-<input type="number" class="form-control border border-dark" id="discountPercentage" style="font-weight: bold;font-size: 1.2rem;background-color:coral" min="0" max="100" step="0.1" placeholder="0.00" value="0">
+<!-- Discount Row -->
+<div class="row g-2 mb-3" style="flex-wrap:nowrap;">
+<div class="col-6" style="min-width:0;">
+<label class="bm-label">Discount %</label>
+<input type="number" class="form-control bm-input bm-amt" id="discountPercentage" style="font-size:1.05rem;border:2px solid #000080;" min="0" max="100" step="0.1" placeholder="0.00" value="0">
 </div>
-</div>
-<div class="col-6">
-<div class="input-group input-group-sm">
-<span class="input-group-text" style="padding:1px;">Discont ₹</span>
-<input type="number" class="form-control border border-dark" id="discountAmount" style="font-weight: bold;font-size: 1.2rem;background-color:coral" min="0" step="1" placeholder="0.00" value="0">
-</div>
-</div>
+<div class="col-6" style="min-width:0;">
+<label class="bm-label">Discount ₹</label>
+<input type="number" class="form-control bm-input bm-amt" id="discountAmount" style="font-size:1.05rem;border:2px solid #000080;" min="0" step="1" placeholder="0.00" value="0">
 </div>
 </div>
 
-<!-- 1. Total Row -->
-<div class="row mb-1">
-<div class="col-12 d-flex justify-content-between align-items-center">
-<label class="form-label mb-0" style="font-weight: bold;">Total:</label>
-<span style="font-weight: bold; font-size: 1.2rem; color: #28a745;">₹<span id="grandBillTotal">0.00</span></span>
-</div>
+<!-- Total Row -->
+<div class="d-flex justify-content-between align-items-center mb-2">
+<label class="form-label mb-0 fw-bold">Total:</label>
+<span class="fw-bold fs-5" style="color:#198754;">₹<span id="grandBillTotal">0.00</span></span>
 </div>
 
-<!-- 2. Add Received Amount Card -->
-<div class="card-header bg-light">
-<h5 class="mb-0">Received Amounts</h5>
-</div>
-<div class="card mb-3" id="addReceivedAmountCard">
-<div class="card-body py-1 px-2">
+<!-- Add Received Amount Box -->
+<div class="bm-subhead">Received Amounts</div>
+<div class="bm-innerbox" id="addReceivedAmountCard">
 <div class="row g-1 align-items-center">
 <div class="col-3">
-<input type="text" class="form-control form-control-sm border border-dark text-center" id="receivedDateTime" placeholder="Date">
+<div class="bm-date-wrap text-center">
+<input type="text" class="form-control form-control-sm bm-input text-center" id="receivedDateTime" placeholder="Date">
+<span class="bm-date-disp" id="receivedDateTime_disp"></span>
+</div>
 </div>
 <div class="col">
 <div class="input-group input-group-sm">
-<span class="input-group-text bg-white border-dark p-1">₹</span>
-<input type="text" class="form-control form-control-sm border border-dark" oninput="window.allowFloat(this,2)" placeholder="Amount" id="receivedAmount" inputmode="decimal" autocomplete="off" style="background-color:burlywood;font-size: 1.1rem;">
+<span class="input-group-text bg-white p-1" style="border:2px solid #000080;border-right:2px solid #6c757d;">₹</span>
+<input type="text" class="form-control form-control-sm bm-input bm-amt" oninput="window.allowFloat(this,2)" placeholder="Amount" id="receivedAmount" inputmode="decimal" autocomplete="off" style="font-size:1.05rem;border:2px solid #000080;border-left:2px solid #6c757d;margin-left:-2px;">
+</div>
+<input type="hidden" id="receivedCashier" value="">
+</div>
+<div class="col-auto">
+<div class="position-relative d-inline-block">
+<button class="btn btn-outline-secondary btn-sm" type="button" tabindex="-1" id="receivedCashierBtn" title="Select Cashier" onclick="toggleReceivedCashierDropdown(event)" style="border:1px solid #212529;border-radius:.25rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;"><i class="fas fa-user"></i></button>
+<div id="receivedCashierDropdown" style="display:none;position:absolute;left:0;right:auto;top:100%;bottom:auto;z-index:20;width:max-content;min-width:220px;max-width:calc(100vw - 20px);max-height:200px;overflow-y:auto;background:#fff;border:1px solid #212529;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);"></div>
 </div>
 </div>
 <div class="col-auto text-center">
@@ -621,40 +848,22 @@
 </div>
 </div>
 </div>
-</div>
 
 <!-- Added Received Amounts -->
 <div id="addedReceivedAmountsContainer">
 <!-- Received amounts will appear here -->
 </div>
 
-<!-- 3. Received Total Row -->
-<div class="row">
-<div class="col-12 d-flex justify-content-between align-items-center">
-<label class="form-label mb-0" style="font-weight: bold;">Received:</label>
-<span style="font-weight: bold; font-size: 1.2rem; color: #007bff;">₹<span id="grandTotalReceived">0.00</span></span>
-</div>
+<!-- Received Total Row -->
+<div class="d-flex justify-content-between align-items-center mt-2 mb-1">
+<label class="form-label mb-0 fw-bold">Received:</label>
+<span class="fw-bold fs-5" style="color:#2563eb;">₹<span id="grandTotalReceived">0.00</span></span>
 </div>
 
-<!-- 5. Grand Total Row -->
-<div class="row mt-2">
-<div class="col-12">
-<div class="card border-success">
-<div class="card-body bg-light">
-<div class="row align-items-center">
-<div class="col-6">
-<h5 class="mb-0" style="font-weight: bold;">Total due:</h5>
-</div>
-<div class="col-6 text-end">
-<h4 class="mb-0" style="font-weight: bold; color: #dc3545;">₹<span id="grandBalance">0.00</span></h4>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
+<!-- Total Due Banner -->
+<div class="bm-banner">
+<h5 class="mb-0 fw-bolder">Total due:</h5>
+<h4 class="mb-0 fw-bolder">₹<span id="grandBalance">0.00</span></h4>
 </div>
 </div>
 
@@ -666,42 +875,44 @@
 </div>
 </div>
 
-<!-- Action Buttons Row -->
-<div class="row mt-4">
-<div class="col-12 border">
-<div class="card border border-dark">
-<div class="card-body">
-<textarea class="form-control" id="billNotes" rows="3" placeholder="Set comment/note for this bill.\nWhile generating 'bill-print', u can decide whether to print this 'note' in bill;"></textarea>
-</div>
-</div>
-<div class="card border border-dark">
-<div class="card-body">
-<div class="row g-2">
+<!-- Notes + Actions -->
+<div class="bm-subhead" style="margin-top:16px;">Notes &amp; Actions</div>
+<textarea class="form-control bm-input" id="billNotes" rows="3" placeholder="Set comment/note for this bill.\nWhile generating 'bill-print', u can decide whether to print this 'note' in bill;"></textarea>
+<div class="row g-2 mt-1">
 <div class="col-4">
-<button id="saveBtn" class="btn btn-success w-100" onclick="crUpBill(3)">
+<button id="saveBtn" class="btn bm-btn bm-save w-100" onclick="crUpBill(3)">
 <i class="fas fa-save me-2"></i>Save
 </button>
 </div>
 <div class="col-4">
-<button class="btn btn-warning w-100" id="updateBtn" onclick="crUpBill(7)" disabled>
+<button class="btn bm-btn bm-updt w-100" id="updateBtn" onclick="crUpBill(7)" disabled>
 <i class="fas fa-edit me-2"></i>Updt
 </button>
 </div>
 <div class="col-4">
-<button class="btn btn-info w-100" id="printBtn" disabled onclick='playSound("https://bigsoundbank.com/UPLOAD/mp3/1417.mp3"); sho_bl_modal(billTableRowId)'>
+<button class="btn bm-btn bm-print w-100" id="printBtn" disabled onclick='playSound("https://bigsoundbank.com/UPLOAD/mp3/1417.mp3"); sho_bl_modal(billTableRowId)'>
 <i class="fas fa-print me-2"></i>Print
 </button>
 </div>
 </div>
 </div>
 </div>
-</div>
-</div>
-</div>
 `;
 
+  if (window.__bmItemsObserver) {
+   window.__bmItemsObserver.disconnect();
+  }
+  const _aicEl = document.getElementById('addedItemsContainer');
+  if (_aicEl) {
+   window.__bmItemsObserver = new MutationObserver(function () {
+    updateBillSectionsVisibility();
+   });
+   window.__bmItemsObserver.observe(_aicEl, { childList: true });
+  }
+  updateBillSectionsVisibility();
+
   // Initialize dates with current date and time
-  initializeFlatpickr();
+  initializeDatePickers();
 
   // Add event listeners for discount calculations
   document.getElementById('discountPercentage').addEventListener('input', calculateDiscountFromPercentage);
@@ -714,6 +925,15 @@
 
   document.getElementById('discountAmount').addEventListener('focus', function () {
    this.select();
+  });
+
+  // Delegated fallback: keep discount inputs working even if the elements are
+  // re-rendered or the direct listeners above were attached to replaced DOM.
+  document.addEventListener('input', function (e) {
+   const el = e.target;
+   if (!el || !el.id) return;
+   if (el.id === 'discountPercentage') calculateDiscountFromPercentage();
+   else if (el.id === 'discountAmount') calculateDiscountFromAmount();
   });
 
   // Initialize received amount form
@@ -759,6 +979,18 @@
   const modalContent = modal.contentElement;
   const modalInstance = modal.modalInstance;
 
+  // ✅ FIX: Add modal-lg class for larger modal and handle body absence
+  const modalDialog = modal.modalElement.querySelector('.modal-dialog');
+  if (modalDialog) {
+   modalDialog.classList.add('modal-lg');
+  }
+  const modalBody = modalContent.querySelector('.modal-body');
+  if (!modalBody) {
+   modalContent.style.maxHeight = '85vh';
+   modalContent.style.overflowY = 'auto';
+   modalContent.style.backgroundColor = '#e2d9f3';
+  }
+
   // Create a clean modal form
   const modalHTML = `
 <div class="modal-header">
@@ -796,7 +1028,9 @@ style="font-size: 0.8rem;">
 <!-- Row 1 - Item Name with Add New Button -->
 <div class="row mb-2 g-0">
 <div class="col-12">
+<div style="position:relative;">
 <input type="text" class="form-control border border-dark" placeholder="Item Name" id="modalItemName">
+</div>
 </div>
 </div>
 
@@ -865,6 +1099,11 @@ style="font-size: 0.8rem;">
     if (blurTimeout) {
      clearTimeout(blurTimeout);
      blurTimeout = null;
+    }
+    // Remove any remaining dropdown
+    const hidDropdown = document.querySelector('.item-dropdown');
+    if (hidDropdown) {
+     hidDropdown.remove();
     }
    });
   }
@@ -1347,7 +1586,9 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
  // Enable drag-to-scroll on a scrollable element
  function enableDragScroll(element, scrollTarget) {
   if (!element) return;
+
   const target = scrollTarget || element;
+
   let isDown = false;
   let dragged = false;
   let startX = 0;
@@ -1355,58 +1596,86 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
   let startScrollLeft = 0;
   let startScrollTop = 0;
 
-  const onMove = function (e) {
+  element.style.cursor = 'grab';
+
+  element.addEventListener('pointerdown', function (e) {
+
+   // Only left mouse button
+   if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+   // Don't drag when clicking controls
+   if (e.target.closest(
+    'input, select, textarea, button, a, label'
+   )) return;
+
+   isDown = true;
+   dragged = false;
+
+   startX = e.clientX;
+   startY = e.clientY;
+
+   startScrollLeft = target.scrollLeft;
+   startScrollTop = target.scrollTop;
+
+   element.style.cursor = 'grabbing';
+   element.style.userSelect = 'none';
+
+   // Keep receiving pointer events
+   element.setPointerCapture?.(e.pointerId);
+  });
+
+
+  element.addEventListener('pointermove', function (e) {
+
    if (!isDown) return;
+
    const dx = e.clientX - startX;
    const dy = e.clientY - startY;
-   if (!dragged && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) dragged = true;
+
+   // Small movement = click
+   if (!dragged && (
+    Math.abs(dx) > 4 ||
+    Math.abs(dy) > 4
+   )) {
+    dragged = true;
+   }
+
    if (dragged) {
     target.scrollLeft = startScrollLeft - dx;
     target.scrollTop = startScrollTop - dy;
    }
-  };
-
-  const stopDrag = function () {
-   if (!isDown) return;
-   isDown = false;
-   element.style.cursor = '';
-   element.style.userSelect = '';
-   document.removeEventListener('mousemove', onMove);
-   document.removeEventListener('mouseup', stopDrag);
-   setTimeout(function () {
-    dragged = false;
-   }, 0);
-  };
-
-  element.addEventListener('mousedown', function (e) {
-   if (e.button !== 0) return;
-   if (e.target.closest('input, select, textarea, button, a, label')) return;
-   // Skip when pressing on a scrollbar so native scrollbar thumb dragging keeps working
-   const isOnScrollbar = function (el) {
-    if (!el) return false;
-    const r = el.getBoundingClientRect();
-    return e.clientX >= r.left + el.clientWidth || e.clientY >= r.top + el.clientHeight;
-   };
-   if (isOnScrollbar(element) || (target !== element && isOnScrollbar(target))) return;
-   isDown = true;
-   dragged = false;
-   startX = e.clientX;
-   startY = e.clientY;
-   startScrollLeft = target.scrollLeft;
-   startScrollTop = target.scrollTop;
-   element.style.cursor = 'grabbing';
-   element.style.userSelect = 'none';
-   document.addEventListener('mousemove', onMove);
-   document.addEventListener('mouseup', stopDrag);
   });
 
-  // Suppress click after an actual drag so card clicks still work normally
+
+  function stopDrag(e) {
+
+   if (!isDown) return;
+
+   isDown = false;
+
+   element.style.cursor = 'grab';
+   element.style.userSelect = '';
+
+   if (e?.pointerId !== undefined) {
+    element.releasePointerCapture?.(e.pointerId);
+   }
+  }
+
+
+  element.addEventListener('pointerup', stopDrag);
+  element.addEventListener('pointercancel', stopDrag);
+
+
+  // Prevent card click after dragging
   element.addEventListener('click', function (e) {
+
    if (dragged) {
     e.preventDefault();
     e.stopPropagation();
+
     dragged = false;
    }
+
   }, true);
  }
 
@@ -1434,23 +1703,28 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
   </div>
   <small id="billDateError" class="text-danger d-none">From date cannot be after To date</small>
 <div id="billDateFilterSection" class="row g-2 mb-3" style="display:none;">
- <div class="col-6">
-  <label class="form-label small mb-0 fw-bold">From</label>
-  <input type="date" class="form-control form-control-sm border border-dark" id="billFilterFromDate">
- </div>
- <div class="col-6">
-  <label class="form-label small mb-0 fw-bold">To</label>
-  <input type="date" class="form-control form-control-sm border border-dark" id="billFilterToDate">
- </div>
+    <div class="col-6">
+        <div class="d-flex align-items-center gap-2">
+            <label class="mb-0 text-nowrap">From</label>
+            <input type="date" class="form-control form-control-sm border border-dark" style="max-width: 65%;" id="billFilterFromDate">
+        </div>
+    </div>
+
+    <div class="col-6">
+        <div class="d-flex align-items-center gap-2">
+            <label class="mb-0 text-nowrap">To</label>
+            <input type="date" class="form-control form-control-sm border border-dark" style="max-width: 65%;" id="billFilterToDate">
+        </div>
+    </div>
 </div>
  <div id="billCardsContainer" class="row g-3 border"></div>
 </div>
 `;
 
-  // Enable drag-to-scroll for the big bill list (drag anywhere in the modal body)
-  const billListScrollArea = b_ill_cards_container.querySelector('.modal-body');
-  enableDragScroll(b_ill_cards_container, billListScrollArea);
+  // Enable drag-to-scroll for the big bill list
+  const billListScrollArea = b_ill_cards_container.querySelector('#billCardsScrollArea');
   enableDragScroll(billListScrollArea);
+  billListScrollArea.style.touchAction = 'pan-y';
 
   // Create a variable to store the filtered bills
   let filteredBills = stored_bill;
@@ -1738,7 +2012,7 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
        payload0.b = billData;
        var tTxt = postCall_Json("https://my1.in/2/1.php", payload0, 0, false);
        var response = JSON.parse(tTxt);
-       if (response.su == 1) {
+       if (response && response.su == 1) {
         await delBillByID(billTableRowId);
        } else {
         window.showelsemodal(response.ms);
@@ -1800,7 +2074,7 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
 <h5 class="modal-title">Add Received Amount - Bill ${b346illID}</h5>
 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
-<div class="modal-body">
+<div class="modal-body" style="background-color: #d4c7ec;">
 <!-- Bill Summary Section -->
 <div class="card mb-3">
 <div class="card-header bg-light">
@@ -1834,19 +2108,26 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
 <!-- Date & Time - col-4 -->
 <div class="col-4">
 <label class="form-label small text-muted mb-1">Date</label>
-<input type="text" class="form-control form-control-sm" id="receivedDateTimeModal" placeholder="Select Date & Time">
+<div class="position-relative">
+<input type="text" class="form-control form-control-sm" id="receivedDateTimeModal" placeholder="Select Date & Time" style="border:1px solid #212529;color:transparent;caret-color:transparent;">
+<span id="receivedDateTimeModal_disp" style="position:absolute;inset:0;display:flex;align-items:center;padding:0 .75rem;pointer-events:none;color:#212529;font-size:.875rem;"></span>
+</div>
 </div>
 
 <!-- Amount - col-4 -->
 <div class="col-4">
 <label class="form-label small text-muted mb-1">Rcvd Amt.</label>
-<input type="text" class="form-control form-control-sm" placeholder="Amount" id="receivedAmountModal" inputmode="decimal" autocomplete="off" oninput="window.allowFloat(this,2)">
+<input type="text" class="form-control form-control-sm" placeholder="Amount" id="receivedAmountModal" inputmode="decimal" autocomplete="off" oninput="window.allowFloat(this,2)" style="border:1px solid #212529;">
 </div>
 
 <!-- Payment Type - col-2 -->
 <div class="col-2">
 <label class="form-label small text-muted mb-1">Type</label>
-<select class="form-control form-control-sm" id="paymentTypeModal">
+<div class="d-inline-block position-relative" style="height:31px;">
+<button class="btn btn-primary btn-sm" id="paymentTypeBtnModal" type="button" tabindex="-1" style="pointer-events:none;">
+<i class="fas fa-credit-card"></i>
+</button>
+<select id="paymentTypeModal" onchange="this.blur();updatePaymentTypeIcon('paymentTypeModal','paymentTypeBtnModal')" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:3;border:1px solid #212529;">
 <option value="0">Select</option>
 <option value="1">Cash</option>
 <option value="2">Cheque</option>
@@ -1854,6 +2135,7 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
 <option value="4">UPI</option>
 <option value="5">Bank Transfer</option>
 </select>
+</div>
 </div>
 
 <!-- Add Button - col-2 -->
@@ -1928,7 +2210,7 @@ ${renderExistingPayments(c594ashInfo)}
    }
   };
 
-  initializeModalFlatpickr();
+  initializeModalDatePicker();
 
   // Store temporary payments array for this modal
   window.tempReceivedAmounts = [];
@@ -2124,6 +2406,7 @@ ${renderExistingPayments(c594ashInfo)}
   // Clear the form
   document.getElementById('receivedAmountModal').value = '';
   document.getElementById('paymentTypeModal').value = '0';
+  updatePaymentTypeIcon('paymentTypeModal', 'paymentTypeBtnModal');
 
   // Update the totals in the modal
   updateModalTotals();
@@ -2180,7 +2463,7 @@ ${renderExistingPayments(c594ashInfo)}
 <div class="card-body py-2">
 <div class="row align-items-center">
 <div class="col-4">
-<small class="text-muted">${formattedDate}</small>
+<small class="text-muted"><i class="far fa-calendar me-1"></i>${formattedDate}</small>
 </div>
 <div class="col-6">
 <strong>${paymentTypeIcon} ₹${payment.amount.toFixed(2)}${constraintCounterBadge}</strong>
@@ -2236,38 +2519,20 @@ ${renderExistingPayments(c594ashInfo)}
   // Clear the form
   document.getElementById('receivedAmountModal').value = '';
   document.getElementById('paymentTypeModal').value = '0';
+  updatePaymentTypeIcon('paymentTypeModal', 'paymentTypeBtnModal');
 
   // Note: In a real implementation, you would:
   // 1. Make API call to save the payment
   // 2. Update the UI with the new payment
   // 3. Possibly refresh the payments list
  }
- function initializeModalFlatpickr() {
-  if (typeof flatpickr !== 'undefined') {
-   const now = new Date();
-
-   flatpickr("#receivedDateTimeModal", {
-    enableTime: true,
-    dateFormat: "Y-m-d H:i",
-    time_24hr: true,
-    defaultDate: now,
-    minuteIncrement: 1,
-    static: true,
-    disableMobile: true,
-    position: "above",
-    positionElement: document.body,
-    onReady: function (selectedDates, dateStr, instance) {
-     const calendar = instance.calendarContainer;
-     calendar.style.position = 'fixed';
-     calendar.style.top = '50%';
-     calendar.style.left = '50%';
-     calendar.style.transform = 'translate(-50%, -50%)';
-     calendar.style.zIndex = '9999';
-    }
-   });
-
-   // Set initial value
-   document.getElementById('receivedDateTimeModal').value = formatForFlatpickr(now);
+ async function initializeModalDatePicker() {
+  try {
+   await window.initDateTimePicker('receivedDateTimeModal', { displayFormatter: window.formatLongDisplay });
+  } catch (error) {
+   console.error('Failed to initialize modal date picker:', error);
+   // Fallback: set current datetime manually
+   document.getElementById('receivedDateTimeModal').value = formatForPicker(new Date());
   }
  }
  function renderExistingPayments(payments) {
@@ -2284,7 +2549,7 @@ ${renderExistingPayments(c594ashInfo)}
   payments.forEach(payment => {
    const paymentTypeIcon = getPaymentTypeIcon(payment.i);
    const paymentTypeText = getPaymentTypeText(payment.i);
-   const formattedDate = payment.k || 'No date';
+   const formattedDate = payment.k ? formatDateTime(payment.k) : 'No date';
 
    // Show constraint counter (n field) if it exists and is greater than 0
    const constraintCounterBadge = payment.n > 0 ?
@@ -2295,7 +2560,7 @@ ${renderExistingPayments(c594ashInfo)}
 <div class="card-body py-2">
 <div class="row align-items-center">
 <div class="col-6">
-<small class="text-muted">${formattedDate}</small>
+<small class="text-muted"><i class="far fa-calendar me-1"></i>${formattedDate}</small>
 </div>
 <div class="col-4">
 <strong>${paymentTypeIcon} ₹${parseFloat(payment.j || 0).toFixed(2)}${constraintCounterBadge}</strong>
@@ -2324,9 +2589,9 @@ ${renderExistingPayments(c594ashInfo)}
    }
    // Populate basic bill information
    document.getElementById('invoiceNumber').value = bill.g || '';
-   receiptCommitted = normalizeFullDateTime(bill.f || '');
-   document.getElementById('receiptDate').value = receiptCommitted;
-   if (receiptDatePicker) receiptDatePicker.setDate(receiptCommitted, false);
+   const receiptDateValue = normalizeFullDateTime(bill.f || '');
+   if (receiptDatePicker) receiptDatePicker.setCommitted(receiptDateValue);
+   document.getElementById('receiptDate').value = receiptDateValue;
    document.getElementById('billNotes').value = bill.i || '';
    document.getElementById('discountAmount').value = bill.k || 0;
    const discountAmount = parseFloat(bill.k) || 0;
@@ -2337,12 +2602,10 @@ ${renderExistingPayments(c594ashInfo)}
    }
 
 
-   // Set delivery date from bill.i.dldt if available, else default to receipt date
+   // Set delivery date from bill.i.dldt if available, leave empty if optional
    let deliveryValue = (bill.i && bill.i.dldt) ? normalizeFullDateTime(bill.i.dldt) : '';
-   if (!deliveryValue) deliveryValue = receiptCommitted;
-   deliveryCommitted = deliveryValue;
-   document.getElementById('deliveryDate').value = deliveryCommitted;
-   if (deliveryDatePicker) deliveryDatePicker.setDate(deliveryCommitted, false);
+   if (deliveryDatePicker) deliveryDatePicker.setCommitted(deliveryValue);
+   document.getElementById('deliveryDate').value = deliveryValue;
 
    // Set client information
    if (bill.e) {
@@ -2522,255 +2785,33 @@ class="form-control form-control-sm d-inline-block w-auto"
   }
  }
 
- // Flatpickr dependency loader
- function loadFlatpickrDependencies() {
-  return new Promise((resolve, reject) => {
-   // Check if Flatpickr is already loaded
-   if (typeof flatpickr !== 'undefined') {
-    resolve();
-    return;
-   }
-
-   let cssLoaded = false;
-   let jsLoaded = false;
-
-   // Load CSS
-   const link = document.createElement('link');
-   link.rel = 'stylesheet';
-   link.href = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css';
-   link.onload = () => {
-    cssLoaded = true;
-    if (jsLoaded) resolve();
-   };
-   link.onerror = () => reject(new Error('Failed to load Flatpickr CSS'));
-   document.head.appendChild(link);
-
-   // Load JavaScript
-   const script = document.createElement('script');
-   script.src = 'https://cdn.jsdelivr.net/npm/flatpickr';
-   script.onload = () => {
-    jsLoaded = true;
-    if (cssLoaded) resolve();
-   };
-   script.onerror = () => reject(new Error('Failed to load Flatpickr JS'));
-   document.head.appendChild(script);
-  });
- }
-
- // Format for Flatpickr (YYYY-MM-DD HH:mm)
- function formatForFlatpickr(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${year}-${month}-${day} ${hours}:${minutes}`;
- }
-
  // Ensure a date string has a full "YYYY-MM-DD HH:mm" format (append time if missing)
  function normalizeFullDateTime(val) {
   if (!val) return '';
   return val.includes(' ') && val.split(' ')[1].length === 5 ? val : val + ' 00:00';
  }
- // Initialize Flatpickr for all datetime fields
- async function initializeFlatpickr() {
+
+ // Initialize pickers for all datetime fields
+ async function initializeDatePickers() {
   try {
-   await loadFlatpickrDependencies();
-
-   const now = new Date();
-
-   receiptDatePicker = flatpickr("#receiptDate", {
-    enableTime: true,
-    dateFormat: "Y-m-d H:i",
-    time_24hr: true,
-    defaultDate: now,
-    minuteIncrement: 1,
-    static: true,
-    disableMobile: true,
-    ignoredFocusElements: [document.body],
-    position: "above", // or "below"
-    positionElement: document.body, // Position relative to body instead of input
-    onChange: function (selectedDates, dateStr, instance) {
-     receiptPending = dateStr;
-     receiptChanged = true;
-     document.getElementById('receiptDate').value = receiptCommitted;
-     if (!instance.isOpen) instance.open();
-    },
-    onClose: function (selectedDates, dateStr, instance) {
-     if (receiptChanged && receiptPending && receiptPending !== receiptCommitted) {
-      return false;
-     }
-    },
-    onReady: function (selectedDates, dateStr, instance) {
-     // Center the calendar when opened
-     const calendar = instance.calendarContainer;
-     calendar.style.position = 'fixed';
-     calendar.style.top = '50%';
-     calendar.style.left = '50%';
-     calendar.style.transform = 'translate(-50%, -50%)';
-     calendar.style.zIndex = '9999';
-     calendar.classList.add('border', 'border-dark');
-     // Add OK button inside the calendar
-     if (!calendar.querySelector('.flatpickr-ok-btn')) {
-      const okBtn = document.createElement('button');
-      okBtn.type = 'button';
-      okBtn.className = 'btn btn-primary btn-sm w-100 mt-2 flatpickr-ok-btn';
-      okBtn.style.borderRadius = '0 0 6px 6px';
-      okBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i>OK';
-      okBtn.addEventListener('click', function () {
-       if (receiptPending) {
-        receiptCommitted = receiptPending;
-        instance.setDate(receiptCommitted, false);
-       }
-       receiptChanged = false;
-       instance.close();
-      });
-      calendar.appendChild(okBtn);
-     }
-    }
-   });
-
-   // Initialize Flatpickr for delivery date
-   deliveryDatePicker = flatpickr("#deliveryDate", {
-    enableTime: true,
-    dateFormat: "Y-m-d H:i",
-    time_24hr: true,
-    defaultDate: now,
-    minuteIncrement: 1,
-    static: true,
-    disableMobile: true,
-    ignoredFocusElements: [document.body],
-    position: "above",
-    positionElement: document.body,
-    onChange: function (selectedDates, dateStr, instance) {
-     deliveryPending = dateStr;
-     deliveryChanged = true;
-     document.getElementById('deliveryDate').value = deliveryCommitted;
-     if (!instance.isOpen) instance.open();
-    },
-    onClose: function (selectedDates, dateStr, instance) {
-     if (deliveryChanged && deliveryPending && deliveryPending !== deliveryCommitted) {
-      return false;
-     }
-    },
-    onReady: function (selectedDates, dateStr, instance) {
-     const calendar = instance.calendarContainer;
-     calendar.style.position = 'fixed';
-     calendar.style.top = '50%';
-     calendar.style.left = '50%';
-     calendar.style.transform = 'translate(-50%, -50%)';
-     calendar.style.zIndex = '9999';
-     calendar.classList.add('border', 'border-dark');
-     // Add OK button inside the calendar
-     if (!calendar.querySelector('.flatpickr-ok-btn')) {
-      const okBtn = document.createElement('button');
-      okBtn.type = 'button';
-      okBtn.className = 'btn btn-primary btn-sm w-100 mt-2 flatpickr-ok-btn';
-      okBtn.style.borderRadius = '0 0 6px 6px';
-      okBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i>OK';
-      okBtn.addEventListener('click', function () {
-       if (deliveryPending) {
-        deliveryCommitted = deliveryPending;
-        instance.setDate(deliveryCommitted, false);
-       }
-       deliveryChanged = false;
-       instance.close();
-      });
-      calendar.appendChild(okBtn);
-     }
-    }
-   });
-
-   // Initialize Flatpickr for received date time
-   receivedDateTimePicker = flatpickr("#receivedDateTime", {
-    enableTime: true,
-    dateFormat: "Y-m-d H:i",
-    time_24hr: true,
-    defaultDate: now,
-    minuteIncrement: 1,
-    static: true,
-    disableMobile: true,
-    ignoredFocusElements: [document.body],
-    position: "above",
-    positionElement: document.body,
-    onChange: function (selectedDates, dateStr, instance) {
-     receivedDateTimePending = dateStr;
-     receivedDateTimeChanged = true;
-    },
-    onClose: function (selectedDates, dateStr, instance) {
-     if (receivedDateTimeChanged && receivedDateTimePending) {
-      receivedDateTimeCommitted = receivedDateTimePending;
-      receivedDateTimeChanged = false;
-     }
-    },
-    onReady: function (selectedDates, dateStr, instance) {
-     const calendar = instance.calendarContainer;
-     calendar.style.position = 'fixed';
-     calendar.style.top = '50%';
-     calendar.style.left = '50%';
-     calendar.style.transform = 'translate(-50%, -50%)';
-     calendar.style.zIndex = '9999';
-     calendar.style.maxHeight = '80vh';
-     calendar.style.overflowY = 'auto';
-     calendar.classList.add('border', 'border-dark');
-     // Add OK button inside the calendar
-     if (!calendar.querySelector('.flatpickr-ok-btn')) {
-      const okBtn = document.createElement('button');
-      okBtn.type = 'button';
-      okBtn.className = 'btn btn-primary btn-sm w-100 mt-2 flatpickr-ok-btn';
-      okBtn.style.borderRadius = '0 0 6px 6px';
-      okBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i>OK';
-      okBtn.addEventListener('click', function () {
-       if (receivedDateTimePending) {
-        receivedDateTimeCommitted = receivedDateTimePending;
-        instance.setDate(receivedDateTimeCommitted, false);
-       }
-       receivedDateTimeChanged = false;
-       instance.close();
-      });
-      calendar.appendChild(okBtn);
-     }
-    }
-   });
-
-   // Set initial values
-   receiptCommitted = formatForFlatpickr(now);
-   deliveryCommitted = formatForFlatpickr(now);
-   receivedDateTimeCommitted = formatForFlatpickr(now);
-   receiptDatePicker.setDate(receiptCommitted, false);
-   deliveryDatePicker.setDate(deliveryCommitted, false);
-   receivedDateTimePicker.setDate(receivedDateTimeCommitted, false);
-   document.getElementById('receiptDate').value = receiptCommitted;
-   document.getElementById('deliveryDate').value = deliveryCommitted;
-   document.getElementById('receivedDateTime').value = receivedDateTimeCommitted;
+   receiptDatePicker = await window.initDateTimePicker('receiptDate');
+   deliveryDatePicker = await window.initDateTimePicker('deliveryDate');
+   receivedDateTimePicker = await window.initDateTimePicker('receivedDateTime', { scrollable: true });
 
   } catch (error) {
-   console.error('Failed to initialize Flatpickr:', error);
+   console.error('Failed to initialize date pickers:', error);
    showToast('Date picker initialization failed - using basic input');
    // Fallback: set current datetime manually
    initializeBasicDates();
   }
  }
 
- // Fallback function if Flatpickr fails to load
+ // Fallback function if the picker library fails to load
  function initializeBasicDates() {
-  const now = new Date();
-  const formatDateTime = (date) => {
-   const year = date.getFullYear();
-   const month = String(date.getMonth() + 1).padStart(2, '0');
-   const day = String(date.getDate()).padStart(2, '0');
-   const hours = String(date.getHours()).padStart(2, '0');
-   const minutes = String(date.getMinutes()).padStart(2, '0');
-   return `${year}-${month}-${day} ${hours}:${minutes}`;
-  };
-  document.getElementById('receiptDate').value = formatDateTime(now);
-  receiptCommitted = document.getElementById('receiptDate').value;
-
-  const tomorrow = new Date(now);
-  tomorrow.setDate(now.getDate() + 1);
-  document.getElementById('deliveryDate').value = formatDateTime(tomorrow);
-  deliveryCommitted = document.getElementById('deliveryDate').value;
-  document.getElementById('receivedDateTime').value = formatDateTime(now);
+  const nowStr = formatForPicker(new Date());
+  document.getElementById('receiptDate').value = nowStr;
+  document.getElementById('deliveryDate').value = nowStr;
+  document.getElementById('receivedDateTime').value = nowStr;
  }
 
  // Validation function that scrolls to invalid field
@@ -2870,10 +2911,6 @@ class="form-control form-control-sm d-inline-block w-auto"
     return validateAndScrollToField('receiptDate', 'Please select receipt date and time');
    }
 
-   if (!deliveryDateValue) {
-    return validateAndScrollToField('deliveryDate', 'Please select delivery date and time');
-   }
-
    // Validate clientId - cannot be blank or 0
    if (!clientId || clientId === '0') {
     return validateAndScrollToField('c_dtls_lient', 'Please select a customer');
@@ -2882,10 +2919,6 @@ class="form-control form-control-sm d-inline-block w-auto"
    // Validate date formats and ensure time is included
    if (!receiptDateValue.includes(' ') || receiptDateValue.split(' ')[1].length !== 5) {
     return validateAndScrollToField('receiptDate', 'Please select both date and time for receipt');
-   }
-
-   if (!deliveryDateValue.includes(' ') || deliveryDateValue.split(' ')[1].length !== 5) {
-    return validateAndScrollToField('deliveryDate', 'Please select both date and time for delivery');
    }
 
    // Parse the date strings (format: "YYYY-MM-DD HH:mm")
@@ -2928,7 +2961,8 @@ class="form-control form-control-sm d-inline-block w-auto"
      "h": qty.toString(), // Quantity
      "f": itemId, // Item ID
      "g": price, // Price
-     "i": description // Description
+     "i": description, // Description
+     "j": item.getAttribute('data-item-subname') || '' // Sub Name (laundry operation)
     };
    });
 
@@ -2938,7 +2972,8 @@ class="form-control form-control-sm d-inline-block w-auto"
      "i": payment.paymentType, // Payment type
      "j": payment.amount.toFixed(2), // Amount
      "k": paymentDateTime.split(' ')[0], // Date only (YYYY-MM-DD)
-     "n": payment.constraintCounter || 0 // Constraint counter (default to 1 if not set)
+     "n": payment.constraintCounter || 0, // Constraint counter (default to 1 if not set)
+     "g": payment.g || '' // Cashier c.a
     };
    });
 
@@ -3803,136 +3838,97 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
 
   // Update bill summary
   updateBillSummary();
+  updateBillSectionsVisibility();
 
   // Play sound for item addition
   playSound('https://cdn.pixabay.com/download/audio/2025/10/21/audio_3880ed67e2.mp3');
  }
 
  function showItemDropdown(inputElement) {
-  // Close any existing dropdown
+  hideNavMenu();
+
   const existingDropdown = document.querySelector('.item-dropdown');
-  if (existingDropdown) {
-   existingDropdown.remove();
-  }
+  if (existingDropdown) existingDropdown.remove();
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'item-dropdown dropdown-menu show';
 
   const rect = inputElement.getBoundingClientRect();
+  const isMobile = window.innerWidth <= 768;
 
-  // Create dropdown container
-  const dropdown = document.createElement('div');
-  dropdown.className = 'item-dropdown';
+  dropdown.style.position = 'fixed';
+  dropdown.style.top = rect.bottom + 'px';
+  dropdown.style.left = isMobile ? '10px' : rect.left + 'px';
+  dropdown.style.width = isMobile ? 'calc(100vw - 20px)' : rect.width + 'px';
+  dropdown.style.maxHeight = isMobile ? '50vh' : '40vh';
+  dropdown.style.zIndex = '99999';
+  dropdown.style.overflowY = 'auto';
+  document.body.appendChild(dropdown);
 
-  // Check if we're in a modal
-  const modal = inputElement.closest('.modal');
-  if (modal) {
-   // Position relative to modal for better control
-   dropdown.style.position = 'fixed';
-   dropdown.style.top = `${rect.bottom}px`;
-   dropdown.style.left = '0';
-   dropdown.style.width = '100%';
-   dropdown.style.maxWidth = '100%';
-   dropdown.style.zIndex = '9999';
+  const renderDropdownList = () => {
+   dropdown.querySelectorAll('.dropdown-item, .item-dropdown-no-results').forEach(el => el.remove());
+   const searchValue = inputElement.value.toLowerCase().trim();
+   let filteredItems = items;
 
-   // Append to body to avoid modal overflow issues
-   document.body.appendChild(dropdown);
-  } else {
-   // Original positioning for non-modal
-   dropdown.style.top = `${rect.bottom + window.scrollY}px`;
-   dropdown.style.left = '2%';
-   dropdown.style.width = '96%';
-   document.body.appendChild(dropdown);
-  }
-
-  const searchValue = inputElement.value.toLowerCase().trim();
-  let filteredItems = items;
-
-  if (searchValue) {
-   filteredItems = items.filter(item => {
-    if (!item || !item.gn) return false;
-
-    // Apply stock filtering based on config
-    if (window[my1uzr.worknOnPg].confg.canSaleIfStock == 1 && item.d != 111) {
-     // Only show items with available stock > 0
-     if (!item.qAvlb || item.qAvlb <= 0) {
-      return false;
+   if (searchValue) {
+    filteredItems = items.filter(item => {
+     if (!item || !item.gn) return false;
+     if (window[my1uzr.worknOnPg].confg.canSaleIfStock == 1 && item.d != 111) {
+      if (!item.qAvlb || item.qAvlb <= 0) return false;
      }
-    }
-
-    const itemName = item.gn.toLowerCase();
-    const itemId = item.a ? item.a.toString().toLowerCase() : '';
-    const itemDescription = item.ba_f ? item.ba_f.toLowerCase() : '';
-
-    return itemName.includes(searchValue) ||
-     itemId.includes(searchValue) ||
-     itemDescription.includes(searchValue);
-   }).sort((a, b) => {
-    const aName = a.gn.toLowerCase();
-    const bName = b.gn.toLowerCase();
-    const aExactMatch = aName === searchValue;
-    const bExactMatch = bName === searchValue;
-
-    if (aExactMatch && !bExactMatch) return -1;
-    if (!aExactMatch && bExactMatch) return 1;
-
-    const aIndex = aName.indexOf(searchValue);
-    const bIndex = bName.indexOf(searchValue);
-    if (aIndex !== bIndex) return aIndex - bIndex;
-
-    return (mostUsedItems[b.a] || 0) - (mostUsedItems[a.a] || 0);
-   });
-  } else {
-   // When no search value, apply stock filtering to all items
-   filteredItems = items.filter(item => {
-    if (!item || !item.gn) return false;
-
-    // Apply stock filtering based on config
-    if (window[my1uzr.worknOnPg].confg.canSaleIfStock == 1 && item.d != 111) {
-     // Only show items with available stock > 0
-     return item.qAvlb && item.qAvlb > 0;
-    }
-
-    return true; // Show all items that don't meet the exclusion criteria
-   }).sort((a, b) => {
-    return (mostUsedItems[b.a] || 0) - (mostUsedItems[a.a] || 0);
-   });
-  }
-
-  filteredItems = filteredItems.slice(0, 20);
-
-  // Create dropdown content
-  if (filteredItems.length === 0) {
-   const noResults = document.createElement('div');
-   noResults.className = 'item-dropdown-item';
-   noResults.innerHTML = `
-<div class="text-center text-muted py-2">
-<i class="fas fa-search me-2"></i>No items found
-</div>
-`;
-   dropdown.appendChild(noResults);
-  } else {
-   filteredItems.forEach(item => {
-    const itemElement = document.createElement('div');
-    itemElement.className = 'item-dropdown-item';
-
-    // Determine what to show at the start of item name
-    let prefixText = '';
-    let stockIndicator = '';
-
-    if (item.hasOwnProperty('qAvlb')) {
-     // Show available quantity if property exists
-     prefixText = `[${item.qAvlb}] `;
-
-     // Add visual indicator for low stock
-     if (item.qAvlb <= 5 && item.qAvlb > 0) {
-      stockIndicator = '<span class="badge bg-warning ms-1">Low Stock</span>';
-     } else if (item.qAvlb === 0) {
-      stockIndicator = '<span class="badge bg-danger ms-1">Out of Stock</span>';
+     const itemName = item.gn.toLowerCase();
+     const itemId = item.a ? item.a.toString().toLowerCase() : '';
+     const itemDescription = item.ba_f ? item.ba_f.toLowerCase() : '';
+     return itemName.includes(searchValue) || itemId.includes(searchValue) || itemDescription.includes(searchValue);
+    }).sort((a, b) => {
+     const aName = a.gn.toLowerCase();
+     const bName = b.gn.toLowerCase();
+     const aExactMatch = aName === searchValue;
+     const bExactMatch = bName === searchValue;
+     if (aExactMatch && !bExactMatch) return -1;
+     if (!aExactMatch && bExactMatch) return 1;
+     const aIndex = aName.indexOf(searchValue);
+     const bIndex = bName.indexOf(searchValue);
+     if (aIndex !== bIndex) return aIndex - bIndex;
+     return (mostUsedItems[b.a] || 0) - (mostUsedItems[a.a] || 0);
+    });
+   } else {
+    filteredItems = items.filter(item => {
+     if (!item || !item.gn) return false;
+     if (window[my1uzr.worknOnPg].confg.canSaleIfStock == 1 && item.d != 111) {
+      return item.qAvlb && item.qAvlb > 0;
      }
-    } else if (item.i) {
-     // Show items.i if available
-     prefixText = `[${item.i}] `;
-    }
+     return true;
+    }).sort((a, b) => (mostUsedItems[b.a] || 0) - (mostUsedItems[a.a] || 0));
+   }
 
-    itemElement.innerHTML = `
+   filteredItems = filteredItems.slice(0, 20);
+
+   if (filteredItems.length === 0) {
+    const noResults = document.createElement('div');
+    noResults.className = 'dropdown-item item-dropdown-no-results text-center text-muted py-3';
+    noResults.innerHTML = '<i class="fas fa-search me-2"></i>No items found';
+    dropdown.appendChild(noResults);
+   } else {
+    filteredItems.forEach(item => {
+     const itemElement = document.createElement('div');
+     itemElement.className = 'dropdown-item d-flex align-items-center py-2';
+
+     let prefixText = '';
+     let stockIndicator = '';
+
+     if (item.hasOwnProperty('qAvlb')) {
+      prefixText = `[${item.qAvlb}] `;
+      if (item.qAvlb <= 5 && item.qAvlb > 0) {
+       stockIndicator = '<span class="badge bg-warning ms-1">Low Stock</span>';
+      } else if (item.qAvlb === 0) {
+       stockIndicator = '<span class="badge bg-danger ms-1">Out of Stock</span>';
+      }
+     } else if (item.i) {
+      prefixText = `[${item.i}] `;
+     }
+
+     itemElement.innerHTML = `
 <img src="${getGoogleDriveImageUrl(item.gu) || 'https://cdn-icons-png.freepik.com/512/13543/13543330.png'}" 
 onerror="this.src='https://cdn-icons-png.freepik.com/512/13543/13543330.png'">
 <div class="item-name">
@@ -3942,54 +3938,37 @@ ${stockIndicator}
 <small class="text-muted">${item.ba_f || ''}</small>
 </div>
 <div class="item-price">
-<br>
 <small class="text-muted">₹${item.k || '0'}</small>
 </div>
 `;
 
-    // Add disabled styling for out-of-stock items
-    if (window[my1uzr.worknOnPg].confg.canSaleIfStock == 1 &&
-     item.d != 111 &&
-     (!item.qAvlb || item.qAvlb <= 0)) {
-     itemElement.style.opacity = '0.6';
-     itemElement.style.cursor = 'not-allowed';
-     itemElement.title = 'Out of stock - cannot be sold';
-    } else {
-     itemElement.addEventListener('click', (e) => {
-      // Set flag to indicate dropdown was clicked
-      dropdownClicked = true;
-
-      // Clear any pending blur timeout
-      if (blurTimeout) {
-       clearTimeout(blurTimeout);
-       blurTimeout = null;
-      }
-
-      // Select the item - pass the inputElement context
-      if (inputElement.id === 'modalItemName') {
-       selectModalItem(item);
-      }
-
-      // Remove dropdown
-      dropdown.remove();
-
-      // Focus on quantity field - check if we're in modal or main form
-      setTimeout(() => {
-       if (inputElement.id === 'modalItemName') {
-        const modalQty = document.getElementById('modalItemQty');
-        if (modalQty) {
-         modalQty.focus();
+     if (window[my1uzr.worknOnPg].confg.canSaleIfStock == 1 &&
+      item.d != 111 &&
+      (!item.qAvlb || item.qAvlb <= 0)) {
+      itemElement.classList.add('disabled');
+      itemElement.style.opacity = '0.6';
+      itemElement.style.cursor = 'not-allowed';
+      itemElement.title = 'Out of stock - cannot be sold';
+     } else {
+      itemElement.addEventListener('click', () => {
+       dropdownClicked = true;
+       if (blurTimeout) { clearTimeout(blurTimeout); blurTimeout = null; }
+       if (inputElement.id === 'modalItemName') selectModalItem(item);
+       dropdown.remove();
+       setTimeout(() => {
+        if (inputElement.id === 'modalItemName') {
+         const q = document.getElementById('modalItemQty');
+         if (q) q.focus();
         }
-       }
-      }, 10);
-     });
-    }
+       }, 10);
+      });
+     }
 
-    dropdown.appendChild(itemElement);
-   });
-  }
+     dropdown.appendChild(itemElement);
+    });
+   }
+  };
 
-  // Update click handler to work with modal
   const clickHandler = (e) => {
    if (!dropdown.contains(e.target) && e.target !== inputElement) {
     dropdown.remove();
@@ -3997,9 +3976,8 @@ ${stockIndicator}
    }
   };
 
-  setTimeout(() => {
-   document.addEventListener('click', clickHandler);
-  }, 100);
+  setTimeout(() => document.addEventListener('click', clickHandler), 100);
+  renderDropdownList();
  }
 
  // Inline Edit Functions for Quantity and Rate
@@ -4103,8 +4081,13 @@ ${stockIndicator}
   document.getElementById('totalQuantity').textContent = totalQuantity;
   document.getElementById('totalPrice').textContent = totalPrice.toFixed(2);
 
-  // Recalculate discount and grand totals
-  calculateDiscountFromPercentage();
+  // Recalculate discount and grand totals. Guard each step so a failure in
+  // discount recalculation can never freeze the grand totals refresh.
+  try {
+   calculateDiscountFromPercentage();
+  } catch (e) {
+   console.warn('calculateBillSummary: discount recalc failed', e);
+  }
   refreshGrandTotals();
  }
 
@@ -4173,15 +4156,124 @@ ${stockIndicator}
   };
   return paymentTypes[type] || 'Unknown';
  }
- function updatePaymentTypeIcon() {
-  const sel = document.getElementById('paymentType');
-  const btn = document.getElementById('paymentTypeBtn');
+ function updatePaymentTypeIcon(selId, btnId) {
+  const sel = document.getElementById(selId || 'paymentType');
+  const btn = document.getElementById(btnId || 'paymentTypeBtn');
+  if (!sel || !btn) return;
   const map = { '0': '', '1': 'C', '2': 'Q', '3': 'A', '4': 'U', '5': 'B' };
   const txt = map[sel.value];
   btn.innerHTML = txt ? txt : '<i class=\"fas fa-credit-card\"></i>';
  }
  function initializeReceivedAmountForm() {
-  // Flatpickr already handles the initial value
+  // Date picker already handles the initial value
+ }
+ function receivedCashierMatches() {
+  const ids = (window[my1uzr.worknOnPg].clientConfig && window[my1uzr.worknOnPg].clientConfig.cashiers) || [];
+  if (!ids || !ids.length) return [];
+  const cArr = clientReferrerArray && clientReferrerArray.length ? clientReferrerArray : [];
+  const idSet = ids.map(Number);
+  return cArr.filter(function (r) { return idSet.indexOf(Number(r.a)) !== -1; });
+ }
+ function toggleReceivedCashierDropdown(e) {
+  if (e) e.stopPropagation();
+  const dd = document.getElementById('receivedCashierDropdown');
+  if (!dd) return;
+  const cb = document.getElementById('receivedCashierBtn');
+  const ptb = document.getElementById('paymentTypeBtn');
+  if (cb && ptb && !cb.dataset.synced) {
+   cb.style.height = ptb.offsetHeight + 'px';
+   cb.style.minWidth = ptb.offsetWidth + 'px';
+   cb.style.padding = '0 .5rem';
+   cb.dataset.synced = '1';
+  }
+  if (dd.style.display !== 'none') { dd.style.display = 'none'; return; }
+  if (clientReferrerArray && !clientReferrerArray.length) {
+   dbDexieManager.getAllRecords(dbnm, "c").then(function (arr) {
+    clientReferrerArray = arr || [];
+    renderReceivedCashierDropdown(dd);
+   }).catch(function (err) { console.warn('load c for cashiers failed', err); renderReceivedCashierDropdown(dd); });
+  } else {
+   renderReceivedCashierDropdown(dd);
+  }
+ }
+ function renderReceivedCashierDropdown(dd) {
+  const matches = receivedCashierMatches();
+  if (!matches.length) {
+   dd.innerHTML = '<div class="p-2 text-muted small">No cashiers available</div>';
+  } else {
+   const cur = document.getElementById('receivedCashier') ? document.getElementById('receivedCashier').value : '';
+   dd.innerHTML = matches.map(function (r) {
+    const name = String(r.i || '') + (r.h ? ' ' + r.h : '');
+    const num = r.e || '';
+    const a = r.a;
+    const sel = String(a) === String(cur);
+    return '<div data-a="' + a + '" onclick="pickReceivedCashier(' + a + ')" style="padding:6px 10px;cursor:pointer;border-bottom:1px solid #eee;' + (sel ? 'background:#0d6efd;color:#fff;' : '') + '"><div style="font-weight:600;font-size:.85rem;">' + (sel ? '<i class="fas fa-check me-1"></i>' : '') + (name || ('Cashier ' + a)) + '</div><div style="font-size:.75rem;opacity:.85;">' + (num || '') + '</div></div>';
+   }).join('') + '<div onclick="clearReceivedCashier()" style="padding:6px 10px;cursor:pointer;text-align:center;color:#dc3545;font-size:.8rem;border-top:1px solid #eee;"><i class="fas fa-times me-1"></i>Clear cashier</div>';
+  }
+  dd.style.display = 'block';
+  clampReceivedCashierDropdown();
+ }
+ function clampReceivedCashierDropdown() {
+  const dd = document.getElementById('receivedCashierDropdown');
+  const btn = document.getElementById('receivedCashierBtn');
+  if (!dd || !btn || dd.style.display === 'none') return;
+  const r = btn.getBoundingClientRect();
+  const m = 8;
+  if (r.left + dd.offsetWidth > window.innerWidth - m) {
+   dd.style.left = 'auto';
+   dd.style.right = '0';
+  } else {
+   dd.style.left = '0';
+   dd.style.right = 'auto';
+  }
+  if (r.bottom + dd.offsetHeight > window.innerHeight - m) {
+   dd.style.top = 'auto';
+   dd.style.bottom = '100%';
+  } else {
+   dd.style.top = '100%';
+   dd.style.bottom = 'auto';
+  }
+ }
+ function pickReceivedCashier(a) {
+  const hf = document.getElementById('receivedCashier');
+  if (hf) hf.value = String(a);
+  const btn = document.getElementById('receivedCashierBtn');
+  if (btn) {
+   const r = (clientReferrerArray || []).find(function (x) { return Number(x.a) === Number(a); });
+   const rawName = r && String(r.i || '').trim() ? String(r.i).trim() : ('#' + a);
+   const firstName = rawName.split(/\s+/)[0];
+   btn.innerHTML = firstName ? firstName.charAt(0).toUpperCase() + firstName.slice(1) : ('#' + a);
+   btn.style.background = '#0d6efd';
+   btn.style.color = '#fff';
+   btn.style.borderColor = '#0d6efd';
+  }
+  const dd = document.getElementById('receivedCashierDropdown');
+  if (dd) dd.style.display = 'none';
+ }
+ function clearReceivedCashier() {
+  const hf = document.getElementById('receivedCashier');
+  if (hf) hf.value = '';
+  const btn = document.getElementById('receivedCashierBtn');
+  if (btn) {
+   btn.innerHTML = '<i class="fas fa-user"></i>';
+   btn.style.background = '';
+   btn.style.color = '';
+   btn.style.borderColor = '#212529';
+  }
+  const dd = document.getElementById('receivedCashierDropdown');
+  if (dd) dd.style.display = 'none';
+ }
+ window.toggleReceivedCashierDropdown = toggleReceivedCashierDropdown;
+ window.pickReceivedCashier = pickReceivedCashier;
+ window.clearReceivedCashier = clearReceivedCashier;
+ if (typeof document !== 'undefined') {
+  document.addEventListener('click', function (e) {
+   const dd = document.getElementById('receivedCashierDropdown');
+   if (!dd) return;
+   const btn = document.getElementById('receivedCashierBtn');
+   if (e.target.closest && ((btn && e.target.closest('#receivedCashierBtn')) || (dd && dd.contains(e.target)))) return;
+   dd.style.display = 'none';
+  });
  }
  function addReceivedAmount() {
   const hasChanges = checkChangeInSoldItems();
@@ -4262,7 +4354,8 @@ ${stockIndicator}
     paymentType: paymentType,
     constraintCounter: constraintCounter || 0,
     clientId: clientId,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    g: (document.getElementById('receivedCashier') ? document.getElementById('receivedCashier').value : '') || ''
    };
 
    console.log('Adding payment with constraint counter:', constraintCounter, receivedAmount);
@@ -4331,7 +4424,7 @@ ${stockIndicator}
 <div class="card-body py-1">
 <div class="row align-items-center">
 <div class="col-4">
-<small class="text-muted">${formattedDate}</small>
+<small class="text-muted"><i class="far fa-calendar me-1"></i>${formattedDate}</small>
 </div>
 <div class="col-6">
 <strong>${paymentTypeIcon} ₹${payment.amount.toFixed(2)}${constraintCounterBadge}</strong>
@@ -4453,12 +4546,13 @@ ${actionsHtml}
    paymentType: paymentType,
    constraintCounter: constraintCounter || 0,
    clientId: clientId,
-   timestamp: new Date().toISOString()
+   timestamp: new Date().toISOString(),
+   g: (document.getElementById('receivedCashier') ? document.getElementById('receivedCashier').value : '') || ''
   };
 
-   window.newUpdatePayments.push(tempPayment);
+  window.newUpdatePayments.push(tempPayment);
 
-   // Update UI to show new payments + "Update Payments" button
+  // Update UI to show new payments + "Update Payments" button
   updateNewPaymentsUI();
   clearReceivedAmountForm();
   updateGrandTotalsForUpdate();
@@ -4497,7 +4591,7 @@ ${actionsHtml}
 <div class="card-body py-2">
 <div class="row align-items-center">
 <div class="col-4">
-<small class="text-muted">${formattedDate}</small>
+<small class="text-muted"><i class="far fa-calendar me-1"></i>${formattedDate}</small>
 </div>
 <div class="col-6">
 <strong>${paymentTypeIcon} ₹${payment.amount.toFixed(2)}${constraintCounterBadge}</strong>
@@ -4532,8 +4626,8 @@ ${actionsHtml}
    return;
   }
 
-   window.newUpdatePayments = window.newUpdatePayments.filter(p => p.id !== paymentId);
-   updateNewPaymentsUI();
+  window.newUpdatePayments = window.newUpdatePayments.filter(p => p.id !== paymentId);
+  updateNewPaymentsUI();
   updateGrandTotalsForUpdate();
   showToast('Payment removed from new payments list');
  }
@@ -4595,7 +4689,8 @@ ${actionsHtml}
      j: payment.amount.toString(),
      k: payment.dateTime.split(' ')[0],
      td: billData.a,
-     n: payment.constraintCounter || 0
+     n: payment.constraintCounter || 0,
+     g: payment.g || '' // Cashier c.a
     };
    });
 
@@ -4691,8 +4786,7 @@ ${actionsHtml}
 
   // Populate the form with existing payment data
   document.getElementById('receivedDateTime').value = payment.dateTime;
-  receivedDateTimeCommitted = payment.dateTime;
-  if (receivedDateTimePicker) receivedDateTimePicker.setDate(payment.dateTime, false);
+  if (receivedDateTimePicker) receivedDateTimePicker.setCommitted(payment.dateTime);
   document.getElementById('receivedAmount').value = payment.amount;
   document.getElementById('paymentType').value = payment.paymentType;
   updatePaymentTypeIcon();
@@ -4809,7 +4903,8 @@ ${actionsHtml}
    paymentType: paymentType,
    constraintCounter: constraintCounter || 0,
    clientId: clientId,
-   timestamp: new Date().toISOString()
+   timestamp: new Date().toISOString(),
+   g: (document.getElementById('receivedCashier') ? document.getElementById('receivedCashier').value : '') || ''
   };
 
   // Add to array
@@ -4849,8 +4944,8 @@ ${actionsHtml}
    }
   }
   if (!billSelectedToUpdate) {
-    receivedAmounts = receivedAmounts.filter(p => p.id !== id);
-    updateNewPaymentsUI();
+   receivedAmounts = receivedAmounts.filter(p => p.id !== id);
+   updateNewPaymentsUI();
    updateGrandTotalsForUpdate();
    return;
   }
@@ -4861,8 +4956,8 @@ ${actionsHtml}
    const response = await fnj3("https://my1.in/2/p.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
    if (response.su == 1) {
     await dbDexieManager.deleteRecords(dbnm, 'r', id);
-     receivedAmounts = receivedAmounts.filter(payment => payment.id !== id);
-     updateNewPaymentsUI();
+    receivedAmounts = receivedAmounts.filter(payment => payment.id !== id);
+    updateNewPaymentsUI();
     updateGrandTotalsForUpdate();
    } else {
     window.showelsemodal(response.ms);
@@ -4870,7 +4965,7 @@ ${actionsHtml}
   } catch (error) {
    window.showelsemodal("failed:" + error);
   }
-  }
+ }
  function refreshGrandTotals() {
   if (billSelectedToUpdate) {
    updateGrandTotalsForUpdate();
@@ -4895,17 +4990,23 @@ ${actionsHtml}
    list.sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''));
    list.forEach((p, i) => p.constraintCounter = i);
   });
-  }
+ }
  function formatDateTime(dateTimeString) {
+  if (isDesktopView()) return formatLongDisplay(dateTimeString);
   const date = new Date(dateTimeString);
-  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = MONTH_SHORT[date.getMonth()];
+  const hasTime = String(dateTimeString).includes(':');
+  return `${day}/${month} ${date.getFullYear()}` + (hasTime ? `, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : '');
  }
 
  function clearReceivedAmountForm() {
   document.getElementById('receivedAmount').value = '';
   document.getElementById('paymentType').value = '0';
   updatePaymentTypeIcon();
-  // Flatpickr will maintain the current datetime for the next entry
+  // Auto-set the payment date back to current date & time for the next entry
+  if (receivedDateTimePicker) receivedDateTimePicker.setCommitted(new Date());
+  else document.getElementById('receivedDateTime').value = formatForPicker(new Date());
  }
  function clearReceivedPaymentUpdateBtn() {
   const updateBtnWrap = document.getElementById('receivedPaymentUpdateBtnWrap');
@@ -4972,75 +5073,149 @@ font-size: 14px;
  function addDropdownStyles() {
   const style = document.createElement('style');
   style.textContent = `
-.item-dropdown{
-position: absolute;
-background: #fff;
-border: 1px solid #ddd;
+.button-color:{
+background-color: #6e42c16e;
+}
+#modalItemImageContainer{
+max-width: 100px;
+margin: 0 auto;
+}
+
+#modalItemImageContainer img{
+max-width: 100%;
+height: auto;
 border-radius: 4px;
-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-z-index: 1000;
-max-height: 300px;
-overflow-y: auto;
-width: 96%;
-left: 2%
 }
 
-/* Modal-specific dropdown styles */
-.item-dropdown.modal-dropdown {
-position: fixed !important;
-top: auto !important;
-left: 0 !important;
-width: 100% !important;
-max-width: 100% !important;
-z-index: 9999 !important;
-border-radius: 0;
-border-left: none;
-border-right: none;
-border-bottom: 1px solid #ddd;
-box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+.item-dropdown.dropdown-menu{
+padding: 0;
 }
 
-.item-dropdown-item{
+.item-dropdown .dropdown-item{
 display: flex;
 align-items: center;
-padding: 8px 12px;
-border-bottom: 1px solid #f0f0f0;
-cursor: pointer;
-transition: background-color 0.2s;
-min-height: 60px;
+padding: 10px 14px;
+white-space: normal;
 }
 
-.item-dropdown-item:last-child{
-border-bottom: none;
-}
-
-.item-dropdown-item:hover{
-background-color: #f8f9fa;
-}
-
-.item-dropdown-item img{
+.item-dropdown .dropdown-item img{
 width: 40px;
 height: 40px;
 object-fit: cover;
 border-radius: 4px;
 margin-right: 12px;
+flex-shrink: 0;
 }
 
-.item-dropdown-item .item-name{
+.item-dropdown .dropdown-item .item-name{
 flex: 1;
 font-weight: 500;
 line-height: 1.2;
-min-width: 0; /* Allows text to wrap */
+min-width: 0;
 overflow-wrap: break-word;
 }
 
-.item-dropdown-item .item-price{
+.item-dropdown .dropdown-item .item-name small{
+display: block;
+white-space: normal;
+overflow: hidden;
+text-overflow: ellipsis;
+max-height: 2.4em;
+line-height: 1.2em;
+}
+
+.item-dropdown .dropdown-item .item-price{
 text-align: right;
 color: #28a745;
 font-weight: 500;
-line-height: 1.2;
-min-width: 80px;
+flex-shrink: 0;
+margin-left: 8px;
 }
+
+#navbarNav{
+    position:fixed;
+    top:60px;
+    right:10px;
+    left:10px;
+    z-index:1040;
+}
+
+.menu-popup{
+    background:linear-gradient(135deg,var(--primary-purple),var(--dark-purple));
+    border-radius:12px;
+    padding:12px;
+    box-shadow:0 8px 25px rgba(0,0,0,.35);
+    border:1px solid rgba(255,255,255,.15);
+}
+
+.menu-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+}
+
+.menu-item{
+    min-height:65px;
+    background:rgba(255, 255, 255, 0.12);
+    border:1px solid rgba(255,255,255,.2);
+    border-radius:8px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    font-size:.75rem;
+    text-align:center;
+    color:#fff;
+    transition:all .25s ease;
+}
+
+.menu-item i{
+    font-size:1.3rem;
+    margin-bottom:5px;
+    color:var(--secondary-gold);
+}
+
+.menu-item:hover{
+    background:rgba(255,215,0,.15);
+    border-color:var(--secondary-gold);
+    transform:translateY(-2px);
+    box-shadow:0 4px 12px rgba(0,0,0,.3);
+}
+
+.menu-sub-toggle.menu-open{
+    background:rgba(255,215,0,.2);
+    border-color:var(--secondary-gold);
+}
+
+.menu-sub-dropdown{
+    display:none;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    margin-top:10px;
+    padding:10px;
+    background:linear-gradient(135deg,#8a4fe0,#6a2f9e);
+    border:1px solid rgba(255,215,0,.35);
+    border-radius:10px;
+}
+
+.menu-sub-dropdown.menu-open{ display:grid; }
+
+.menu-sub-item{ min-height:56px; }
+
+.menu-sub-item span{ color:var(--secondary-gold); }
+
+.menu-sub-item i.fa-comment{ color:#4dd0e1; }
+.menu-sub-item i.fa-trash{ color:#ff7043; }
+.menu-sub-item i.fa-store{ color:#ffd700; }
+
+@media (min-width:992px){
+    .menu-grid{ grid-template-columns:repeat(7,1fr); }
+}
+
+/* Inline dropdown styles */
+
+
 
 .row.g-0>[class*="col-"]{
 padding-left: 5px;
@@ -5146,10 +5321,6 @@ border-width: 2px !important;
 
 .bg-light{
 background-color: #f8f9fa !important;
-}
-
-.flatpickr-input{
-background-color: white !important;
 }
 
 .btn-success, .btn-warning, .btn-info{
@@ -5281,12 +5452,6 @@ font-size: .8rem;
 margin: 10px;
 }
 
-/* Mobile dropdown styles */
-.item-dropdown.modal-dropdown {
-max-height: 50vh;
-}
-}
-
 @media (min-width: 576px){
 .row.g-2.align-items-end{
 align-items: end !important;
@@ -5333,57 +5498,34 @@ background-color: #dc3545 !important;
 color: #fff !important;
 }
 
-.item-dropdown-item.disabled{
-opacity: .6;
-cursor: not-allowed !important;
-}
 
-.item-dropdown-item.disabled:hover{
-background-color: transparent !important;
-}
 
 /* Ensure dropdown works in modal */
 .modal {
 overflow: visible !important;
 }
 
-/* Dropdown item text wrapping */
-.item-dropdown-item .item-name small {
-display: block;
-white-space: normal;
-overflow: hidden;
-text-overflow: ellipsis;
-max-height: 2.4em;
-line-height: 1.2em;
+/* Make modal-xl use full width below Bootstrap's 992px breakpoint */
+@media (max-width: 991.98px) {
+.modal-xl {
+max-width: calc(100% - 1rem);
+}
 }
 
-/* For mobile modal dropdowns */
+/* For mobile dropdowns */
 @media (max-width: 768px) {
-.item-dropdown.modal-dropdown {
-position: fixed !important;
-top: 0 !important;
-left: 0 !important;
-right: 0 !important;
-bottom: 0 !important;
-width: 100% !important;
-height: 100% !important;
-max-height: 100% !important;
-border-radius: 0;
-border: none;
-box-shadow: none;
-background: rgba(255, 255, 255, 0.98);
-z-index: 99999 !important;
-}
-
-.item-dropdown.modal-dropdown .item-dropdown-item {
+.item-dropdown .dropdown-item {
 padding: 12px 16px;
-min-height: 70px;
-border-bottom: 1px solid #eee;
 }
 
-.item-dropdown.modal-dropdown .item-dropdown-item img {
+.item-dropdown .dropdown-item img {
 width: 50px;
 height: 50px;
+}
+
+#addItemModal .modal-dialog,
+#addItemModal2 .modal-dialog {
+margin-top: 70px;
 }
 }
 `;
@@ -5393,10 +5535,10 @@ height: 50px;
 
 
  function function2runAfter_O_Login() {
-  location.reload();
+  //location.reload();
  }
  function function2runAfter_P_Login() {
-  location.reload();
+  //location.reload();
  }
 
  function handl_op_rspons(response, reload = 0) {
@@ -5437,7 +5579,16 @@ height: 50px;
        const t3663mp = await dbDexieManager.insertToDexie(dbnm, "p", response.p.l, true, ["a"]);
       }
      }
-
+     if (response.fp != null) {
+      if (response.fp.l != null) {
+       const t3663mp = await dbDexieManager.insertToDexie(dbnm, "fp", response.fp.l, true, ["a"]);
+      }
+     }
+     if (response.f != null) {
+      if (response.f.l != null) {
+       const t3663mp = await dbDexieManager.insertToDexie(dbnm, "f", response.f.l, true, ["a"]);
+      }
+     }
      if (response.b != null) {
       if (response.b.l != null) {
        const t3764mp = await dbDexieManager.insertToDexie(dbnm, "b", response.b.l, true, ["g"]);//chk by index=g because id=a can change but g=bill number creates problem;
@@ -5617,11 +5768,11 @@ height: 50px;
        stored_bill = await dbDexieManager.getAllRecords(dbnm, "b") || [];
       }
      }
-     window.showsuccessmodal("stored successfully");
-
+     if (response.fp == null || response.f == null)
+      window.showsuccessmodal("stored successfully");
 
      if (reload == 1) {
-      location.reload();
+      //location.reload();
      }
     } else {
      if (response.ms != null) { window.showelsemodal(response.ms); }
@@ -6339,6 +6490,15 @@ This remark will be automatically filled in the bill notes section for new bills
   // Show/hide blank div section
   if (blankDivSection1) {
    blankDivSection1.style.display = (!shoEyeMsrmntTbl || hasItems) ? 'block' : 'none';
+  }
+
+  // Safety net: refresh grand totals whenever item visibility changes
+  // (called by the #addedItemsContainer MutationObserver on every item
+  // add/remove/qty/rate change), so Total / Total Due always stay in sync.
+  try {
+   refreshGrandTotals();
+  } catch (e) {
+   console.warn('updateBillSectionsVisibility: refreshGrandTotals failed', e);
   }
  }
  // Helper function to check if a payment already exists in receivedAmounts array
