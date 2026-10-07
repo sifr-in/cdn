@@ -13,7 +13,7 @@ function printDashboard() {
     .toLowerCase()
     .trim();
 
-  if (typeof window.getFlatCaseRecords !== 'function' &&
+  if (typeof window.getAllCaseRecords !== 'function' &&
       typeof window.buildDayboardItems !== 'function') {
     showMessageModal('Info', 'Print data helpers not ready. Try again.', false);
     return;
@@ -26,17 +26,20 @@ function printDashboard() {
   var isAllCases = typeof currentView !== 'undefined' && currentView === 'allCases';
 
   if (isAllCases) {
-    var flat = window.getFlatCaseRecords(searchTerm);
+    var flat = window.getAllCaseRecords(searchTerm);
     total = flat.length;
-    flatRows = flat.map(function (r) {
-      var eff = getCaseDatesForRecord(r.a);
-      var cdN = getCaseDateN(eff.current ? eff.current.n : null);
+    flatRows = flat.map(function (it) {
+      var nSrc = it.stageRow || it.current;
+      var cdN = getCaseDateN(nSrc ? nSrc.n : null);
       return {
-        record: r,
-        prevDates: eff.previous ? [eff.previous.e] : [],
-        nextDates: eff.current ? [eff.current.e] : [],
+        record: it.record,
+        prevDates: it.pDate ? [it.pDate] : [],
+        nextDates: it.nDate ? [it.nDate] : [],
         stgName: stageMap[cdN.stg] || '-',
-        isCs91Row: !!(eff.cs91),
+        isCs91Row: !!it.isCs91Linked,
+        advLabel: typeof getAdvGroupLabel === 'function'
+          ? getAdvGroupLabel(it.record)
+          : '-',
       };
     });
   } else {
@@ -63,27 +66,91 @@ function printDashboard() {
   var rowsHtml = '';
   var today = getLocalToday();
 
+  // Config from ks.da (fetched into clientConfig by ks.js)
+  var cfg = (window[window.my1uzr?.worknOnPg] || window).clientConfig || {};
+  if (cfg && typeof cfg === 'object' && Object.keys(cfg).length === 0) {
+    cfg = window.clientConfig || cfg;
+  }
+  // ks.da: printLabelGroupByJuNm == 1 -> label above each judge/court sub-group
+  var showJuLabels = Number(cfg.printLabelGroupByJuNm) === 1;
+  var visColCount =
+    ['sr','pdate','court','adv','brief','caseType','caseNo','stg','ndate','filer','answerer']
+      .filter(function (k) { return isColVisible(k); }).length || 1;
+
   if (isAllCases) {
-    for (var fj = 0; fj < flatRows.length; fj++) {
-      rowsHtml += buildPrintRow(
-        flatRows[fj].record,
-        flatRows[fj].prevDates,
-        flatRows[fj].nextDates,
-        flatRows[fj].stgName,
-        flatRows[fj].isCs91Row,
-        today,
-        null,
-        null,
-      );
+    if (window._ksGroupByAdv) {
+      var advGroups = {};
+      var advOrder = [];
+      for (var fg = 0; fg < flatRows.length; fg++) {
+        var aLbl = flatRows[fg].advLabel || '-';
+        if (!advGroups[aLbl]) {
+          advGroups[aLbl] = [];
+          advOrder.push(aLbl);
+        }
+        advGroups[aLbl].push(flatRows[fg]);
+      }
+      advOrder.sort(function (a, b) { return a.localeCompare(b); });
+      for (var ao = 0; ao < advOrder.length; ao++) {
+        var aGrp = advGroups[advOrder[ao]];
+        var aInner = '';
+        for (var ar = 0; ar < aGrp.length; ar++) {
+          aInner += buildPrintRow(
+            aGrp[ar].record,
+            aGrp[ar].prevDates,
+            aGrp[ar].nextDates,
+            aGrp[ar].stgName,
+            aGrp[ar].isCs91Row,
+            today,
+            null,
+            advOrder[ao],
+          );
+        }
+        rowsHtml +=
+          '<div class="day-group">' +
+          '<div class="group-head">' +
+          '<span class="group-date">' + escHtml(advOrder[ao]) + '</span>' +
+          '<span class="group-count">' + aGrp.length + '</span>' +
+          '</div>' +
+          printTableHtml(aInner) +
+          '</div>';
+      }
+    } else {
+      var flatInner = '';
+      for (var fj = 0; fj < flatRows.length; fj++) {
+        flatInner += buildPrintRow(
+          flatRows[fj].record,
+          flatRows[fj].prevDates,
+          flatRows[fj].nextDates,
+          flatRows[fj].stgName,
+          flatRows[fj].isCs91Row,
+          today,
+          null,
+          null,
+        );
+      }
+      rowsHtml = printTableHtml(flatInner);
     }
   } else {
     for (var gj = 0; gj < grouped.length; gj++) {
       var g = grouped[gj];
       var inner = '';
+      var lastJuKey = null;
       for (var rj = 0; rj < g.rows.length; rj++) {
         var it = g.rows[rj];
         var x = it.record;
         var cd = it.cd;
+        if (showJuLabels) {
+          var dvJu =
+            typeof getCaseDisplayRecord === 'function'
+              ? getCaseDisplayRecord(x)
+              : x;
+          var juNm = String((dvJu && dvJu.q) || '').trim();
+          var juKey = juNm.toLowerCase();
+          if (juKey !== lastJuKey) {
+            inner += buildJuLabelRow(juNm || '-', visColCount);
+            lastJuKey = juKey;
+          }
+        }
         var eff = getCaseDatesForRecord(x.a);
         var effCur = eff.current;
         var prevDates = it.isCs91Row
@@ -120,10 +187,6 @@ function printDashboard() {
     }
   }
 
-  if (isAllCases) {
-    rowsHtml = printTableHtml(rowsHtml);
-  }
-
   var win = window.open('', '_blank');
   var headerNotes = '<div class="filter-line">' +
     'View: ' + escHtml(isAllCases ? 'All Cases' : 'Board (Home)') +
@@ -131,13 +194,10 @@ function printDashboard() {
     (toVal ? ' &nbsp;|&nbsp; To: ' + escHtml(toVal) : '') +
     (searchTerm ? ' &nbsp;|&nbsp; Search: "' + escHtml(searchTerm) + '"' : '') +
     (window._ksAdvFilter ? ' &nbsp;|&nbsp; Advocate: ' + escHtml(window._ksAdvFilter.name) : '') +
+    (isAllCases && window._ksGroupByAdv ? ' &nbsp;|&nbsp; Grouped by advocates' : '') +
     '</div>';
 
   // Build custom header from ks.da config
-  var cfg = (window[window.my1uzr?.worknOnPg] || window).clientConfig || {};
-  if (cfg && typeof cfg === 'object' && Object.keys(cfg).length === 0) {
-    cfg = window.clientConfig || cfg;
-  }
   var headerHtml = '';
   if (cfg) {
     var entNm = cfg?.entNm || 'e-court alternative by sifr';
@@ -172,6 +232,7 @@ function printDashboard() {
     '.day-group{margin-bottom:10px;page-break-inside:avoid}' +
     '.group-head{display:flex;justify-content:space-between;align-items:center;background:#FDF8EE;border:1px solid #C9A84C;border-left:3px solid #C9A84C;border-radius:6px 6px 0 0;padding:6px 12px;margin-top:8px}' +
     '.group-date{font-weight:700;font-size:11px;color:#1B2A4A}.group-count{background:#C9A84C;color:#fff;font-weight:700;font-size:10px;padding:1px 10px;border-radius:20px}' +
+    'tr.ju-label-row{page-break-after:avoid}tr.ju-label-row td{background:#FDF8EE;color:#1B2A4A;font-weight:700;font-size:10px;letter-spacing:.5px;text-transform:uppercase;padding:5px 8px;border:1px solid #C9A84C;text-align:left}' +
     '.foot{margin-top:12px;font-size:8px;color:#999;text-align:center;border-top:1px solid #ddd;padding-top:8px}' +
     '@media print{@page{margin:6mm;size:landscape}}.page-break{page-break-before:auto}' +
     '</style></head><body>' +
@@ -209,6 +270,14 @@ function printTableHtml(innerRows) {
     '</tr></thead><tbody>' +
     innerRows +
     '</tbody></table>'
+  );
+}
+
+function buildJuLabelRow(text, colCount) {
+  return (
+    '<tr class="ju-label-row">' +
+    '<td colspan="' + (colCount || 1) + '">' + escHtml(text) + '</td>' +
+    '</tr>'
   );
 }
 

@@ -1283,6 +1283,25 @@ window.editRoom = function (roomId) {
     return out;
   }
 
+  // Normalise one stored image value (f or a g entry): "displayId thumbId"
+  // string, JSON string, or {f1,f2}/{g1,g2} object → {g1, g2} or null.
+  function imgPair(v) {
+    if (v == null || v === "") return null;
+    if (typeof v === "string") {
+      var s = v.trim();
+      if (!s) return null;
+      if (s.charAt(0) === "{" || s.charAt(0) === "[") {
+        try { v = JSON.parse(s); } catch (e) { return null; }
+      } else {
+        var p = s.split(/\s+/);
+        return { g1: p[0] || "", g2: p[1] || p[0] || "" };
+      }
+    }
+    if (typeof v === "string") return null;
+    var g1 = v.f1 || v.g1 || "";
+    return g1 ? { g1: g1, g2: v.f2 || v.g2 || g1 } : null;
+  }
+
   var occ = htRoomOccupancy(r);
   var typeId = r.i != null && typeof r.i !== "object" ? r.i : 1;
 
@@ -1292,19 +1311,22 @@ window.editRoom = function (roomId) {
   var local = htRoomImages(r);
   for (var li = 0; li < 5 && li < local.length; li++)
     images[li] = { g1: local[li], g2: local[li] };
-  if (!local.length && r.f) {
-    if (typeof r.f === "string") {
-      var fParts = r.f.trim().split(/\s+/);
-      images[0] = { g1: fParts[0] || "", g2: fParts[1] || fParts[0] || "" };
-    } else if (r.f.f1) {
-      images[0] = { g1: r.f.f1, g2: r.f.f2 || r.f.f1 };
+  if (!local.length) {
+    var pairs = [];
+    var fPair = imgPair(r.f);
+    if (fPair) pairs.push(fPair);
+    var gList = r.g;
+    if (typeof gList === "string") {
+      try { gList = JSON.parse(gList); } catch (e) { gList = [gList]; }
     }
-    if (Array.isArray(r.g)) {
-      for (var gi = 0; gi < r.g.length && gi < 4; gi++) {
-        var gm = r.g[gi];
-        if (gm && gm.g1) images[gi + 1] = { g1: gm.g1, g2: gm.g2 || gm.g1 };
-      }
+    if (!Array.isArray(gList)) gList = gList ? [gList] : [];
+    for (var gi = 0; gi < gList.length && pairs.length < 5; gi++) {
+      var gp = imgPair(gList[gi]);
+      if (gp && (!fPair || gp.g1 !== fPair.g1)) pairs.push(gp);
     }
+    // Without a hero the first gallery photo becomes slot 0, matching what
+    // the public gallery shows (and keeping Update from writing an empty f).
+    for (var pi = 0; pi < 5; pi++) images[pi] = pairs[pi] || "";
   }
 
   addRoomState = freshAddRoomState();
@@ -1507,12 +1529,7 @@ async function doPublishRoom(out, editId) {
   if (updating) payload0.x1 = editId;
   payload0.fn = 106;
   payload0.vw = 1;
-  payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [
-    { tb: "rb" },
-    { tb: "rm" },
-    { tb: "c" },
-    { tb: "r" },
-  ]);
+  payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "rm" }]);
 
   var btn = document.getElementById("arPublishBtn");
   if (btn) {
@@ -1528,10 +1545,6 @@ async function doPublishRoom(out, editId) {
   );
 
   try {
-    if (typeof fnj3 !== "function") {
-      showMessageModal("Info", "Server communication not available", false);
-      return;
-    }
     var resp = await fnj3(
       "https://my1.in/2/q.php",
       payload0,
