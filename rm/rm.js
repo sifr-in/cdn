@@ -1,7 +1,7 @@
 const tblsRequired = ["f", "fp", "c", "rm", "r", "rb", "rc"];
 const moduLst = [
  { a: ",85,115,", mi: ",44,", b: "Dashboard", c: "fa-chart-line", d: "home", e: "#0d6efd" },
- { a: ",106,", mi: ",106,", b: "Manage Rooms", c: "fa-bed", d: "rooms", e: "#198754" },
+ { a: ",106,", mi: ",50,", b: "Manage Rooms", c: "fa-bed", d: "rooms", e: "#198754" },
   /* mi = csh "a" (script config) ids only. 114 here was an API fn id (inTbls
      "114~rb,c"), which has no csh entry, so loadExe2Fn threw and alert()ed. */
   { a: ",106,112,114,103,", mi: ",112,", b: "New Booking", c: "fa-calendar-plus", d: "booking", e: "#dc3545" },
@@ -598,7 +598,7 @@ window.sendRoomBookingStatusMail = sendRoomBookingStatusMail;
    },
    {
     a: 35,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1236a32/cmn/my1img.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2b397a9/cmn/my1img.js",
     c: "open_addimage",
     r: "open_addimage",
    },
@@ -617,13 +617,15 @@ window.sendRoomBookingStatusMail = sendRoomBookingStatusMail;
    },
    {
     a: 42,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@caafdee/rm/availability.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b44c182/rm/availability.js",
+    //u: "availability.js",
     c: "calcNights,calcTotal,getRoomAvailability,getRoomById,adRoomId,getOverlapCount",
     r: " ",
    },
    {
     a: 43,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/cfgMt.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b44c182/rm/cfgMt.js",
+    //u: "cfgMt.js",
     c: "htGetById,htRoomTypeLabel,htRoomStatusLabel,htRoomName,htBedLabels,htAmenityLabels,htRoomOccupancy,htRoomRate,htRoomImage",
     r: " ",
    },
@@ -655,19 +657,21 @@ window.sendRoomBookingStatusMail = sendRoomBookingStatusMail;
    },
    {
     a: 50,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/addRoom.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b44c182/rm/addRoom.js",
+    //u: "addRoom.js",
     c: "showAddRoom,setAddRoomHero,updateThumb,publishAddRoom,resetAddRoomForm,editRoom",
     r: " ",
    },
    {
     a: 51,
     u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@caafdee/rm/rm_da.js",
+    //u: "rm_da.js",
     c: "showPrintSettings",
     r: " ",
    },
    { "a": 52, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b7740c3/cmn/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
    { "a": 53, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fcbc516/cmn/my1rp.js", "c": "open_my1rp", "r": "open_my1rp" },
-   { "a": 106, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/addRoom.js", "c": "showAddRoom,setAddRoomHero,updateThumb,publishAddRoom,resetAddRoomForm,editRoom", "r": " " },
+   { "a": 106, "u": "addRoom.js", "c": "showAddRoom,setAddRoomHero,updateThumb,publishAddRoom,resetAddRoomForm,editRoom", "r": " " },
    { "a": 112, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@be0e86f/rm/adminBooking.js", "c": "openBookingModal,saveBooking", "r": " " },
    //{ "a": 112, "u": "adminBooking.js", "c": "openBookingModal,saveBooking", "r": " " },
     { "a": 43, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@be0e86f/rm/billCombo.js", "c": " ", "r": " " }
@@ -3760,28 +3764,39 @@ function mapRmToRoomRecord(rm) {
   var occupancyPolicy = htRoomOccupancyPolicy(rm);
   var typeId = rm.i != null && typeof rm.i !== "object" ? rm.i : rm.j;
  var type = htGetById(htRoomTypes, typeId);
+ // Images come from f (hero) plus g (gallery). Both store Google Drive
+ // "displayId thumbnailId" pairs — as a plain string for f, and as a JSON
+ // array of such strings (or {f1,f2}/{g1,g2} objects) for g. Only the
+ // display id is used so each photo appears once (the thumbnail key is the
+ // same picture at 320x180). Deduped, so a hero repeated in g stays one tile.
  var images = [];
- if (rm.f && typeof rm.f === "string") {
-  images = String(rm.f)
-   .trim()
-   .split(/\s+/)
-   .map(function (k) {
-    return htImgSrc(k);
-   })
-   .filter(Boolean);
+ function pushRoomImg(v) {
+  if (v == null || v === "") return;
+  var s = v;
+  if (typeof s !== "string") {
+   s = s.f1 || s.g1 || "";
+  } else if (s.trim().charAt(0) === "{" || s.trim().charAt(0) === "[") {
+   try {
+    var parsed = JSON.parse(s);
+    s = (parsed && (parsed.f1 || parsed.g1)) || "";
+   } catch (e) {
+    s = "";
+   }
+  }
+  if (!s) return;
+  var u = typeof htImgSrc === "function" ? htImgSrc(s) : "";
+  if (u && images.indexOf(u) === -1) images.push(u);
  }
- if (!images.length && rm.g) {
-  var gArr = Array.isArray(rm.g)
-   ? rm.g
-   : typeof rm.g === "string"
-    ? [rm.g]
-    : [];
-  images = gArr
-   .map(function (x) {
-    return typeof x === "string" ? htImgSrc(x) : "";
-   })
-   .filter(Boolean);
+ pushRoomImg(rm.f);
+ var gArr = rm.g;
+ if (typeof gArr === "string") {
+  try {
+   gArr = JSON.parse(gArr);
+  } catch (e) {
+   gArr = [gArr];
+  }
  }
+ if (Array.isArray(gArr)) gArr.forEach(pushRoomImg);
  if (!images.length) images = htRoomImages(rm);
  return {
   id: String(rm.a != null ? rm.a : rm.e),

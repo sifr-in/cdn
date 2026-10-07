@@ -84,17 +84,17 @@ const dontRestartAfterLogin = 1;
     {
     a: 25,
     u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@30cfa42/ks/addNewCase.js",
-    //u: "addNewCase.js",
     c: "showAddCaseModal,toggleCNRFields,toggleMoreDetails,saveCase,openEditCaseModal,updateCaseRecord,switchEditTab,openMemberSelector,selectFilerParty,selectAnswererParty",
     r: " ",
    },
    {
     a: 26,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@30cfa42/ks/allCases.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b44c182/ks/allCases.js",
     //u: "allCases.js",
     c: "showAllCases,showHome",
     r: " ",
    },
+
    {
     a: 22,
     u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@aa6cfeb/ks/messageModal.js",
@@ -115,7 +115,8 @@ const dontRestartAfterLogin = 1;
    },
    {
     a: 24,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@30cfa42/ks/printRecords.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b44c182/ks/printRecords.js",
+    //u: "printRecords.js",
     c: "printDashboard",
     r: " ",
    },
@@ -277,7 +278,8 @@ function injectKSStyles() {
   ".db-date-badge{display:inline-block;padding:1px 5px;border-radius:3px;font-size:10px;margin:0 1px;white-space:nowrap;}" +
   ".db-date-primary{background:#FDF8EE;border:1px solid #C9A84C;color:#1B2A4A;}" +
   ".db-date-prev{background:#FDE8E8;border:1px solid #E57373;color:#C62828;}" +
-  ".db-date-next{background:#E8F5E9;border:1px solid #81C784;color:#2E7D32;}";
+  ".db-date-next{background:#E8F5E9;border:1px solid #81C784;color:#2E7D32;}" +
+  "tr.adv-label-row td{background:#FDF8EE;color:#1B2A4A;font-weight:700;font-size:11px;letter-spacing:.5px;text-transform:uppercase;padding:6px 8px;border-top:2px solid #C9A84C;border-bottom:1px solid #C9A84C;text-align:left;}";
  document.head.appendChild(stCs91);
 }
 
@@ -593,6 +595,9 @@ async function loadDataFromDB() {
 
   var dbDates = await dbDexieManager.getAllRecords(dbnm, "a");
   if (dbDates && dbDates.length > 0) caseDates = dbDates;
+
+  var dbPersons = await dbDexieManager.getAllRecords(dbnm, "c");
+  if (dbPersons && dbPersons.length > 0) window.ksPersons = dbPersons;
  } catch (e) {
   console.warn("Failed to load from DB:", e);
  }
