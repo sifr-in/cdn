@@ -397,6 +397,14 @@ window._ksGroupByAdv = (function () {
   }
 })();
 
+window._ksShowClosed = (function () {
+  try {
+    return localStorage.getItem("ks_showClosed") === "1";
+  } catch (e) {
+    return false;
+  }
+})();
+
 window.toggleGroupByAdv = function () {
   var cb = document.getElementById("groupByAdvCb");
   window._ksGroupByAdv = cb ? !!cb.checked : !window._ksGroupByAdv;
@@ -408,6 +416,24 @@ window.toggleGroupByAdv = function () {
   } catch (e) {}
   renderTable();
 };
+
+window.toggleShowClosed = function () {
+  var cb = document.getElementById("showClosedCb");
+  window._ksShowClosed = cb ? !!cb.checked : !window._ksShowClosed;
+  try {
+    localStorage.setItem(
+      "ks_showClosed",
+      window._ksShowClosed ? "1" : "0",
+    );
+  } catch (e) {}
+  renderTable();
+};
+
+function isClosedCs91(cs91) {
+  if (!cs91) return false;
+  var d = Number(cs91.d);
+  return isFinite(d) && d > 125;
+}
 
 function getFirstAdvToken(k) {
   var s = String(k == null ? "" : k).trim();
@@ -435,7 +461,7 @@ function getAdvGroupLabel(rec) {
 }
 
 // All-cases fetch (separate from day-board):
-//  - only records of the cs table
+//  - only records of the cs table 
 //  - join cs91 where cs.e=91 & cs.f=cs91.a -> PDate=cs91.o, NDate=cs91.p
 //  - no cs91 -> join table a (a.tb=36 & a.td=cs.a), NDate=max(a.e),
 //    PDate=e of the row where a.f = that row's a
@@ -445,7 +471,7 @@ window.getAllCaseRecords = function (searchText) {
   for (var i = 0; i < caseRecords.length; i++) {
     var x = caseRecords[i];
     if (!x || isCs91Record(x)) continue;
-    if (!hasCaseData(x)) continue;
+    if (window[my1uzr.worknOnPg].clientConfig?.hasCaseDataActOrInact == 1 && !hasCaseData(x)) continue;
     if (!recordMatchesAdvFilter(x)) continue;
     if (s && !matchesSearch(x, s)) continue;
 
@@ -457,6 +483,10 @@ window.getAllCaseRecords = function (searchText) {
           break;
         }
       }
+    }
+
+    if (isClosedCs91(cs91) && !window._ksShowClosed) {
+      continue;
     }
 
     var maxRow = null;
@@ -488,6 +518,7 @@ window.getAllCaseRecords = function (searchText) {
       current: current,
       stageRow: maxRow,
       isCs91Linked: !!cs91,
+      cs91: cs91,
     });
   }
   return out;
@@ -501,6 +532,8 @@ function buildFlatRow(item, j) {
   var current = item.current || null;
   var today = getLocalToday();
   var hasNextDate = nDate && nDate > today;
+  var isClosed = isClosedCs91(item.cs91);
+  var rowBg = isClosed ? "background:#9EADBF!important;" : hasNextDate ? "background:#D4EDDA;" : "";
   var stgName = getCaseStageText(x, current);
   var curJson = current
     ? JSON.stringify(current).replace(/'/g, "\\'")
@@ -508,10 +541,11 @@ function buildFlatRow(item, j) {
   return (
     '<tr class="animate-fade-in' +
     (item.isCs91Linked ? " cs91-date-row" : "") +
+    (isClosed ? " row-closed" : "") +
     '" style="animation-delay:' +
     j * 30 +
     "ms;" +
-    (hasNextDate ? "background:#D4EDDA;" : "") +
+    rowBg +
     '">' +
     (isColVisible("menu")
       ? '<td style="text-align:center;padding:4px 2px;">' +
@@ -671,11 +705,19 @@ function renderFlatTable() {
   if (bdg) bdg.textContent = rows.length;
 
   var barHtml =
-    '<div style="display:flex;align-items:center;gap:7px;padding:6px 10px;margin-bottom:8px;background:var(--gold-bg);border:1px solid var(--gold);border-left:3px solid var(--gold);border-radius:8px;">' +
+    '<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;margin-bottom:8px;background:var(--gold-bg);border:1px solid var(--gold);border-left:3px solid var(--gold);border-radius:8px;flex-wrap:wrap;">' +
+    '<div style="display:flex;align-items:center;gap:7px;">' +
     '<input type="checkbox" id="groupByAdvCb" ' +
     (window._ksGroupByAdv ? "checked" : "") +
     ' onchange="toggleGroupByAdv()" style="width:15px;height:15px;cursor:pointer;accent-color:var(--gold);">' +
     '<label for="groupByAdvCb" style="cursor:pointer;margin:0;font-size:13px;font-weight:600;color:var(--navy);">Group by advocates</label>' +
+    '</div>' +
+    '<div style="display:flex;align-items:center;gap:7px;">' +
+    '<input type="checkbox" id="showClosedCb" ' +
+    (window._ksShowClosed ? "checked" : "") +
+    ' onchange="toggleShowClosed()" style="width:15px;height:15px;cursor:pointer;accent-color:var(--gold);">' +
+    '<label for="showClosedCb" style="cursor:pointer;margin:0;font-size:13px;font-weight:600;color:var(--navy);">show closed cases</label>' +
+    '</div>' +
     "</div>";
 
   if (rows.length === 0) {
@@ -747,6 +789,7 @@ function buildHomeRow(
   rowClass,
   prevDatesArr,
   nextDatesArr,
+  isClosed,
 ) {
   var dv = getCaseDisplayRecord(x);
   var pDateHtml = "";
@@ -772,13 +815,16 @@ function buildHomeRow(
       JSON.stringify(disp).replace(/'/g, "\\'") +
       ")";
   }
+  var isClosedRow = !!isClosed;
+  var rowBgHome = isClosedRow ? "background:#9EADBF!important;" : hasNextDate ? "background:#D4EDDA;" : "";
   return (
     '<tr class="animate-fade-in' +
     (rowClass ? " " + rowClass : "") +
+    (isClosedRow ? " row-closed" : "") +
     '" style="animation-delay:' +
     (j || 0) * 30 +
     "ms;" +
-    (hasNextDate ? "background:#D4EDDA;" : "") +
+    rowBgHome +
     '">' +
     (isColVisible("menu")
       ? '<td style="text-align:center;padding:4px 2px;">' +
@@ -958,13 +1004,17 @@ window.buildDayboardItems = function (dateFrom, dateTo, searchText) {
     if (!rec2) continue;
     if (s && !matchesSearch(rec2, s)) continue;
     if (!recordMatchesAdvFilter(rec2)) continue;
+    var cs91Rec2 = getCaseCs91Record(rec2);
+    if (isClosedCs91(cs91Rec2) && !window._ksShowClosed) {
+      continue;
+    }
     var dispRec2 = buildSource2DisplayRecord(rec2);
     var item2 = {
       record: dispRec2,
       cd: cd2,
-      cs91Rec: null,
-      cs91Prev: "",
-      isCs91Row: false,
+      cs91Rec: cs91Rec2,
+      cs91Prev: cs91Rec2 ? cs91Rec2.o || "" : "",
+      isCs91Row: !!cs91Rec2,
       prevDatesArr: collectPrevDates(cd2).slice(),
       nextDatesArr: collectNextDates(cd2).slice(),
     };
@@ -976,6 +1026,9 @@ window.buildDayboardItems = function (dateFrom, dateTo, searchText) {
   for (var ci = 0; ci < caseRecords91.length; ci++) {
     var cr91 = caseRecords91[ci];
     if (!cr91 || !cr91.p) continue;
+    if (isClosedCs91(cr91) && !window._ksShowClosed) {
+      continue;
+    }
     if (cr91.p < f || cr91.p > t) continue;
     var csRec = findCsByCs91Link(cr91.a);
     var dispRec = csRec || cr91;
@@ -1062,6 +1115,14 @@ function renderTable() {
   ];
   var h = "";
 
+  var homeBar =
+    '<div style="display:flex;align-items:center;gap:7px;padding:6px 10px;margin-bottom:8px;background:var(--gold-bg);border:1px solid var(--gold);border-left:3px solid var(--gold);border-radius:8px;">' +
+    '<input type="checkbox" id="showClosedCb" ' +
+    (window._ksShowClosed ? "checked" : "") +
+    ' onchange="toggleShowClosed()" style="width:15px;height:15px;cursor:pointer;accent-color:var(--gold);">' +
+    '<label for="showClosedCb" style="cursor:pointer;margin:0;font-size:13px;font-weight:600;color:var(--navy);">show closed cases</label>' +
+    "</div>";
+
   for (var i = 0; i < dateOrder.length; i++) {
     var d = dateOrder[i];
     var items = dateGroups[d];
@@ -1125,6 +1186,7 @@ function renderTable() {
         x,
         (hasNextDate && effCur) || cd || null,
       );
+      var isClosedHome = isClosedCs91(items[j].cs91Rec);
       h += buildHomeRow(
         x,
         target,
@@ -1136,6 +1198,7 @@ function renderTable() {
         items[j].isCs91Row ? "cs91-date-row" : "",
         prevDatesArr,
         nextDatesArr,
+        isClosedHome,
       );
     }
     h += "</tbody></table></div></div>";
@@ -1145,6 +1208,7 @@ function renderTable() {
 
   if (totalRecords === 0) {
     container.innerHTML =
+      homeBar +
       '<div class="text-center py-4">' +
       '<i class="fas fa-check-circle text-gold" style="font-size:28px;"></i><br>' +
       '<span class="fw-bold text-navy" style="font-size:14px;">No cases for today</span><br>' +
@@ -1152,7 +1216,7 @@ function renderTable() {
       "</div>";
     return;
   }
-  container.innerHTML = h;
+  container.innerHTML = homeBar + h;
 }
 
 window.showAllCases = function () {
