@@ -89,12 +89,11 @@ const dontRestartAfterLogin = 1;
    },
    {
     a: 26,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b44c182/ks/allCases.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@6ecde6e/ks/allCases.js",
     //u: "allCases.js",
     c: "showAllCases,showHome",
     r: " ",
    },
-
    {
     a: 22,
     u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@aa6cfeb/ks/messageModal.js",
@@ -275,6 +274,10 @@ function injectKSStyles() {
  stCs91.innerHTML =
   "tr.cs91-date-row{background:#D5E2F2!important;}" +
   "tr.cs91-date-row:hover{background:#C4D6EC!important;}" +
+  "tr.row-closed,tr.cs91-date-row.row-closed{background:#9EADBF!important;}" +
+  "tr.row-closed>td,tr.cs91-date-row.row-closed>td{background-color:#9EADBF!important;}" +
+  "tr.row-closed:hover,tr.cs91-date-row.row-closed:hover{background:#9EADBF!important;}" +
+  "tr.row-closed:hover>td,tr.cs91-date-row.row-closed:hover>td{background-color:#9EADBF!important;}" +
   ".db-date-badge{display:inline-block;padding:1px 5px;border-radius:3px;font-size:10px;margin:0 1px;white-space:nowrap;}" +
   ".db-date-primary{background:#FDF8EE;border:1px solid #C9A84C;color:#1B2A4A;}" +
   ".db-date-prev{background:#FDE8E8;border:1px solid #E57373;color:#C62828;}" +
@@ -832,10 +835,10 @@ function showJuzeNameModal(rec, opts) {
     affectHtml +
     '<div class="form-group-premium mb-0">' +
     '<label class="form-label-premium mb-1" for="juzeNewName">New judge name:</label>' +
-    '<input type="text" id="juzeNewName" class="form-control-premium" maxlength="12" placeholder="Enter new judge name" autocomplete="off" spellcheck="false" oninput="this.value=this.value.replace(/[^A-Za-z0-9]/g,\'\').slice(0,12)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();saveJuzeName(\'' +
+    '<input type="text" id="juzeNewName" class="form-control-premium" maxlength="12" placeholder="Enter new judge name" autocomplete="off" spellcheck="false" oninput="this.value=this.value.slice(0,12)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();saveJuzeName(\'' +
     mid +
     '\');}">' +
-    '<div class="form-hint">Maximum 12 characters, letters and digits only.</div>' +
+    '<div class="form-hint">Maximum 12 characters.</div>' +
     "</div></div>" +
     '<div class="modal-footer" style="padding:12px 18px;border-top:2px solid var(--gray-bg);display:flex;justify-content:flex-end;gap:8px;">' +
     '<button type="button" class="btn-premium btn-premium-secondary" data-bs-dismiss="modal">Cancel</button>' +
@@ -877,8 +880,8 @@ async function saveJuzeName(mid) {
     showMessageModal("Info", "Please enter new judge name.", false);
     return;
   }
-  if (!/^[A-Za-z0-9]{1,12}$/.test(val)) {
-    showMessageModal("Info", "Only letters and digits allowed (max 12).", false);
+  if (val.length > 12) {
+    showMessageModal("Info", "Maximum 12 characters allowed.", false);
     return;
   }
   if (ctx.court && val === ctx.court) {
