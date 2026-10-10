@@ -1,4 +1,4 @@
-// allCases.js - Table rendering, search, date formatting, view switching
+﻿// allCases.js - Table rendering, search, date formatting, view switching
 // Extracted from ks.js for modular loading
 
 // Advocate dashboard filter (list sourced from ks.da advOnBoard)
@@ -533,7 +533,7 @@ function buildFlatRow(item, j) {
   var today = getLocalToday();
   var hasNextDate = nDate && nDate > today;
   var isClosed = isClosedCs91(item.cs91);
-  var rowBg = isClosed ? "background:#9EADBF!important;" : hasNextDate ? "background:#D4EDDA;" : "";
+  var rowBg = isClosed ? "background:" + getClosedRowColor() + "!important;" : hasNextDate ? "background:#D4EDDA;" : "";
   var stgName = getCaseStageText(x, current);
   var curJson = current
     ? JSON.stringify(current).replace(/'/g, "\\'")
@@ -816,7 +816,7 @@ function buildHomeRow(
       ")";
   }
   var isClosedRow = !!isClosed;
-  var rowBgHome = isClosedRow ? "background:#9EADBF!important;" : hasNextDate ? "background:#D4EDDA;" : "";
+  var rowBgHome = isClosedRow ? "background:" + getClosedRowColor() + "!important;" : hasNextDate ? "background:#D4EDDA;" : "";
   return (
     '<tr class="animate-fade-in' +
     (rowClass ? " " + rowClass : "") +

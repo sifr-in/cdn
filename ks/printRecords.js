@@ -6,6 +6,16 @@ var _printMonths = [
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ];
 
+// Print column visibility (ks.js: separate preference in localStorage "ks_printCols").
+// Falls back to on-screen visibility when the print preference is unavailable.
+function _pcv(k) {
+  if (typeof isPrintColVisible === 'function') return isPrintColVisible(k);
+  return typeof isColVisible === 'function' ? isColVisible(k) : true;
+}
+
+// Background color of closed-case rows (ks.da: closedCaseColor)
+var _ksClosedRowColor = '#9EADBF';
+
 function printDashboard() {
   var fromVal = document.getElementById('dateFrom')?.value || '';
   var toVal = document.getElementById('dateTo')?.value || '';
@@ -30,13 +40,17 @@ function printDashboard() {
     total = flat.length;
     flatRows = flat.map(function (it) {
       var nSrc = it.stageRow || it.current;
-      var cdN = getCaseDateN(nSrc ? nSrc.n : null);
       return {
         record: it.record,
         prevDates: it.pDate ? [it.pDate] : [],
         nextDates: it.nDate ? [it.nDate] : [],
-        stgName: stageMap[cdN.stg] || '-',
+        stgName:
+          typeof getCaseStageText === 'function'
+            ? getCaseStageText(it.record, nSrc)
+            : stageMap[getCaseDateN(nSrc ? nSrc.n : null).stg] || '-',
         isCs91Row: !!it.isCs91Linked,
+        isClosed:
+          typeof isClosedCs91 === 'function' && isClosedCs91(it.cs91),
         advLabel: typeof getAdvGroupLabel === 'function'
           ? getAdvGroupLabel(it.record)
           : '-',
@@ -71,11 +85,16 @@ function printDashboard() {
   if (cfg && typeof cfg === 'object' && Object.keys(cfg).length === 0) {
     cfg = window.clientConfig || cfg;
   }
+  // ks.da: closedCaseColor -> background of closed-case rows (screen & print)
+  _ksClosedRowColor =
+    typeof getClosedRowColor === 'function'
+      ? getClosedRowColor()
+      : String(cfg.closedCaseColor || "#9EADBF").trim() || '#9EADBF';
   // ks.da: printLabelGroupByJuNm == 1 -> label above each judge/court sub-group
   var showJuLabels = Number(cfg.printLabelGroupByJuNm) === 1;
   var visColCount =
     ['sr','pdate','court','adv','brief','caseType','caseNo','stg','ndate','filer','answerer']
-      .filter(function (k) { return isColVisible(k); }).length || 1;
+      .filter(function (k) { return _pcv(k); }).length || 1;
 
   if (isAllCases) {
     if (window._ksGroupByAdv) {
@@ -103,6 +122,7 @@ function printDashboard() {
             today,
             null,
             advOrder[ao],
+            aGrp[ar].isClosed,
           );
         }
         rowsHtml +=
@@ -126,6 +146,7 @@ function printDashboard() {
           today,
           null,
           null,
+          flatRows[fj].isClosed,
         );
       }
       rowsHtml = printTableHtml(flatInner);
@@ -161,10 +182,16 @@ function printDashboard() {
           !it.isCs91Row &&
           (nextDates.length > 0 ||
             !!(effCur && effCur.e && effCur.e > today));
-        var cdN = getCaseDateN(
-          (hasNextDate && effCur && effCur.n) || (cd && cd.n) || null,
-        );
-        var stgName = stageMap[cdN.stg] || '-';
+        var stgName =
+          typeof getCaseStageText === 'function'
+            ? getCaseStageText(x, (hasNextDate && effCur) || cd || null)
+            : stageMap[
+                getCaseDateN(
+                  (hasNextDate && effCur && effCur.n) || (cd && cd.n) || null,
+                ).stg
+              ] || '-';
+        var isClosed =
+          typeof isClosedCs91 === 'function' && isClosedCs91(it.cs91Rec);
         inner += buildPrintRow(
           x,
           prevDates.map(function (p) { return p.e; }),
@@ -174,6 +201,7 @@ function printDashboard() {
           today,
           null,
           g.heading,
+          isClosed,
         );
       }
       rowsHtml +=
@@ -229,6 +257,7 @@ function printDashboard() {
     'table{width:100%;border-collapse:collapse;margin-top:2px}th{background:#1B2A4A;color:#C9A84C;font-size:9px;text-transform:uppercase;padding:7px 5px;border:1px solid #1B2A4A;font-weight:700}' +
     'td{padding:6px 5px;border:1px solid #ddd;font-size:9px}tr:nth-child(even){background:#fafafa}' +
     'tr.cs91{border-left:3px solid #87c1ff}td.cs91-bg{background:#D5E2F2}' +
+    'tr.row-closed td{background:' + _ksClosedRowColor + '!important;}' +
     '.day-group{margin-bottom:10px;page-break-inside:avoid}' +
     '.group-head{display:flex;justify-content:space-between;align-items:center;background:#FDF8EE;border:1px solid #C9A84C;border-left:3px solid #C9A84C;border-radius:6px 6px 0 0;padding:6px 12px;margin-top:8px}' +
     '.group-date{font-weight:700;font-size:11px;color:#1B2A4A}.group-count{background:#C9A84C;color:#fff;font-weight:700;font-size:10px;padding:1px 10px;border-radius:20px}' +
@@ -256,17 +285,17 @@ function printDashboard() {
 function printTableHtml(innerRows) {
   return (
     '<table><thead><tr>' +
-    (isColVisible('sr') ? '<th>SR</th>' : '') +
-    (isColVisible('pdate') ? '<th>PDate</th>' : '') +
-    (isColVisible('court') ? '<th>Court</th>' : '') +
-    (isColVisible('adv') ? '<th>Adv</th>' : '') +
-    (isColVisible('brief') ? '<th>Brief</th>' : '') +
-    (isColVisible('caseType') ? '<th>Type</th>' : '') +
-    (isColVisible('caseNo') ? '<th>Case No.</th>' : '') +
-    (isColVisible('stg') ? '<th>STG</th>' : '') +
-    (isColVisible('ndate') ? '<th>NDate</th>' : '') +
-    (isColVisible('filer') ? '<th>Filer</th>' : '') +
-    (isColVisible('answerer') ? '<th>Answerer</th>' : '') +
+    (_pcv('sr') ? '<th>SR</th>' : '') +
+    (_pcv('pdate') ? '<th>PDate</th>' : '') +
+    (_pcv('court') ? '<th>Court</th>' : '') +
+    (_pcv('adv') ? '<th>Adv</th>' : '') +
+    (_pcv('brief') ? '<th>Brief</th>' : '') +
+    (_pcv('caseType') ? '<th>Type</th>' : '') +
+    (_pcv('caseNo') ? '<th>Case No.</th>' : '') +
+    (_pcv('stg') ? '<th>STG</th>' : '') +
+    (_pcv('ndate') ? '<th>NDate</th>' : '') +
+    (_pcv('filer') ? '<th>Filer</th>' : '') +
+    (_pcv('answerer') ? '<th>Answerer</th>' : '') +
     '</tr></thead><tbody>' +
     innerRows +
     '</tbody></table>'
@@ -281,7 +310,7 @@ function buildJuLabelRow(text, colCount) {
   );
 }
 
-function buildPrintRow(record, prevDates, nextDates, stgName, isCs91Row, today, cs91PrevDates, groupHeading) {
+function buildPrintRow(record, prevDates, nextDates, stgName, isCs91Row, today, cs91PrevDates, groupHeading, isClosed) {
   var r = record;
   var rv =
     typeof getCaseDisplayRecord === 'function' ? getCaseDisplayRecord(r) : r;
@@ -294,25 +323,29 @@ function buildPrintRow(record, prevDates, nextDates, stgName, isCs91Row, today, 
   }
   var prevStr = prevList.map(formatDateShort).join(', ');
   var nextStr = (nextDates || []).map(formatDateShort).join(', ') || '-';
+  var cls = [];
+  if (isCs91Row) cls.push('cs91');
+  if (isClosed) cls.push('row-closed');
   return (
     '<tr' +
-    (isCs91Row ? ' class="cs91"' : '') +
+    (cls.length ? ' class="' + cls.join(' ') + '"' : '') +
+    (isClosed ? ' style="background:' + _ksClosedRowColor + '!important;"' : '') +
     '>' +
-    (isColVisible('sr') ? '<td>' + r.a + '</td>' : '') +
-    (isColVisible('pdate') ? '<td>' + escHtml(prevStr) + '</td>' : '') +
-    (isColVisible('court')
+    (_pcv('sr') ? '<td>' + r.a + '</td>' : '') +
+    (_pcv('pdate') ? '<td>' + escHtml(prevStr) + '</td>' : '') +
+    (_pcv('court')
       ? '<td' + (isCs91Row ? ' class="cs91-bg"' : '') + '>' + escHtml(rv.q) + '</td>'
       : '') +
-    (isColVisible('adv') ? '<td>' + escHtml(rv.k || '-') + '</td>' : '') +
-    (isColVisible('brief') ? '<td>' + escHtml(rv.l || '-') + '</td>' : '') +
-    (isColVisible('caseType') ? '<td>' + escHtml(rv.g) + '</td>' : '') +
-    (isColVisible('caseNo')
+    (_pcv('adv') ? '<td>' + escHtml(rv.k || '-') + '</td>' : '') +
+    (_pcv('brief') ? '<td>' + escHtml(rv.l || '-') + '</td>' : '') +
+    (_pcv('caseType') ? '<td>' + escHtml(rv.g) + '</td>' : '') +
+    (_pcv('caseNo')
       ? '<td>' + escHtml((rv.h ? rv.h : '') + '/' + (rv.i ? rv.i : '')) + '</td>'
       : '') +
-    (isColVisible('stg') ? '<td>' + escHtml(stgName) + '</td>' : '') +
-    (isColVisible('ndate') ? '<td>' + escHtml(nextStr) + '</td>' : '') +
-    (isColVisible('filer') ? '<td>' + escHtml(rv.n) + '</td>' : '') +
-    (isColVisible('answerer') ? '<td>' + escHtml(rv.o) + '</td>' : '') +
+    (_pcv('stg') ? '<td>' + escHtml(stgName) + '</td>' : '') +
+    (_pcv('ndate') ? '<td>' + escHtml(nextStr) + '</td>' : '') +
+    (_pcv('filer') ? '<td>' + escHtml(rv.n) + '</td>' : '') +
+    (_pcv('answerer') ? '<td>' + escHtml(rv.o) + '</td>' : '') +
     '</tr>'
   );
 }
