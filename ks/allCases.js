@@ -1,4 +1,4 @@
-﻿// allCases.js - Table rendering, search, date formatting, view switching
+// allCases.js - Table rendering, search, date formatting, view switching
 // Extracted from ks.js for modular loading
 
 // Advocate dashboard filter (list sourced from ks.da advOnBoard)
@@ -618,14 +618,18 @@ function buildFlatRow(item, j) {
         "</td>"
       : "") +
     (isColVisible("filer")
-      ? '<td class="text-start text-gray-dark truncate" style="max-width:150px;" title="' +
+      ? '<td class="text-start text-gray-dark truncate" style="max-width:150px;' +
+        ksCasePartyEmphStyle(dv, "filer") +
+        '" title="' +
         escAttr(dv.n) +
         '">' +
         escHtml(dv.n) +
         "</td>"
       : "") +
     (isColVisible("answerer")
-      ? '<td class="text-start text-gray-dark truncate" style="max-width:150px;" title="' +
+      ? '<td class="text-start text-gray-dark truncate" style="max-width:150px;' +
+        ksCasePartyEmphStyle(dv, "answerer") +
+        '" title="' +
         escAttr(dv.o) +
         '">' +
         escHtml(dv.o) +
@@ -887,14 +891,18 @@ function buildHomeRow(
         "</td>"
       : "") +
     (isColVisible("filer")
-      ? '<td class="text-start text-gray-dark truncate" style="max-width:150px;" title="' +
+      ? '<td class="text-start text-gray-dark truncate" style="max-width:150px;' +
+        ksCasePartyEmphStyle(dv, "filer") +
+        '" title="' +
         escAttr(dv.n) +
         '">' +
         escHtml(dv.n) +
         "</td>"
       : "") +
     (isColVisible("answerer")
-      ? '<td class="text-start text-gray-dark truncate" style="max-width:150px;" title="' +
+      ? '<td class="text-start text-gray-dark truncate" style="max-width:150px;' +
+        ksCasePartyEmphStyle(dv, "answerer") +
+        '" title="' +
         escAttr(dv.o) +
         '">' +
         escHtml(dv.o) +

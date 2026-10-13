@@ -13,6 +13,80 @@ function _pcv(k) {
   return typeof isColVisible === 'function' ? isColVisible(k) : true;
 }
 
+// Per-column print settings (ks.js: localStorage "ks_printCols" -> cfg).
+// Each: { w: width%, ff: fontFamily, fs: fontSizePx, hide: clip overflow }.
+function _pcs(k) {
+  if (typeof window.getPrintColSettings === 'function') {
+    return window.getPrintColSettings(k) || { w: 0, ff: '', fs: 0, hide: false };
+  }
+  return { w: 0, ff: '', fs: 0, hide: false };
+}
+
+// Column order + header labels (must match ks.js visible columns).
+var _printColOrder = [
+  'sr', 'pdate', 'court', 'adv', 'brief', 'caseType',
+  'caseNo', 'stg', 'ndate', 'filer', 'answerer',
+];
+var _printColLabels = {
+  sr: 'SR', pdate: 'PDate', court: 'Court', adv: 'Adv', brief: 'Brief',
+  caseType: 'Type', caseNo: 'Case No.', stg: 'STG', ndate: 'NDate',
+  filer: 'Filer', answerer: 'Answerer',
+};
+
+function _printColKeys() {
+  return _printColOrder.filter(function (k) { return _pcv(k); });
+}
+
+function _printColCls(k) {
+  var s = _pcs(k);
+  return 'pc-' + k + (s.hide ? ' pc-hide' : '');
+}
+
+// cs.r emphasis for print: base = per-column font size (or default 9px), +2 = next step.
+function _printPartyEmphStyle(rv, which) {
+  if (typeof ksCasePartyEmph !== 'function' || !ksCasePartyEmph(rv, which)) return '';
+  var base = parseFloat(_pcs(which).fs) || 9;
+  return ' style="font-weight:700;font-size:' + (base + 2) + 'px;"';
+}
+
+// Per-column CSS: width-independent font/clip rules + fixed layout when widths set.
+function _printColCss() {
+  var css = '';
+  var hasWidth = false;
+  for (var i = 0; i < _printColOrder.length; i++) {
+    var k = _printColOrder[i];
+    var s = _pcs(k);
+    var w = parseFloat(s.w) || 0;
+    if (w > 0) hasWidth = true;
+    var rules = '';
+    var ff = String(s.ff || '').replace(/[^A-Za-z0-9 ,'"-]/g, '');
+    var fs = parseFloat(s.fs) || 0;
+    if (ff) rules += 'font-family:' + ff + ';';
+    if (fs > 0) rules += 'font-size:' + fs + 'px;';
+    if (s.hide) rules += 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+    if (rules) css += '.pc-' + k + (s.hide ? '.pc-hide' : '') + '{' + rules + '}';
+  }
+  if (hasWidth) css += 'table{table-layout:fixed;}';
+  return css;
+}
+
+// <colgroup> for the currently visible columns (percent widths).
+function _printColColgroup() {
+  var keys = _printColKeys();
+  var out = '';
+  var hasWidth = false;
+  for (var i = 0; i < keys.length; i++) {
+    var w = parseFloat(_pcs(keys[i]).w) || 0;
+    if (w > 0) {
+      hasWidth = true;
+      out += '<col style="width:' + w + '%">';
+    } else {
+      out += '<col>';
+    }
+  }
+  return hasWidth ? '<colgroup>' + out + '</colgroup>' : '';
+}
+
 // Background color of closed-case rows (ks.da: closedCaseColor)
 var _ksClosedRowColor = '#9EADBF';
 
@@ -92,9 +166,7 @@ function printDashboard() {
       : String(cfg.closedCaseColor || "#9EADBF").trim() || '#9EADBF';
   // ks.da: printLabelGroupByJuNm == 1 -> label above each judge/court sub-group
   var showJuLabels = Number(cfg.printLabelGroupByJuNm) === 1;
-  var visColCount =
-    ['sr','pdate','court','adv','brief','caseType','caseNo','stg','ndate','filer','answerer']
-      .filter(function (k) { return _pcv(k); }).length || 1;
+  var visColCount = _printColKeys().length || 1;
 
   if (isAllCases) {
     if (window._ksGroupByAdv) {
@@ -264,6 +336,7 @@ function printDashboard() {
     'tr.ju-label-row{page-break-after:avoid}tr.ju-label-row td{background:#FDF8EE;color:#1B2A4A;font-weight:700;font-size:10px;letter-spacing:.5px;text-transform:uppercase;padding:5px 8px;border:1px solid #C9A84C;text-align:left}' +
     '.foot{margin-top:12px;font-size:8px;color:#999;text-align:center;border-top:1px solid #ddd;padding-top:8px}' +
     '@media print{@page{margin:6mm;size:landscape}}.page-break{page-break-before:auto}' +
+    _printColCss() +
     '</style></head><body>' +
     headerHtml +
     headerNotes +
@@ -283,19 +356,21 @@ function printDashboard() {
 }
 
 function printTableHtml(innerRows) {
+  var keys = _printColKeys();
+  var head = '';
+  for (var i = 0; i < keys.length; i++) {
+    head +=
+      '<th class="' +
+      _printColCls(keys[i]) +
+      '">' +
+      (_printColLabels[keys[i]] || keys[i]) +
+      '</th>';
+  }
   return (
-    '<table><thead><tr>' +
-    (_pcv('sr') ? '<th>SR</th>' : '') +
-    (_pcv('pdate') ? '<th>PDate</th>' : '') +
-    (_pcv('court') ? '<th>Court</th>' : '') +
-    (_pcv('adv') ? '<th>Adv</th>' : '') +
-    (_pcv('brief') ? '<th>Brief</th>' : '') +
-    (_pcv('caseType') ? '<th>Type</th>' : '') +
-    (_pcv('caseNo') ? '<th>Case No.</th>' : '') +
-    (_pcv('stg') ? '<th>STG</th>' : '') +
-    (_pcv('ndate') ? '<th>NDate</th>' : '') +
-    (_pcv('filer') ? '<th>Filer</th>' : '') +
-    (_pcv('answerer') ? '<th>Answerer</th>' : '') +
+    '<table>' +
+    _printColColgroup() +
+    '<thead><tr>' +
+    head +
     '</tr></thead><tbody>' +
     innerRows +
     '</tbody></table>'
@@ -331,21 +406,21 @@ function buildPrintRow(record, prevDates, nextDates, stgName, isCs91Row, today, 
     (cls.length ? ' class="' + cls.join(' ') + '"' : '') +
     (isClosed ? ' style="background:' + _ksClosedRowColor + '!important;"' : '') +
     '>' +
-    (_pcv('sr') ? '<td>' + r.a + '</td>' : '') +
-    (_pcv('pdate') ? '<td>' + escHtml(prevStr) + '</td>' : '') +
+    (_pcv('sr') ? '<td class="' + _printColCls('sr') + '">' + r.a + '</td>' : '') +
+    (_pcv('pdate') ? '<td class="' + _printColCls('pdate') + '">' + escHtml(prevStr) + '</td>' : '') +
     (_pcv('court')
-      ? '<td' + (isCs91Row ? ' class="cs91-bg"' : '') + '>' + escHtml(rv.q) + '</td>'
+      ? '<td class="' + _printColCls('court') + (isCs91Row ? ' cs91-bg' : '') + '">' + escHtml(rv.q) + '</td>'
       : '') +
-    (_pcv('adv') ? '<td>' + escHtml(rv.k || '-') + '</td>' : '') +
-    (_pcv('brief') ? '<td>' + escHtml(rv.l || '-') + '</td>' : '') +
-    (_pcv('caseType') ? '<td>' + escHtml(rv.g) + '</td>' : '') +
+    (_pcv('adv') ? '<td class="' + _printColCls('adv') + '">' + escHtml(rv.k || '-') + '</td>' : '') +
+    (_pcv('brief') ? '<td class="' + _printColCls('brief') + '">' + escHtml(rv.l || '-') + '</td>' : '') +
+    (_pcv('caseType') ? '<td class="' + _printColCls('caseType') + '">' + escHtml(rv.g) + '</td>' : '') +
     (_pcv('caseNo')
-      ? '<td>' + escHtml((rv.h ? rv.h : '') + '/' + (rv.i ? rv.i : '')) + '</td>'
+      ? '<td class="' + _printColCls('caseNo') + '">' + escHtml((rv.h ? rv.h : '') + '/' + (rv.i ? rv.i : '')) + '</td>'
       : '') +
-    (_pcv('stg') ? '<td>' + escHtml(stgName) + '</td>' : '') +
-    (_pcv('ndate') ? '<td>' + escHtml(nextStr) + '</td>' : '') +
-    (_pcv('filer') ? '<td>' + escHtml(rv.n) + '</td>' : '') +
-    (_pcv('answerer') ? '<td>' + escHtml(rv.o) + '</td>' : '') +
+    (_pcv('stg') ? '<td class="' + _printColCls('stg') + '">' + escHtml(stgName) + '</td>' : '') +
+    (_pcv('ndate') ? '<td class="' + _printColCls('ndate') + '">' + escHtml(nextStr) + '</td>' : '') +
+    (_pcv('filer') ? '<td class="' + _printColCls('filer') + '"' + _printPartyEmphStyle(rv, 'filer') + '>' + escHtml(rv.n) + '</td>' : '') +
+    (_pcv('answerer') ? '<td class="' + _printColCls('answerer') + '"' + _printPartyEmphStyle(rv, 'answerer') + '>' + escHtml(rv.o) + '</td>' : '') +
     '</tr>'
   );
 }
