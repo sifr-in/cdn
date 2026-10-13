@@ -88,7 +88,7 @@ const dontRestartAfterLogin = 1;
    },
    {
     a: 26,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8e914c4/ks/allCases.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@794889f/ks/allCases.js",
     //u: "allCases.js",
     c: "showAllCases,showHome",
     r: " ",
@@ -113,7 +113,7 @@ const dontRestartAfterLogin = 1;
    },
    {
     a: 24,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8e914c4/ks/printRecords.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@794889f/ks/printRecords.js",
     //u: "printRecords.js",
     c: "printDashboard",
     r: " ",
@@ -261,7 +261,7 @@ const dontRestartAfterLogin = 1;
 })();
 
 appcss =
- "/* ============================================\n   KS - Court Case Management System\n   Design System & Reusable Classes\n   Classic Authority Theme\n   ============================================ */\n\n/* CSS Variables */\n:root {\n  /* Navy Palette (60%) */\n  --navy-dark: #0D1B36;\n  --navy: #1B2A4A;\n  --navy-light: #2A3F6E;\n  \n  /* Gold Palette (10% Accent) */\n  --gold: #C9A84C;\n  --gold-light: #D4B96A;\n  --gold-dark: #B8942E;\n  --gold-bg: #FDF8EE;\n  --gold-rgb: 201, 168, 76;\n  \n  /* Gray Palette (30%) */\n  --gray-dark: #555555;\n  --gray: #7A7A7A;\n  --gray-light: #B0B0B0;\n  --gray-bg: #E8E8E8;\n  --gray-surface: #F5F5F5;\n  \n  /* Section Colors */\n  --section-nd-bg: #D0ECEE;\n  --section-nd-border: #4AADAD;\n  --section-ecourt-bg: #D5E2F2;\n  --section-ecourt-border: #87c1ff;\n  --section-manual-bg: #F8EDD5;\n  --section-manual-border: #C9A84C;\n  --section-csv-bg: #E9F4E3;\n  --section-csv-border: #6FBF4A;\n  \n  /* Spacing */\n  --spacing-xs: 4px;\n  --spacing-sm: 8px;\n  --spacing-md: 12px;\n  --spacing-lg: 16px;\n  --spacing-xl: 20px;\n  --spacing-2xl: 24px;\n  --spacing-3xl: 32px;\n  \n  /* Border Radius */\n  --radius-sm: 6px;\n  --radius-md: 8px;\n  --radius-lg: 12px;\n  --radius-xl: 16px;\n  --radius-full: 9999px;\n  \n  /* Shadows */\n  --shadow-sm: 0 1px 3px rgba(13, 27, 54, 0.06);\n  --shadow-md: 0 4px 12px rgba(13, 27, 54, 0.08);\n  --shadow-lg: 0 8px 24px rgba(13, 27, 54, 0.12);\n  --shadow-xl: 0 12px 32px rgba(13, 27, 54, 0.16);\n  \n  /* Transitions */\n  --transition-fast: 150ms ease;\n  --transition-base: 200ms ease;\n  --transition-slow: 300ms ease;\n  \n  /* Typography */\n  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n  --font-size-xs: 10px;\n  --font-size-sm: 12px;\n  --font-size-base: 14px;\n  --font-size-lg: 16px;\n  --font-size-xl: 18px;\n  --font-size-2xl: 22px;\n  --font-weight-normal: 400;\n  --font-weight-medium: 500;\n  --font-weight-semibold: 600;\n  --font-weight-bold: 700;\n}\n\n/* ============================================\n   BASE STYLES\n   ============================================ */\n*,\n*::before,\n*::after {\n  box-sizing: border-box;\n}\n\nbody {\n  margin: 0;\n  padding: 0;\n  background:\n    radial-gradient(circle at 20% 20%, rgba(var(--gold-rgb), 0.06), transparent 30%),\n    radial-gradient(circle at 80% 70%, rgba(13, 27, 54, 0.05), transparent 35%),\n    var(--gray-surface);\n  background-size: 200% 200%;\n  animation: floatBlob 40s ease-in-out infinite alternate,\n             floatBlob 50s ease-in-out infinite alternate-reverse;\n  font-family: var(--font-family);\n  min-height: 100vh;\n  color: var(--navy);\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale;\n}\n\n/* ============================================\n   TYPOGRAPHY\n   ============================================ */\n.text-navy { color: var(--navy) !important; }\n.text-navy-dark { color: var(--navy-dark) !important; }\n.text-gold { color: var(--gold) !important; }\n.text-gray { color: var(--gray) !important; }\n.text-gray-dark { color: var(--gray-dark) !important; }\n.text-gray-light { color: var(--gray-light) !important; }\n\n.font-serif { font-family: Georgia, 'Times New Roman', serif; }\n.font-mono { font-family: 'Courier New', monospace; }\n\n.fw-medium { font-weight: var(--font-weight-medium) !important; }\n.fw-semibold { font-weight: var(--font-weight-semibold) !important; }\n\n.text-xs { font-size: var(--font-size-xs); }\n.text-sm { font-size: var(--font-size-sm); }\n.text-base { font-size: var(--font-size-base); }\n.text-lg { font-size: var(--font-size-lg); }\n\n/* ============================================\n   BACKGROUNDS\n   ============================================ */\n.bg-navy { background: var(--navy) !important; }\n.bg-navy-dark { background: var(--navy-dark) !important; }\n.bg-navy-gradient {\n  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 100%) !important;\n}\n.bg-gold { background: var(--gold) !important; }\n.bg-gold-light { background: var(--gold-bg) !important; }\n.bg-gray-surface { background: var(--gray-surface) !important; }\n.bg-white { background: #ffffff !important; }\n\n/* ============================================\n   BORDERS\n   ============================================ */\n.border-navy { border-color: var(--navy) !important; }\n.border-gold { border-color: var(--gold) !important; }\n.border-gray { border-color: var(--gray-light) !important; }\n.border-gray-light { border-color: var(--gray-bg) !important; }\n\n.border-2 { border-width: 2px !important; }\n.border-3 { border-width: 3px !important; }\n\n.border-bottom-gold {\n  border-bottom: 3px solid var(--gold) !important;\n}\n\n/* ============================================\n   BORDER RADIUS\n   ============================================ */\n.rounded-md { border-radius: var(--radius-md) !important; }\n.rounded-lg { border-radius: var(--radius-lg) !important; }\n.rounded-xl { border-radius: var(--radius-xl) !important; }\n.rounded-full { border-radius: var(--radius-full) !important; }\n\n/* ============================================\n   SHADOWS\n   ============================================ */\n.shadow-sm { box-shadow: var(--shadow-sm) !important; }\n.shadow-md { box-shadow: var(--shadow-md) !important; }\n.shadow-lg { box-shadow: var(--shadow-lg) !important; }\n.shadow-xl { box-shadow: var(--shadow-xl) !important; }\n\n.shadow-hover {\n  transition: box-shadow var(--transition-base), transform var(--transition-base);\n}\n.shadow-hover:hover {\n  box-shadow: var(--shadow-lg);\n  transform: translateY(-1px);\n}\n\n/* ============================================\n   CARDS (Bootstrap Extension)\n   ============================================ */\n.card-premium {\n  background: #fff;\n  border: 1px solid var(--gray-bg);\n  border-radius: var(--radius-lg);\n  box-shadow: var(--shadow-sm);\n  transition: box-shadow var(--transition-base);\n  overflow: hidden;\n}\n.card-premium:hover {\n  box-shadow: var(--shadow-md);\n}\n\n.card-premium .card-header-premium {\n  background: var(--navy);\n  color: var(--gold);\n  padding: var(--spacing-lg);\n  border-bottom: 3px solid var(--gold);\n  font-weight: var(--font-weight-bold);\n  font-size: var(--font-size-base);\n  display: flex;\n  align-items: center;\n  gap: var(--spacing-sm);\n}\n\n/* ============================================\n   BUTTONS (Bootstrap Extension)\n   ============================================ */\n.btn-premium {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  gap: var(--spacing-xs);\n  padding: 10px 24px;\n  border-radius: var(--radius-md);\n  font-weight: var(--font-weight-semibold);\n  font-size: var(--font-size-base);\n  cursor: pointer;\n  transition: all var(--transition-base);\n  border: 2px solid transparent;\n  position: relative;\n  overflow: hidden;\n}\n\n.btn-premium-primary {\n  background: linear-gradient(135deg, var(--navy-dark), var(--navy));\n  color: var(--gold);\n  border-color: var(--gold);\n}\n.btn-premium-primary:hover {\n  background: var(--gold);\n  color: var(--navy-dark);\n  box-shadow: var(--shadow-md);\n  transform: translateY(-1px);\n}\n.btn-premium-primary:active {\n  transform: translateY(0);\n  box-shadow: var(--shadow-sm);\n}\n\n.btn-premium-secondary {\n  background: var(--gray-surface);\n  color: var(--gray-dark);\n  border-color: var(--gray-light);\n}\n.btn-premium-secondary:hover {\n  background: var(--gray-bg);\n  border-color: var(--gray);\n}\n\n.btn-premium-danger {\n  background: #dc3545;\n  color: #fff;\n  border-color: #dc3545;\n}\n.btn-premium-danger:hover {\n  background: #c82333;\n  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);\n}\n\n.btn-premium-sm {\n  padding: 6px 16px;\n  font-size: var(--font-size-sm);\n}\n\n.btn-premium-lg {\n  padding: 12px 32px;\n  font-size: var(--font-size-lg);\n}\n\n.btn-premium-icon {\n  width: 38px;\n  height: 38px;\n  padding: 0;\n  border-radius: var(--radius-full);\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  background: rgba(255, 255, 255, 0.08);\n  border: 1px solid rgba(var(--gold-rgb), 0.2);\n  color: #fff;\n  font-size: 18px;\n  transition: all var(--transition-base);\n}\n.btn-premium-icon:hover {\n  background: rgba(var(--gold-rgb), 0.25);\n  border-color: var(--gold);\n  transform: scale(1.1);\n}\n\n.btn-premium:disabled,\n.btn-premium.loading {\n  opacity: 0.6;\n  cursor: not-allowed;\n  pointer-events: none;\n}\n\n.btn-premium .spinner {\n  width: 16px;\n  height: 16px;\n  border: 2px solid currentColor;\n  border-top-color: transparent;\n  border-radius: 50%;\n  animation: spin 0.6s linear infinite;\n}\n\n/* ============================================\n   FORMS (Bootstrap Extension)\n   ============================================ */\n.form-control-premium {\n  width: 100%;\n  padding: 10px 14px;\n  border: 2px solid var(--gray-light);\n  border-radius: var(--radius-md);\n  font-size: var(--font-size-base);\n  font-family: var(--font-family);\n  color: var(--navy);\n  background: #fff;\n  transition: all var(--transition-base);\n  outline: none;\n}\n.form-control-premium:focus {\n  border-color: var(--gold);\n  box-shadow: 0 0 0 3px rgba(var(--gold-rgb), 0.15);\n}\n.form-control-premium::placeholder {\n  color: var(--gray-light);\n  opacity: 0.7;\n}\n.form-control-premium.is-invalid {\n  border-color: #dc3545;\n}\n.form-control-premium.is-invalid:focus {\n  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);\n}\n\n.form-select-premium {\n  width: 100%;\n  padding: 10px 14px;\n  border: 2px solid var(--gray-light);\n  border-radius: var(--radius-md);\n  font-size: var(--font-size-base);\n  font-family: var(--font-family);\n  color: var(--navy);\n  background: #fff;\n  transition: all var(--transition-base);\n  outline: none;\n  appearance: none;\n  background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237A7A7A' d='M6 8L1 3h10z'/%3E%3C/svg%3E\");\n  background-repeat: no-repeat;\n  background-position: right 12px center;\n  padding-right: 36px;\n}\n.form-select-premium:focus {\n  border-color: var(--gold);\n  box-shadow: 0 0 0 3px rgba(var(--gold-rgb), 0.15);\n}\n\n.form-label-premium {\n  font-weight: var(--font-weight-semibold);\n  font-size: var(--font-size-sm);\n  color: var(--gray-dark);\n  margin-bottom: 4px;\n  display: block;\n}\n\n.form-label-premium .required {\n  color: #dc3545;\n}\n\n.form-hint {\n  font-size: var(--font-size-xs);\n  color: var(--gray);\n  margin-top: 3px;\n  font-style: italic;\n}\n\n.form-group-premium {\n  margin-bottom: var(--spacing-md);\n}\n\n.form-row-premium {\n  display: flex;\n  gap: var(--spacing-md);\n}\n.form-row-premium > * {\n  flex: 1;\n}\n\n.form-hint {\n  font-size: 11px;\n  color: var(--gray);\n  margin-top: 4px;\n}\n\n/* Floating Label */\n.form-floating-premium {\n  position: relative;\n}\n.form-floating-premium .form-control-premium {\n  padding: 14px 14px 6px 14px;\n}\n.form-floating-premium label {\n  position: absolute;\n  top: 50%;\n  left: 14px;\n  transform: translateY(-50%);\n  font-size: var(--font-size-base);\n  color: var(--gray-light);\n  transition: all var(--transition-base);\n  pointer-events: none;\n}\n.form-floating-premium .form-control-premium:focus ~ label,\n.form-floating-premium .form-control-premium:not(:placeholder-shown) ~ label {\n  top: 8px;\n  font-size: 11px;\n  color: var(--navy);\n  font-weight: var(--font-weight-semibold);\n}\n\n/* ============================================\n   TABLES (Bootstrap Extension)\n   ============================================ */\n.table-premium {\n  width: 100%;\n  border-collapse: collapse;\n}\n.table-premium thead {\n  position: sticky;\n  top: 0;\n  z-index: 10;\n}\n.table-premium thead th {\n  background: var(--navy);\n  color: var(--gold);\n  font-size: var(--font-size-xs);\n  text-transform: uppercase;\n  letter-spacing: 0.6px;\n  padding: 14px 8px;\n  border: none;\n  white-space: nowrap;\n  text-align: center;\n  font-weight: var(--font-weight-bold);\n  border-bottom: 3px solid var(--gold);\n}\n.table-premium tbody td {\n  padding: 10px 8px;\n  font-size: var(--font-size-sm);\n  vertical-align: middle;\n  border-color: #eee;\n  text-align: center;\n  color: var(--gray-dark);\n  transition: background var(--transition-fast);\n}\n.table-premium tbody tr {\n  transition: background var(--transition-fast);\n}\n.table-premium tbody tr:hover {\n  background: var(--gold-bg);\n}\n.table-premium tbody tr:nth-child(even) {\n  background: #fafafa;\n}\n.table-premium tbody tr:nth-child(even):hover {\n  background: var(--gold-bg);\n}\n.table-premium tbody tr.row-selected {\n  background: var(--gold-bg);\n  border-left: 3px solid var(--gold);\n}\n\n.table-container-premium {\n  background: #fff;\n  border-radius: var(--radius-lg);\n  box-shadow: var(--shadow-sm);\n  overflow: hidden;\n  border: 1px solid var(--gray-bg);\n  margin: var(--spacing-lg);\n}\n\n.table-scroll-premium {\n  max-height: calc(100vh - 210px);\n  overflow-y: auto;\n  overflow-x: auto;\n}\n\n.table-scroll-premium table {\n  min-width: 1100px;\n}\n\n/* ============================================\n   SIDEBAR\n   ============================================ */\n.sidebar-overlay-premium {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  background: rgba(13, 27, 54, 0.6);\n  z-index: 10000;\n  opacity: 0;\n  visibility: hidden;\n  transition: opacity var(--transition-slow), visibility var(--transition-slow);\n  backdrop-filter: blur(2px);\n}\n.sidebar-overlay-premium.visible {\n  opacity: 1;\n  visibility: visible;\n}\n\n.sidebar-premium {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 260px;\n  height: 100%;\n  background: #fff;\n  z-index: 10001;\n  box-shadow: var(--shadow-xl);\n  transform: translateX(-100%);\n  transition: transform var(--transition-slow);\n  display: flex;\n  flex-direction: column;\n}\n.sidebar-premium.open {\n  transform: translateX(0);\n}\n\n.sidebar-premium .sidebar-header {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: var(--spacing-lg);\n  background: linear-gradient(135deg, var(--navy-dark), var(--navy));\n  border-bottom: 3px solid var(--gold);\n  color: #fff;\n}\n\n.sidebar-premium .sidebar-menu {\n  padding: var(--spacing-sm) 0;\n  flex: 1;\n  overflow-y: auto;\n}\n\n.sidebar-premium .sidebar-item {\n  display: flex;\n  align-items: center;\n  gap: var(--spacing-md);\n  padding: var(--spacing-md) var(--spacing-lg);\n  font-size: var(--font-size-base);\n  color: var(--gray-dark);\n  cursor: pointer;\n  transition: all var(--transition-fast);\n  text-decoration: none;\n  border-bottom: 1px solid var(--gray-bg);\n  position: relative;\n}\n.sidebar-premium .sidebar-item:hover {\n  background: var(--gold-bg);\n  color: var(--navy);\n}\n.sidebar-premium .sidebar-item.active {\n  background: var(--gold-bg);\n  color: var(--navy);\n  border-left: 3px solid var(--gold);\n  font-weight: var(--font-weight-semibold);\n}\n.sidebar-premium .sidebar-item i {\n  font-size: var(--font-size-lg);\n  width: 20px;\n  text-align: center;\n  color: var(--navy);\n  transition: transform var(--transition-fast);\n}\n.sidebar-premium .sidebar-item:hover i {\n  transform: translateX(2px);\n}\n\n/* ============================================\n   MODALS (Bootstrap Extension)\n   ============================================ */\n.modal-premium .modal-content {\n  border: 3px solid var(--navy);\n  border-radius: var(--radius-lg);\n  overflow: hidden;\n  box-shadow: var(--shadow-xl);\n}\n\n.modal-premium .modal-header {\n  background: linear-gradient(135deg, var(--navy-dark), var(--navy));\n  color: var(--gold);\n  padding: var(--spacing-lg);\n  border-bottom: 3px solid var(--gold);\n}\n\n.modal-premium .modal-body {\n  padding: 0;\n  overflow-y: auto;\n}\n\n.modal-premium .modal-footer {\n  padding: var(--spacing-lg);\n  border-top: 2px solid var(--gray-bg);\n  display: flex;\n  justify-content: flex-end;\n  gap: var(--spacing-sm);\n}\n\n.modal-backdrop-premium {\n  backdrop-filter: blur(4px);\n}\n\n/* ============================================\n   HEADER / NAVBAR\n   ============================================ */\n.header-premium {\n  position: sticky;\n  top: 0;\n  z-index: 9999;\n  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 100%);\n  height: 64px;\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 var(--spacing-xl);\n  box-shadow: var(--shadow-lg);\n  border-bottom: 3px solid var(--gold);\n}\n\n.header-premium .header-title {\n  font-size: var(--font-size-2xl);\n  font-weight: var(--font-weight-bold);\n  color: #fff;\n  display: flex;\n  align-items: center;\n  gap: var(--spacing-sm);\n  font-family: Georgia, 'Times New Roman', serif;\n  letter-spacing: 0.5px;\n}\n\n.header-premium .header-title .icon {\n  font-size: 26px;\n  color: var(--gold);\n}\n\n.header-premium .header-actions {\n  display: flex;\n  gap: var(--spacing-sm);\n}\n\n/* ============================================\n   SUMMARY BAR\n   ============================================ */\n.summary-bar-premium {\n  background: #fff;\n  padding: var(--spacing-md) var(--spacing-lg);\n  display: flex;\n  align-items: center;\n  flex-wrap: wrap;\n  gap: var(--spacing-sm) var(--spacing-lg);\n  border-bottom: 1px solid var(--gray-bg);\n  box-shadow: var(--shadow-sm);\n}\n\n/* ============================================\n   BADGES\n   ============================================ */\n.badge-premium {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  padding: 5px 14px;\n  border-radius: var(--radius-full);\n  font-weight: var(--font-weight-bold);\n  font-size: var(--font-size-sm);\n  white-space: nowrap;\n}\n\n.badge-premium-navy {\n  background: var(--navy);\n  color: var(--gold);\n  border: 1px solid rgba(var(--gold-rgb), 0.4);\n}\n\n.badge-premium-gold {\n  background: var(--gold);\n  color: var(--navy-dark);\n  font-weight: var(--font-weight-bold);\n}\n\n.badge-premium-outline {\n  background: transparent;\n  border: 1px solid currentColor;\n}\n\n/* ============================================\n   SCROLLBAR\n   ============================================ */\n::-webkit-scrollbar {\n  width: 8px;\n  height: 8px;\n}\n::-webkit-scrollbar-track {\n  background: var(--gray-surface);\n  border-radius: 4px;\n}\n::-webkit-scrollbar-thumb {\n  background: var(--navy);\n  border-radius: 4px;\n}\n::-webkit-scrollbar-thumb:hover {\n  background: var(--navy-dark);\n}\n\n/* ============================================\n   ANIMATIONS\n   ============================================ */\n@keyframes fadeIn {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}\n@keyframes fadeInUp {\n  from { opacity: 0; transform: translateY(8px); }\n  to { opacity: 1; transform: translateY(0); }\n}\n@keyframes fadeInDown {\n  from { opacity: 0; transform: translateY(-8px); }\n  to { opacity: 1; transform: translateY(0); }\n}\n@keyframes slideInLeft {\n  from { transform: translateX(-100%); }\n  to { transform: translateX(0); }\n}\n@keyframes slideInRight {\n  from { transform: translateX(100%); }\n  to { transform: translateX(0); }\n}\n@keyframes scaleIn {\n  from { opacity: 0; transform: scale(0.95); }\n  to { opacity: 1; transform: scale(1); }\n}\n@keyframes spin {\n  to { transform: rotate(360deg); }\n}\n@keyframes shimmer {\n  0% { background-position: -200px 0; }\n  100% { background-position: 200px 0; }\n}\n@keyframes floatBlob {\n  0%   { background-position: 0% 0%, 100% 100%; }\n  50%  { background-position: 100% 100%, 0% 0%; }\n  100% { background-position: 0% 0%, 100% 100%; }\n}\n\n.animate-fade-in { animation: fadeIn var(--transition-slow) ease; }\n.animate-fade-in-up { animation: fadeInUp var(--transition-slow) ease; }\n.animate-scale-in { animation: scaleIn var(--transition-base) ease; }\n.animate-slide-in-left { animation: slideInLeft var(--transition-slow) ease; }\n\n/* Skeleton Loading */\n.skeleton {\n  background: linear-gradient(90deg, var(--gray-bg) 25%, var(--gray-surface) 50%, var(--gray-bg) 75%);\n  background-size: 200px 100%;\n  animation: shimmer 1.5s infinite;\n  border-radius: var(--radius-sm);\n}\n\n/* Reduced Motion */\n@media (prefers-reduced-motion: reduce) {\n  *,\n  *::before,\n  *::after {\n    animation-duration: 0.01ms !important;\n    animation-iteration-count: 1 !important;\n    transition-duration: 0.01ms !important;\n  }\n}\n\n/* ============================================\n   RESPONSIVE\n   ============================================ */\n@media (max-width: 600px) {\n  .header-premium {\n    height: auto;\n    min-height: 52px;\n    padding: 6px 12px;\n  }\n  .header-premium .header-title {\n    font-size: var(--font-size-lg);\n    gap: 6px;\n  }\n  \n  .form-row-premium {\n    flex-direction: column;\n    gap: var(--spacing-sm);\n  }\n  \n  .summary-bar-premium {\n    padding: var(--spacing-sm) var(--spacing-md);\n    flex-direction: column;\n    align-items: stretch;\n    gap: var(--spacing-sm);\n  }\n  \n  .table-container-premium {\n    margin: var(--spacing-sm);\n    border-radius: var(--radius-md);\n  }\n  .cs-radio-label {\n    flex: 1;\n    justify-content: center;\n    font-size: 11px;\n    padding: 6px 10px;\n  }\n}\n\n/* ============================================\n   PRINT STYLES\n   ============================================ */\n@media print {\n  body { background: #fff; }\n  .header-premium {\n    background: var(--navy) !important;\n    -webkit-print-color-adjust: exact;\n    print-color-adjust: exact;\n  }\n  .btn-premium-icon { display: none !important; }\n  .table-container-premium {\n    max-height: none;\n    overflow: visible;\n    box-shadow: none;\n    margin: 0;\n    border-radius: 0;\n    border: none;\n  }\n  @page { margin: 8mm; }\n}\n\n/* ============================================\n   UTILITY CLASSES\n   ============================================ */\n.gap-xs { gap: var(--spacing-xs); }\n.gap-sm { gap: var(--spacing-sm); }\n.gap-md { gap: var(--spacing-md); }\n.gap-lg { gap: var(--spacing-lg); }\n\n.truncate {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.cursor-pointer { cursor: pointer; }\n.select-none { user-select: none; }\n\n.opacity-0 { opacity: 0; }\n.opacity-50 { opacity: 0.5; }\n.opacity-100 { opacity: 1; }\n\n.transition-all { transition: all var(--transition-base); }\n.transition-transform { transition: transform var(--transition-base); }\n\n@keyframes ks-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }\n\n.transition-opacity { transition: opacity var(--transition-base); }\n\n/* ============================================\n   RADIO OPTION CARDS\n   ============================================ */\n.cs-radio-label {\n  display: inline-flex;\n  align-items: center;\n  gap: 8px;\n  padding: 8px 16px;\n  border-radius: var(--radius-md);\n  border: 2px solid var(--gray-bg);\n  cursor: pointer;\n  transition: all var(--transition-base);\n  font-size: var(--font-size-sm);\n  color: var(--gray-dark);\n  user-select: none;\n  background: #fff;\n}\n.cs-radio-label:hover {\n  border-color: var(--gold);\n  background: var(--gold-bg);\n  box-shadow: 0 2px 8px rgba(var(--gold-rgb), 0.15);\n  transform: translateY(-1px);\}\n.cs-radio-label.cs-active-ecourt {\n  border-color: var(--section-ecourt-border);\n  background: var(--section-ecourt-bg);\n  box-shadow: 0 2px 8px rgba(94, 138, 184, 0.2);\n}\n.cs-radio-label.cs-active-manual {\n  border-color: var(--section-manual-border);\n  background: var(--section-manual-bg);\n  box-shadow: 0 2px 8px rgba(201, 168, 76, 0.2);\n}\n.cs-radio-label.cs-active-csv {\n  border-color: var(--section-csv-border);\n  background: var(--section-csv-bg);\n  box-shadow: 0 2px 8px rgba(111, 191, 74, 0.2);\n}\n.cs-radio-label input[type=radio] {\n  accent-color: var(--gold);\n  margin: 0;\n}\n\n/* ============================================\n   SEARCHABLE CASE TYPE\n   ============================================ */\n.cs-type-custom {\n  font-size: var(--font-size-xs);\n  color: #dc3545;\n  margin-top: 4px;\n  font-style: italic;\n  padding: 3px 8px;\n  background: rgba(220, 53, 69, 0.06);\n  border-radius: var(--radius-sm);\n  border-left: 3px solid #dc3545;\n}\n.cs-type-custom::before {\n  content: '\\u201C';\n  font-weight: bold;\n  font-size: 14px;\n}\n.cs-type-custom::after {\n  content: '\\u201D';\n  font-weight: bold;\n  font-size: 14px;\n}\n";
+ "/* ============================================\n   KS - Court Case Management System\n   Design System & Reusable Classes\n   Classic Authority Theme\n   ============================================ */\n\n/* CSS Variables */\n:root {\n  /* Navy Palette (60%) */\n  --navy-dark: #0D1B36;\n  --navy: #1B2A4A;\n  --navy-light: #2A3F6E;\n  \n  /* Gold Palette (10% Accent) */\n  --gold: #C9A84C;\n  --gold-light: #D4B96A;\n  --gold-dark: #B8942E;\n  --gold-bg: #FDF8EE;\n  --gold-rgb: 201, 168, 76;\n  \n  /* Gray Palette (30%) */\n  --gray-dark: #555555;\n  --gray: #7A7A7A;\n  --gray-light: #B0B0B0;\n  --gray-bg: #E8E8E8;\n  --gray-surface: #F5F5F5;\n  \n  /* Section Colors */\n  --section-nd-bg: #D0ECEE;\n  --section-nd-border: #4AADAD;\n  --section-ecourt-bg: #D5E2F2;\n  --section-ecourt-border: #87c1ff;\n  --section-manual-bg: #F8EDD5;\n  --section-manual-border: #C9A84C;\n  --section-csv-bg: #E9F4E3;\n  --section-csv-border: #6FBF4A;\n  \n  /* Spacing */\n  --spacing-xs: 4px;\n  --spacing-sm: 8px;\n  --spacing-md: 12px;\n  --spacing-lg: 16px;\n  --spacing-xl: 20px;\n  --spacing-2xl: 24px;\n  --spacing-3xl: 32px;\n  \n  /* Border Radius */\n  --radius-sm: 6px;\n  --radius-md: 8px;\n  --radius-lg: 12px;\n  --radius-xl: 16px;\n  --radius-full: 9999px;\n  \n  /* Shadows */\n  --shadow-sm: 0 1px 3px rgba(13, 27, 54, 0.06);\n  --shadow-md: 0 4px 12px rgba(13, 27, 54, 0.08);\n  --shadow-lg: 0 8px 24px rgba(13, 27, 54, 0.12);\n  --shadow-xl: 0 12px 32px rgba(13, 27, 54, 0.16);\n  \n  /* Transitions */\n  --transition-fast: 150ms ease;\n  --transition-base: 200ms ease;\n  --transition-slow: 300ms ease;\n  \n  /* Typography */\n  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n  --font-size-xs: 10px;\n  --font-size-sm: 12px;\n  --font-size-base: 14px;\n  --font-size-lg: 16px;\n  --font-size-xl: 18px;\n  --font-size-2xl: 22px;\n  --font-weight-normal: 400;\n  --font-weight-medium: 500;\n  --font-weight-semibold: 600;\n  --font-weight-bold: 700;\n}\n\n/* ============================================\n   BASE STYLES\n   ============================================ */\n*,\n*::before,\n*::after {\n  box-sizing: border-box;\n}\n\nbody {\n  margin: 0;\n  padding: 0;\n  background:\n    radial-gradient(circle at 20% 20%, rgba(var(--gold-rgb), 0.06), transparent 30%),\n    radial-gradient(circle at 80% 70%, rgba(13, 27, 54, 0.05), transparent 35%),\n    var(--gray-surface);\n  background-size: 200% 200%;\n  animation: floatBlob 40s ease-in-out infinite alternate,\n             floatBlob 50s ease-in-out infinite alternate-reverse;\n  font-family: var(--font-family);\n  min-height: 100vh;\n  color: var(--navy);\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale;\n}\n\n/* ============================================\n   TYPOGRAPHY\n   ============================================ */\n.text-navy { color: var(--navy) !important; }\n.text-navy-dark { color: var(--navy-dark) !important; }\n.text-gold { color: var(--gold) !important; }\n.text-gray { color: var(--gray) !important; }\n.text-gray-dark { color: var(--gray-dark) !important; }\n.text-gray-light { color: var(--gray-light) !important; }\n\n.font-serif { font-family: Georgia, 'Times New Roman', serif; }\n.font-mono { font-family: 'Courier New', monospace; }\n\n.fw-medium { font-weight: var(--font-weight-medium) !important; }\n.fw-semibold { font-weight: var(--font-weight-semibold) !important; }\n\n.text-xs { font-size: var(--font-size-xs); }\n.text-sm { font-size: var(--font-size-sm); }\n.text-base { font-size: var(--font-size-base); }\n.text-lg { font-size: var(--font-size-lg); }\n\n/* ============================================\n   BACKGROUNDS\n   ============================================ */\n.bg-navy { background: var(--navy) !important; }\n.bg-navy-dark { background: var(--navy-dark) !important; }\n.bg-navy-gradient {\n  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 100%) !important;\n}\n.bg-gold { background: var(--gold) !important; }\n.bg-gold-light { background: var(--gold-bg) !important; }\n.bg-gray-surface { background: var(--gray-surface) !important; }\n.bg-white { background: #ffffff !important; }\n\n/* ============================================\n   BORDERS\n   ============================================ */\n.border-navy { border-color: var(--navy) !important; }\n.border-gold { border-color: var(--gold) !important; }\n.border-gray { border-color: var(--gray-light) !important; }\n.border-gray-light { border-color: var(--gray-bg) !important; }\n\n.border-2 { border-width: 2px !important; }\n.border-3 { border-width: 3px !important; }\n\n.border-bottom-gold {\n  border-bottom: 3px solid var(--gold) !important;\n}\n\n/* ============================================\n   BORDER RADIUS\n   ============================================ */\n.rounded-md { border-radius: var(--radius-md) !important; }\n.rounded-lg { border-radius: var(--radius-lg) !important; }\n.rounded-xl { border-radius: var(--radius-xl) !important; }\n.rounded-full { border-radius: var(--radius-full) !important; }\n\n/* ============================================\n   SHADOWS\n   ============================================ */\n.shadow-sm { box-shadow: var(--shadow-sm) !important; }\n.shadow-md { box-shadow: var(--shadow-md) !important; }\n.shadow-lg { box-shadow: var(--shadow-lg) !important; }\n.shadow-xl { box-shadow: var(--shadow-xl) !important; }\n\n.shadow-hover {\n  transition: box-shadow var(--transition-base), transform var(--transition-base);\n}\n.shadow-hover:hover {\n  box-shadow: var(--shadow-lg);\n  transform: translateY(-1px);\n}\n\n/* ============================================\n   CARDS (Bootstrap Extension)\n   ============================================ */\n.card-premium {\n  background: #fff;\n  border: 1px solid var(--gray-bg);\n  border-radius: var(--radius-lg);\n  box-shadow: var(--shadow-sm);\n  transition: box-shadow var(--transition-base);\n  overflow: hidden;\n}\n.card-premium:hover {\n  box-shadow: var(--shadow-md);\n}\n\n.card-premium .card-header-premium {\n  background: var(--navy);\n  color: var(--gold);\n  padding: var(--spacing-lg);\n  border-bottom: 3px solid var(--gold);\n  font-weight: var(--font-weight-bold);\n  font-size: var(--font-size-base);\n  display: flex;\n  align-items: center;\n  gap: var(--spacing-sm);\n}\n\n/* ============================================\n   BUTTONS (Bootstrap Extension)\n   ============================================ */\n.btn-premium {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  gap: var(--spacing-xs);\n  padding: 10px 24px;\n  border-radius: var(--radius-md);\n  font-weight: var(--font-weight-semibold);\n  font-size: var(--font-size-base);\n  cursor: pointer;\n  transition: all var(--transition-base);\n  border: 2px solid transparent;\n  position: relative;\n  overflow: hidden;\n}\n\n.btn-premium-primary {\n  background: linear-gradient(135deg, var(--navy-dark), var(--navy));\n  color: var(--gold);\n  border-color: var(--gold);\n}\n.btn-premium-primary:hover {\n  background: var(--gold);\n  color: var(--navy-dark);\n  box-shadow: var(--shadow-md);\n  transform: translateY(-1px);\n}\n.btn-premium-primary:active {\n  transform: translateY(0);\n  box-shadow: var(--shadow-sm);\n}\n\n.btn-premium-secondary {\n  background: var(--gray-surface);\n  color: var(--gray-dark);\n  border-color: var(--gray-light);\n}\n.btn-premium-secondary:hover {\n  background: var(--gray-bg);\n  border-color: var(--gray);\n}\n\n.btn-premium-danger {\n  background: #dc3545;\n  color: #fff;\n  border-color: #dc3545;\n}\n.btn-premium-danger:hover {\n  background: #c82333;\n  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);\n}\n\n.btn-premium-sm {\n  padding: 6px 16px;\n  font-size: var(--font-size-sm);\n}\n\n.btn-premium-lg {\n  padding: 12px 32px;\n  font-size: var(--font-size-lg);\n}\n\n.btn-premium-icon {\n  width: 38px;\n  height: 38px;\n  padding: 0;\n  border-radius: var(--radius-full);\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  background: rgba(255, 255, 255, 0.08);\n  border: 1px solid rgba(var(--gold-rgb), 0.2);\n  color: #fff;\n  font-size: 18px;\n  transition: all var(--transition-base);\n}\n.btn-premium-icon:hover {\n  background: rgba(var(--gold-rgb), 0.25);\n  border-color: var(--gold);\n  transform: scale(1.1);\n}\n\n.btn-premium:disabled,\n.btn-premium.loading {\n  opacity: 0.6;\n  cursor: not-allowed;\n  pointer-events: none;\n}\n\n.btn-premium .spinner {\n  width: 16px;\n  height: 16px;\n  border: 2px solid currentColor;\n  border-top-color: transparent;\n  border-radius: 50%;\n  animation: spin 0.6s linear infinite;\n}\n\n/* ============================================\n   FORMS (Bootstrap Extension)\n   ============================================ */\n.form-control-premium {\n  width: 100%;\n  padding: 10px 14px;\n  border: 2px solid var(--gray-light);\n  border-radius: var(--radius-md);\n  font-size: var(--font-size-base);\n  font-family: var(--font-family);\n  color: var(--navy);\n  background: #fff;\n  transition: all var(--transition-base);\n  outline: none;\n}\n.form-control-premium:focus {\n  border-color: var(--gold);\n  box-shadow: 0 0 0 3px rgba(var(--gold-rgb), 0.15);\n}\n.form-control-premium::placeholder {\n  color: var(--gray-light);\n  opacity: 0.7;\n}\n.form-control-premium.is-invalid {\n  border-color: #dc3545;\n}\n.form-control-premium.is-invalid:focus {\n  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);\n}\n\n.form-select-premium {\n  width: 100%;\n  padding: 10px 14px;\n  border: 2px solid var(--gray-light);\n  border-radius: var(--radius-md);\n  font-size: var(--font-size-base);\n  font-family: var(--font-family);\n  color: var(--navy);\n  background: #fff;\n  transition: all var(--transition-base);\n  outline: none;\n  appearance: none;\n  background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237A7A7A' d='M6 8L1 3h10z'/%3E%3C/svg%3E\");\n  background-repeat: no-repeat;\n  background-position: right 12px center;\n  padding-right: 36px;\n}\n.form-select-premium:focus {\n  border-color: var(--gold);\n  box-shadow: 0 0 0 3px rgba(var(--gold-rgb), 0.15);\n}\n\n.form-label-premium {\n  font-weight: var(--font-weight-semibold);\n  font-size: var(--font-size-sm);\n  color: var(--gray-dark);\n  margin-bottom: 4px;\n  display: block;\n}\n\n.form-label-premium .required {\n  color: #dc3545;\n}\n\n.form-hint {\n  font-size: var(--font-size-xs);\n  color: var(--gray);\n  margin-top: 3px;\n  font-style: italic;\n}\n\n.form-group-premium {\n  margin-bottom: var(--spacing-md);\n}\n\n.form-row-premium {\n  display: flex;\n  gap: var(--spacing-md);\n}\n.form-row-premium > * {\n  flex: 1;\n}\n\n.form-hint {\n  font-size: 11px;\n  color: var(--gray);\n  margin-top: 4px;\n}\n\n/* Floating Label */\n.form-floating-premium {\n  position: relative;\n}\n.form-floating-premium .form-control-premium {\n  padding: 14px 14px 6px 14px;\n}\n.form-floating-premium label {\n  position: absolute;\n  top: 50%;\n  left: 14px;\n  transform: translateY(-50%);\n  font-size: var(--font-size-base);\n  color: var(--gray-light);\n  transition: all var(--transition-base);\n  pointer-events: none;\n}\n.form-floating-premium .form-control-premium:focus ~ label,\n.form-floating-premium .form-control-premium:not(:placeholder-shown) ~ label {\n  top: 8px;\n  font-size: 11px;\n  color: var(--navy);\n  font-weight: var(--font-weight-semibold);\n}\n\n/* ============================================\n   TABLES (Bootstrap Extension)\n   ============================================ */\n.table-premium {\n  width: 100%;\n  border-collapse: collapse;\n}\n.table-premium thead {\n  position: sticky;\n  top: 0;\n  z-index: 10;\n}\n.table-premium thead th {\n  background: var(--navy);\n  color: var(--gold);\n  font-size: var(--font-size-xs);\n  text-transform: uppercase;\n  letter-spacing: 0.6px;\n  padding: 14px 8px;\n  border: none;\n  white-space: nowrap;\n  text-align: center;\n  font-weight: var(--font-weight-bold);\n  border-bottom: 3px solid var(--gold);\n}\n.table-premium tbody td {\n  padding: 10px 8px;\n  font-size: var(--font-size-sm);\n  vertical-align: middle;\n  border-color: #eee;\n  text-align: center;\n  color: var(--gray-dark);\n  transition: background var(--transition-fast);\n}\n.table-premium tbody tr {\n  transition: background var(--transition-fast);\n}\n.table-premium tbody tr:hover {\n  background: var(--gold-bg);\n}\n.table-premium tbody tr:nth-child(even) {\n  background: #fafafa;\n}\n.table-premium tbody tr:nth-child(even):hover {\n  background: var(--gold-bg);\n}\n.table-premium tbody tr.row-selected {\n  background: var(--gold-bg);\n  border-left: 3px solid var(--gold);\n}\n\n.table-container-premium {\n  background: #fff;\n  border-radius: var(--radius-lg);\n  box-shadow: var(--shadow-sm);\n  overflow: hidden;\n  border: 1px solid var(--gray-bg);\n  margin: var(--spacing-lg);\n}\n\n.table-scroll-premium {\n  max-height: calc(100vh - 210px);\n  overflow-y: auto;\n  overflow-x: auto;\n}\n\n.table-scroll-premium table {\n  min-width: 1100px;\n}\n\n/* ============================================\n   SIDEBAR\n   ============================================ */\n.sidebar-overlay-premium {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  background: rgba(13, 27, 54, 0.6);\n  z-index: 10000;\n  opacity: 0;\n  visibility: hidden;\n  transition: opacity var(--transition-slow), visibility var(--transition-slow);\n  backdrop-filter: blur(2px);\n}\n.sidebar-overlay-premium.visible {\n  opacity: 1;\n  visibility: visible;\n}\n\n.sidebar-premium {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 260px;\n  height: 100%;\n  background: #fff;\n  z-index: 10001;\n  box-shadow: var(--shadow-xl);\n  transform: translateX(-100%);\n  transition: transform var(--transition-slow);\n  display: flex;\n  flex-direction: column;\n}\n.sidebar-premium.open {\n  transform: translateX(0);\n}\n\n.sidebar-premium .sidebar-header {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: var(--spacing-lg);\n  background: linear-gradient(135deg, var(--navy-dark), var(--navy));\n  border-bottom: 3px solid var(--gold);\n  color: #fff;\n}\n\n.sidebar-premium .sidebar-menu {\n  padding: var(--spacing-sm) 0;\n  flex: 1;\n  overflow-y: auto;\n}\n\n.sidebar-premium .sidebar-item {\n  display: flex;\n  align-items: center;\n  gap: var(--spacing-md);\n  padding: var(--spacing-md) var(--spacing-lg);\n  font-size: var(--font-size-base);\n  color: var(--gray-dark);\n  cursor: pointer;\n  transition: all var(--transition-fast);\n  text-decoration: none;\n  border-bottom: 1px solid var(--gray-bg);\n  position: relative;\n}\n.sidebar-premium .sidebar-item:hover {\n  background: var(--gold-bg);\n  color: var(--navy);\n}\n.sidebar-premium .sidebar-item.active {\n  background: var(--gold-bg);\n  color: var(--navy);\n  border-left: 3px solid var(--gold);\n  font-weight: var(--font-weight-semibold);\n}\n.sidebar-premium .sidebar-item i {\n  font-size: var(--font-size-lg);\n  width: 20px;\n  text-align: center;\n  color: var(--navy);\n  transition: transform var(--transition-fast);\n}\n.sidebar-premium .sidebar-item:hover i {\n  transform: translateX(2px);\n}\n\n/* ============================================\n   MODALS (Bootstrap Extension)\n   ============================================ */\n.modal-premium .modal-content {\n  border: 3px solid var(--navy);\n  border-radius: var(--radius-lg);\n  overflow: hidden;\n  box-shadow: var(--shadow-xl);\n}\n\n.modal-premium .modal-header {\n  background: linear-gradient(135deg, var(--navy-dark), var(--navy));\n  color: var(--gold);\n  padding: var(--spacing-lg);\n  border-bottom: 3px solid var(--gold);\n}\n\n.modal-premium .modal-body {\n  padding: 0;\n  overflow-y: auto;\n}\n\n.modal-premium .modal-footer {\n  padding: var(--spacing-lg);\n  border-top: 2px solid var(--gray-bg);\n  display: flex;\n  justify-content: flex-end;\n  gap: var(--spacing-sm);\n}\n\n.modal-backdrop-premium {\n  backdrop-filter: blur(4px);\n}\n\n/* ============================================\n   HEADER / NAVBAR\n   ============================================ */\n.header-premium {\n  position: sticky;\n  top: 0;\n  z-index: 9999;\n  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 100%);\n  height: 64px;\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 var(--spacing-xl);\n  box-shadow: var(--shadow-lg);\n  border-bottom: 3px solid var(--gold);\n}\n\n.header-premium .header-title {\n  font-size: var(--font-size-2xl);\n  font-weight: var(--font-weight-bold);\n  color: #fff;\n  display: flex;\n  align-items: center;\n  gap: var(--spacing-sm);\n  font-family: Georgia, 'Times New Roman', serif;\n  letter-spacing: 0.5px;\n}\n\n.header-premium .header-title .icon {\n  font-size: 26px;\n  color: var(--gold);\n}\n\n.header-premium .header-actions {\n  display: flex;\n  gap: var(--spacing-sm);\n}\n\n/* ============================================\n   SUMMARY BAR\n   ============================================ */\n.summary-bar-premium {\n  background: #fff;\n  padding: var(--spacing-md) var(--spacing-lg);\n  display: flex;\n  align-items: center;\n  flex-wrap: wrap;\n  gap: var(--spacing-sm) var(--spacing-lg);\n  border-bottom: 1px solid var(--gray-bg);\n  box-shadow: var(--shadow-sm);\n}\n\n/* ============================================\n   BADGES\n   ============================================ */\n.badge-premium {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  padding: 5px 14px;\n  border-radius: var(--radius-full);\n  font-weight: var(--font-weight-bold);\n  font-size: var(--font-size-sm);\n  white-space: nowrap;\n}\n\n.badge-premium-navy {\n  background: var(--navy);\n  color: var(--gold);\n  border: 1px solid rgba(var(--gold-rgb), 0.4);\n}\n\n.badge-premium-gold {\n  background: var(--gold);\n  color: var(--navy-dark);\n  font-weight: var(--font-weight-bold);\n}\n\n.badge-premium-outline {\n  background: transparent;\n  border: 1px solid currentColor;\n}\n\n/* ============================================\n   SCROLLBAR\n   ============================================ */\n::-webkit-scrollbar {\n  width: 8px;\n  height: 8px;\n}\n::-webkit-scrollbar-track {\n  background: var(--gray-surface);\n  border-radius: 4px;\n}\n::-webkit-scrollbar-thumb {\n  background: var(--navy);\n  border-radius: 4px;\n}\n::-webkit-scrollbar-thumb:hover {\n  background: var(--navy-dark);\n}\n\n/* ============================================\n   ANIMATIONS\n   ============================================ */\n@keyframes fadeIn {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}\n@keyframes fadeInUp {\n  from { opacity: 0; transform: translateY(8px); }\n  to { opacity: 1; transform: translateY(0); }\n}\n@keyframes fadeInDown {\n  from { opacity: 0; transform: translateY(-8px); }\n  to { opacity: 1; transform: translateY(0); }\n}\n@keyframes slideInLeft {\n  from { transform: translateX(-100%); }\n  to { transform: translateX(0); }\n}\n@keyframes slideInRight {\n  from { transform: translateX(100%); }\n  to { transform: translateX(0); }\n}\n@keyframes scaleIn {\n  from { opacity: 0; transform: scale(0.95); }\n  to { opacity: 1; transform: scale(1); }\n}\n@keyframes spin {\n  to { transform: rotate(360deg); }\n}\n@keyframes shimmer {\n  0% { background-position: -200px 0; }\n  100% { background-position: 200px 0; }\n}\n@keyframes floatBlob {\n  0%   { background-position: 0% 0%, 100% 100%; }\n  50%  { background-position: 100% 100%, 0% 0%; }\n  100% { background-position: 0% 0%, 100% 100%; }\n}\n\n.animate-fade-in { animation: fadeIn var(--transition-slow) ease; }\n.animate-fade-in-up { animation: fadeInUp var(--transition-slow) ease; }\n.animate-scale-in { animation: scaleIn var(--transition-base) ease; }\n.animate-slide-in-left { animation: slideInLeft var(--transition-slow) ease; }\n\n/* Skeleton Loading */\n.skeleton {\n  background: linear-gradient(90deg, var(--gray-bg) 25%, var(--gray-surface) 50%, var(--gray-bg) 75%);\n  background-size: 200px 100%;\n  animation: shimmer 1.5s infinite;\n  border-radius: var(--radius-sm);\n}\n\n/* Reduced Motion */\n@media (prefers-reduced-motion: reduce) {\n  *,\n  *::before,\n  *::after {\n    animation-duration: 0.01ms !important;\n    animation-iteration-count: 1 !important;\n    transition-duration: 0.01ms !important;\n  }\n}\n\n/* Column visibility dropdowns */\n.col-vis-panel {\n  position: absolute;\n  right: 0;\n  top: 100%;\n  margin-top: 6px;\n  background: #fff;\n  border: 2px solid var(--navy);\n  border-top: 3px solid var(--gold);\n  border-radius: var(--radius-lg);\n  padding: var(--spacing-md);\n  box-shadow: var(--shadow-xl);\n  z-index: 1000;\n  max-width: calc(100vw - 16px);\n  max-height: min(75vh, 560px);\n  overflow-y: auto;\n  overflow-x: hidden;\n  -webkit-overflow-scrolling: touch;\n}\n.print-col-vis-panel  { width: 320px; }\n.screen-col-vis-panel { min-width: 200px; }\n\n/* ============================================\n   RESPONSIVE\n   ============================================ */\n@media (max-width: 600px) {\n  .header-premium {\n    height: auto;\n    min-height: 52px;\n    padding: 6px 12px;\n  }\n  .header-premium .header-title {\n    font-size: var(--font-size-lg);\n    gap: 6px;\n  }\n  \n  .form-row-premium {\n    flex-direction: column;\n    gap: var(--spacing-sm);\n  }\n  \n  .summary-bar-premium {\n    padding: var(--spacing-sm) var(--spacing-md);\n    flex-direction: column;\n    align-items: stretch;\n    gap: var(--spacing-sm);\n  }\n  \n  .table-container-premium {\n    margin: var(--spacing-sm);\n    border-radius: var(--radius-md);\n  }\n  .cs-radio-label {\n    flex: 1;\n    justify-content: center;\n    font-size: 11px;\n    padding: 6px 10px;\n  }\n  \n  .col-vis-panel {\n    position: fixed;\n    left: 8px;\n    right: 8px;\n    top: auto;\n    bottom: 8px;\n    width: auto;\n    min-width: 0;\n    max-width: none;\n    max-height: 70vh;\n    z-index: 10050;\n  }\n}\n\n/* ============================================\n   PRINT STYLES\n   ============================================ */\n@media print {\n  body { background: #fff; }\n  .header-premium {\n    background: var(--navy) !important;\n    -webkit-print-color-adjust: exact;\n    print-color-adjust: exact;\n  }\n  .btn-premium-icon { display: none !important; }\n  .table-container-premium {\n    max-height: none;\n    overflow: visible;\n    box-shadow: none;\n    margin: 0;\n    border-radius: 0;\n    border: none;\n  }\n  @page { margin: 8mm; }\n}\n\n/* ============================================\n   UTILITY CLASSES\n   ============================================ */\n.gap-xs { gap: var(--spacing-xs); }\n.gap-sm { gap: var(--spacing-sm); }\n.gap-md { gap: var(--spacing-md); }\n.gap-lg { gap: var(--spacing-lg); }\n\n.truncate {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.cursor-pointer { cursor: pointer; }\n.select-none { user-select: none; }\n\n.opacity-0 { opacity: 0; }\n.opacity-50 { opacity: 0.5; }\n.opacity-100 { opacity: 1; }\n\n.transition-all { transition: all var(--transition-base); }\n.transition-transform { transition: transform var(--transition-base); }\n\n@keyframes ks-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }\n\n.transition-opacity { transition: opacity var(--transition-base); }\n\n/* ============================================\n   RADIO OPTION CARDS\n   ============================================ */\n.cs-radio-label {\n  display: inline-flex;\n  align-items: center;\n  gap: 8px;\n  padding: 8px 16px;\n  border-radius: var(--radius-md);\n  border: 2px solid var(--gray-bg);\n  cursor: pointer;\n  transition: all var(--transition-base);\n  font-size: var(--font-size-sm);\n  color: var(--gray-dark);\n  user-select: none;\n  background: #fff;\n}\n.cs-radio-label:hover {\n  border-color: var(--gold);\n  background: var(--gold-bg);\n  box-shadow: 0 2px 8px rgba(var(--gold-rgb), 0.15);\n  transform: translateY(-1px);\}\n.cs-radio-label.cs-active-ecourt {\n  border-color: var(--section-ecourt-border);\n  background: var(--section-ecourt-bg);\n  box-shadow: 0 2px 8px rgba(94, 138, 184, 0.2);\n}\n.cs-radio-label.cs-active-manual {\n  border-color: var(--section-manual-border);\n  background: var(--section-manual-bg);\n  box-shadow: 0 2px 8px rgba(201, 168, 76, 0.2);\n}\n.cs-radio-label.cs-active-csv {\n  border-color: var(--section-csv-border);\n  background: var(--section-csv-bg);\n  box-shadow: 0 2px 8px rgba(111, 191, 74, 0.2);\n}\n.cs-radio-label input[type=radio] {\n  accent-color: var(--gold);\n  margin: 0;\n}\n\n/* ============================================\n   SEARCHABLE CASE TYPE\n   ============================================ */\n.cs-type-custom {\n  font-size: var(--font-size-xs);\n  color: #dc3545;\n  margin-top: 4px;\n  font-style: italic;\n  padding: 3px 8px;\n  background: rgba(220, 53, 69, 0.06);\n  border-radius: var(--radius-sm);\n  border-left: 3px solid #dc3545;\n}\n.cs-type-custom::before {\n  content: '\\u201C';\n  font-weight: bold;\n  font-size: 14px;\n}\n.cs-type-custom::after {\n  content: '\\u201D';\n  font-weight: bold;\n  font-size: 14px;\n}\n";
 
 function getClosedRowColor() {
  var cfg = (window[my1uzr.worknOnPg] || {}).clientConfig || {};
@@ -442,7 +442,62 @@ var defaultPrintCols = {
  filer: true,
  answerer: true,
 };
-var KS_PRINT_COLS_PREF_V = 1;
+var KS_PRINT_COLS_PREF_V = 2;
+// Web-safe font options for the print column font selector (no CDN needed).
+var KS_PRINT_FONT_OPTIONS = [
+ { v: "", l: "Default (Inter)" },
+ { v: "Arial, Helvetica, sans-serif", l: "Arial" },
+ { v: "Helvetica, Arial, sans-serif", l: "Helvetica" },
+ { v: "Georgia, serif", l: "Georgia" },
+ { v: '"Times New Roman", Times, serif', l: "Times New Roman" },
+ { v: '"Courier New", Courier, monospace', l: "Courier New" },
+ { v: "Verdana, Geneva, sans-serif", l: "Verdana" },
+ { v: "Tahoma, Geneva, sans-serif", l: "Tahoma" },
+ { v: '"Segoe UI", Tahoma, sans-serif', l: "Segoe UI" },
+ { v: '"Trebuchet MS", Helvetica, sans-serif', l: "Trebuchet MS" },
+ { v: "Garamond, Georgia, serif", l: "Garamond" },
+ { v: "serif", l: "serif" },
+ { v: "sans-serif", l: "sans-serif" },
+ { v: "monospace", l: "monospace" },
+];
+var KS_PRINT_COL_LABELS = {
+ sr: "ID",
+ pdate: "PDate",
+ court: "Court",
+ adv: "Adv",
+ brief: "Brief",
+ caseType: "Case Type",
+ caseNo: "Case No.",
+ stg: "STG",
+ ndate: "NDate",
+ filer: "Filer",
+ answerer: "Answerer",
+};
+function defaultPrintColCfg() {
+ var cfg = {};
+ for (var k in defaultPrintCols) cfg[k] = { w: 0, ff: "", fs: 0, hide: false };
+ return cfg;
+}
+function clampPrintColWidth(v) {
+ var n = parseFloat(v);
+ if (!isFinite(n) || n <= 0) return 0;
+ if (n > 100) n = 100;
+ return Math.round(n * 100) / 100;
+}
+function clampPrintColSize(v) {
+ var n = parseFloat(v);
+ if (!isFinite(n) || n <= 0) return 0;
+ if (n < 6) n = 6;
+ if (n > 24) n = 24;
+ return Math.round(n * 10) / 10;
+}
+function normPrintColFont(v) {
+ var s = String(v == null ? "" : v);
+ for (var i = 0; i < KS_PRINT_FONT_OPTIONS.length; i++) {
+  if (KS_PRINT_FONT_OPTIONS[i].v === s) return s;
+ }
+ return "";
+}
 function loadPrintCols() {
  var stored = null;
  try {
@@ -450,29 +505,170 @@ function loadPrintCols() {
  } catch (e) {
   stored = null;
  }
- if (!stored || stored.v !== KS_PRINT_COLS_PREF_V || !stored.cols) {
-  stored = { cols: {} };
- }
+ if (!stored || !stored.cols) stored = { cols: {} };
  var cols = {};
  for (var k in defaultPrintCols) {
   cols[k] = stored.cols[k] !== false;
  }
  return cols;
 }
+function loadPrintColCfg() {
+ var stored = null;
+ try {
+  stored = JSON.parse(localStorage.getItem("ks_printCols") || "null");
+ } catch (e) {
+  stored = null;
+ }
+ var saved = (stored && stored.cfg) || {};
+ var cfg = defaultPrintColCfg();
+ for (var k in cfg) {
+  var s = saved[k];
+  if (!s || typeof s !== "object") continue;
+  cfg[k].w = clampPrintColWidth(s.w);
+  cfg[k].ff = normPrintColFont(s.ff);
+  cfg[k].fs = clampPrintColSize(s.fs);
+  cfg[k].hide = !!s.hide;
+ }
+ return cfg;
+}
 function savePrintCols() {
  localStorage.setItem(
   "ks_printCols",
-  JSON.stringify({ v: KS_PRINT_COLS_PREF_V, cols: printVisibleCols }),
+  JSON.stringify({
+   v: KS_PRINT_COLS_PREF_V,
+   cols: printVisibleCols,
+   cfg: printColSettings,
+  }),
  );
 }
 var printVisibleCols = loadPrintCols();
+var printColSettings = loadPrintColCfg();
 function isPrintColVisible(id) {
  return printVisibleCols[id] !== false;
 }
 function togglePrintCol(id) {
  printVisibleCols[id] = !isPrintColVisible(id);
  savePrintCols();
+ renderPrintColVisPanel();
 }
+function getPrintColSettings(id) {
+ return printColSettings[id] || { w: 0, ff: "", fs: 0, hide: false };
+}
+function setPrintColWidth(id, v) {
+ if (!printColSettings[id]) return;
+ printColSettings[id].w = clampPrintColWidth(v);
+ savePrintCols();
+}
+function setPrintColHide(id, v) {
+ if (!printColSettings[id]) return;
+ printColSettings[id].hide = !!v;
+ savePrintCols();
+}
+function setPrintColFont(id, family, size) {
+ if (!printColSettings[id]) return;
+ printColSettings[id].ff = normPrintColFont(family);
+ if (size !== undefined) printColSettings[id].fs = clampPrintColSize(size);
+ savePrintCols();
+}
+function resetPrintColSettings() {
+ printColSettings = defaultPrintColCfg();
+ for (var k in defaultPrintCols) printVisibleCols[k] = true;
+ savePrintCols();
+ renderPrintColVisPanel();
+}
+function printColVisRowsHtml() {
+ var rows = "";
+ for (var k in defaultPrintCols) {
+  var s = getPrintColSettings(k);
+  var opts = KS_PRINT_FONT_OPTIONS.map(function (o) {
+   return (
+    '<option value="' +
+    escHtml(o.v) +
+    '"' +
+    (o.v === s.ff ? " selected" : "") +
+    ">" +
+    escHtml(o.l) +
+    "</option>"
+   );
+  }).join("");
+  rows +=
+   '<div style="padding:6px;border-bottom:1px solid #f0f0f0;">' +
+   '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:600;color:var(--navy);">' +
+   '<input type="checkbox" ' +
+   (isPrintColVisible(k) ? "checked" : "") +
+   " onchange=\"togglePrintCol('" +
+   k +
+   "')\">" +
+   escHtml(KS_PRINT_COL_LABELS[k] || k) +
+   "</label>" +
+   '<div style="display:flex;align-items:center;gap:6px;margin:4px 0 0 22px;flex-wrap:wrap;">' +
+   '<span style="font-size:11px;color:var(--gray);">Width</span>' +
+   '<input type="number" min="0" max="100" step="0.5" value="' +
+   (s.w || "") +
+   '" placeholder="auto" onchange="setPrintColWidth(\'' +
+   k +
+   '\', this.value)" style="width:54px;padding:2px 4px;border:1px solid var(--gray-light);border-radius:4px;font-size:12px;">' +
+   '<span style="font-size:11px;color:var(--gray);">%</span>' +
+   '<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--gray-dark);cursor:pointer;">' +
+   '<input type="checkbox" ' +
+   (s.hide ? "checked" : "") +
+   " onchange=\"setPrintColHide('" +
+   k +
+   "', this.checked)\">Hide extra text</label>" +
+   "</div>" +
+   '<div style="display:flex;align-items:center;gap:6px;margin:4px 0 0 22px;flex-wrap:wrap;">' +
+   '<span style="font-size:11px;color:var(--gray);">Font</span>' +
+   '<select onchange="setPrintColFont(\'' +
+   k +
+   '\', this.value, getPrintColSettings(\'' +
+   k +
+   '\').fs)" style="padding:2px 4px;border:1px solid var(--gray-light);border-radius:4px;font-size:12px;max-width:150px;">' +
+   opts +
+   "</select>" +
+   '<span style="font-size:11px;color:var(--gray);">Size</span>' +
+   '<input type="number" min="0" max="24" step="0.5" value="' +
+   (s.fs || "") +
+   '" placeholder="auto" onchange="setPrintColFont(\'' +
+   k +
+   '\', getPrintColSettings(\'' +
+   k +
+   '\').ff, this.value)" style="width:50px;padding:2px 4px;border:1px solid var(--gray-light);border-radius:4px;font-size:12px;">' +
+   '<span style="font-size:11px;color:var(--gray);">px</span>' +
+   "</div>" +
+   "</div>";
+ }
+ return rows;
+}
+function printColVisPanelInnerHtml() {
+ return (
+  '<div class="fw-bold text-navy" style="font-size:13px;border-bottom:1px solid #eee;padding-bottom:6px;display:flex;justify-content:space-between;align-items:center;">' +
+  '<span class="fs-5"><i class="fas fa-table-list me-1"></i>Changes will be shown on Print</span>' +
+  '<a href="javascript:void(0)" onclick="resetPrintColSettings()" style="font-size:11px;color:var(--gold-dark);">Reset</a>' +
+  "</div>" +
+  printColVisRowsHtml()
+ );
+}
+function renderPrintColVisPanel() {
+ var panel = document.getElementById("printColVisPanel");
+ if (panel) panel.innerHTML = printColVisPanelInnerHtml();
+}
+window.getPrintColSettings = getPrintColSettings;
+
+// cs.r indicator: 1 -> emphasize Filer cell, 2 -> emphasize Answerer cell.
+// dv is a display record (getCaseDisplayRecord result) whose .r mirrors the cs record's .r.
+function ksCasePartyEmph(dv, which) {
+ var r = dv && dv.r != null ? String(dv.r).trim() : "";
+ if (which === "filer") return r === "1";
+ if (which === "answerer") return r === "2";
+ return false;
+}
+function ksCasePartyEmphStyle(dv, which) {
+ return ksCasePartyEmph(dv, which)
+  ? "font-weight:700;font-size:var(--font-size-base);"
+  : "";
+}
+window.ksCasePartyEmph = ksCasePartyEmph;
+window.ksCasePartyEmphStyle = ksCasePartyEmphStyle;
 
 function renderAppUI() {
  var mainBody = document.getElementById("main_body");
@@ -492,41 +688,8 @@ function renderAppUI() {
   '<button class="btn-premium-icon" id="printColVisToggle" title="Print Columns" aria-label="Print Columns" onclick="togglePrintColVisPanel()">' +
   '<i class="fas fa-table-list"></i>' +
   "</button>" +
-  '<div id="printColVisPanel" class="col-vis-panel" style="display:none;position:absolute;right:0;top:100%;background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px;z-index:1000;min-width:160px;box-shadow:0 4px 12px rgba(0,0,0,0.15);">' +
-  '<div class="fw-bold mb-2 text-navy" style="font-size:13px;border-bottom:1px solid #eee;padding-bottom:6px;">Columns to Print</div>' +
-  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
-  (isPrintColVisible("sr") ? "checked" : "") +
-  ' onchange="togglePrintCol(\'sr\')" style="margin-right:6px;">ID</label>' +
-  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
-  (isPrintColVisible("pdate") ? "checked" : "") +
-  ' onchange="togglePrintCol(\'pdate\')" style="margin-right:6px;">PDate</label>' +
-  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
-  (isPrintColVisible("court") ? "checked" : "") +
-  ' onchange="togglePrintCol(\'court\')" style="margin-right:6px;">Court</label>' +
-  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
-  (isPrintColVisible("adv") ? "checked" : "") +
-  ' onchange="togglePrintCol(\'adv\')" style="margin-right:6px;">Adv</label>' +
-  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
-  (isPrintColVisible("brief") ? "checked" : "") +
-  ' onchange="togglePrintCol(\'brief\')" style="margin-right:6px;">Brief</label>' +
-  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
-  (isPrintColVisible("caseType") ? "checked" : "") +
-  ' onchange="togglePrintCol(\'caseType\')" style="margin-right:6px;">Case Type</label>' +
-  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
-  (isPrintColVisible("caseNo") ? "checked" : "") +
-  ' onchange="togglePrintCol(\'caseNo\')" style="margin-right:6px;">Case No.</label>' +
-  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
-  (isPrintColVisible("stg") ? "checked" : "") +
-  ' onchange="togglePrintCol(\'stg\')" style="margin-right:6px;">STG</label>' +
-  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
-  (isPrintColVisible("ndate") ? "checked" : "") +
-  ' onchange="togglePrintCol(\'ndate\')" style="margin-right:6px;">NDate</label>' +
-  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
-  (isPrintColVisible("filer") ? "checked" : "") +
-  ' onchange="togglePrintCol(\'filer\')" style="margin-right:6px;">Filer</label>' +
-  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
-  (isPrintColVisible("answerer") ? "checked" : "") +
-  ' onchange="togglePrintCol(\'answerer\')" style="margin-right:6px;">Answerer</label>' +
+  '<div id="printColVisPanel" class="col-vis-panel print-col-vis-panel" style="display:none;">' +
+  printColVisPanelInnerHtml() +
   "</div>" +
   "</div>" +
   '<button class="btn-premium-icon" title="Print" onclick="printDashboard()" aria-label="Print">' +
@@ -536,7 +699,7 @@ function renderAppUI() {
   '<button class="btn-premium-icon" id="colVisToggle" title="Toggle Columns" aria-label="Toggle Columns" onclick="toggleColVisPanel()">' +
   '<i class="fas fa-columns"></i>' +
   "</button>" +
-  '<div id="colVisPanel" class="col-vis-panel" style="display:none;position:absolute;right:0;top:100%;background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px;z-index:1000;min-width:160px;box-shadow:0 4px 12px rgba(0,0,0,0.15);">' +
+  '<div id="colVisPanel" class="col-vis-panel screen-col-vis-panel" style="display:none;">' +
   '<div class="fw-bold mb-2 text-navy" style="font-size:13px;border-bottom:1px solid #eee;padding-bottom:6px;">Show/Hide Columns</div>' +
   '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
   (isColVisible("sr") ? "checked" : "") +
@@ -1042,10 +1205,13 @@ async function updateCaseRecordJudgeName(recId, newJudgeName, count) {
   payload0.vw = 1;
   payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "cs" }]);
   payload0.fn = 72;
-  payload0.cd = 2;
+  // cd = 1 for "Change Judge name - only this case" (scalar id)
+  // cd = 2 for "Change Judge name - all cases" (id array)
+  payload0.cd = isArr ? 2 : 1;
   console.log(
     "📤 Update Judge Name:",
     "a=" + (isArr ? ids.join(",") : ids[0]),
+    "cd=" + payload0.cd,
     JSON.stringify(payload0.p),
   );
   try {
