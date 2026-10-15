@@ -1,6 +1,25 @@
 // example: const imgObjDimensRqd = ["1920x1080px~1-512kb", "1280x720px~2-256kb", "360×800px~2", "414×896px~1", "500x500", "50x1000"];
 // onclick="(async () => { await loadExe2Fn(24, [afterimagesetcallrun, imgObjDimensRqd], [1]); })();"
 // window.afterimagesetcallrun = function (obj_imgssss) {do watwaer...}
+//
+// open_addimage(callback, dimsArray, tabsConfig, existingImgUrl, defnGetUseTheFunction)
+//   defnGetUseTheFunction = server/local flag, sourced from mr.da "getDirectIdFromServer"
+//          (the caller passes that value through). When 1/true/"server": on "Use This
+//          Image", saveProfileImage POSTs the g values via fnj3 (fn 118, payload0.g1/g2/...
+//          at top level) and passes the returned {url,g1,g2,...} back to the callback
+//          instead of the local imgObj. Anything else keeps the local flow.
+//   tabsConfig = { s: [1,2,3], de: 1 }   OR string "1,2,3~1"
+//     s   = which tabs to show: 1=Image URL, 2=Upload File, 3=Camera (default [1,2,3])
+//          accepts [2,3] | "2,3" | "2 3" | ["2","3"]
+//     de  = default active tab on open: 1|2|3 (must be in s, else first of s; default 1)
+//          accepts 3 or "3"
+//     string form: everything before "~" = tabs to show, after "~" = default tab
+//          e.g. "2,3~3" = show Upload + Camera, default Camera
+//   examples:
+//     open_addimage(cb, dims)                       // all tabs, URL tab active
+//     open_addimage(cb, dims, { s: [1,2], de: 2 })  // only URL + Upload, Upload active
+//     open_addimage(cb, dims, { s: [3], de: 3 })    // camera only
+//     open_addimage(cb, dims, { s: [1,2,3], de: 3 }, preloadUrl, 1) // endpoint flow on save
 (function () {
  'use strict';
 
@@ -492,12 +511,12 @@
   const pfx = prefix || 'up';
 
   if (!file.type.match('image.*')) {
-   alert('Please select an image file');
+   window.showelsemodal('Please select an image file');
    return;
   }
 
   if (file.size > 10 * 1024 * 1024) {
-   alert('Image size should be less than 10MB');
+   window.showelsemodal('Image size should be less than 10MB');
    return;
   }
 
@@ -702,7 +721,7 @@
     restorePreview(`<div class="text-center"><img src="${result.dataUrl}" class="rounded" style="max-width:100%;max-height:140px;object-fit:contain;" title="Click to zoom / reposition"></div>`);
    }).catch(function (err) {
     console.error('Crop apply error:', err);
-    alert('Failed to apply crop');
+    window.showelsemodal('Failed to apply crop');
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-check me-1"></i>Apply';
    });
@@ -720,22 +739,22 @@
    window._upCamStream.getTracks().forEach(function (t) { t.stop(); });
    window._upCamStream = null;
   }
-    const video = document.getElementById('upCameraVideo');
-    if (video) {
-     video.srcObject = null;
-     video.style.transform = 'none';
-    }
-   window._upCamMirrored = false;
-   const stBtn = document.getElementById('upCameraStartBtn');
-   const capBtn = document.getElementById('upCameraCaptureBtn');
-   const stopBtn = document.getElementById('upCameraStopBtn');
-   const flipBtn = document.getElementById('upCameraFlipBtn');
-   const sel = document.getElementById('upCameraDeviceSel');
-   if (stBtn) stBtn.disabled = false;
-   if (capBtn) capBtn.disabled = true;
-   if (stopBtn) stopBtn.disabled = true;
-   if (flipBtn) flipBtn.disabled = true;
-   if (sel) { sel.style.display = 'none'; sel.innerHTML = ''; }
+  const video = document.getElementById('upCameraVideo');
+  if (video) {
+   video.srcObject = null;
+   video.style.transform = 'none';
+  }
+  window._upCamMirrored = false;
+  const stBtn = document.getElementById('upCameraStartBtn');
+  const capBtn = document.getElementById('upCameraCaptureBtn');
+  const stopBtn = document.getElementById('upCameraStopBtn');
+  const flipBtn = document.getElementById('upCameraFlipBtn');
+  const sel = document.getElementById('upCameraDeviceSel');
+  if (stBtn) stBtn.disabled = false;
+  if (capBtn) capBtn.disabled = true;
+  if (stopBtn) stopBtn.disabled = true;
+  if (flipBtn) flipBtn.disabled = true;
+  if (sel) { sel.style.display = 'none'; sel.innerHTML = ''; }
  }
 
  async function upCamStart(deviceId, facingMode) {
@@ -763,7 +782,7 @@
    if (video) {
     video.srcObject = stream;
     video.style.transform = mirrored ? 'scaleX(-1)' : 'none';
-    video.play().catch(function () {});
+    video.play().catch(function () { });
    }
    document.getElementById('upCameraStartBtn').disabled = true;
    document.getElementById('upCameraCaptureBtn').disabled = false;
@@ -787,8 +806,8 @@
    const name = err && err.name;
    showMsg(name === 'NotAllowedError' ? 'Camera permission denied'
     : name === 'NotFoundError' ? 'No camera found'
-    : name === 'NotReadableError' ? 'Camera is in use by another app'
-    : 'Failed to open camera');
+     : name === 'NotReadableError' ? 'Camera is in use by another app'
+      : 'Failed to open camera');
    upCamStop();
   }
  }
@@ -799,30 +818,30 @@
   await upCamStart(null);
  }
 
-  function upCamCapture() {
-   const video = document.getElementById('upCameraVideo');
-   if (!video || !window._upCamStream || !video.videoWidth) return;
-   const canvas = document.getElementById('upCameraCanvas');
-   canvas.width = video.videoWidth;
-   canvas.height = video.videoHeight;
-   const ctx = canvas.getContext('2d');
-   if (window._upCamMirrored) {
-    ctx.translate(canvas.width, 0);
-    ctx.scale(-1, 1);
-   }
-   ctx.drawImage(video, 0, 0);
-   const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-   upCamStop();
-   window.handleImageUrlInput(dataUrl, 'up');
+ function upCamCapture() {
+  const video = document.getElementById('upCameraVideo');
+  if (!video || !window._upCamStream || !video.videoWidth) return;
+  const canvas = document.getElementById('upCameraCanvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  if (window._upCamMirrored) {
+   ctx.translate(canvas.width, 0);
+   ctx.scale(-1, 1);
   }
+  ctx.drawImage(video, 0, 0);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+  upCamStop();
+  window.handleImageUrlInput(dataUrl, 'up');
+ }
 
  if (!window.__adImgCamWired) {
   window.__adImgCamWired = true;
   document.addEventListener('click', function (e) {
-    if (e.target.closest('#upCameraStartBtn')) upCamStart();
-    else if (e.target.closest('#upCameraCaptureBtn')) upCamCapture();
-    else if (e.target.closest('#upCameraStopBtn')) upCamStop();
-    else if (e.target.closest('#upCameraFlipBtn')) upCamFlip();
+   if (e.target.closest('#upCameraStartBtn')) upCamStart();
+   else if (e.target.closest('#upCameraCaptureBtn')) upCamCapture();
+   else if (e.target.closest('#upCameraStopBtn')) upCamStop();
+   else if (e.target.closest('#upCameraFlipBtn')) upCamFlip();
   });
   document.addEventListener('change', function (e) {
    if (e.target && e.target.id === 'upCameraDeviceSel') upCamStart(e.target.value);
@@ -839,16 +858,54 @@
   });
  }
 
- // Open add image modal
- window.open_addimage = function (...arg) {
+  // Server-vs-local flag (mr.da "getDirectIdFromServer"): 1/true/"server" => server
+  // (POST fn:118 and use the returned g1/g2); anything else => local data-URLs.
+  function adServerFlag() {
+   var v = window._adDefnGetUseTheFunction;
+   if (v === 1 || v === true) return true;
+   var s = String(v == null ? '' : v).toLowerCase();
+   return s === '1' || s === 'true' || s === 'server';
+  }
+
+  // Open add image modal
+  window.open_addimage = function (...arg) {
   console.log('open_addimage called');
 
   // arg is a rest parameter, so it is always an array-like object and never a
   // function itself. The callback is the FIRST element, so test arg[0].
   window._afterImageSet = typeof arg !== 'undefined' && arg.length > 0 && typeof arg[0] === 'function' ? arg[0] : null;
   window._imgObjDimensRqd = typeof arg !== 'undefined' && Array.isArray(arg[1]) ? arg[1].slice() : ["500x500"];
-  window._showOnOpenThis = typeof arg !== 'undefined' ? arg[2] : 0;
-  // Remove existing modal if any
+  // tabs config: {s:[2,3], de:2} or string "2,3~2" (1=URL, 2=Upload, 3=Camera)
+  const rawTabs = (typeof arg !== 'undefined' && arg.length > 2) ? arg[2] : null;
+  let showList = [1, 2, 3];
+  let defTab = 1;
+  {
+   let sPart = null, dePart = null;
+   if (typeof rawTabs === 'string') {
+    const p = rawTabs.split('~');
+    sPart = p[0] || '';
+    dePart = p[1];
+   } else if (rawTabs && typeof rawTabs === 'object' && !Array.isArray(rawTabs)) {
+    sPart = rawTabs.s;
+    dePart = rawTabs.de;
+   }
+   if (sPart != null && String(sPart).indexOf('~') !== -1) {
+    const p = String(sPart).split('~');
+    sPart = p[0];
+    if (dePart == null) dePart = p[1];
+   }
+   if (sPart != null && String(sPart) !== '') {
+    const arr = Array.isArray(sPart) ? sPart : String(sPart).split(/[,\s]+/);
+    const parsed = arr.map(function (v) { return parseInt(v, 10); })
+     .filter(function (v) { return v === 1 || v === 2 || v === 3; });
+    if (parsed.length) showList = parsed;
+   }
+   if (!showList.length) showList = [1, 2, 3];
+   const d = parseInt(dePart, 10);
+   defTab = (d === 1 || d === 2 || d === 3) && showList.indexOf(d) !== -1 ? d : showList[0];
+  }
+  window._adImgTabs = { s: showList.slice(), de: defTab };
+  window._adDefnGetUseTheFunction = (typeof arg !== 'undefined' && arg.length > 4 && arg[4] != null) ? arg[4] : '';
   const existingModal = document.getElementById('addImageModal');
   if (existingModal) {
    existingModal.remove();
@@ -941,30 +998,30 @@
                     <div class="modal-body px-4 py-4">
                         <div class="mb-3">
                             <ul class="nav nav-pills mb-2" id="upInputTabs" role="tablist" style="font-size: 12px;">
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="upUrlTab" data-bs-toggle="pill" data-bs-target="#upUrlPane" type="button" role="tab">
+                                ${showList.includes(1) ? `<li class="nav-item" role="presentation">
+                                    <button class="nav-link ${defTab === 1 ? 'active' : ''}" id="upUrlTab" data-bs-toggle="pill" data-bs-target="#upUrlPane" type="button" role="tab">
                                         <i class="fas fa-link me-1"></i>Image URL
                                     </button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="upUploadTab" data-bs-toggle="pill" data-bs-target="#upUploadPane" type="button" role="tab">
+                                </li>` : ''}
+                                ${showList.includes(2) ? `<li class="nav-item" role="presentation">
+                                    <button class="nav-link ${defTab === 2 ? 'active' : ''}" id="upUploadTab" data-bs-toggle="pill" data-bs-target="#upUploadPane" type="button" role="tab">
                                         <i class="fas fa-cloud-upload-alt me-1"></i>Upload File
                                     </button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="upCameraTab" data-bs-toggle="pill" data-bs-target="#upCameraPane" type="button" role="tab">
+                                </li>` : ''}
+                                ${showList.includes(3) ? `<li class="nav-item" role="presentation">
+                                    <button class="nav-link ${defTab === 3 ? 'active' : ''}" id="upCameraTab" data-bs-toggle="pill" data-bs-target="#upCameraPane" type="button" role="tab">
                                         <i class="fas fa-camera me-1"></i>Camera
                                     </button>
-                                </li>
+                                </li>` : ''}
                             </ul>
                             <div class="tab-content">
-                                <div class="tab-pane fade show active" id="upUrlPane" role="tabpanel">
+                                <div class="tab-pane fade ${defTab === 1 ? 'show active' : ''}" id="upUrlPane" role="tabpanel">
                                     <input type="url" name="h" id="upCataPopImageUrlInput"
                                            class="form-control form-control-sm border border-dark"
                                            value="${existingImgUrlAttr}" placeholder="https://example.com/image.jpg"
                                            oninput="if(this.value && !this.value.startsWith('data:')) { upImgUrlInput(this); }">
                                 </div>
-                                <div class="tab-pane fade border border-dark" id="upUploadPane" role="tabpanel">
+                                <div class="tab-pane fade border border-dark ${defTab === 2 ? 'show active' : ''}" id="upUploadPane" role="tabpanel">
                                     <input type="file" id="upCataPopFileInput" accept="image/*" style="display: none;" onchange="window.handleFileUpload(this, 'up')">
                                     <div class="border rounded p-3 text-center bg-light upload-zone" style="border-style: dashed !important;">
                                         <div id="upUploadZone" style="cursor: pointer;">
@@ -990,7 +1047,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="tab-pane fade border border-dark" id="upCameraPane" role="tabpanel" style="padding:10px;">
+                                <div class="tab-pane fade border border-dark ${defTab === 3 ? 'show active' : ''}" id="upCameraPane" role="tabpanel" style="padding:10px;">
                                     <video id="upCameraVideo" autoplay playsinline muted style="width:100%;max-height:240px;background:#000;border-radius:6px;object-fit:contain;"></video>
                                     <canvas id="upCameraCanvas" style="display:none;"></canvas>
                                     <p id="upCameraMsg" class="small text-danger text-center mt-2 mb-0" style="display:none;"></p>
@@ -1143,15 +1200,21 @@
    if (existingImgUrl && existingImgUrl !== '') {
     setTimeout(() => {
      Promise.resolve(window.handleImageUrlInput(existingImgUrl, 'up')).then(() => {
-      if (String(window._showOnOpenThis) === '1') {
-       const camTabBtn = document.getElementById('upCameraTab');
-       if (camTabBtn) camTabBtn.click();
-      }
+      var t = window._adImgTabs || { s: [1, 2, 3], de: 1 };
+      var d = t.de;
+      if (t.s.indexOf(d) === -1) d = t.s[0] || 1;
+      if (d === 3) { var b1 = document.getElementById('upCameraTab'); if (b1) b1.click(); }
+      else if (d === 2) { var b2 = document.getElementById('upUploadTab'); if (b2) b2.click(); }
+      else { var b3 = document.getElementById('upUrlTab'); if (b3) b3.click(); }
      });
     }, 300);
-   } else if (String(window._showOnOpenThis) === '1') {
-    const camTabBtn = document.getElementById('upCameraTab');
-    if (camTabBtn) camTabBtn.click();
+   } else {
+    var t = window._adImgTabs || { s: [1, 2, 3], de: 1 };
+    var d = t.de;
+    if (t.s.indexOf(d) === -1) d = t.s[0] || 1;
+    if (d === 3) { var c1 = document.getElementById('upCameraTab'); if (c1) c1.click(); }
+    else if (d === 2) { var c2 = document.getElementById('upUploadTab'); if (c2) c2.click(); }
+    else { var c3 = document.getElementById('upUrlTab'); if (c3) c3.click(); }
    }
   });
 
@@ -1167,7 +1230,7 @@
  };
 
  // Save profile image
- window.saveProfileImage = function () {
+ window.saveProfileImage = async function () {
   const finalImageUrl = document.getElementById('upCataPopFinalImageUrl')?.value || '';
 
   const gValues = [];
@@ -1183,26 +1246,102 @@
   });
 
   if (!finalImageUrl && !gValues.some(function (v) { return v; })) {
-   alert('Please add an image first');
+   window.showelsemodal('Please add an image first');
    return;
   }
 
-  // Store in hidden fields on main form
+  // When the server flag is on, validate + send g values directly in the payload
+  // (fn 118, payload0.g1/g2/... top-level) and pass the returned {url,g1,g2,...}
+  // to the end function. Otherwise keep the current local flow unchanged.
+  let cbArg = imgObj;
+  if (adServerFlag()) {
+   const pObj = {};
+   gValues.forEach(function (v, i) {
+    if (v) pObj['g' + (i + 1)] = v;
+   });
+   if (!Object.keys(pObj).length) {
+    window.showelsemodal('Please add an image first');
+    return;
+   }
+   // drml read is guarded the same way as the rest of the app (my1uzr is optional here)
+   let drml = 'sambodhisarang.in';
+   try {
+    const P = window.my1uzr && window.my1uzr.worknOnPg ? window[window.my1uzr.worknOnPg] : null;
+    if (P && P.clientConfig && P.clientConfig.drml) drml = P.clientConfig.drml;
+   } catch (eX) { }
+   const savedPayload = Object.assign({}, window.payload0 || {});
+   savedPayload.vw = 4;
+   savedPayload.fn = 118;
+   savedPayload.drml = drml;
+   Object.assign(savedPayload, pObj);
+   let response = null;
+   try {
+    response = await window.fnj3("https://my1.in/4/a.php", savedPayload, 0, true, null, 20000, 0, 1, 1, 1);
+    if (!(response && response.su == 1)) {
+     window.showelsemodal((response && (response.ms || response.m)) || 'Could not save image');
+     return;
+    }
+   } catch (e) {
+    console.error('saveImage endpoint error:', e);
+    window.showelsemodal('Could not save image: ' + ((e && e.message) || e));
+    return;
+   } finally {
+    Object.keys(pObj).forEach(function (k) { try { delete savedPayload[k]; } catch (eX) { } });
+    try { delete savedPayload.fn; } catch (eX) { }
+   }
+   // Use ONLY values the server actually echoed. The local pObj fallback is what used
+   // to leak giant data-URLs into u/b6 and leave the gallery rendering empty after submit.
+   let out = {};
+   const echoed = {};
+   Object.keys(pObj).forEach(function (k) {
+    if (response && response[k] != null && response[k] !== '') {
+     out[k] = response[k];
+     echoed[k] = true;
+    } else {
+     out[k] = pObj[k];
+    }
+   });
+   const rU = (response && response.url != null && response.url !== '') ? response.url : null;
+   if (rU) out.url = rU;
+   console.debug('[img:server]', { fn: 118, response: response, out: out });
+   // Commit only when the server returned something renderable (URL, data:/blob:,
+   // a bare 20+ char id, or a "thumb display" id pair). Otherwise fail loudly rather
+   // than storing a token that resolves to a broken image.
+   let usable = false;
+   Object.keys(echoed).forEach(function (k) {
+    if (usable) return;
+    const s = String(out[k]).trim();
+    if (!s) return;
+    if (s.indexOf('://') !== -1 || s.indexOf('data:') === 0 || s.indexOf('blob:') === 0) usable = true;
+    else if (/^[A-Za-z0-9_-]{20,}(\s+[A-Za-z0-9_-]{20,})?$/.test(s)) usable = true;
+   });
+   if (!usable && rU && String(rU).indexOf('data:') !== 0) {
+    const sU = String(rU).trim();
+    if (sU.indexOf('://') !== -1 || /^[A-Za-z0-9_-]{20,}$/.test(sU)) usable = true;
+   }
+   if (!usable) {
+    window.showelsemodal('Server returned an unusable image token. Please try again.');
+    return;
+   }
+   cbArg = out;
+  }
+
+  // Store in hidden fields on main form (prefer server-returned g values when present)
   const dpLinkHidden = document.getElementById('dpLinkHidden');
   if (dpLinkHidden) {
-   dpLinkHidden.value = finalImageUrl || gValues[0] || gValues[1] || '';
+   dpLinkHidden.value = cbArg.url || cbArg.g1 || finalImageUrl || gValues[0] || gValues[1] || '';
   }
 
   const dpG1Hidden = document.getElementById('dpG1Hidden');
   const dpG2Hidden = document.getElementById('dpG2Hidden');
-  if (dpG1Hidden) dpG1Hidden.value = gValues[0] || '';
-  if (dpG2Hidden) dpG2Hidden.value = gValues[1] || '';
+  if (dpG1Hidden) dpG1Hidden.value = cbArg.g1 || '';
+  if (dpG2Hidden) dpG2Hidden.value = cbArg.g2 || '';
 
   // Show preview on main form
   const previewContainer = document.getElementById('dpPreviewContainer');
   const previewThumb = document.getElementById('dpPreviewThumb');
-  if (previewContainer && previewThumb && (gValues[1] || finalImageUrl)) {
-   previewThumb.src = gValues[1] || finalImageUrl;
+  if (previewContainer && previewThumb && (cbArg.g2 || cbArg.g1 || finalImageUrl)) {
+   previewThumb.src = cbArg.g2 || cbArg.g1 || finalImageUrl;
    previewContainer.style.display = 'block';
   }
 
@@ -1214,15 +1353,20 @@
    btn.style.display = 'none';
   }
 
-  if (typeof window._afterImageSet === 'function') {
-   window._afterImageSet(imgObj);
-  }
-
-  // Close modal
+  // Close the add-image modal first, then run the end callback last (so a callback that
+  // opens its own modal/picker never fights with this one).
   const modalElement = document.getElementById('addImageModal');
   const modal = bootstrap.Modal.getInstance(modalElement);
   if (modal) {
    modal.hide();
+  }
+
+  try {
+   if (typeof window._afterImageSet === 'function') {
+    window._afterImageSet(cbArg);
+   }
+  } catch (eCB) {
+   console.error('image callback error:', eCB);
   }
 
   // const logObj = { url: String(finalImageUrl).substring(0, 50) + '...' };

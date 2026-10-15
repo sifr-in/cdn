@@ -790,9 +790,31 @@ function incrementItemQuantity(card, qtyToAdd) {
   }
 }
 
-// Open QR scanner modal - stub function
-function openQRScannerModal() {
-  showToast('QR scanner opening...');
+// Open QR scanner modal (delegates to the shared scanner in b.js)
+async function openQRScannerModal() {
+  if (typeof window.my1OpenQRScanner !== 'function') {
+    showToast('QR scanner is currently unavailable. Please enter the item ID manually.');
+    return;
+  }
+  try {
+    qrScannerActive = true;
+    await window.my1OpenQRScanner({
+      isContinuous: function () {
+        const sw = document.getElementById('modalContinuousQRMode');
+        return !!(sw && sw.checked);
+      },
+      onDecode: function (text) {
+        const input = document.getElementById('modalItemIdInput');
+        if (!input) return;
+        input.value = text;
+        handleModalItemIdInput({ target: { value: text } });
+        input.value = '';
+      },
+      onClose: function () { qrScannerActive = false; }
+    });
+  } finally {
+    qrScannerActive = false;
+  }
 }
 
 // ========== Public API (ei.js pattern) ==========

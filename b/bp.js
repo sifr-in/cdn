@@ -10,6 +10,63 @@ const bpNoImage = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
  '</svg>'
 );
 
+// ==================== Product image picker (my1img / open_addimage) ====================
+// Dims: [0] = display image, [1] = thumbnail. open_addimage returns g1 (display) and
+// g2 (thumbnail) to the callback. The product stores them space-separated in `gu`
+// (see getGoogleDriveImageUrl), and `hu` is left empty.
+const bpImgDims = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
+let bpPickedImg1 = '';
+let bpPickedImg2 = '';
+let bpImageRemoved = false;
+
+function bpImageValue() {
+ return [bpPickedImg1, bpPickedImg2].filter(Boolean).join(' ');
+}
+
+// Reset state each time the Update Product modal opens (no stale pick from a
+// previously opened product).
+window.bpResetImageState = function () {
+ bpPickedImg1 = '';
+ bpPickedImg2 = '';
+ bpImageRemoved = false;
+};
+
+// Callback passed to open_addimage (global so inline handlers can reach it).
+window.bpAfterImageSet = function (img) {
+ bpPickedImg1 = (img && (img.g1 || img.url)) || '';
+ bpPickedImg2 = (img && img.g2) || '';
+ bpImageRemoved = false;
+ const disp = bpPickedImg1 || bpPickedImg2 || '';
+ const preview = document.getElementById('bpImagePreview');
+ const removeBtn = document.getElementById('bpRemoveImageBtn');
+ if (preview) {
+  preview.src = disp ? (typeof getGoogleDriveImageUrl === 'function' ? getGoogleDriveImageUrl(disp) : disp) : bpNoImage;
+ }
+ if (removeBtn) removeBtn.style.display = disp ? '' : 'none';
+};
+
+window.bpClearImage = function () {
+ bpPickedImg1 = '';
+ bpPickedImg2 = '';
+ bpImageRemoved = true;
+ const preview = document.getElementById('bpImagePreview');
+ const removeBtn = document.getElementById('bpRemoveImageBtn');
+ if (preview) preview.src = bpNoImage;
+ if (removeBtn) removeBtn.style.display = 'none';
+};
+
+// Opens the my1img picker (csh item 24). Tabs: URL + Upload + Camera (default URL).
+// Server-vs-local flow comes from b.da (`getDirectIdFromServer`); when off/absent the
+// picker uses the local flow.
+window.bpOpenImagePicker = function (existing) {
+ if (typeof loadExe2Fn !== 'function') {
+  if (typeof showToast === 'function') showToast('Image picker is unavailable');
+  return;
+ }
+ const cc = (typeof my1uzr !== 'undefined' && window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].clientConfig) || {};
+ return loadExe2Fn(24, [window.bpAfterImageSet, bpImgDims, { s: [1, 2, 3], de: 1 }, existing || '', cc.getDirectIdFromServer], [1]);
+};
+
 async function set_deup_prod_innerHTML(...params) {
  // Create modal using existing function
  const { contentElement, modalInstance } = create_modal_dynamically('productsModal');
@@ -295,6 +352,9 @@ async function set_deup_prod_innerHTML(...params) {
   const item = items[index];
   const { contentElement: updateModalContent, modalInstance: updateModalInstance } = create_modal_dynamically('updateProductModal');
 
+  // Clear any previous pick so the picker starts fresh for this product
+  bpResetImageState();
+
   updateModalContent.innerHTML = `
         <div class="modal-header">
             <h5 class="modal-title">Update Product</h5>
@@ -305,42 +365,27 @@ async function set_deup_prod_innerHTML(...params) {
                 <div class="row">
                     <div class="col-12 mb-4">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Current Main Image; Stock id ${item.a}</label>
+                            <label class="form-label fw-bold">Product Image; Stock id ${item.a}</label>
                             <div class="border border-dark rounded p-3 text-center bg-light mb-2">
-                                <img src="${getGoogleDriveImageUrl(item.gu) || bpNoImage}" 
-                                     alt="Current Main Image" 
+                                <img src="${getGoogleDriveImageUrl(item.gu) || bpNoImage}"
+                                     alt="Product Image"
                                      class="img-fluid rounded"
                                      style="max-width: 100%; height: auto; max-height: 200px; object-fit: cover;"
                                      onerror="this.src=bpNoImage"
-                                     id="currentMainImage">
-                                <div class="mt-2 text-muted small border border-dark rounded">
-                                    ${item.gu || 'No main image URL set'}
-                                </div>
+                                     id="bpImagePreview">
                             </div>
-                            <label for="newMainImage" class="form-label">New Main Image URL (gu)</label>
-                            <input type="url" class="form-control border border-dark" id="newMainImage" value="${item.gu || ''}" placeholder="https://example.com/main-image.jpg">
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-primary flex-grow-1"
+                                    onclick="bpOpenImagePicker('')">
+                                    <i class="fas fa-image me-1"></i> Add / Change Image
+                                </button>
+                                <button type="button" class="btn btn-outline-danger" id="bpRemoveImageBtn"
+                                    onclick="bpClearImage()"
+                                    style="${item.gu ? '' : 'display:none'}">Remove</button>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="col-12 mb-4">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Current Thumbnail Image</label>
-                            <div class="border border-dark rounded p-3 text-center bg-light mb-2">
-                                <img src="${getGoogleDriveImageUrl(item.hu) || bpNoImage}" 
-                                     alt="Current Thumbnail" 
-                                     class="img-fluid rounded"
-                                     style="max-width: 100%; height: auto; max-height: 150px; object-fit: cover;"
-                                     onerror="this.src=bpNoImage"
-                                     id="currentThumbImage">
-                                <div class="mt-2 text-muted small border border-dark rounded">
-                                    ${item.hu || 'No thumbnail URL set'}
-                                </div>
-                            </div>
-                            <label for="newThumbImage" class="form-label">New Thumbnail URL (hu)</label>
-                            <input type="url" class="form-control border border-dark" id="newThumbImage" value="${item.hu || ''}" placeholder="https://example.com/thumbnail.jpg">
-                        </div>
-                    </div>
-                    
+
                     <div class="col-12">
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -398,8 +443,6 @@ async function set_deup_prod_innerHTML(...params) {
 
   async function saveProductChanges() {
    const nameInput = updateModalContent.querySelector('#productName');
-   const newMainImageInput = updateModalContent.querySelector('#newMainImage');
-   const newThumbImageInput = updateModalContent.querySelector('#newThumbImage');
    const stockInput = updateModalContent.querySelector('#productStock');
    const priceInput = updateModalContent.querySelector('#productPrice');
    const allowSaleCheckbox = updateModalContent.querySelector('#allowSaleWithoutStock');
@@ -408,8 +451,10 @@ async function set_deup_prod_innerHTML(...params) {
     const itemName = nameInput.value.trim();
     const itemStock = parseInt(stockInput.value.trim());
     const itemPrice = parseFloat(priceInput.value.trim());
-    const itemUrl = newMainImageInput ? newMainImageInput.value.trim() : '';
-    const itemThumb = newThumbImageInput ? newThumbImageInput.value.trim() : '';
+    // Image comes from the my1img picker: `gu` = "displayId thumbnailId".
+    // If nothing was picked, keep the existing value; if Remove was pressed, clear it.
+    const pickedImage = bpImageValue();
+    const itemUrl = pickedImage || (bpImageRemoved ? '' : (item.gu || ''));
     const allowSaleWithoutStock = allowSaleCheckbox ? allowSaleCheckbox.checked : false;
 
     // Validation
@@ -424,9 +469,9 @@ async function set_deup_prod_innerHTML(...params) {
     }
 
     try {
-     // Create payload as per your structure
-     var p = { e: itemName, g: itemUrl, h: itemThumb };
-     var s = { k: itemPrice };
+     // Create payload as per your structure (gu = combined image ids, hu left empty)
+     var p = { e: itemName, g: itemUrl, h: '' };
+     var s = { k: itemPrice, i: itemStock };
      if (allowSaleWithoutStock) { s.d = 111; }
      payload0.p = p;
      payload0.s = s;
@@ -458,22 +503,6 @@ async function set_deup_prod_innerHTML(...params) {
    }
   }
 
-  // Event listeners for real-time preview updates
-  updateModalContent.addEventListener('input', function (e) {
-   if (e.target && e.target.id === 'newMainImage') {
-    const imagePreview = updateModalContent.querySelector('#currentMainImage');
-    if (imagePreview && e.target.value) {
-     imagePreview.src = e.target.value;
-    }
-   }
-   if (e.target && e.target.id === 'newThumbImage') {
-    const imagePreview = updateModalContent.querySelector('#currentThumbImage');
-    if (imagePreview && e.target.value) {
-     imagePreview.src = e.target.value;
-    }
-   }
-  });
-
   updateModalContent.addEventListener('click', function (e) {
    if (e.target && e.target.id === 'saveUpdateBtn') {
     saveProductChanges();
@@ -491,7 +520,7 @@ async function set_deup_prod_innerHTML(...params) {
 
  function deleteProduct(index) {
   const item = items[index];
-  const { contentElement: deleteModalContent, deletemdlInstance: deleteModalInstance } = create_modal_dynamically('deleteProductModal');
+  const { contentElement: deleteModalContent, modalInstance: deleteModalInstance } = create_modal_dynamically('deleteProductModal');
 
   deleteModalContent.innerHTML = `
             <div class="modal-header">

@@ -55,8 +55,8 @@ function setValByPrprtyDepthToElm(inputId, value, divId, key, fullObject) {
   if (found) {
    const fullName = found.e || '';
    const line = document.createElement('div');
-   line.style.cssText = `padding-left: ${i * 16}px; font-size: ${i === 0 ? '0.9rem' : i === 1 ? '0.85rem' : '0.8rem'}; color: ${i === 0 ? '#7B1FA2' : i === 1 ? '#4A148C' : '#212529'}; font-weight: ${i === 0 ? '600' : '400'}; display: flex; align-items: center; gap: 4px;`;
-   if (i > 0) { line.innerHTML = '<span style="color:#9C27B0;font-size:0.7rem;">⤵</span> '; }
+   line.style.cssText = `padding-left: ${i * 16}px; font-size: ${i === 0 ? '0.9rem' : i === 1 ? '0.85rem' : '0.8rem'}; color: ${i === 0 ? '#8B1E3F' : i === 1 ? '#6E1733' : '#212529'}; font-weight: ${i === 0 ? '600' : '400'}; display: flex; align-items: center; gap: 4px;`;
+   if (i > 0) { line.innerHTML = '<span style="color:#c9a45c;font-size:0.7rem;">⤵</span> '; }
    line.innerHTML += fullName;
    mainContainer.appendChild(line);
    if (i === 0) { currentArray = found[childKey0] || []; }
@@ -134,8 +134,9 @@ async function openDepthSelectionModal(inputId, value, divId, key, fullObject) {
  modalElement.classList.add(pageUniqueClass);
 
  const scopedStyles = document.createElement('style');
- scopedStyles.textContent = `.${pageUniqueClass} .modal-header {display:flex !important;align-items:center !important;padding:0.75rem 1rem !important;background:linear-gradient(135deg,#7B1FA2,#4A148C) !important;color:white !important;border-radius:10px 10px 0 0 !important;}.${pageUniqueClass} .modal-header .back-btn,.${pageUniqueClass} .modal-header .close-btn {background:rgba(255,255,255,0.2) !important;border:none !important;border-radius:50% !important;width:36px !important;height:36px !important;display:flex !important;align-items:center !important;justify-content:center !important;color:white !important;cursor:pointer !important;font-size:1rem !important;}.${pageUniqueClass} .modal-header .back-btn:disabled {opacity:0.3 !important;cursor:not-allowed !important;}.${pageUniqueClass} .modal-header .modal-title {flex:1 !important;text-align:center !important;margin:0 !important;font-weight:600 !important;font-size:1.1rem !important;}.${pageUniqueClass} .modal-body {padding:1rem !important;max-height:65vh !important;overflow-y:auto !important;}.${pageUniqueClass} .depth-info {background:#f3e5f5 !important;padding:0.5rem 0.75rem !important;border-radius:8px !important;margin-bottom:0.75rem !important;font-size:0.8rem !important;color:#7B1FA2 !important;text-align:center !important;font-weight:500 !important;}.${pageUniqueClass} .search-container {margin-bottom:0.75rem !important;position:relative !important;}.${pageUniqueClass} .search-input {width:100% !important;padding:0.6rem 1rem !important;border:2px solid #e0e0e0 !important;border-radius:50px !important;font-size:0.9rem !important;transition:all 0.3s ease !important;background:white !important;padding-right:40px !important;}.${pageUniqueClass} .search-input:focus {border-color:#7B1FA2 !important;box-shadow:0 0 0 3px rgba(123,31,162,0.1) !important;outline:none !important;}.${pageUniqueClass} .clear-search-btn {position:absolute !important;right:12px !important;top:50% !important;transform:translateY(-50%) !important;background:transparent !important;border:none !important;cursor:pointer !important;color:#6c757d !important;display:none !important;z-index:2 !important;}.${pageUniqueClass} .clear-search-btn:hover {color:#7B1FA2 !important;}.${pageUniqueClass} .breadcrumb {display:flex !important;align-items:center !important;gap:6px !important;padding:0.5rem 0.75rem !important;background:#f8f9fa !important;border-radius:8px !important;margin-bottom:0.75rem !important;flex-wrap:wrap !important;font-size:0.85rem !important;}.${pageUniqueClass} .breadcrumb span {color:#7B1FA2 !important;cursor:pointer !important;}.${pageUniqueClass} .breadcrumb span:hover {text-decoration:underline !important;}.${pageUniqueClass} .breadcrumb .sep {color:#6c757d !important;cursor:default !important;}.${pageUniqueClass} .breadcrumb .current {font-weight:600 !important;color:#4A148C !important;}.${pageUniqueClass} .items-grid {display:grid !important;grid-template-columns:repeat(auto-fill,minmax(180px,1fr)) !important;gap:8px !important;}.${pageUniqueClass} .item-card {background:white !important;border:1px solid #e0e0e0 !important;border-radius:8px !important;padding:0.6rem 0.8rem !important;cursor:pointer !important;transition:all 0.2s ease !important;font-size:0.85rem !important;display:flex !important;align-items:center !important;gap:8px !important;}.${pageUniqueClass} .item-card:hover {background:#f3e5f5 !important;border-color:#7B1FA2 !important;transform:translateY(-1px) !important;}.${pageUniqueClass} .item-card.selected {background:linear-gradient(135deg,#7B1FA2,#4A148C) !important;color:white !important;border-color:#4A148C !important;}.${pageUniqueClass} .item-card i {color:#7B1FA2 !important;font-size:0.9rem !important;}.${pageUniqueClass} .item-card.selected i {color:white !important;}.${pageUniqueClass} .item-card .item-id {font-size:0.7rem !important;opacity:0.7 !important;margin-left:auto !important;}.${pageUniqueClass} .no-results {text-align:center !important;padding:2rem !important;color:#757575 !important;}.${pageUniqueClass} .level-label {font-size:0.8rem !important;color:#6c757d !important;margin-bottom:4px !important;font-weight:500 !important;}.${pageUniqueClass} .search-info {font-size:0.75rem !important;color:#7B1FA2 !important;margin-bottom:6px !important;padding:2px 8px !important;background:rgba(123,31,162,0.08) !important;border-radius:12px !important;display:inline-block !important;}.${pageUniqueClass} .search-result-item {background:white !important;border:1px solid #e0e0e0 !important;border-radius:8px !important;padding:0.5rem 0.75rem !important;cursor:pointer !important;transition:all 0.2s ease !important;margin-bottom:4px !important;}.${pageUniqueClass} .search-result-item:hover {background:#f3e5f5 !important;border-color:#7B1FA2 !important;}.${pageUniqueClass} .search-result-item .path-line {display:flex !important;align-items:center !important;gap:4px !important;color:#6c757d !important;font-size:0.75rem !important;margin-bottom:2px !important;}`;
+ scopedStyles.textContent = `.${pageUniqueClass} .modal-header {display:flex !important;align-items:center !important;padding:0.75rem 1rem !important;background:linear-gradient(135deg,#8B1E3F,#6E1733) !important;color:white !important;border-radius:10px 10px 0 0 !important;}.${pageUniqueClass} .modal-header .back-btn {background:rgba(255,255,255,0.2) !important;border:none !important;border-radius:50% !important;width:36px !important;height:36px !important;display:flex !important;align-items:center !important;justify-content:center !important;color:white !important;cursor:pointer !important;font-size:1rem !important;}.${pageUniqueClass} .modal-header .close-btn {background:#6c757d !important;border:none !important;border-radius:50% !important;width:36px !important;height:36px !important;display:flex !important;align-items:center !important;justify-content:center !important;color:white !important;cursor:pointer !important;font-size:1rem !important;}.${pageUniqueClass} .modal-header .close-btn:hover {background:#5c636a !important;}.${pageUniqueClass} .modal-header .back-btn:disabled {opacity:0.3 !important;cursor:not-allowed !important;}.${pageUniqueClass} .modal-header .modal-title {flex:1 !important;text-align:center !important;margin:0 !important;font-weight:600 !important;font-size:1.1rem !important;}.${pageUniqueClass} .modal-body {padding:1rem !important;max-height:65vh !important;overflow-y:auto !important;}.${pageUniqueClass} .depth-info {background:#faf4e6 !important;padding:0.5rem 0.75rem !important;border-radius:8px !important;margin-bottom:0.75rem !important;font-size:0.8rem !important;color:#8B1E3F !important;text-align:center !important;font-weight:500 !important;}.${pageUniqueClass} .search-container {margin:-1rem -1rem .75rem !important;position:sticky !important;top:0 !important;z-index:10 !important;background:var(--bs-body-bg,#fff) !important;padding:1rem 1rem .6rem !important;}.${pageUniqueClass} .search-input {width:100% !important;padding:0.6rem 1rem !important;border:2px solid #e0e0e0 !important;border-radius:50px !important;font-size:0.9rem !important;transition:all 0.3s ease !important;background:white !important;padding-right:40px !important;}.${pageUniqueClass} .search-input:focus {border-color:#8B1E3F !important;box-shadow:0 0 0 3px rgba(139,30,63,0.1) !important;outline:none !important;}.${pageUniqueClass} .clear-search-btn {position:absolute !important;right:12px !important;top:50% !important;transform:translateY(-50%) !important;background:transparent !important;border:none !important;cursor:pointer !important;color:#6c757d !important;display:none !important;z-index:2 !important;}.${pageUniqueClass} .clear-search-btn:hover {color:#8B1E3F !important;}.${pageUniqueClass} .breadcrumb {display:flex !important;align-items:center !important;gap:6px !important;padding:0.5rem 0.75rem !important;background:#f8f9fa !important;border-radius:8px !important;margin-bottom:0.75rem !important;flex-wrap:wrap !important;font-size:0.85rem !important;}.${pageUniqueClass} .breadcrumb span {color:#8B1E3F !important;cursor:pointer !important;}.${pageUniqueClass} .breadcrumb span:hover {text-decoration:underline !important;}.${pageUniqueClass} .breadcrumb .sep {color:#6c757d !important;cursor:default !important;}.${pageUniqueClass} .breadcrumb .current {font-weight:600 !important;color:#6E1733 !important;}.${pageUniqueClass} .items-grid {display:grid !important;grid-template-columns:repeat(auto-fill,minmax(180px,1fr)) !important;gap:8px !important;}.${pageUniqueClass} .modal-footer {display:flex !important;justify-content:flex-end !important;gap:8px !important;padding:0.75rem 1rem !important;border-top:1px solid #e0e0e0 !important;}.${pageUniqueClass} .modal-footer .clear-btn {border-radius:20px !important;}.${pageUniqueClass} .item-card {background:white !important;border:1px solid #6c757d !important;border-radius:8px !important;padding:0.6rem 0.8rem !important;cursor:pointer !important;transition:all 0.2s ease !important;font-size:0.85rem !important;display:flex !important;align-items:center !important;gap:8px !important;}.${pageUniqueClass} .item-card:hover {background:#faf4e6 !important;border-color:#8B1E3F !important;transform:translateY(-1px) !important;}.${pageUniqueClass} .item-card.selected {background:linear-gradient(135deg,#8B1E3F,#6E1733) !important;color:white !important;border-color:#6E1733 !important;}.${pageUniqueClass} .item-card i {color:#8B1E3F !important;font-size:0.9rem !important;}.${pageUniqueClass} .item-card.selected i {color:white !important;}.${pageUniqueClass} .item-card .item-id {font-size:0.7rem !important;opacity:0.7 !important;margin-left:auto !important;}.${pageUniqueClass} .no-results {text-align:center !important;padding:2rem !important;color:#757575 !important;}.${pageUniqueClass} .level-label {font-size:0.8rem !important;color:#6c757d !important;margin-bottom:4px !important;font-weight:500 !important;}.${pageUniqueClass} .search-info {font-size:0.75rem !important;color:#8B1E3F !important;margin-bottom:6px !important;padding:2px 8px !important;background:rgba(139,30,63,0.08) !important;border-radius:12px !important;display:inline-block !important;}.${pageUniqueClass} .search-result-item {background:white !important;border:1px solid #6c757d !important;border-radius:8px !important;padding:0.5rem 0.75rem !important;cursor:pointer !important;transition:all 0.2s ease !important;margin-bottom:4px !important;}.${pageUniqueClass} .search-result-item:hover {background:#faf4e6 !important;border-color:#8B1E3F !important;}.${pageUniqueClass} .search-result-item .path-line {display:flex !important;align-items:center !important;gap:4px !important;color:#6c757d !important;font-size:0.75rem !important;margin-bottom:2px !important;}`;
  document.head.appendChild(scopedStyles);
+ scopedStyles.textContent += `.${pageUniqueClass} .country-info{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#eef6ff !important;color:#0b5394 !important;border:1px solid #cfe3ff !important;border-radius:8px !important;padding:0.45rem 0.75rem !important;margin-bottom:0.75rem !important;font-size:0.85rem !important;font-weight:500 !important;}.${pageUniqueClass} .country-info .ctry-id{color:#6c8ebf !important;font-weight:600 !important;}`;
 
  const modalDialog = modalElement.querySelector('.modal-dialog');
  modalDialog.classList.add('modal-lg');
@@ -149,8 +150,30 @@ async function openDepthSelectionModal(inputId, value, divId, key, fullObject) {
 
  const body = document.createElement('div');
  body.className = 'modal-body';
- body.innerHTML = `<div class="depth-info" id="depthInfo_${modalId}">Select ${depthLabels[0]}</div><div class="search-container"><input type="text" class="search-input" placeholder="🔍 Search across all levels..." id="depthSearch_${modalId}"><button class="clear-search-btn" id="clearSearch_${modalId}"><i class="fas fa-times-circle"></i></button></div><div class="breadcrumb" id="breadcrumb_${modalId}"></div><div class="items-grid" id="itemsGrid_${modalId}"><div class="text-center p-4 w-100">Loading...</div></div>`;
+ body.innerHTML = `<div class="country-info" id="countryInfo_${modalId}" style="display:none;"></div><div class="depth-info" id="depthInfo_${modalId}">Select ${depthLabels[0]}</div><div class="search-container"><input type="text" class="search-input" placeholder="🔍 Search across all levels..." id="depthSearch_${modalId}"><button class="clear-search-btn" id="clearSearch_${modalId}"><i class="fas fa-times-circle"></i></button></div><div class="breadcrumb" id="breadcrumb_${modalId}"></div><div class="items-grid" id="itemsGrid_${modalId}"><div class="text-center p-4 w-100">Loading...</div></div>`;
  modalContent.appendChild(body);
+
+ const footer = document.createElement('div');
+ footer.className = 'modal-footer';
+ const footerClearBtn = document.createElement('button');
+ footerClearBtn.type = 'button';
+ footerClearBtn.className = 'btn btn-outline-secondary clear-btn';
+ footerClearBtn.innerHTML = '<i class="fas fa-eraser me-1"></i> Clear';
+ const startHasValue = value !== null && value !== undefined && String(value).trim() !== '';
+ footerClearBtn.disabled = !startHasValue;
+ footer.appendChild(footerClearBtn);
+ modalContent.appendChild(footer);
+
+ footerClearBtn.addEventListener('click', () => {
+  const inEl = document.getElementById(inputId);
+  if (inEl) { inEl.value = ''; }
+  const storedArrayName = divElement.getAttribute('data-selection-array') || fullObject.e || '';
+  const storedDepth = parseInt(divElement.getAttribute('data-depth-for-native')) || requiredDepth;
+  if (typeof window.setValByPrprtyDepthToElm === 'function') {
+   window.setValByPrprtyDepthToElm(inputId, '', divId, key, { c: storedArrayName, canAdd: 1, depthForNative: storedDepth });
+  }
+  modalInstance.hide();
+ });
 
  let currentDepth = 0;
  let selectedIds = [...currentIds];
@@ -201,12 +224,12 @@ async function openDepthSelectionModal(inputId, value, divId, key, fullObject) {
    const valueStr = item.ids.join(',');
    const depthLabel = item.depth >= 3 ? 'Taluka' : 'District';
    html += `<div class="search-result-item" data-value="${valueStr}" data-depth="${item.depth}">`;
-   html += `<div class="path-line" style="font-size:0.7rem;color:#9C27B0;">${depthLabel} level</div>`;
+   html += `<div class="path-line" style="font-size:0.7rem;color:#c9a45c;">${depthLabel} level</div>`;
    item.names.forEach((name, i) => {
     const isLast = i === item.names.length - 1;
     const displayName = (name || '').split(' - ')[0];
     const highlighted = displayName.toLowerCase().includes(lowerTerm) ? `<span style="background:#fff3cd;padding:0 2px;border-radius:2px;">${displayName}</span>` : displayName;
-    html += `<div style="padding-left:${i * 16}px;font-size:${i === 0 ? '0.9rem' : i === 1 ? '0.85rem' : '0.8rem'};color:${i === 0 ? '#7B1FA2' : i === 1 ? '#4A148C' : '#212529'};font-weight:${i === 0 ? '600' : '400'};display:flex;align-items:center;gap:4px;">${i > 0 ? '<span style="color:#9C27B0;font-size:0.7rem;">⤵</span> ' : ''}${highlighted}${isLast ? ' <i class="fas fa-check-circle" style="color:#4CAF50;font-size:0.7rem;"></i>' : ''}</div>`;
+    html += `<div style="padding-left:${i * 16}px;font-size:${i === 0 ? '0.9rem' : i === 1 ? '0.85rem' : '0.8rem'};color:${i === 0 ? '#8B1E3F' : i === 1 ? '#6E1733' : '#212529'};font-weight:${i === 0 ? '600' : '400'};display:flex;align-items:center;gap:4px;">${i > 0 ? '<span style="color:#c9a45c;font-size:0.7rem;">⤵</span> ' : ''}${highlighted}${isLast ? ' <i class="fas fa-check-circle" style="color:#4CAF50;font-size:0.7rem;"></i>' : ''}</div>`;
    });
    html += `</div>`;
   });
@@ -261,7 +284,7 @@ async function openDepthSelectionModal(inputId, value, divId, key, fullObject) {
   if (!di) return;
   if (isSearchMode) { di.textContent = 'Search results across all levels'; di.style.background = '#fff3cd'; di.style.color = '#856404'; }
   else if (currentDepth >= maxDepth - 1) { di.textContent = `Select ${depthLabels[currentDepth] || 'Item'} (Final Level)`; di.style.background = '#e8f5e9'; di.style.color = '#2e7d32'; }
-  else { di.textContent = `Select ${depthLabels[currentDepth] || 'Item'} → then ${depthLabels[currentDepth + 1] || 'next'}`; di.style.background = '#f3e5f5'; di.style.color = '#7B1FA2'; }
+  else { di.textContent = `Select ${depthLabels[currentDepth] || 'Item'} → then ${depthLabels[currentDepth + 1] || 'next'}`; di.style.background = '#faf4e6'; di.style.color = '#8B1E3F'; }
  }
 
  function updateSearchPlaceholder() {
@@ -344,6 +367,17 @@ async function openDepthSelectionModal(inputId, value, divId, key, fullObject) {
 
  header.querySelector('.back-btn').addEventListener('click', () => { if (currentDepth > 0) { currentDepth--; selectedIds.pop(); isSearchMode = false; if (searchInput) searchInput.value = ''; updateUI(); } });
  header.querySelector('.close-btn').addEventListener('click', () => modalInstance.hide());
+
+ //country banner (config-driven from mr.da default*Country): country name + id
+ const countryInfo = (typeof window.mrCountryInfoFor === 'function' && window.mrCountryInfoFor(key)) ||
+                     (fullObject && fullObject.ctry) || null;
+ if (countryInfo && countryInfo.id) {
+  const ciEl = document.getElementById(`countryInfo_${modalId}`);
+  if (ciEl) {
+   ciEl.style.display = 'flex';
+   ciEl.innerHTML = `<i class="fas fa-globe"></i> <span>Country:</span> <span>${countryInfo.name || ('#' + countryInfo.id)}</span> <span class="ctry-id">#${countryInfo.id}</span>`;
+  }
+ }
 
  if (selectedIds.length > 0) { currentDepth = Math.min(selectedIds.length, maxDepth); }
  else { currentDepth = 0; }

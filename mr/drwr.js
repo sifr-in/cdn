@@ -2,6 +2,50 @@
 let currentDrawer = null;
 let drawerInstance = null;
 
+function getDrawerUser() {
+ try {
+  const my1uzr1 = JSON.parse(localStorage.getItem("my1uzr"));
+  if (my1uzr1 && typeof my1uzr1 === 'object') return my1uzr1;
+ } catch (e) {}
+ return {};
+}
+
+function fmtDrawerMobile(mo) {
+ const s = String(mo == null ? '' : mo).trim();
+ if (!s) return '';
+ if (s.charAt(0) === '+') return s;
+ const d = s.replace(/\D/g, '');
+ if (d.length === 12 && d.slice(0, 2) === '91') return '+91 ' + d.slice(2);
+ if (d.length === 10) return '+91 ' + d;
+ return s;
+}
+
+function getSelfProfile() {
+ try {
+  if (typeof myEinMR !== 'undefined' && myEinMR && myEinMR.a) return myEinMR;
+  const tn = window.appOwner && window.appOwner.tn;
+  const s = tn ? localStorage.getItem(tn + "_myEinMR") : null;
+  if (s && s !== "undefined" && s !== "null") {
+   const o = JSON.parse(s);
+   if (o && o.a) return o;
+  }
+ } catch (e) {}
+ return null;
+}
+
+function getDrawerImageUrl() {
+ try {
+  const u = getSelfProfile()?.u ?? null;
+  if (!u) return null;
+  if (typeof window.mrResolveProfileImages === 'function') {
+   const imgs = window.mrResolveProfileImages(u);
+   return imgs.thumbnail || imgs.display || null;
+  }
+  const parsed = typeof u === 'string' ? JSON.parse(u) : u;
+  return parsed?.b || parsed?.a || null;
+ } catch { return null; }
+}
+
 function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
  // Check if drawer already exists
  const existingDrawer = document.getElementById('mobileDrawer');
@@ -19,16 +63,10 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
 
  // Get profile data from window object
  const defaultUrl = 'https://cdn-icons-png.freepik.com/512/13470/13470397.png?ga=GA1.1.943033089.1762783218';
- const profileImageUrl = (() => {
-  try {
-   const u = myEinMR?.u;
-   if (!u) return defaultUrl;
-   const parsed = typeof u === 'string' ? JSON.parse(u) : u;
-   return parsed?.b || defaultUrl;
-  } catch { return defaultUrl; }
- })();
- const userName = myEinMR?.m || 'Guest User';
- const mobileNumber = myEinMR?.l || 'Not provided';
+ const profileImageUrl = getDrawerImageUrl() || defaultUrl;
+ const u1 = getDrawerUser();
+ const userName = u1.mn || 'User Number';
+ const mobileNumber = fmtDrawerMobile(u1.mo) || 'Not provided';
 
  // Create drawer backdrop
  const backdrop = document.createElement('div');
@@ -56,11 +94,11 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
         width: 85%;
         max-width: 320px;
         height: 100%;
-        background: linear-gradient(135deg, var(--white-color) 0%, #FCE4EC 100%);
+        background: linear-gradient(135deg, var(--surface) 0%, var(--gold-pale) 100%);
         z-index: 1041;
         overflow-y: auto;
         transition: ${position === 'left' ? 'left' : 'right'} 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        box-shadow: 4px 0 25px rgba(216, 27, 96, 0.15);
+        box-shadow: 4px 0 25px rgba(78, 12, 35, 0.2);
         display: flex;
         flex-direction: column;
         display: none;
@@ -103,12 +141,15 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         background: linear-gradient(135deg, var(--accent-light), var(--accent-dark));
     `;
- profileImage.src = profileImageUrl;
  profileImage.alt = 'Profile Picture';
+ profileImage.loading = 'lazy';
+ profileImage.decoding = 'async';
+ if (window.mrImg) { window.mrImg.load(profileImageUrl).then(function (u) { profileImage.src = u; }); }
+ else { profileImage.src = profileImageUrl; }
 
  // Add loading error handler
  profileImage.onerror = function () {
-  this.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName) + '&background=D81B60&color=fff&size=100';
+  this.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName) + '&background=8B1E3F&color=fff&size=100';
   this.style.background = 'linear-gradient(135deg, var(--primary-color), var(--primary-dark))';
  };
 
@@ -219,17 +260,36 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
  // Define the exact menu sequence with icons (all icons in grey color, removed Profile Privacy)
  const defaultMenuItems = [
   {
-   title: 'Register Profile',
-   icon: 'fas fa-user-cog',
-   color: '#6c757d', // Grey color
-   onClick: () => {
-    let recordId = 0;//$(this).data('record-id');
+    title: getSelfProfile() ? 'Update Profile' : 'Register Profile',
+    icon: 'fas fa-user-cog',
+    color: '#6c757d', // Grey color
+    onClick: () => {
+      const self = getSelfProfile();
 
-    showProfileDtls(recordId)
-    // (async () => { 
-    //     await loadExe2Fn(14, [recordId], [1]);
-    // })();
-   }
+      // ✅ If NO profile exists → this is a "Register Profile" action
+      if (!self) {
+        const poseTill = window[my1uzr.worknOnPg]?.clientConfig?.registrationPoseTill;
+
+        // ❌ If registrationPoseTill has content (not empty) → BLOCK
+        if (poseTill !== undefined && poseTill !== null && String(poseTill).trim().length > 0) {
+          // Show the message (e.g., "Coming soon")
+          window.showConfirmModal(String(poseTill));
+          return; // 🚫 Stop — do NOT proceed
+        }
+
+        // ✅ Empty or missing → proceed with registration
+        (async () => {
+          await loadExe2Fn(14, [0], [1]);
+        })();
+        return;
+      }
+
+      // ✅ Profile exists → "Update Profile" always proceeds as-is
+      const recordId = self.a;
+      (async () => {
+        await loadExe2Fn(14, [recordId], [1]);
+      })();
+    }
   },
   /*{
    title: 'Gallery Photos',
@@ -257,6 +317,7 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
       color: '#6c757d', // Grey color
       onClick: () => console.log('My Active Plan clicked')
   },
+  */
   {
       title: 'Membership Plans',
       icon: 'fas fa-gem',
@@ -266,16 +327,16 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
               await loadExe2Fn(17, [], [1]); 
           })();
       }
-  },*/
+  },
   {
    title: 'Contact Us',
    icon: 'fas fa-headset',
    color: '#6c757d',
-   onClick: () => {
-    (async () => {
-     await loadExe2Fn(21, [window[my1uzr.worknOnPg].appInfo], [1]);
-    })();
-   }
+    onClick: () => {
+     (async () => {
+      await loadExe2Fn(8, [], [1]);
+     })();
+    }
   },
   {
    title: 'About Us',
@@ -287,26 +348,7 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
     })();
    }
   },
-  {
-   title: 'Privacy Policy',
-   icon: 'fas fa-lock',
-   color: '#6c757d',
-   onClick: () => {
-    (async () => {
-     await loadExe2Fn(22, [window[my1uzr.worknOnPg].appInfo], [1]);
-    })();
-   }
-  },
-  {
-   title: 'Terms And Condition',
-   icon: 'fas fa-file-contract',
-   color: '#6c757d',
-   onClick: () => {
-    (async () => {
-     await loadExe2Fn(23, [window[my1uzr.worknOnPg].appInfo], [1]);
-    })();
-   }
-  },
+  /* Privacy / Terms / Refund removed: they live in the footer only */
   {
    title: 'Child Safety Policy',
    icon: 'fas fa-child',
@@ -315,6 +357,21 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
     (async () => {
      await loadExe2Fn(24, [window[my1uzr.worknOnPg].appInfo], [1]);
     })();
+   }
+  },
+  {
+   title: 'Help Line Number',
+   icon: 'fas fa-phone-volume',
+   color: '#6c757d',
+   onClick: () => {
+    const P = window[my1uzr.worknOnPg] || {};
+    const cfg = P.clientConfig || P.appInfo || {};
+    const phone = String(cfg.hlpLinMobNum || cfg.mob || '').replace(/\D/g, '');
+    const msg = cfg.hlpLinMsg || 'Hello, I need help';
+    if (!phone) { console.warn('Help line number missing in mr.da'); return; }
+    const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msg);
+    const w = window.open(url, '_blank');
+    if (!w) window.location.href = url;
    }
   },
   {
@@ -378,7 +435,7 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
 
   // Hover effect
   menuItem.addEventListener('mouseenter', () => {
-   menuItem.style.background = 'rgba(216, 27, 96, 0.08)';
+   menuItem.style.background = 'var(--mr-primary-050)';
    menuItem.style.transform = 'translateX(4px)';
   });
 
@@ -434,20 +491,20 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
   const mobileText = drawerElement.querySelector('#drawerMobileText');
 
   if (profileImage) {
-   const currentImageUrl = window[my1uzr.worknOnPg]?.t46mp;
+   const currentImageUrl = getDrawerImageUrl() || window[my1uzr.worknOnPg]?.t46mp;
    if (currentImageUrl && profileImage.src !== currentImageUrl) {
     profileImage.src = currentImageUrl;
    }
   }
 
   if (userNameElement) {
-   const currentName = window[my1uzr.worknOnPg]?.t47mp || 'Guest User';
-   userNameElement.textContent = currentName;
+   const u1 = getDrawerUser();
+   userNameElement.textContent = u1.mn || '';
   }
 
   if (mobileText) {
-   const currentMobile = window[my1uzr.worknOnPg]?.t48mp || 'Not provided';
-   mobileText.textContent = currentMobile;
+   const u1 = getDrawerUser();
+   mobileText.textContent = fmtDrawerMobile(u1.mo) || 'Not provided';
   }
  }
 
@@ -518,8 +575,11 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
     backdrop.remove();
    }
    drawerInstance = null;
+   window.mrDrawerInstance = null;
   }
  };
+
+ window.mrDrawerInstance = drawerInstance;
 
  // Open drawer initially
  openDrawer();
@@ -569,7 +629,7 @@ function shareApp() {
 }
 
 function fallbackShare() {
- prompt('Copy this link:', url);
+ prompt('Copy this link:', window.location.href);
 }
 
 // Updated toggle button function with profile
@@ -587,18 +647,20 @@ function createDrawerToggleButton(menuItems = [], title = 'Menu', position = 'le
             width: 44px !important;
             height: 44px !important;
             cursor: pointer !important;
-            box-shadow: 0 4px 12px rgba(216, 27, 96, 0.3) !important;
+            box-shadow: 0 4px 12px rgba(78, 12, 35, 0.3) !important;
             padding: 0 !important;
             margin: 5px !important;
             overflow: hidden !important;
         `;
 
   toggleButton.innerHTML = `
-            <img src="${profileImageUrl}" 
+            <img data-lazy="${profileImageUrl}" 
                  style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"
                  alt="Profile"
+                 loading="lazy" decoding="async"
                  onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fas fa-user\\' style=\\'color: white; font-size: 1.2rem;\\'></i>';">
         `;
+  if (window.mrImg) window.mrImg.hydrate(toggleButton);
  } else {
   toggleButton.innerHTML = '<i class="fas fa-bars"></i>';
   toggleButton.style.cssText = `
@@ -612,7 +674,7 @@ function createDrawerToggleButton(menuItems = [], title = 'Menu', position = 'le
             align-items: center !important;
             justify-content: center !important;
             cursor: pointer !important;
-            box-shadow: 0 4px 12px rgba(216, 27, 96, 0.3) !important;
+            box-shadow: 0 4px 12px rgba(78, 12, 35, 0.3) !important;
             padding: 0 !important;
             margin: 5px !important;
         `;
@@ -625,105 +687,18 @@ function createDrawerToggleButton(menuItems = [], title = 'Menu', position = 'le
 
  return toggleButton;
 }
-function showGalInModal(galString) {
- // Parse the gallery string
- let imagesArray = [];
- try {
-  if (typeof galString === 'string') {
-   imagesArray = JSON.parse(galString);
-  } else if (Array.isArray(galString)) {
-   imagesArray = galString;
-  } else {
-   imagesArray = [];
-  }
- } catch (e) {
-  console.error('Error parsing gallery string:', e);
-  imagesArray = [];
- }
 
- // Create unique modal ID
- const modalId = 'gallery_modal_' + Date.now();
 
- // Create modal dynamically
- const modalObj = create_modal_dynamically(modalId);
- const modalInstance = modalObj.modalInstance;
- const modalElement = modalObj.modalElement;
- const modalBody = modalObj.contentElement;
 
- // Add custom class for styling
- modalElement.classList.add('gallery-view-modal');
 
- // Set modal size to large
- const modalDialog = modalElement.querySelector('.modal-dialog');
- modalDialog.classList.add('modal-lg');
 
- // Create modal content
- const modalContent = modalElement.querySelector('.modal-content');
- modalContent.innerHTML = '';
 
- // Create header
- const header = document.createElement('div');
- header.className = 'modal-header';
- header.style.cssText = 'background: linear-gradient(135deg, #7B1FA2, #4A148C); color: white; border-bottom: none; border-radius: 10px 10px 0 0;';
- header.innerHTML = `
-  <h5 class="modal-title" style="color: white;">
-   <i class="fas fa-images me-2"></i>Gallery
-  </h5>
-  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
- `;
 
- // Create body
- const body = document.createElement('div');
- body.className = 'modal-body';
- body.style.cssText = 'padding: 1.5rem; background: linear-gradient(135deg, #FAFAFA, #F3E5F5);';
 
- // Create container for gallery
- const galleryContainer = document.createElement('div');
- galleryContainer.id = 'gallery_container_' + modalId;
 
- body.appendChild(galleryContainer);
 
- // Create footer
- const footer = document.createElement('div');
- footer.className = 'modal-footer';
- footer.style.cssText = 'border-top: none; justify-content: center;';
- footer.innerHTML = `
-  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 50px; padding: 8px 24px;">
-   <i class="fas fa-times me-2"></i>Close
-  </button>
- `;
 
- modalContent.appendChild(header);
- modalContent.appendChild(body);
- modalContent.appendChild(footer);
 
- // Show modal first
- modalInstance.show();
 
- // After modal is shown, render the gallery
- setTimeout(() => {
-  // Create a temporary fullObject for setGalleryImages (read-only mode, no add button)
-  const fullObject = {
-   canAdd: 0  // No add button for view-only gallery
-  };
 
-  // Call setGalleryImages to render the gallery
-  setGalleryImages(
-   null,                    // inputId (not needed for view-only)
-   JSON.stringify(imagesArray),  // value
-   galleryContainer.id,     // divId
-   null,                    // key
-   fullObject               // fullObject
-  );
- }, 100);
 
- // Clean up modal when hidden
- modalElement.addEventListener('hidden.bs.modal', function onHide() {
-  modalElement.removeEventListener('hidden.bs.modal', onHide);
-  setTimeout(() => {
-   if (modalElement && modalElement.parentNode) {
-    modalElement.parentNode.removeChild(modalElement);
-   }
-  }, 300);
- });
-}

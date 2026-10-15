@@ -285,7 +285,7 @@ font-size: 1.1rem !important;
 }
 
 .${pageUniqueClass} .modal-header .close-button {
-background: rgba(255, 255, 255, 0.2) !important;
+background: var(--bs-secondary, #6c757d) !important;
 border: none !important;
 border-radius: 50% !important;
 width: 36px !important;
@@ -300,7 +300,7 @@ margin-left: 8px !important;
 }
 
 .${pageUniqueClass} .modal-header .close-button:hover {
-background: rgba(255, 255, 255, 0.3) !important;
+background: #5c636a !important;
 transform: scale(1.1) !important;
 }
 
@@ -311,12 +311,12 @@ overflow-y: auto !important;
 }
 
 .${pageUniqueClass} .search-container {
-margin-bottom: 1.5rem !important;
-position: relative !important;
+margin: -1.25rem -1.25rem 1rem !important;
+position: sticky !important;
 top: 0 !important;
-background: inherit !important;
+background: var(--bs-body-bg, #fff) !important;
 z-index: 10 !important;
-padding: 10px 0 !important;
+padding: 1.25rem 1.25rem 0.75rem !important;
 }
 
 .${pageUniqueClass} .search-input {
@@ -402,7 +402,7 @@ margin-bottom: 1rem !important;
 
 .${pageUniqueClass} .select-item {
 background: white !important;
-border: 1px solid #e0e0e0 !important;
+border: 1px solid var(--bs-secondary, #6c757d) !important;
 border-radius: 8px !important;
 padding: 0.5rem 1rem !important;
 cursor: pointer !important;
@@ -515,7 +515,7 @@ color: #aaa !important;
 }
 .${pageUniqueClass} .select-item {
 background-color: #3d3d3d !important;
-border-color: #444 !important;
+border-color: var(--bs-secondary, #6c757d) !important;
 color: white !important;
 }
 .${pageUniqueClass} .selected-label {
@@ -528,8 +528,20 @@ background: #3d3d3d !important;
 color: #aaa !important;
 }
 }
+
+.${pageUniqueClass} .modal-footer {
+justify-content: center !important;
+padding: 0.6rem 1rem !important;
+border-top: 1px solid var(--bs-border-color, #dee2e6) !important;
+}
+
+.${pageUniqueClass} .modal-footer .clear-btn {
+border-radius: 20px !important;
+font-weight: 500 !important;
+}
     `;
  document.head.appendChild(scopedStyles);
+ scopedStyles.textContent += `.${pageUniqueClass} .country-info{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#eef6ff !important;color:#0b5394 !important;border:1px solid #cfe3ff !important;border-radius:8px !important;padding:0.45rem 0.75rem !important;margin-bottom:0.75rem !important;font-size:0.85rem !important;font-weight:500 !important;}.${pageUniqueClass} .country-info .ctry-id{color:#6c8ebf !important;font-weight:600 !important;}.${pageUniqueClass} .country-info .change-country-btn{margin-left:auto !important;background:linear-gradient(135deg,#8B1E3F,#6E1733) !important;color:#fff !important;border:none !important;border-radius:20px !important;padding:0.25rem 0.7rem !important;font-size:0.78rem !important;font-weight:500 !important;cursor:pointer !important;}.${pageUniqueClass} .country-info .change-country-btn:hover{opacity:0.9 !important;}`;
 
  // Create header
  const modalDialog = modalElement.querySelector('.modal-dialog');
@@ -549,6 +561,7 @@ color: #aaa !important;
  const body = document.createElement('div');
  body.className = 'modal-body';
  body.innerHTML = `
+        <div class="country-info" id="countryInfo_${modalId}" style="display:none;"></div>
         <div class="search-container">
             <input type="text" class="search-input" placeholder="🔍 Search at current level..." id="commonSelectSearch_${modalId}">
         </div>
@@ -562,12 +575,38 @@ color: #aaa !important;
  modalContent.appendChild(header);
  modalContent.appendChild(body);
 
+ // Footer with a Clear button for the registration/update select fields
+ const footer = document.createElement('div');
+ footer.className = 'modal-footer';
+ const footerClearBtn = document.createElement('button');
+ footerClearBtn.type = 'button';
+ footerClearBtn.className = 'btn btn-outline-secondary clear-btn';
+ footerClearBtn.innerHTML = '<i class="fas fa-eraser me-1"></i> Clear';
+ const startHasValue = value !== null && value !== undefined && String(value).trim() !== '';
+ footerClearBtn.disabled = !startHasValue;
+ footer.appendChild(footerClearBtn);
+ modalContent.appendChild(footer);
+
+ footerClearBtn.addEventListener('click', () => {
+  const inEl = document.getElementById(inputId);
+  if (inEl) inEl.value = '';
+  if (typeof setValByProprtyToElm === 'function') {
+   setValByProprtyToElm(inputId, '', divId, key, { c: arrayName, canAdd: isMultiSelect ? 2 : 1 });
+  }
+  if (callbackFunction && typeof window[callbackFunction] === 'function') {
+   window[callbackFunction](null, inputId, divId, key, fullObject);
+  }
+  modalInstance.hide();
+ });
+
  // Navigation state
  let navigationStack = [];
  let currentLevel = 0;
  let currentData = dataArray;
  let currentParent = null;
  let currentParentChain = [];
+ //set by the country banner so country selection at the root refreshes it
+ let countryNavHook = null;
  let depthReached = false;
  let depthError = false;
 
@@ -768,6 +807,9 @@ color: #aaa !important;
    currentData = childArray;
    currentParent = item;
    currentParentChain.push(item);
+
+   //let the country banner refresh if a country was chosen at the root level
+   if (countryNavHook) countryNavHook(item, currentLevel);
 
    // Clear search when navigating to children
    const searchInput = document.getElementById(`commonSelectSearch_${modalId}`);
@@ -1241,8 +1283,12 @@ function setValByProprtyToElm(inputId, value, divId, key, fullObject) {
   let matchedLabel = null;
   let fullPathName = null;
 
-  // Method 1: Try depth path navigation (from g parameter)
-  if (hasDepthPath && depthPathIds.length > 0) {
+  // Method 1: Try depth path navigation (from g parameter).
+  // Skip when a parent (e=[...]) drives a nested child list: there the depth path
+  // names only the PARENT, so a value id equal to the parent id would wrongly show
+  // the parent's label. Method 2 below handles these child lists correctly.
+  if (hasDepthPath && depthPathIds.length > 0
+      && !(parentIds.length > 0 && childArrayNames.length > 0)) {
    const { foundItem, pathNames, currentData } = findItemByPath(depthPathIds);
 
    if (foundItem) {

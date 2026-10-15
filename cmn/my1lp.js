@@ -198,9 +198,16 @@ function set_innerHTML_of_shoLgnP() {
 
 <div class="row align-items-center g-2 mb-3">
     <div class="col-8">
-        <input type="password" id="loginPassword" class="form-control border border-dark"
-            placeholder="Enter password (6-8 characters)"
-            minlength="6" maxlength="8" pattern="[a-zA-Z0-9]+">
+        <div class="input-group">
+            <input type="password" id="loginPassword" class="form-control border border-dark"
+                placeholder="Enter password (6-8 characters)"
+                minlength="6" maxlength="8" pattern="[a-zA-Z0-9]+">
+            <button type="button" class="btn btn-outline-secondary" tabindex="-1"
+                aria-label="Show password"
+                onclick="togglePasswordVisibilityLP('loginPassword', this)">
+                <i class="fas fa-eye"></i>
+            </button>
+        </div>
     </div>
 
     <div class="col-4">
@@ -298,12 +305,18 @@ You agree with the <a href="#" class="text-primary">Terms & Conditions</a> when 
 
 <div class="mb-3">
 <label for="regPassword" class="form-label">Password (6-8 characters)</label>
+<div class="input-group">
 <input type="password" id="regPassword" class="form-control" placeholder="Enter password" minlength="6" maxlength="8" pattern="[A-Za-z0-9]+">
+<button type="button" class="btn btn-outline-secondary" tabindex="-1" aria-label="Show password" onclick="togglePasswordVisibilityLP('regPassword', this)"><i class="fas fa-eye"></i></button>
+</div>
 </div>
 
 <div class="mb-3">
 <label for="confirmPassword" class="form-label">Confirm Password</label>
+<div class="input-group">
 <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm password" minlength="6" maxlength="8" pattern="[A-Za-z0-9]+">
+<button type="button" class="btn btn-outline-secondary" tabindex="-1" aria-label="Show password" onclick="togglePasswordVisibilityLP('confirmPassword', this)"><i class="fas fa-eye"></i></button>
+</div>
 <div id="confirmPasswordError" class="invalid-feedback d-none">Passwords do not match</div>
 </div>
 
@@ -317,7 +330,7 @@ You agree with the <a href="#" class="text-primary">Terms & Conditions</a> when 
 <div class="row align-items-center mt-1">
     <div class="col-8">
         <hr class="my-1">
-        <p class="text-muted mb-0 ms-1">Already have an account?</p>
+        <p class="text-muted mb-0 ms-1">Already have an account?-></p>
     </div>
 
     <div class="col-4 text-end">
@@ -384,73 +397,73 @@ function my1lpXtraRender() {
  function renderDef(def, path, inDiv) {
   var out = "";
   if (!def || typeof def !== "object") return out;
-   if (my1lpXtraIsGroup(def)) {
-    var children = my1lpXtraChildren(def);
-    var hasBox = (def.type === "div" || (def.x && typeof def.x === "object") || !!def.lbl) && !inDiv;
-     var isMeta = function (key) { return key === "lbl" || key === "type" || key === "ptrn" || key === "rq" || key === "rqOneOf" || key === "preProcess" || key === "postProcess" || key === "x"; };
-    if (hasBox) {
-     out += '<div style="' + boxStyle + '">';
-     if (def.lbl) out += '<div class="text-xs fw-bold text-uppercase mb-2" style="color:#343a40;"><i class="fas fa-layer-group me-1" style="color:' + p.brand + ';"></i>' + def.lbl + '</div>';
-     var _ro = def.rqOneOf && typeof def.rqOneOf === "object" && def.rqOneOf.length ? def.rqOneOf : null;
-     var _roSelDone = false;
-     for (var ck in def) {
-      if (!def.hasOwnProperty(ck)) continue;
-      if (isMeta(ck)) {
-       if (_ro && ck === "rqOneOf" && !_roSelDone) {
-        _roSelDone = true;
-        out += '<select class="my1lpXph-rqOneOf-sel" data-path="' + path + '" style="font-size:14px;' + inpDyn + 'padding:6px 8px;margin-bottom:8px;"><option value="" disabled selected>Select...</option>';
-        for (var ri = 0; ri < _ro.length; ri++) {
-         var rKey = _ro[ri];
-         var rLbl = (children[rKey] && children[rKey].lbl) || rKey;
-         out += '<option value="' + rKey + '">' + rLbl + '</option>';
-        }
-         out += '</select>';
-         out += '<span class="my1lpXph-err" data-path="' + path + '__rqOneOfSel" style="font-size:11px;color:#dc3545;display:none;margin-top:2px;"></span>';
-        }
-        continue;
+  if (my1lpXtraIsGroup(def)) {
+   var children = my1lpXtraChildren(def);
+   var hasBox = (def.type === "div" || (def.x && typeof def.x === "object") || !!def.lbl) && !inDiv;
+   var isMeta = function (key) { return key === "lbl" || key === "type" || key === "ptrn" || key === "rq" || key === "rqOneOf" || key === "preProcess" || key === "postProcess" || key === "x"; };
+   if (hasBox) {
+    out += '<div style="' + boxStyle + '">';
+    if (def.lbl) out += '<div class="text-xs fw-bold text-uppercase mb-2" style="color:#343a40;"><i class="fas fa-layer-group me-1" style="color:' + p.brand + ';"></i>' + def.lbl + '</div>';
+    var _ro = def.rqOneOf && typeof def.rqOneOf === "object" && def.rqOneOf.length ? def.rqOneOf : null;
+    var _roSelDone = false;
+    for (var ck in def) {
+     if (!def.hasOwnProperty(ck)) continue;
+     if (isMeta(ck)) {
+      if (_ro && ck === "rqOneOf" && !_roSelDone) {
+       _roSelDone = true;
+       out += '<select class="my1lpXph-rqOneOf-sel" data-path="' + path + '" style="font-size:14px;' + inpDyn + 'padding:6px 8px;margin-bottom:8px;"><option value="" disabled selected>Select...</option>';
+       for (var ri = 0; ri < _ro.length; ri++) {
+        var rKey = _ro[ri];
+        var rLbl = (children[rKey] && children[rKey].lbl) || rKey;
+        out += '<option value="' + rKey + '">' + rLbl + '</option>';
        }
-       if (!def.x && !children[ck]) continue;
-      if (_ro && _ro.indexOf(ck) !== -1) {
-       out += '<div class="my1lpXph-rqOneOf-item" data-rqoneof="' + path + '" data-rqoneof-key="' + ck + '" style="display:none;">';
-       out += renderDef(children[ck], path + "__" + ck, true);
-       out += '</div>';
-      } else {
-       out += renderDef(children[ck], path + "__" + ck, true);
+       out += '</select>';
+       out += '<span class="my1lpXph-err" data-path="' + path + '__rqOneOfSel" style="font-size:11px;color:#dc3545;display:none;margin-top:2px;"></span>';
       }
+      continue;
      }
-     out += "</div>";
-    } else {
-     if (def.lbl) out += '<div class="text-xs fw-bold text-uppercase mt-3" style="color:#343a40;"><i class="fas fa-layer-group me-1" style="color:' + p.brand + ';"></i>' + def.lbl + '</div>';
-     var _ro = def.rqOneOf && typeof def.rqOneOf === "object" && def.rqOneOf.length ? def.rqOneOf : null;
-     var _roSelDone = false;
-     for (var pk in def) {
-      if (!def.hasOwnProperty(pk)) continue;
-      if (isMeta(pk)) {
-       if (_ro && pk === "rqOneOf" && !_roSelDone) {
-        _roSelDone = true;
-        out += '<select class="my1lpXph-rqOneOf-sel" data-path="' + path + '" style="font-size:14px;' + inpDyn + 'padding:6px 8px;margin-bottom:8px;"><option value="" disabled selected>Select...</option>';
-        for (var ri = 0; ri < _ro.length; ri++) {
-         var rKey = _ro[ri];
-         var rLbl = (children[rKey] && children[rKey].lbl) || rKey;
-         out += '<option value="' + rKey + '">' + rLbl + '</option>';
-        }
-         out += '</select>';
-         out += '<span class="my1lpXph-err" data-path="' + path + '__rqOneOfSel" style="font-size:11px;color:#dc3545;display:none;margin-top:2px;"></span>';
-        }
-        continue;
-       }
-       if (!children[pk]) continue;
-      if (_ro && _ro.indexOf(pk) !== -1) {
-       out += '<div class="my1lpXph-rqOneOf-item" data-rqoneof="' + path + '" data-rqoneof-key="' + pk + '" style="display:none;">';
-       out += renderDef(children[pk], path + "__" + pk, inDiv);
-       out += '</div>';
-      } else {
-       out += renderDef(children[pk], path + "__" + pk, inDiv);
-      }
+     if (!def.x && !children[ck]) continue;
+     if (_ro && _ro.indexOf(ck) !== -1) {
+      out += '<div class="my1lpXph-rqOneOf-item" data-rqoneof="' + path + '" data-rqoneof-key="' + ck + '" style="display:none;">';
+      out += renderDef(children[ck], path + "__" + ck, true);
+      out += '</div>';
+     } else {
+      out += renderDef(children[ck], path + "__" + ck, true);
      }
     }
-    return out;
+    out += "</div>";
+   } else {
+    if (def.lbl) out += '<div class="text-xs fw-bold text-uppercase mt-3" style="color:#343a40;"><i class="fas fa-layer-group me-1" style="color:' + p.brand + ';"></i>' + def.lbl + '</div>';
+    var _ro = def.rqOneOf && typeof def.rqOneOf === "object" && def.rqOneOf.length ? def.rqOneOf : null;
+    var _roSelDone = false;
+    for (var pk in def) {
+     if (!def.hasOwnProperty(pk)) continue;
+     if (isMeta(pk)) {
+      if (_ro && pk === "rqOneOf" && !_roSelDone) {
+       _roSelDone = true;
+       out += '<select class="my1lpXph-rqOneOf-sel" data-path="' + path + '" style="font-size:14px;' + inpDyn + 'padding:6px 8px;margin-bottom:8px;"><option value="" disabled selected>Select...</option>';
+       for (var ri = 0; ri < _ro.length; ri++) {
+        var rKey = _ro[ri];
+        var rLbl = (children[rKey] && children[rKey].lbl) || rKey;
+        out += '<option value="' + rKey + '">' + rLbl + '</option>';
+       }
+       out += '</select>';
+       out += '<span class="my1lpXph-err" data-path="' + path + '__rqOneOfSel" style="font-size:11px;color:#dc3545;display:none;margin-top:2px;"></span>';
+      }
+      continue;
+     }
+     if (!children[pk]) continue;
+     if (_ro && _ro.indexOf(pk) !== -1) {
+      out += '<div class="my1lpXph-rqOneOf-item" data-rqoneof="' + path + '" data-rqoneof-key="' + pk + '" style="display:none;">';
+      out += renderDef(children[pk], path + "__" + pk, inDiv);
+      out += '</div>';
+     } else {
+      out += renderDef(children[pk], path + "__" + pk, inDiv);
+     }
+    }
    }
+   return out;
+  }
   var ftype = def.type || "text";
   var req = def.rq === 1 || def.rq === true;
   var lbl = def.lbl || path;
@@ -544,7 +557,7 @@ function my1lpXtraBind() {
   el.addEventListener("input", function () {
    var v = el.value || "";
    var strip = el.getAttribute("data-strip");
-   if (strip) { try { v = v.replace(new RegExp(strip, "g"), ""); } catch (e) {} }
+   if (strip) { try { v = v.replace(new RegExp(strip, "g"), ""); } catch (e) { } }
    if (el.getAttribute("data-uc")) v = v.toUpperCase();
    var ml = parseInt(el.getAttribute("data-maxlen") || "", 10);
    if (ml > 0 && v.length > ml) v = v.substring(0, ml);
@@ -554,32 +567,32 @@ function my1lpXtraBind() {
  document.querySelectorAll("#my1lpXtraFields .my1lpXph-val").forEach(function (el) {
   el.addEventListener("input", function () { my1lpXtraLiveCheck(this); });
   el.addEventListener("change", function () { my1lpXtraLiveCheck(this); });
-   el.addEventListener("blur", async function () {
-    var path = this.getAttribute("data-path");
-    if (!path) return;
-    var def = my1lpXtraFindDefByPath(my1lpXtraGet(), path);
-    if (!def || !def.preProcess || typeof window[def.preProcess] !== "function") return;
-    var pre = await my1lpXtraRunPre(def, String(this.value || ""), null);
-    if (String(pre) !== String(this.value || "")) this.value = pre;
-    my1lpXtraLiveCheck(this);
-   });
+  el.addEventListener("blur", async function () {
+   var path = this.getAttribute("data-path");
+   if (!path) return;
+   var def = my1lpXtraFindDefByPath(my1lpXtraGet(), path);
+   if (!def || !def.preProcess || typeof window[def.preProcess] !== "function") return;
+   var pre = await my1lpXtraRunPre(def, String(this.value || ""), null);
+   if (String(pre) !== String(this.value || "")) this.value = pre;
+   my1lpXtraLiveCheck(this);
   });
-  document.querySelectorAll(".my1lpXph-rqOneOf-sel").forEach(function (sel) {
-   sel.addEventListener("change", function () {
-    var gp = this.getAttribute("data-path");
-    document.querySelectorAll('.my1lpXph-rqOneOf-item[data-rqoneof="' + gp + '"]').forEach(function (d) { d.style.display = "none"; });
-    var chosen = this.value;
-    if (chosen) {
-     var item = document.querySelector('.my1lpXph-rqOneOf-item[data-rqoneof="' + gp + '"][data-rqoneof-key="' + chosen + '"]');
-     if (item) {
-      item.style.display = "";
-      var def = my1lpXtraFindDefByPath(my1lpXtraGet(), gp + "__" + chosen);
-      if (def && def._origRq !== undefined) { def.rq = def._origRq; delete def._origRq; }
-     }
+ });
+ document.querySelectorAll(".my1lpXph-rqOneOf-sel").forEach(function (sel) {
+  sel.addEventListener("change", function () {
+   var gp = this.getAttribute("data-path");
+   document.querySelectorAll('.my1lpXph-rqOneOf-item[data-rqoneof="' + gp + '"]').forEach(function (d) { d.style.display = "none"; });
+   var chosen = this.value;
+   if (chosen) {
+    var item = document.querySelector('.my1lpXph-rqOneOf-item[data-rqoneof="' + gp + '"][data-rqoneof-key="' + chosen + '"]');
+    if (item) {
+     item.style.display = "";
+     var def = my1lpXtraFindDefByPath(my1lpXtraGet(), gp + "__" + chosen);
+     if (def && def._origRq !== undefined) { def.rq = def._origRq; delete def._origRq; }
     }
-   });
+   }
   });
- }
+ });
+}
 function my1lpXtraFindDefByPath(xtra, path) {
  if (!xtra || typeof xtra !== "object") return null;
  var parts = path.split("__");
@@ -611,7 +624,7 @@ function my1lpXtraCheckField(def, path, focusOnFail) {
   if (isFile) { var box = my1lpXtraQuery("my1lpXph-img-box", path); if (box) box.style.borderColor = "#dc3545"; }
   else el.style.borderColor = "#dc3545";
   if (focusOnFail) {
-   try { var t = isFile ? my1lpXtraQuery("my1lpXph-img-box", path) : el; t.focus(); t.scrollIntoView({ block: "center" }); } catch (e) {}
+   try { var t = isFile ? my1lpXtraQuery("my1lpXph-img-box", path) : el; t.focus(); t.scrollIntoView({ block: "center" }); } catch (e) { }
   }
   return false;
  };
@@ -622,8 +635,8 @@ function my1lpXtraCheckField(def, path, focusOnFail) {
   return true;
  };
  if (req && !val) return failLocal((def.lbl || path) + " is required");
-var ptrn = def.ptrn || def.pattern;
-  if (val && ptrn && typeof ptrn === "string") {
+ var ptrn = def.ptrn || def.pattern;
+ if (val && ptrn && typeof ptrn === "string") {
   var re = null;
   try { re = new RegExp(ptrn); } catch (e) { re = null; }
   if (re && !re.test(val)) return failLocal("Invalid " + (def.lbl || path));
@@ -668,56 +681,56 @@ function my1lpXtraValidate() {
    }
   }
  }
-  walk(xtra, "");
-   (function() {
-    function chkGroup(obj, basePath) {
-     for (var k in obj) {
-      if (!obj.hasOwnProperty(k)) continue;
-      var def = obj[k];
-      var path = basePath ? basePath + "__" + k : k;
-      if (!def || typeof def !== "object") continue;
-      if (my1lpXtraIsGroup(def)) {
-       var ro = def.rqOneOf;
-       if (ro && typeof ro === "object" && ro.length) {
-        var ch = my1lpXtraChildren(def);
-        var anyVal = false;
-        var anyVisible = false;
-        var lbls = [];
-        var firstVisiblePath = null;
-        var ddEl = my1lpXtraQuery("my1lpXph-rqOneOf-sel", path);
-        for (var i = 0; i < ro.length; i++) {
-         var fk = ro[i];
-         if (ch[fk] && ch[fk].lbl) lbls.push(ch[fk].lbl);
-         var cel = my1lpXtraQuery("my1lpXph-val", path + "__" + fk);
-         if (!cel) continue;
-         var celItem = cel.closest('.my1lpXph-rqOneOf-item');
-         if (celItem && celItem.style.display === "none") continue;
-         if (!anyVisible) { anyVisible = true; firstVisiblePath = path + "__" + fk; }
-         if (String(cel.value || "").trim()) { anyVal = true; break; }
-        }
-         if (!anyVal) {
-          ok = false;
-          if (!firstInvalid) {
-           firstInvalid = ddEl || (firstVisiblePath ? my1lpXtraQuery("my1lpXph-val", firstVisiblePath) : null) || null;
-          }
-          var errEl = !anyVisible
-           ? my1lpXtraQuery("my1lpXph-err", path + "__rqOneOfSel")
-           : (ddEl ? my1lpXtraQuery("my1lpXph-err", path + "__" + ro[0]) : (firstVisiblePath ? my1lpXtraQuery("my1lpXph-err", firstVisiblePath) : null));
-          if (errEl) {
-           errEl.textContent = !anyVisible ? "Required" : "Please enter at least one: " + lbls.join(", ");
-           errEl.style.display = "block";
-          }
-         }
+ walk(xtra, "");
+ (function () {
+  function chkGroup(obj, basePath) {
+   for (var k in obj) {
+    if (!obj.hasOwnProperty(k)) continue;
+    var def = obj[k];
+    var path = basePath ? basePath + "__" + k : k;
+    if (!def || typeof def !== "object") continue;
+    if (my1lpXtraIsGroup(def)) {
+     var ro = def.rqOneOf;
+     if (ro && typeof ro === "object" && ro.length) {
+      var ch = my1lpXtraChildren(def);
+      var anyVal = false;
+      var anyVisible = false;
+      var lbls = [];
+      var firstVisiblePath = null;
+      var ddEl = my1lpXtraQuery("my1lpXph-rqOneOf-sel", path);
+      for (var i = 0; i < ro.length; i++) {
+       var fk = ro[i];
+       if (ch[fk] && ch[fk].lbl) lbls.push(ch[fk].lbl);
+       var cel = my1lpXtraQuery("my1lpXph-val", path + "__" + fk);
+       if (!cel) continue;
+       var celItem = cel.closest('.my1lpXph-rqOneOf-item');
+       if (celItem && celItem.style.display === "none") continue;
+       if (!anyVisible) { anyVisible = true; firstVisiblePath = path + "__" + fk; }
+       if (String(cel.value || "").trim()) { anyVal = true; break; }
+      }
+      if (!anyVal) {
+       ok = false;
+       if (!firstInvalid) {
+        firstInvalid = ddEl || (firstVisiblePath ? my1lpXtraQuery("my1lpXph-val", firstVisiblePath) : null) || null;
        }
-       chkGroup(my1lpXtraChildren(def), path);
-       continue;
+       var errEl = !anyVisible
+        ? my1lpXtraQuery("my1lpXph-err", path + "__rqOneOfSel")
+        : (ddEl ? my1lpXtraQuery("my1lpXph-err", path + "__" + ro[0]) : (firstVisiblePath ? my1lpXtraQuery("my1lpXph-err", firstVisiblePath) : null));
+       if (errEl) {
+        errEl.textContent = !anyVisible ? "Required" : "Please enter at least one: " + lbls.join(", ");
+        errEl.style.display = "block";
+       }
       }
      }
+     chkGroup(my1lpXtraChildren(def), path);
+     continue;
     }
-    chkGroup(xtra, "");
-   })();
+   }
+  }
+  chkGroup(xtra, "");
+ })();
  if (firstInvalid) {
-  try { firstInvalid.focus(); firstInvalid.scrollIntoView({ block: "center" }); } catch (e) {}
+  try { firstInvalid.focus(); firstInvalid.scrollIntoView({ block: "center" }); } catch (e) { }
  }
  return ok;
 }
@@ -732,12 +745,12 @@ function my1lpXtraCollect() {
    var path = basePath ? basePath + "__" + k : k;
    if (!def || typeof def !== "object") continue;
    if (my1lpXtraIsGroup(def)) { dest[k] = {}; walk(my1lpXtraChildren(def), path, dest[k]); continue; }
-    var el = my1lpXtraQuery("my1lpXph-val", path);
-    if (el) {
-     var _roItem = el.closest('.my1lpXph-rqOneOf-item');
-     if (_roItem && _roItem.style.display === "none") continue;
-     dest[k] = el.value;
-    }
+   var el = my1lpXtraQuery("my1lpXph-val", path);
+   if (el) {
+    var _roItem = el.closest('.my1lpXph-rqOneOf-item');
+    if (_roItem && _roItem.style.display === "none") continue;
+    dest[k] = el.value;
+   }
   }
  }
  walk(xtra, "", out);
@@ -855,9 +868,9 @@ function initializeRegisterForm(container) {
   }, 500);
  }
 
-createOtpDigitInputsLP();
-  setupRegisterEventListeners(container);
-  my1lpXtraRender();
+ createOtpDigitInputsLP();
+ setupRegisterEventListeners(container);
+ my1lpXtraRender();
 }
 
 function setupFormSwitching(container, modalInstance) {
@@ -902,9 +915,12 @@ function setupLoginEventListeners(container) {
  }
 
  if (forgotPassword) {
-  forgotPassword.addEventListener('click', function (e) {
+  forgotPassword.addEventListener('click', async function (e) {
    e.preventDefault();
-   showAlertModal('Please contact support to reset your password.');
+   container.innerHTML = set_innerHTML_of_register();
+   initializeRegisterForm(container);
+   setupFormSwitching(container, modalInstance);
+   await showsuccessmodal('Re-register');
   });
  }
 }
@@ -1303,7 +1319,13 @@ async function handleCompleteRegistration(container) {
   const localName = container.querySelector('#localName').value.trim();
   const otp = getOtpFromInputsLP();
 
-  await performRegistration(countryCode, mobileNumber, localName, otp, password);
+  const registered = await performRegistration(countryCode, mobileNumber, localName, otp, password);
+  if (registered) {
+   // Auto login right after a successful registration.
+   hideFullScreenLoaderLP();
+   showFullScreenLoaderLP('Logging you in...');
+   await performLogin(countryCode, mobileNumber, password);
+  }
  } catch (error) {
   console.error('Registration error:', error);
   showAlertModal('Registration failed. Please try again.');
@@ -1777,14 +1799,15 @@ async function performRegistration(countryCode, mobileNumber, localName, otp, pa
   const result = await response.json();
 
   if (result.su == 1) {
-   showAlertModal("You are registered. Please login with this password.", 'success');
-   location.reload();
+   return true;
   } else {
    showAlertModal(result.ms || 'Registration failed');
+   return false;
   }
  } catch (error) {
   console.error('Registration error:', error);
   showAlertModal('Registration failed. Please try again.');
+  return false;
  }
 }
 
@@ -1845,12 +1868,10 @@ async function performLogin(countryCode, mobileNumber, password) {
         }
         if (typeof function2runAfter_P_Login !== 'undefined') {
          function2runAfter_P_Login(result);
-        } else {
-         if (!result.xtra)
-          window.showsuccessmodal("Login successful!", 'success');
         }
         const modal = bootstrap.Modal.getInstance(document.getElementById('loginPasswordModal'));
         if (modal) { modal.hide(); }
+
         if (result.xtra && result.xtra.fn) {
          const fnName = "hndlRspo" + result.xtra.fn;
          const handler = window[fnName];
@@ -1996,10 +2017,25 @@ function logPout() {
  }, 300);
 }
 
+// Toggle password visibility (eye icon) for login/register password fields.
+function togglePasswordVisibilityLP(inputId, btn) {
+ const input = document.getElementById(inputId);
+ if (!input) return;
+ const show = input.type === 'password';
+ input.type = show ? 'text' : 'password';
+ const icon = btn.querySelector('i');
+ if (icon) {
+  icon.classList.toggle('fa-eye', !show);
+  icon.classList.toggle('fa-eye-slash', show);
+ }
+ btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+}
+
 // Add custom styles
 function addCustomStylesP() {
  const style = document.createElement('style');
  style.textContent = `
+   #confirmPasswordError:not(.d-none){display:block!important}
    .cntrsec{color : #dc3545; font-size : 200%;}
 [id$="DigitsContainer"] input.form-control{border-color:#6c757d!important;font-size:16px!important;color:#000!important;background-color:#fff!important;padding:.375rem 0.25rem!important}[id$="DigitsContainer"] input.form-control:focus{border-color:#495057!important;box-shadow:0 0 0 .2rem rgb(108 117 125 / .25)!important;color:#000!important;background-color:#fff!important}#lp-otpDigitsContainer input.form-control{border-color:#6c757d!important;font-size:16px!important;color:#000!important;background-color:#fff!important;padding:.375rem 0.25rem!important;text-transform:uppercase!important}#lp-otpDigitsContainer input.form-control:focus{border-color:#495057!important;box-shadow:0 0 0 .2rem rgb(108 117 125 / .25)!important;color:#000!important;background-color:#fff!important}[id$="DigitsContainer"] input,#lp-otpDigitsContainer input{-webkit-text-fill-color:#000!important}#lp-resendOtp:disabled{cursor:not-allowed;opacity:.6}#lp-resendOtp.btn-warning{background-color:#ffc107!important;border-color:#ffc107!important;color:#212529!important}.blink-text{animation:blinkAnim 1s step-end infinite}@keyframes blinkAnim{0%,100%{opacity:1}50%{opacity:0}}
 `;
@@ -2337,11 +2373,11 @@ function generateLognThemeP(cssText) {
  css += ".modal .text-primary, .modal a.text-primary { color: " + brandHex + " !important; }\n";
  css += "#forgotPassword { color: " + brandHex + " !important; }\n";
  css += "#forgotPassword:hover { color: " + brandDark + " !important; }\n";
-css += "#lp-mobileDigitsContainer input.form-control, #lp-registerMobileDigitsContainer input.form-control, #lp-otpDigitsContainer input.form-control, #lp-loginCountryCode.form-select, #lp-registerCountryCode.form-select, #loginPassword.form-control, #regPassword.form-control, #confirmPassword.form-control, #localName.form-control { border-color: #495057 !important; }\n";
-  if (glow) {
-   css += "#lp-mobileDigitsContainer input.form-control:focus, #lp-registerMobileDigitsContainer input.form-control:focus, #lp-otpDigitsContainer input.form-control:focus, #lp-loginCountryCode.form-select:focus, #lp-registerCountryCode.form-select:focus, #loginPassword.form-control:focus, #regPassword.form-control:focus, #confirmPassword.form-control:focus, #localName.form-control:focus { border-color: #495057 !important; box-shadow: 0 0 0 0.2rem " + glow + " !important; }\n";
-  } else {
-   css += "#lp-mobileDigitsContainer input.form-control:focus, #lp-registerMobileDigitsContainer input.form-control:focus, #lp-otpDigitsContainer input.form-control:focus, #lp-loginCountryCode.form-select:focus, #lp-registerCountryCode.form-select:focus, #loginPassword.form-control:focus, #regPassword.form-control:focus, #confirmPassword.form-control:focus, #localName.form-control:focus { border-color: #495057 !important; }\n";
+ css += "#lp-mobileDigitsContainer input.form-control, #lp-registerMobileDigitsContainer input.form-control, #lp-otpDigitsContainer input.form-control, #lp-loginCountryCode.form-select, #lp-registerCountryCode.form-select, #loginPassword.form-control, #regPassword.form-control, #confirmPassword.form-control, #localName.form-control { border-color: #495057 !important; }\n";
+ if (glow) {
+  css += "#lp-mobileDigitsContainer input.form-control:focus, #lp-registerMobileDigitsContainer input.form-control:focus, #lp-otpDigitsContainer input.form-control:focus, #lp-loginCountryCode.form-select:focus, #lp-registerCountryCode.form-select:focus, #loginPassword.form-control:focus, #regPassword.form-control:focus, #confirmPassword.form-control:focus, #localName.form-control:focus { border-color: #495057 !important; box-shadow: 0 0 0 0.2rem " + glow + " !important; }\n";
+ } else {
+  css += "#lp-mobileDigitsContainer input.form-control:focus, #lp-registerMobileDigitsContainer input.form-control:focus, #lp-otpDigitsContainer input.form-control:focus, #lp-loginCountryCode.form-select:focus, #lp-registerCountryCode.form-select:focus, #loginPassword.form-control:focus, #regPassword.form-control:focus, #confirmPassword.form-control:focus, #localName.form-control:focus { border-color: #495057 !important; }\n";
  }
  return css;
 }

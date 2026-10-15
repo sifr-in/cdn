@@ -13,10 +13,16 @@ loadScript('https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js', f
   // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
 
-  // Initialize messaging here
-  if (typeof firebase !== 'undefined' && firebase.messaging) {
+  // Initialize messaging here.
+  // Firebase's WindowMessagingFactory runs navigator.serviceWorker.addEventListener(...)
+  // during construction, so messaging can only be created when a service worker exists.
+  // navigator.serviceWorker is undefined in insecure contexts (file://, or http on a LAN
+  // IP), so test the object itself rather than 'serviceWorker' in navigator.
+  if (typeof firebase !== 'undefined' && firebase.messaging && !!navigator.serviceWorker) {
    messaging = firebase.messaging();
    console.log('Firebase messaging initialized globally');
+  } else {
+   console.log('Skipped Firebase messaging init: service worker unavailable');
   }
 
   // Now that Firebase is initialized, we can proceed with PWA initialization
@@ -942,7 +948,7 @@ if (typeof my1uzr !== 'undefined' && my1uzr && my1uzr.worknOnPg && window[my1uzr
 
  function initFirebaseMessaging() {
   // Check if messaging is already initialized, if not, initialize it
-  if (!messaging && typeof firebase !== 'undefined' && firebase.messaging) {
+  if (!messaging && typeof firebase !== 'undefined' && firebase.messaging && !!navigator.serviceWorker) {
    messaging = firebase.messaging();
    console.log('Firebase messaging initialized in initFirebaseMessaging');
   }
