@@ -57,7 +57,7 @@ window.showelsemodal = function (errorMsg) {
  if (window.suppressModals) { window.suppressModals = false; return false; }
  // Create overlay
  var overlay = document.createElement('div');
- overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:flex-start;justify-content:center;';
+ overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2147483647;display:flex;align-items:flex-start;justify-content:center;';
 
  // Create modal
  var modal = document.createElement('div');
@@ -96,7 +96,7 @@ window.showelsemodal = function (errorMsg) {
 window.showsuccessmodal = function (successMsg, callback) {
  // Create overlay
  var overlay = document.createElement('div');
- overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:flex-start;justify-content:center;';
+ overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2147483647;display:flex;align-items:flex-start;justify-content:center;';
 
  // Create modal
  var modal = document.createElement('div');
@@ -165,16 +165,18 @@ window.showConfirmModal = function (message) {
     if (md) {
      md.classList.add('modal-dialog-centered');
      md.style.maxWidth = 'auto';
-     md.style.zIndex = '9999';
+     md.style.zIndex = '2147483647';
     }
-    modalElement.style.zIndex = '99999';
+    modalElement.style.zIndex = '2147483647';
+    const bds = document.querySelectorAll('.modal-backdrop');
+    if (bds.length) bds[bds.length - 1].style.zIndex = '2147483646';
    }, 50);
 
    let settled = false;
    contentElement.innerHTML = `
 <div class="p-4">
 <div class="text-center mb-3">
-<i class="fas fa-question-circle text-primary" style="font-size:48px;"></i>
+<i class="fas fa-question-circle text-warning" style="font-size:48px;"></i>
 </div>
 <p class="text-center mb-4" style="white-space: pre-line;">${message}</p>
 <div class="d-flex justify-content-center gap-2">
@@ -375,7 +377,7 @@ function createDynamicLoader(message = 'Loading...', countdown = null) {
  loader.style.display = 'flex';
  loader.style.justifyContent = 'center';
  loader.style.alignItems = 'center';
- loader.style.zIndex = '9999';
+ loader.style.zIndex = '2147483647';
  loader.style.flexDirection = 'column';
 
  // Create spinner container
@@ -1432,13 +1434,13 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
       if (t1170)
        await loadExe2Fn(t1170, [], [1]);
       else
-       await loadExecFn('open_shoLgnO', 'open_shoLgnO', ['dv_to_set_open_shoLgnO_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@90c6519/cmn/my1lo.js', []);
+       await loadExecFn('open_shoLgnO', 'open_shoLgnO', ['dv_to_set_open_shoLgnO_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/cmn/my1lo.js', []);
      } else {
       const t1176 = getCacheId("my1lp.js");
       if (t1176)
        await loadExe2Fn(t1176, [], [1]);
       else
-       await loadExecFn('open_shoLgnP', 'open_shoLgnP', ['dv_to_set_open_shoLgnP_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@c68ab18/cmn/my1lp.js', []);
+       await loadExecFn('open_shoLgnP', 'open_shoLgnP', ['dv_to_set_open_shoLgnP_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@fbf62ad/cmn/my1lp.js', []);
      }
      window.suppressModals = true;
      return;
@@ -1468,7 +1470,7 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
      if (loaderId === null) {
       dynamicLoaderId = 'loader-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
       const loaderHtml = `
-<div id="${dynamicLoaderId}" class="d-flex justify-content-center align-items-center" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;">
+<div id="${dynamicLoaderId}" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(43,22,14,0.5); backdrop-filter: blur(4px); z-index: 2147483647;">
 <div class="spinner-border text-light" role="status">
 <span class="visually-hidden">Loading...</span>
 </div>
@@ -1938,29 +1940,84 @@ if (currentYearElement) {
  currentYearElement.textContent = new Date().getFullYear();
 }
 
-function playAud(audioUrl, hiddenAudioPlayer = "hiddenIframeToPlayDriveAud") {
+// ---- Global audio playing-state tracking (single source of truth) ----
+const mrPlayingAudios = new Set();
+function mrEmitAudioState() {
  try {
-  // Extract file ID from various Google Drive URL formats
-  const fileId = extractGoogleDriveFileId(audioUrl);
+  document.dispatchEvent(new CustomEvent("mraudiostate", { detail: { playing: mrPlayingAudios.size > 0 } }));
+ } catch (e) { }
+}
+function mrTrackAudio(audio) {
+ if (!audio) return audio;
+ const onPlay = () => { mrPlayingAudios.add(audio); mrEmitAudioState(); };
+ const onStop = () => { mrPlayingAudios.delete(audio); mrEmitAudioState(); };
+ audio.addEventListener("playing", onPlay);
+ audio.addEventListener("pause", onStop);
+ audio.addEventListener("ended", onStop);
+ audio.addEventListener("error", onStop);
+ return audio;
+}
 
-  if (!fileId) {
-   // Fallback for non-Google Drive URLs
-   const audio = new Audio(audioUrl);
-   return audio.play().then(() => audio);
+// Resolve a raw value (direct URL, Drive URL, or bare Drive file ID) to a playable URL.
+function mrResolveAudioUrl(raw) {
+ if (raw === null || raw === undefined) return "";
+ const s = String(raw).trim();
+ if (!s) return "";
+ if (/^https?:\/\//i.test(s)) return s;
+ const id = extractGoogleDriveFileId(s) ||
+  (/^[A-Za-z0-9_-]{10,}$/.test(s) ? s : null);
+ if (id) return `https://my1.in/curl.php?id=${encodeURIComponent(id)}`;
+ return s;
+}
+
+// ---- Shared audio element cache (preloaded in background, reused on play) ----
+const mrAudioCache = new Map();
+function mrGetAudio(raw) {
+ const src = mrResolveAudioUrl(raw);
+ if (!src) return null;
+ let audio = mrAudioCache.get(src);
+ if (audio) return audio;
+ audio = mrTrackAudio(new Audio(src));
+ audio.preload = "auto";
+ mrAudioCache.set(src, audio);
+ try { audio.load(); } catch (e) { }
+ return audio;
+}
+
+// Preload every wajiw sound in the background so playback is instant (never null).
+function preloadWajiwSounds(list) {
+ if (!Array.isArray(list)) return;
+ let bucket = null;
+ try {
+  if (typeof my1uzr !== "undefined" && my1uzr && my1uzr.worknOnPg && window[my1uzr.worknOnPg]) {
+   bucket = window[my1uzr.worknOnPg].wajiwSnds = window[my1uzr.worknOnPg].wajiwSnds || {};
   }
+ } catch (e) { }
+ for (let i = 0; i < list.length; i++) {
+  const item = list[i];
+  if (!item || item.e === undefined || item.e === null || item.e === "") continue;
+  const audio = mrGetAudio(item.e);
+  if (audio && bucket) bucket[String(item.a)] = audio;
+ }
+}
 
-  // Create or reuse hidden iframe
-  let iframe = document.getElementById(hiddenAudioPlayer);
-  if (!iframe) {
-   iframe = createHiddenIframe();
-  }
+function playAud(audioUrl) {
+ try {
+  const src = mrResolveAudioUrl(audioUrl);
+  if (!src) return Promise.reject(new Error("No audio source"));
 
-  // Use Google Drive's embed preview with autoplay
-  const embedUrl = `https://drive.google.com/file/d/${fileId}/preview?autoplay=1`;
-  iframe.src = embedUrl;
-
-  console.log('Playing audio via hidden iframe:', embedUrl);
-  return Promise.resolve(iframe);
+  const audio = mrGetAudio(audioUrl) || mrTrackAudio(new Audio(src));
+  //stop any other audio so a new play never overlaps the previous one
+  Array.from(mrPlayingAudios).forEach((other) => {
+   if (other !== audio && typeof other.pause === "function") {
+    try { other.pause(); } catch (e) { }
+   }
+  });
+  try { audio.currentTime = 0; } catch (eC) { }
+  return audio.play().then(() => audio).catch((err) => {
+   console.warn('Audio play failed:', src, err && err.message);
+   throw err;
+  });
 
  } catch (error) {
   console.error('Error playing audio:', error);
@@ -1985,24 +2042,6 @@ function extractGoogleDriveFileId(url) {
   }
  }
  return null;
-}
-
-function createHiddenIframe(hiddenAudioPlayer) {
- const iframe = document.createElement('iframe');
- iframe.id = hiddenAudioPlayer;
- iframe.style.cssText = `
-position: fixed;
-top: -1000px;
-left: -1000px;
-width: 1px;
-height: 1px;
-border: none;
-opacity: 0;
-pointer-events: none;
-visibility: hidden;
-`;
- document.body.appendChild(iframe);
- return iframe;
 }
 
 // ================= UNIVERSAL BACK BUTTON HANDLER =================
@@ -2717,17 +2756,23 @@ window.injectTDPickerCss = function () {
  const styleEl = document.createElement('style');
  styleEl.id = 'td-picker-self-contained-css';
  styleEl.innerHTML = `
- .tempus-dominus-widget.show { position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; margin: 0 !important; z-index: 9999 !important; box-shadow: 0 .5rem 1rem rgba(0,0,0,.35); border-radius: 8px; max-height: 85vh; overflow-y: auto }
- .tempus-dominus-widget .arrow { display: none }
- .tempus-dominus-widget .toolbar [data-action="close"] { width: auto; height: auto; padding: .05rem .28rem; font-size: .72rem; line-height: 1; border-radius: .17rem; color: #fff }
- .tempus-dominus-widget .toolbar [data-action="close"]:hover, .tempus-dominus-widget .toolbar [data-action="close"]:focus { color: #fff }
- .tempus-dominus-widget .toolbar { display: grid !important; grid-template-columns: 1fr auto auto auto 1fr !important; grid-auto-rows: 40px !important; align-items: center !important }
- .tempus-dominus-widget .toolbar [data-action="today"] { order: 1 !important; justify-self: start !important; margin-left: 1.4rem !important }
- .tempus-dominus-widget .toolbar .td-zero-btn { order: 2 !important; position: static !important; transform: none !important; width: auto !important; height: auto !important; padding: .05rem .28rem; font-size: .72rem; line-height: 1; border-radius: .17rem; color: #fff }
- .tempus-dominus-widget .toolbar .td-clear-btn { order: 3 !important; position: static !important; transform: none !important; width: auto !important; height: auto !important; padding: .05rem .28rem; font-size: .72rem; line-height: 1; border-radius: .17rem; color: #fff }
- .tempus-dominus-widget .toolbar .td-ok-btn { order: 4 !important; position: static !important; transform: none !important }
- .tempus-dominus-widget .toolbar [data-action="togglePicker"] { order: 5 !important; justify-self: end !important; margin-right: 1.4rem !important }
-`;
+ .tempus-dominus-widget { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif }
+ .tempus-dominus-widget *, .tempus-dominus-widget *::before, .tempus-dominus-widget *::after { box-sizing: border-box }
+ .tempus-dominus-widget.show { position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; margin: 0 !important; z-index: 9999 !important; max-width: 95vw; max-height: 85vh; overflow-y: auto; border-radius: 8px; box-shadow: 0 .5rem 1rem rgba(0,0,0,.35) }
+ .tempus-dominus-widget .arrow { display: none !important }
+ .tempus-dominus-widget .toolbar { display: flex !important; align-items: center !important; flex-wrap: wrap !important; gap: .4rem !important; padding: .5rem .6rem !important }
+ .tempus-dominus-widget .toolbar > * { order: 0; position: static !important; transform: none !important; width: auto !important; height: auto !important; min-height: 2.4rem; margin: 0 !important; padding: .35rem .7rem !important; gap: .35rem; font-size: .8rem !important; line-height: 1.1 !important; border: 1px solid transparent; border-radius: .375rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; background: transparent; color: #333 }
+ .tempus-dominus-widget .toolbar > *:hover, .tempus-dominus-widget .toolbar > *:focus { filter: brightness(1.06) }
+ .tempus-dominus-widget .toolbar [data-action="today"] { order: 0 !important; margin-right: auto !important; border-color: rgba(0,0,0,.15) !important; color: #333 !important }
+ .tempus-dominus-widget .toolbar .td-zero-btn { order: 1 !important; background: #6c757d !important; border-color: #6c757d !important; color: #fff !important }
+ .tempus-dominus-widget .toolbar .td-clear-btn { order: 2 !important; background: #6c757d !important; border-color: #6c757d !important; color: #fff !important }
+ .tempus-dominus-widget .toolbar .td-ok-btn { order: 3 !important; background: #0d6efd !important; border-color: #0d6efd !important; color: #fff !important }
+ .tempus-dominus-widget .toolbar [data-action="togglePicker"] { order: 4 !important; border-color: rgba(0,0,0,.15) !important; color: #333 !important }
+ .tempus-dominus-widget .date-container-days { grid-auto-rows: 48px }
+ .tempus-dominus-widget .time-container-hour, .tempus-dominus-widget .time-container-minute, .tempus-dominus-widget .time-container-clock { grid-auto-rows: 48px }
+ .tempus-dominus-widget.show.date-container { min-height: 380px }
+ .tempus-dominus-widget.show.time-container { min-height: 250px }
+ `;
  document.head.appendChild(styleEl);
 };
 
@@ -2815,8 +2860,8 @@ window.initDateTimePicker = async function (inputId, options) {
   // Turn the toolbar close (x) action into a Bootstrap-primary OK button
   const closeAction = widget.querySelector('[data-action="close"]');
   if (closeAction && !closeAction.dataset.tdOk) {
-   closeAction.classList.add('btn', 'btn-primary', 'btn-sm', 'td-ok-btn', 'p-2', 'fs-7');
-   closeAction.innerHTML = '<i class="fa-solid fa-check me-1"></i>OK';
+   closeAction.classList.add('td-ok-btn');
+   closeAction.innerHTML = '<i class="fa-solid fa-check"></i>OK';
    closeAction.title = 'OK';
    closeAction.dataset.tdOk = '1';
   }
@@ -2826,8 +2871,8 @@ window.initDateTimePicker = async function (inputId, options) {
   if (mode === 'datetime' && !widget.querySelector('.td-zero-btn')) {
    const zeroAction = document.createElement('button');
    zeroAction.type = 'button';
-   zeroAction.className = 'btn btn-secondary btn-sm td-zero-btn p-2 fs-7 me-2';
-   zeroAction.innerHTML = '<i class="fa-solid fa-bolt me-1"></i>Zero';
+   zeroAction.className = 'td-zero-btn';
+   zeroAction.innerHTML = '<i class="fa-solid fa-bolt"></i>Zero';
    zeroAction.title = 'Set time to 00:00 (same date)';
    zeroAction.addEventListener('click', () => {
     const base = committed || el.value || window.formatForPicker(new Date());
@@ -2849,8 +2894,8 @@ window.initDateTimePicker = async function (inputId, options) {
   if (!widget.querySelector('.td-clear-btn')) {
    const clearAction = document.createElement('button');
    clearAction.type = 'button';
-   clearAction.className = 'btn btn-secondary btn-sm td-clear-btn p-2 fs-7 me-2';
-   clearAction.innerHTML = '<i class="fa-solid fa-eraser me-1"></i>Clear';
+   clearAction.className = 'td-clear-btn';
+   clearAction.innerHTML = '<i class="fa-solid fa-eraser"></i>Clear';
    clearAction.title = 'Clear the selected value';
    clearAction.addEventListener('click', () => {
     clearValue();
@@ -2993,6 +3038,7 @@ window.closeAllModalsUniversally = closeAllModalsUniversally;
 window.set_owner = set_owner;
 window.chkModuLstAgainstFNF = chkModuLstAgainstFNF;
 window.clearPayload0 = clearPayload0;
+window.preloadWajiwSounds = preloadWajiwSounds;
 
 (function bootLoadAppScr() {
  const src = document.currentScript ? document.currentScript.src : '';
@@ -3013,7 +3059,7 @@ window.clearPayload0 = clearPayload0;
 
  const appPath = vMatch[1].replace(/\.js$/, '.min.js');
  const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + hash + '/' + appPath;
- //const url = 'ks.js';
+ //const url = 'git/mr.js';
  set_owner();
  loadPromiseScript(url);
 })();

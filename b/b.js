@@ -15,6 +15,7 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
  // window.burgerMenuItems.push(...menuItems);
  // if (typeof createBurgerMenuElements === 'function') createBurgerMenuElements();
 };
+const appData = {};
 // const xtraFlds_fildsToNeeds = {
 //   "k": {
 //     "lbl": "additional info 1",
@@ -73,6 +74,15 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
 // ])
 // Make it dynamecally;
 // ```
+  window[my1uzr.worknOnPg].clientConfig = {};
+// Expose the client config as a global alias. Some CDN-loaded scripts (e.g. bePr.js
+// used by the print flow) reference a bare `clientConfig` instead of
+// window[my1uzr.worknOnPg].clientConfig. A getter keeps them in sync so the global
+// is never stale or undefined (which caused "clientConfig is not defined" on print).
+Object.defineProperty(window, 'clientConfig', {
+ get() { return window[my1uzr.worknOnPg].clientConfig; },
+ configurable: true
+});
 const showEyeMesuremetsTableInBill = 0;// 0 or undefiend const - don't show, 1 - show tables
 const billingModule = 1;//0 or null = normal; 1= garge / services ; 2=laundry;
 appcss = `
@@ -207,17 +217,13 @@ function formatShortDisplay(val) {
   { "a": 7, "u": "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" },
   { "a": 8, "u": "https://code.jquery.com/jquery-3.6.0.min.js" },
   { "a": 9, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@asdf2e1/b/b.min.js", "c": "set_bill_innerHTML", "r": "set_bill_innerHTML" },
-  //{ "a": 9, "u": "git/b.js", "c": "set_bill_innerHTML", "r": "set_bill_innerHTML" },
   { "a": 10, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@14002e4/b/ba.min.js", "c": "open_bil_inward", "r": "open_bil_inward" },
-  //{ "a": 11, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@bc0a572/b/bn.min.js", "c": "set_add_itm_nw_innerHTML", "r": "set_add_itm_nw_innerHTML" },
   { "a": 11, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@cc71958/b/bn.js", "c": "set_add_itm_nw_innerHTML", "r": "set_add_itm_nw_innerHTML" },
-  { "a": 12, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/b/bp.min.js", "c": "set_deup_prod_innerHTML", "r": "set_deup_prod_innerHTML" },
-  //{ "a": 12, "u": "bp.js", "c": "set_deup_prod_innerHTML", "r": "set_deup_prod_innerHTML" },
+  { "a": 12, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/b/bp.js", "c": "set_deup_prod_innerHTML", "r": "set_deup_prod_innerHTML" },
   { "a": 13, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@a30ac23/b/bPrOp.min.css" },
   { "a": 14, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/ei.min.js", "c": "open_entind_crud", "r": "open_entind_crud" },
-  //{ "a": 14, "u": "ei.js", "c": "open_entind_crud", "r": "open_entind_crud" },
-  { "a": 15, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1lp.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
-  { "a": 16, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@4d95515/cmn/my1ap.min.js" },
+  { "a": 15, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1lp.min.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
+  { "a": 16, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1ap.min.js" },
   { "a": 17, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/cmn/my1xi.min.js" },
   { "a": 18, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@24bf6ca/cmn/my1drv.min.js" },
   { "a": 19, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1e3.min.js", "c": "fileUploadTesting", "r": "fileUploadTesting" },
@@ -225,13 +231,11 @@ function formatShortDisplay(val) {
   { "a": 21, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@cc71958/b/be.js", "c": "set_be_innerHTML", "r": "set_be_innerHTML" },
   { "a": 22, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@31fba32/b/bePr.min.js", "c": "sho_bepr_mdl", "r": "sho_bepr_mdl" },
   { "a": 23, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/b/be_da.js", "c": "showPrintSettings", "r": "showPrintSettings" },
-  //{ "a": 23, "u": "be_da.js", "c": "showPrintSettings", "r": "showPrintSettings" },
-  { "a": 24, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1img.js", "c": "open_addimage", "r": "open_addimage" },
-  //{ "a": 24, "u": "my1img.js", "c": "open_addimage", "r": "open_addimage" },
+  { "a": 24, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1img.min.js", "c": "open_addimage", "r": "open_addimage" },
   { "a": 25, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1236a32/cmn/clrChe.js", "c": "showClearCacheModal", "r": "showClearCacheModal" },
-  { "a": 26, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/mr/bi.js", "c": "set_bill_Inverd_innerHTML", "r": "set_bill_Inverd_innerHTML" },
-  { "a": 27, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/mr/get_data.js", "c": "set_get_data_innerHTML", "r": "set_get_data_innerHTML" },
-  { "a": 28, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/mr/rep_coll.js", "c": "set_rep_coll_innerHTML", "r": "set_rep_coll_innerHTML" },
+  { "a": 26, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/b/bi.js", "c": "set_bill_Inverd_innerHTML", "r": "set_bill_Inverd_innerHTML" },
+  { "a": 27, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/b/get_data.js", "c": "set_get_data_innerHTML", "r": "set_get_data_innerHTML" },
+  { "a": 28, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/b/rep_coll.js", "c": "set_rep_coll_innerHTML", "r": "set_rep_coll_innerHTML" },
   { "a": 29 },
   { "a": 30, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
  ];
@@ -242,7 +246,7 @@ function formatShortDisplay(val) {
   item1 = csh1.find(x => x.a === 29);
   if (item1) {
    Object.assign(item1, {
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/mr/shoRegItm.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/b/shoRegItm.js",
     c: "showAddNormalItemModal",
     r: "showAddNormalItemModal"
    });
@@ -251,7 +255,7 @@ function formatShortDisplay(val) {
   item1 = csh1.find(x => x.a === 29);
   if (item1) {
    Object.assign(item1, {
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/mr/shoCarwork.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/b/shoCarwork.js",
     c: "showAddCarWorkModal",
     r: "showAddCarWorkModal"
    });
@@ -260,7 +264,7 @@ function formatShortDisplay(val) {
   item1 = csh1.find(x => x.a === 29);
   if (item1) {
    Object.assign(item1, {
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/mr/shoCarwork.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/b/shoCarwork.js",
     c: "showAddCarWorkModal",
     r: "showAddCarWorkModal"
    });
@@ -362,6 +366,11 @@ function formatShortDisplay(val) {
  let mostUsedItems = {}; // Track item usage
  let receivedAmounts = []; // Track received payments
 
+ // Bill being edited (null = new bill). Must be declared before the initial
+ // set_bill_innerHTML(...) render below, which reaches refreshGrandTotals()
+ // and reads this binding (avoids a temporal-dead-zone error).
+ let billSelectedToUpdate = null;
+
  let receiptDatePicker = null, deliveryDatePicker = null, receivedDateTimePicker = null;
 
  function getGoogleDriveImageUrl(value, thumbnail) {
@@ -424,7 +433,11 @@ function formatShortDisplay(val) {
                 <span>Manage Products</span>
             </div>
 
-            <div class="menu-item" onclick="(async()=>{await loadExe2Fn(26,[],[1]);})()">
+            <!-- <div class="menu-item" onclick="(async()=>{await loadExe2Fn(26,[],[1]);})()">
+                <i class="fas fa-square-plus"></i>
+                <span>Bill Inward</span>
+            </div> -->
+            <div class="menu-item" onclick="window.showelsemodal('This service is currently under development.');">
                 <i class="fas fa-square-plus"></i>
                 <span>Bill Inward</span>
             </div>
@@ -468,9 +481,6 @@ function formatShortDisplay(val) {
  try {
   let result1;
   try {
-   if (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].usdInAndroWv === 1)
-    result1 = await loadCshScriptsSequentially(2, 4, 5, 17, 16);
-   else
     result1 = await loadCshScriptsSequentially(2, 4, 5, 17, 16);
   } catch (loadErr) {
    console.warn('Some scripts failed, continuing with available ones');
@@ -538,7 +548,7 @@ function formatShortDisplay(val) {
    console.log(`Only ${result1.loadedCount}/${result1.totalScripts} scripts loaded`);
   }
 
-  window[my1uzr.worknOnPg].clientConfig = {};
+
   fetch('b.da')
    .then(response => response.json())
    .then(config => {
@@ -596,7 +606,6 @@ function formatShortDisplay(val) {
   get() { return billTableRowId; },
   set(v) { billTableRowId = v; }
  });
- let billSelectedToUpdate = null;
  window.refreshStoredEyeMeasurements = async function () {
   if (shoEyeMsrmntTbl) stored_eye_msrmnt = await dbDexieManager.getAllRecords(dbnm, "be") || [];
  };
@@ -605,6 +614,7 @@ function formatShortDisplay(val) {
  let globalCashInfo = [];
 
  // QR Scanner variables
+ const QR_SCANNER_CDN = 'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
  let continuousQRMode = false;
  let qrScannerActive = false;
  let currentQRScanner = null;
@@ -2034,6 +2044,109 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
   playSound('https://bigsoundbank.com/UPLOAD/mp3/1417.mp3');
 
   await loadExe2Fn(22, [billTableRowId], []);
+
+  // Make the invoice preview (paper) adapt to the available modal/viewport space
+  initResponsiveInvoicePreview();
+ }
+
+ // Make #previewMain (the "paper") responsive: instead of the fixed px size
+ // applied by the remote bePr.js, it fills the available width and its height
+ // follows the paper aspect ratio automatically. Uses CSS `zoom` so the layout
+ // (and centering) reflows correctly; it never affects the image download,
+ // which clones the invoice into its own element.
+ function fitInvoicePreview() {
+  const previewMain = document.querySelector('#beprModal #previewMain') || document.querySelector('#previewMain');
+  if (!previewMain) return;
+  const display = previewMain.closest('.preview-display');
+  if (!display) return;
+
+  // Base (unzoomed) paper size as set inline by applyPaperSettings()
+  const curZoom = parseFloat(previewMain.style.zoom) || 1;
+  const baseW = parseFloat(previewMain.style.width) || (previewMain.offsetWidth / curZoom);
+  const baseH = parseFloat(previewMain.style.height) || (previewMain.offsetHeight / curZoom);
+  if (!baseW || !baseH) return;
+
+  const cs = getComputedStyle(display);
+  const availW = display.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  if (availW <= 0) return;
+
+  // Responsive: make the paper fill the available width (width/height "auto").
+  // Height follows the paper's aspect ratio automatically, so the preview grows
+  // and shrinks with the screen; `.preview-display` scrolls if it gets tall.
+  let scale = availW / baseW;
+  scale = Math.max(0.1, Math.min(scale, 6));
+
+  previewMain.style.flexShrink = '0'; // never let the flex container distort the paper
+  previewMain.style.zoom = scale;
+ }
+ window.fitInvoicePreview = fitInvoicePreview;
+
+ // Make the invoice content (#invoiceContentMain) exactly match the paper
+ // (#previewMain) size. The remote bePr.js only sets top/left on
+ // #printContentArea, so it shrink-wraps the content instead of the paper.
+ // Forcing the content area to the paper's (unzoomed) size makes the invoice
+ // fill the page; longer invoices scroll inside it.
+ function fitInvoiceContent() {
+  const previewMain = document.querySelector('#beprModal #previewMain') || document.querySelector('#previewMain');
+  const printContent = document.querySelector('#beprModal #printContentArea') || document.querySelector('#printContentArea');
+  const invoice = document.querySelector('#beprModal #invoiceContentMain') || document.querySelector('#invoiceContentMain');
+  if (!previewMain || !printContent || !invoice) return;
+
+  // Base (unzoomed) paper size as set inline by applyPaperSettings()
+  const curZoom = parseFloat(previewMain.style.zoom) || 1;
+  const baseW = parseFloat(previewMain.style.width) || (previewMain.offsetWidth / curZoom);
+  const baseH = parseFloat(previewMain.style.height) || (previewMain.offsetHeight / curZoom);
+  if (!baseW || !baseH) return;
+
+  // Content area = exactly the paper ("fill the paper"; position is ignored)
+  printContent.style.boxSizing = 'border-box';
+  printContent.style.top = '0';
+  printContent.style.left = '0';
+  printContent.style.width = baseW + 'px';
+  printContent.style.height = baseH + 'px';
+  printContent.style.overflow = 'hidden';
+
+  // Invoice fills the content area; scrolls if longer than the page
+  invoice.style.width = '100%';
+  invoice.style.height = '100%';
+  invoice.style.overflow = 'auto';
+ }
+ window.fitInvoiceContent = fitInvoiceContent;
+
+ // Fit both the paper (to the screen) and the invoice (to the paper).
+ function refreshResponsivePreview() {
+  fitInvoiceContent();
+  fitInvoicePreview();
+ }
+
+ // Wrap the remote applyPaperSettings (so paper-config changes re-fit) and keep
+ // the preview fitting on window resize / orientation change.
+ function initResponsiveInvoicePreview() {
+  if (typeof window.applyPaperSettings === 'function' && !window.applyPaperSettings.__my1Responsive) {
+   const orig = window.applyPaperSettings;
+   const wrapped = function () {
+    const r = orig.apply(this, arguments);
+    setTimeout(refreshResponsivePreview, 0);
+    return r;
+   };
+   wrapped.__my1Responsive = true;
+   window.applyPaperSettings = wrapped;
+  }
+
+  refreshResponsivePreview();
+  // Re-fit once layout has settled (modal show transition / flex height).
+  setTimeout(refreshResponsivePreview, 150);
+  setTimeout(refreshResponsivePreview, 500);
+
+  if (!window.__my1RespPrevBound) {
+   window.__my1RespPrevBound = true;
+   let t = null;
+   window.addEventListener('resize', function () {
+    if (!document.querySelector('#previewMain')) return;
+    clearTimeout(t);
+    t = setTimeout(refreshResponsivePreview, 120);
+   });
+  }
  }
  function showAlreadyReceivedAmts(b346illID, s594CurrItems, c594ashInfo) {
   const modal = create_modal_dynamically('received_amount_modal');
@@ -6874,3 +6987,249 @@ This remark will be automatically filled in the bill notes section for new bills
  window.handleUploadedFile = handleUploadedFile;
 
 })();
+
+// ==================== Shared QR Scanner (used by item modules) ====================
+// Self-contained camera QR scanner with back/front camera switching. The item
+// modules (git/shoRegItm.js, git/shoCarwork.js, git/shoLodryItm.js) call this
+// from their openQRScannerModal() so the "modalItemIdInput" click actually scans.
+// Returns a promise that resolves when the scanner modal is closed.
+window.my1OpenQRScanner = function (opts) {
+ opts = opts || {};
+ const onDecode = typeof opts.onDecode === 'function' ? opts.onDecode : function () { };
+ const isContinuous = typeof opts.isContinuous === 'function' ? opts.isContinuous : function () { return false; };
+ const onClose = typeof opts.onClose === 'function' ? opts.onClose : function () { };
+
+ const QR_LIB_URL = 'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
+
+ return new Promise(function (resolve) {
+  let settled = false;
+  const done = function () { if (!settled) { settled = true; resolve(); } };
+
+  function ensureQRLib() {
+   return new Promise(function (res, rej) {
+    if (window.Html5Qrcode) { res(); return; }
+    const existing = document.querySelector('script[data-my1-qr-lib="1"]');
+    if (existing) {
+     existing.addEventListener('load', function () { res(); });
+     existing.addEventListener('error', function () { rej(new Error('QR library failed to load')); });
+     return;
+    }
+    const s = document.createElement('script');
+    s.src = QR_LIB_URL;
+    s.async = true;
+    s.setAttribute('data-my1-qr-lib', '1');
+    s.onload = function () { res(); };
+    s.onerror = function () { rej(new Error('QR library failed to load')); };
+    document.head.appendChild(s);
+   });
+  }
+
+  async function checkCamera(facingMode) {
+   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    const e = new Error('Camera API not available');
+    e.name = 'NotSupportedError';
+    throw e;
+   }
+   const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
+   stream.getTracks().forEach(function (t) { t.stop(); });
+  }
+
+  function cameraErrorMessage(err) {
+   const name = err && err.name;
+   if (name === 'NotAllowedError' || name === 'SecurityError') {
+    return 'Camera access was denied. Please allow camera permission in your browser settings.';
+   }
+   if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+    return 'No camera found on this device.';
+   }
+   if (name === 'NotReadableError' || name === 'TrackStartError') {
+    return 'Camera is already in use by another application.';
+   }
+   if (name === 'NotSupportedError' || name === 'OverconstrainedError' || name === 'ConstraintNotSatisfiedError') {
+    return 'Camera is not supported on this device or browser.';
+   }
+   return 'QR scanner is currently unavailable. Please enter the item ID manually.';
+  }
+
+  async function run() {
+   try {
+    await ensureQRLib();
+   } catch (e) {
+    showToast('QR scanner library could not be loaded.');
+    done();
+    return;
+   }
+
+   // Pick a working camera (default back), falling back to the other one.
+   let facingMode = 'environment';
+   try {
+    await checkCamera(facingMode);
+   } catch (err) {
+    const fallback = facingMode === 'environment' ? 'user' : 'environment';
+    try {
+     facingMode = fallback;
+     await checkCamera(facingMode);
+    } catch (err2) {
+     showToast(cameraErrorMessage(err2));
+     done();
+     return;
+    }
+   }
+
+   let modal;
+   try {
+    modal = create_modal_dynamically('qr_scanner_modal');
+   } catch (e) {
+    showToast('QR scanner is currently unavailable. Please enter the item ID manually.');
+    done();
+    return;
+   }
+   const modalContent = modal.contentElement;
+   const modalInstance = modal.modalInstance;
+   const modalElement = modal.modalElement;
+
+   modalContent.innerHTML = `
+<div class="modal-header">
+<h5 class="modal-title">QR Code Scanner</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+<div id="qr-reader-container" class="text-center">
+<div id="qr-reader" style="width:100%"></div>
+<div id="qr-scanner-message" class="text-muted mt-2">Initializing camera...</div>
+</div>
+<div class="d-flex justify-content-center gap-2 mt-3">
+<button type="button" class="btn btn-outline-primary btn-sm" id="qr-switch-camera-btn">
+<i class="fas fa-camera-rotate me-1"></i> <span id="qr-switch-camera-label">Use front camera</span>
+</button>
+<button type="button" class="btn btn-danger btn-sm" id="qr-stop-btn">
+<i class="fas fa-stop me-1"></i> Stop
+</button>
+</div>
+</div>
+`;
+
+   const setStatus = function (msg, cls) {
+    const el = modalContent.querySelector('#qr-scanner-message');
+    if (el) { el.textContent = msg; el.className = (cls || 'text-muted') + ' mt-2'; }
+   };
+   const setSwitchLabel = function () {
+    const lbl = modalContent.querySelector('#qr-switch-camera-label');
+    if (lbl) lbl.textContent = facingMode === 'environment' ? 'Use front camera' : 'Use back camera';
+   };
+
+   let scanner = null;
+   let scanPaused = false;
+   let busy = false;
+
+   const onScanSuccess = function (decodedText) {
+    if (scanPaused) return;
+    scanPaused = true;
+    try { onDecode(decodedText); } catch (e) { console.error('QR onDecode error:', e); }
+
+    if (isContinuous()) {
+     let delay = 1500;
+     try { delay = (window[my1uzr.worknOnPg].confg && window[my1uzr.worknOnPg].confg.scanDelayQR) || 1500; } catch (e) { }
+     setStatus('Scanned: ' + decodedText, 'text-success');
+     setTimeout(function () {
+      scanPaused = false;
+      setStatus('Ready to scan...', 'text-muted');
+     }, delay);
+    } else {
+     setStatus('Scanned!', 'text-success');
+     setTimeout(closeScanner, 400);
+    }
+   };
+
+   async function startScanner() {
+    scanner = new Html5Qrcode('qr-reader');
+    setStatus('Starting camera...', 'text-muted');
+    await scanner.start(
+     { facingMode: facingMode },
+     {
+      fps: 10,
+      qrbox: function (vw, vh) {
+       const size = Math.floor(Math.min(vw, vh) * 0.7);
+       return { width: size, height: size };
+      }
+     },
+     onScanSuccess,
+     function () { /* per-frame "not found" errors: ignore */ }
+    );
+    setStatus('Ready to scan...', 'text-muted');
+    setSwitchLabel();
+   }
+
+   async function safeStop() {
+    if (!scanner) return;
+    const s = scanner;
+    scanner = null;
+    try { await s.stop(); } catch (e) { /* ignore */ }
+    try { s.clear(); } catch (e) { /* ignore */ }
+   }
+
+   function closeScanner() {
+    const inst = bootstrap.Modal.getInstance(modalElement);
+    if (inst) inst.hide();
+   }
+
+   async function switchCamera() {
+    if (busy) return;
+    busy = true;
+    const previous = facingMode;
+    const next = facingMode === 'environment' ? 'user' : 'environment';
+    setStatus('Switching camera...', 'text-muted');
+    try {
+     await safeStop();
+     facingMode = next;
+     scanPaused = false;
+     await checkCamera(facingMode);
+     await startScanner();
+    } catch (err) {
+     showToast(cameraErrorMessage(err));
+     try {
+      facingMode = previous;
+      await checkCamera(facingMode);
+      await startScanner();
+     } catch (e2) {
+      setStatus(cameraErrorMessage(e2), 'text-danger');
+     }
+    } finally {
+     busy = false;
+    }
+   }
+
+   modalElement.addEventListener('shown.bs.modal', async function () {
+    if (scanner) return;
+    try {
+     await startScanner();
+    } catch (err) {
+     console.error('QR scanner start failed:', err);
+     setStatus(cameraErrorMessage(err), 'text-danger');
+     showToast(cameraErrorMessage(err));
+    }
+   });
+
+   const stopBtn = modalContent.querySelector('#qr-stop-btn');
+   if (stopBtn) stopBtn.addEventListener('click', closeScanner);
+
+   const switchBtn = modalContent.querySelector('#qr-switch-camera-btn');
+   if (switchBtn) switchBtn.addEventListener('click', switchCamera);
+
+   modalElement.addEventListener('hidden.bs.modal', async function () {
+    scanPaused = true;
+    await safeStop();
+    try { onClose(); } catch (e) { }
+    done();
+   });
+
+   modalInstance.show();
+  }
+
+  run().catch(function (e) {
+   console.error('QR scanner failed:', e);
+   showToast('QR scanner is currently unavailable. Please enter the item ID manually.');
+   done();
+  });
+ });
+};
