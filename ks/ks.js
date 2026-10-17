@@ -10,6 +10,7 @@ const moduLst = [
     { a: ",92,   ,72,91,99,96,", b: "All Cases", c: "fa-list-ul", d: "allCases", e: "#0d6efd" }, // 96 k.js refresh, 99 nextDate.js updateNhEntry/updateNextDateRecord, 91 nextDate.js save next Hearing
     { a: ",92,", b: "Check New Data", c: "fa-sync-alt", d: "checkNewData", e: "#fd7e14" },
     { a: ",92,", b: "Clear All Data", c: "fa-trash", d: "clearAllData", e: "#dc3545" },
+    { a: ",119,", b: "Rest Close CS91", c: "fa-clock", d: "restClsCS91", e: "#4b96d8ec" },
     { a: ",92,", b: "Settings", c: "fa-cog", d: "settings", e: "#6c757d" }
 ];
 moduLst.hook = "onModuLstAllowed";
@@ -82,14 +83,15 @@ const dontRestartAfterLogin = 1;
    },
     {
     a: 25,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@30cfa42/ks/addNewCase.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9fcde10/ks/addNewCase.js",
+    //u: "git/addNewCase.js",
     c: "showAddCaseModal,toggleCNRFields,toggleMoreDetails,saveCase,openEditCaseModal,updateCaseRecord,switchEditTab,openMemberSelector,selectFilerParty,selectAnswererParty",
     r: " ",
    },
    {
     a: 26,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@794889f/ks/allCases.js",
-    //u: "allCases.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9fcde10/ks/allCases.js",
+    //u: "git/allCases.js",
     c: "showAllCases,showHome",
     r: " ",
    },
@@ -210,6 +212,8 @@ const dontRestartAfterLogin = 1;
         setTimeout(function () { refreshFromServer(); }, 0);
       else if (action === "clearAllData")
         setTimeout(function () { showClearCacheModal(); }, 0);
+      else if (action === "restClsCS91")
+        setTimeout(window.showelsemodal("This funtion is allowed on closed case row."), 0);
       return;
     }
 
@@ -242,6 +246,7 @@ const dontRestartAfterLogin = 1;
   injectKSStyles();
 
   await loadDataFromDB();
+  await loadKsFnPerms();
 
   renderAppUI();
   console.log("Ô£à App UI rendered - Premium Bootstrap Design");
@@ -314,6 +319,27 @@ function isModuleAllowed(code) {
  });
 }
 
+// Fail-closed cache of the function codes present in IndexedDB table "f" (column "h").
+// Used to gate features by exact permission code (e.g. 119).
+var _ksFnPermSet = null; // null = not loaded yet
+async function loadKsFnPerms() {
+ try {
+  var rows = await dbDexieManager.getAllRecords(dbnm, "f");
+  var set = {};
+  for (var i = 0; i < rows.length; i++) set[String(rows[i].h)] = true;
+  _ksFnPermSet = set;
+ } catch (e) {
+  _ksFnPermSet = {};
+ }
+ return _ksFnPermSet;
+}
+function ksHasFnPerm(code) {
+ if (!_ksFnPermSet) return false; // not loaded -> deny
+ return !!_ksFnPermSet[String(code)];
+}
+window.loadKsFnPerms = loadKsFnPerms;
+window.ksHasFnPerm = ksHasFnPerm;
+
 function toggleSidebar() {
   var sidebar = document.getElementById("appSidebar");
   var overlay = document.getElementById("sidebarOverlay");
@@ -344,6 +370,7 @@ function renderSidebarMenu() {
 }
 
 async function recomputeAllowedModules() {
+ await loadKsFnPerms();
  var hook = window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg][moduLst.hook];
  var existing = window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].allowedModulesMenuItems;
  var missing =
@@ -807,6 +834,12 @@ function renderAppUI() {
   '<button type="button" onclick="handleRowAction(\'changeAllJuzesName\')" style="display:flex;width:100%;align-items:center;gap:10px;padding:9px 14px;background:none;border:none;text-align:left;font-size:13px;color:var(--gray-dark);cursor:pointer;" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="this.style.background=\'\'">' +
   '<i class="fas fa-users" style="color:var(--gold);width:14px;"></i>Change Judge name - all cases' +
   "</button>" +
+  '<button type="button" onclick="handleRowAction(\'setOurParty\')" style="display:flex;width:100%;align-items:center;gap:10px;padding:9px 14px;background:none;border:none;text-align:left;font-size:13px;color:var(--gray-dark);cursor:pointer;" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="this.style.background=\'\'">' +
+  '<i class="fas fa-user-check" style="color:var(--gold);width:14px;"></i>Set our party' +
+  "</button>" +
+  '<button type="button" id="rowActionRecheck" onclick="handleRowAction(\'recheckCase\')" style="display:none;width:100%;align-items:center;gap:10px;padding:9px 14px;background:none;border:none;text-align:left;font-size:13px;color:var(--gray-dark);cursor:pointer;" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="this.style.background=\'\'">' +
+  '<i class="fas fa-sync-alt" style="color:var(--gold);width:14px;"></i>re-check this case' +
+  "</button>" +
   //   '<button type="button" onclick="" style="display:flex;width:100%;align-items:center;gap:10px;padding:9px 14px;background:none;border:none;text-align:left;font-size:13px;color:var(--gray-dark);cursor:pointer;" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="this.style.background=\'\'">' +
   // '<i class="fas fa-users" style="color:var(--gold);width:14px;"></i>Transfer' +
   // "</button>" +
@@ -949,6 +982,36 @@ function openRowMenu(event, rec, dv, cdCur) {
   var menu = document.getElementById("rowActionsMenu");
   if (!menu) return;
   _ksRowMenuContext = { rec: rec, dv: dv, cdCur: cdCur };
+  var recheckBtn = document.getElementById("rowActionRecheck");
+  if (recheckBtn) {
+    // Must have permission 119 (fail-closed) AND the linked cs91 must be d == 126.
+    var showRecheck = ksHasFnPerm(119);
+    if (showRecheck && rec && rec.cs91) {
+      try {
+        if (rec.cs91.d != 126) showRecheck = false;
+      } catch (e) {
+        showRecheck = false;
+      }
+    } else if (showRecheck && rec) {
+      try {
+        var cr = null;
+        if (typeof getCaseCs91Record === "function") {
+          cr = getCaseCs91Record(rec);
+        } else if (rec.f != null) {
+          var recs91 = (typeof caseRecords91 !== "undefined" && caseRecords91) || window.caseRecords91 || [];
+          for (var i = 0; i < recs91.length; i++) {
+            if (recs91[i].a == rec.f) { cr = recs91[i]; break; }
+          }
+        }
+        if (!cr || cr.d != 126) showRecheck = false;
+      } catch (e) {
+        showRecheck = false;
+      }
+    } else if (!rec) {
+      showRecheck = false;
+    }
+    recheckBtn.style.display = showRecheck ? "flex" : "none";
+  }
   menu.style.display = "block";
   var btn = event.currentTarget || event.target;
   var rect = btn.getBoundingClientRect();
@@ -966,6 +1029,62 @@ function closeRowMenu() {
   if (menu) menu.style.display = "none";
   _ksRowMenuContext = null;
 }
+window.sendToRecheck = async function (rec) {
+  try {
+    // 1st confirmation
+    var ok1 =
+      typeof showConfirmModal === "function"
+        ? await showConfirmModal("Do you want to re-check this case?")
+        : confirm("Do you want to re-check this case?");
+    if (!ok1) return;
+
+    // Permission check BEFORE the 2nd confirmation:
+    // table "f" must contain a row whose "h" column is function 119.
+    if (_ksFnPermSet == null) await loadKsFnPerms();
+    if (!ksHasFnPerm(119)) {
+      if (typeof showelsemodal === "function") {
+        showelsemodal("You are not authorized to execute this function");
+      } else {
+        alert("You are not authorized to execute this function");
+      }
+      return;
+    }
+
+    // 2nd confirmation
+    var ok2 =
+      typeof showConfirmModal === "function"
+        ? await showConfirmModal(
+            "Are you sure you want to re-check this case? This will re-check the case with the server.",
+          )
+        : confirm(
+            "Are you sure you want to re-check this case? This will re-check the case with the server.",
+          );
+    if (!ok2) return;
+
+    // fn 119: send the linked cs91 record id (.a) in x1, not the cs id
+    var cr91 = null;
+    try {
+      if (typeof getCaseCs91Record === "function") cr91 = getCaseCs91Record(rec);
+      if (!cr91 && typeof getCaseCs91Fallback === "function")
+        cr91 = getCaseCs91Fallback(rec);
+    } catch (e) {}
+    var id = cr91 && cr91.a != null ? cr91.a : null;
+    if (id == null) {
+      showMessageModal("Info", "Linked E-Court (cs91) record not found.", false);
+      return;
+    }
+    if (typeof reCheckCaseRecord === "function") {
+      await reCheckCaseRecord(id);
+    }
+  } catch (e) {
+    if (typeof showMessageModal === "function") {
+      showMessageModal("Info", "Error: " + e.message, false);
+    } else {
+      alert("Error: " + e.message);
+    }
+  }
+};
+
 function handleRowAction(action) {
   var ctx = _ksRowMenuContext || {};
   if (action === "changeJuzeName") {
@@ -974,6 +1093,26 @@ function handleRowAction(action) {
   if (action === "changeAllJuzesName") {
     if (typeof changeAllJuzesName === "function") changeAllJuzesName(ctx.rec, ctx);
   }
+  if (action === "setOurParty") {
+    if (typeof changeOurParty === "function") changeOurParty(ctx.rec, ctx);
+  }
+  if (action === "recheckCase") {
+    if (typeof window.sendToRecheck === "function") {
+      window.sendToRecheck(ctx.rec);
+    } else {
+      try {
+        if (typeof showMessageModal === "function") {
+          showMessageModal("Info", "Re-check requested for this case.", false);
+        } else {
+          alert("Re-check requested for this case.");
+        }
+      } catch (e) {
+        alert("Re-check requested for this case.");
+      }
+    }
+  }
+  var recheckBtn = document.getElementById("rowActionRecheck");
+  if (recheckBtn) recheckBtn.style.display = "none";
   closeRowMenu();
 }
 function installUpdateRecordWrapper() {
@@ -1268,6 +1407,241 @@ async function hndlRspo72(response, ctx) {
   }
 }
 
+// ===== Set Our Party (cs.r = 1 Filer / 2 Answerer) =====
+// Reuses the judge-name server call (fn=72, t.php); cd=3 is the new sub-command.
+// x1 = case id (this row only), p.r = selected party value.
+function changeOurParty(caseRecord, context) {
+  var rec = (context && context.rec) || caseRecord;
+  if (!rec) {
+    showMessageModal("Info", "No record selected.", false);
+    return;
+  }
+  if (isKsCs91Record(rec)) {
+    showMessageModal(
+      "Info",
+      "Set our party is not available for E-Court (CNR) records.",
+      false,
+    );
+    return;
+  }
+  showOurPartyModal(rec);
+}
+
+function showOurPartyModal(rec) {
+  if (!rec) {
+    showMessageModal("Info", "No record selected.", false);
+    return;
+  }
+  if (isKsCs91Record(rec)) {
+    showMessageModal(
+      "Info",
+      "Set our party is not available for E-Court (CNR) records.",
+      false,
+    );
+    return;
+  }
+  var mid = "ourPartyModal_" + Date.now();
+  var courtName = rec.q || "";
+  var caseNo = String(rec.h || "").trim();
+  var caseYr = String(rec.i || "").trim();
+  window._ksOurPartyCtx = { rec: rec };
+  // Pre-select the record's current party (default = Filer)
+  var cur = String(rec.r != null ? rec.r : "1").trim();
+  var selFiler = cur === "2" ? "" : " checked";
+  var selAnswerer = cur === "2" ? " checked" : "";
+  var caseHtml =
+    '<div class="form-group-premium mb-2">' +
+    '<label class="form-label-premium mb-1">Case:</label>' +
+    '<div class="form-control-premium" style="background:var(--gray-surface);font-weight:600;">' +
+    (caseNo
+      ? escHtml(caseNo) + (caseYr ? "/" + escHtml(caseYr) : "")
+      : '<span class="text-muted">Case number not available</span>') +
+    (courtName
+      ? ' <span style="color:var(--gray);">—</span> ' + escHtml(courtName)
+      : "") +
+    "</div></div>";
+  var html =
+    '<div class="modal fade" id="' +
+    mid +
+    '" tabindex="-1" aria-hidden="true">' +
+    '<div class="modal-dialog modal-dialog-centered">' +
+    '<div class="modal-content animate-scale-in shadow-xl" style="border:3px solid var(--navy);border-radius:12px;overflow:hidden;">' +
+    '<div class="modal-header bg-navy-gradient text-gold" style="padding:14px 18px;border-bottom:3px solid var(--gold);">' +
+    '<h6 class="modal-title fw-bold" style="font-size:15px;letter-spacing:0.5px;"><i class="fas fa-user-check me-2 text-gold"></i>SET OUR PARTY</h6>' +
+    '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>' +
+    '<div class="modal-body p-3">' +
+    caseHtml +
+    '<div class="form-group-premium mb-0">' +
+    '<label class="form-label-premium mb-1">Our party is:</label>' +
+    '<div class="d-flex gap-4 flex-wrap" style="padding-top:2px;">' +
+    '<label class="cursor-pointer d-inline-flex align-items-center gap-2 text-sm text-gray-dark">' +
+    '<input type="radio" id="' +
+    mid +
+    '_filer" name="ourParty_' +
+    mid +
+    '" value="1"' +
+    selFiler +
+    ' style="accent-color:var(--gold);"> Filer (Plaintiff)</label>' +
+    '<label class="cursor-pointer d-inline-flex align-items-center gap-2 text-sm text-gray-dark">' +
+    '<input type="radio" id="' +
+    mid +
+    '_answerer" name="ourParty_' +
+    mid +
+    '" value="2"' +
+    selAnswerer +
+    ' style="accent-color:var(--gold);"> Answerer (Defendant)</label>' +
+    "</div></div></div>" +
+    '<div class="modal-footer" style="padding:12px 18px;border-top:2px solid var(--gray-bg);display:flex;justify-content:flex-end;gap:8px;">' +
+    '<button type="button" class="btn-premium btn-premium-secondary" data-bs-dismiss="modal">Cancel</button>' +
+    '<button type="button" class="btn-premium btn-premium-primary" onclick="saveOurParty(\'' +
+    mid +
+    '\')"><i class="fas fa-check me-1"></i> OK</button>' +
+    "</div></div></div>";
+  document.body.insertAdjacentHTML("beforeend", html);
+  var modalEl = document.getElementById(mid);
+  new bootstrap.Modal(modalEl).show();
+  modalEl.addEventListener("hidden.bs.modal", function () {
+    window._ksOurPartyCtx = null;
+    this.remove();
+  });
+}
+
+async function saveOurParty(mid) {
+  var ctx = window._ksOurPartyCtx || {};
+  var rec = ctx.rec;
+  if (!rec) {
+    showMessageModal("Info", "No record selected.", false);
+    return;
+  }
+  if (isKsCs91Record(rec)) {
+    showMessageModal(
+      "Info",
+      "Set our party is not available for E-Court (CNR) records.",
+      false,
+    );
+    return;
+  }
+  var checked = document.querySelector(
+    'input[name="ourParty_' + mid + '"]:checked',
+  );
+  var partyVal = parseInt(checked ? checked.value : "") || 1;
+  var modalEl = document.getElementById(mid);
+  if (modalEl) {
+    var inst = bootstrap.Modal.getInstance(modalEl);
+    if (inst) inst.hide();
+  }
+  await new Promise(function (r) { setTimeout(r, 300); });
+  try {
+    await updateCaseRecordParty(rec.a, partyVal);
+  } catch (e) {
+    showMessageModal("Error", e && e.message ? e.message : "Update failed", true);
+  }
+}
+
+async function updateCaseRecordParty(recId, partyVal) {
+  var val = parseInt(partyVal) || 1;
+  if (val !== 2) val = 1; // 1 = Filer, 2 = Answerer
+  if (recId == null || recId === "") {
+    showMessageModal("Info", "No record selected.", false);
+    return;
+  }
+  clearPayload0();
+  payload0.x1 = recId; //Id - only this case
+  payload0.p = { r: val }; //1 = Filer (Plaintiff), 2 = Answerer (Defendant)
+  payload0.vw = 1;
+  payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "cs" }]);
+  payload0.fn = 72;
+  payload0.cd = 3; //cd 1/2 are taken by "Change Judge name" (this case / all cases)
+  console.log(
+    "📤 Set Our Party:",
+    "a=" + recId,
+    "cd=" + payload0.cd,
+    JSON.stringify(payload0.p),
+  );
+  try {
+    if (typeof fnj3 !== "function") {
+      showMessageModal("Info", "Server communication not available", false);
+      return;
+    }
+    var pResponse = await fnj3(
+      "https://my1.in/2/t.php",
+      payload0,
+      1,
+      true,
+      null,
+      20000,
+      0,
+      1,
+      1,
+    );
+    console.log("📥 Server:", pResponse);
+    if (pResponse && pResponse.su == 1) {
+      await hndlRspoOurParty(pResponse, { partyVal: val });
+    } else {
+      showMessageModal("Info", pResponse?.ms || "Record not updated", false);
+    }
+  } catch (e) {
+    showMessageModal("Info", "Error: " + e.message, false);
+  } finally {
+    payload0.cd = 1;
+  }
+}
+
+async function hndlRspoOurParty(response, ctx) {
+  ctx = ctx || {};
+  await handl_ks_rspons(response);
+  await loadDataFromDB();
+  renderTable();
+  var isAnswerer = parseInt(ctx.partyVal) === 2;
+  showMessageModal(
+    "Success",
+    "✅ Our party set to " +
+      (isAnswerer ? "Answerer (Defendant)" : "Filer (Plaintiff)") +
+      ".",
+    false,
+  );
+}
+
+async function reCheckCaseRecord(recId) {
+  if (recId == null || recId === "") {
+    showMessageModal("Info", "No record selected.", false);
+    return;
+  }
+  clearPayload0();
+  payload0.x1 = recId; //Id - only this case
+  payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "cs91" }]);
+  payload0.fn = 119;
+  try {
+    var pResponse = await fnj3(
+      "https://my1.in/2/u.php",
+      payload0,
+      1,
+      true,
+      null,
+      20000,
+      0,
+      1,
+      1,
+    );
+    console.log("📥 Server:", pResponse);
+    if (pResponse && pResponse.su == 1) {
+      await hndlreCheckCaseRecord(pResponse);
+    } else {
+      showMessageModal("Info", pResponse?.ms || "Record not updated", false);
+    }
+  } catch (e) {
+    showMessageModal("Info", "Error: " + e.message, false);
+  } finally {
+    payload0.cd = 1;
+  }
+}
+
+async function hndlreCheckCaseRecord(response) {
+  await handl_ks_rspons(response);
+  await loadDataFromDB();
+  renderTable();
+}
+
 document.addEventListener("click", function (e) {
   var panel = document.getElementById("colVisPanel");
   var btn = document.getElementById("colVisToggle");
@@ -1282,6 +1656,8 @@ document.addEventListener("click", function (e) {
   var menu = document.getElementById("rowActionsMenu");
   var mbtn = e.target.closest ? e.target.closest("#rowActionsMenu button") : null;
   if (menu && !menu.contains(e.target) && mbtn === null) {
+    var recheckBtn = document.getElementById("rowActionRecheck");
+    if (recheckBtn) recheckBtn.style.display = "none";
     closeRowMenu();
   }
 });
