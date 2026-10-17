@@ -538,6 +538,7 @@ function buildFlatRow(item, j) {
   var curJson = current
     ? JSON.stringify(current).replace(/'/g, "\\'")
     : "null";
+  var ctxJson = JSON.stringify({ rec: x, dv: dv, cdCur: current }).replace(/'/g, "\\'");
   return (
     '<tr class="animate-fade-in' +
     (item.isCs91Linked ? " cs91-date-row" : "") +

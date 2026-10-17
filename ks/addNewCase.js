@@ -464,7 +464,7 @@ async function showAddCaseModal(editRecord) {
     '<label class="form-label-premium">Image URL</label>' +
     '<input type="url" id="caseImageUrl" placeholder="Enter image URL" class="form-control-premium">' +
     "</div>" +
-    '<div class="text-center fw-bold text-gray my-3">— OR —</div>' +
+    '<div class="text-center fw-bold text-gray my-3">Ã¢â‚¬â€ OR Ã¢â‚¬â€</div>' +
     '<div class="form-group-premium mb-0">' +
     '<label class="form-label-premium">Upload Image</label>' +
     '<input type="file" id="caseImageFile" accept="image/*" class="form-control-premium">' +
@@ -932,7 +932,7 @@ window.importCasesFromFile = function () {
             1,
             1,
           );
-          console.log("📥 E-Court Import:", response);
+          console.log("Ã°Å¸â€œÂ¥ E-Court Import:", response);
 
           if (response && response.su == 1) {
             hndlRspo108(response);
@@ -1217,7 +1217,7 @@ window.syncCaseFromECourt = async function () {
       1,
       1,
     );
-    console.log("📥 E-Court Sync:", response);
+    console.log("Ã°Å¸â€œÂ¥ E-Court Sync:", response);
     window._ecourtSyncData = response || null;
     showECourtSyncResult(response, !!(response && response.su == 1));
   } catch (err) {
@@ -1350,7 +1350,7 @@ window.saveECourtSync = async function () {
       1,
       1,
     );
-    console.log("📥 E-Court Save:", response);
+    console.log("Ã°Å¸â€œÂ¥ E-Court Save:", response);
 
     if (response && response.su == 1) {
       if (ecourtSyncModalId) {
@@ -1365,7 +1365,7 @@ window.saveECourtSync = async function () {
       renderTable();
       showMessageModal(
         "Success",
-        "✅ E-Court case saved successfully!\n\nCNR: " + cnr,
+        "Ã¢Å“â€¦ E-Court case saved successfully!\n\nCNR: " + cnr,
         false,
       );
     } else {
@@ -1554,20 +1554,20 @@ function updateCsvValidation(csvTa) {
   }
   if (invalidList.length) {
     lines.push(
-      '<span style="color:#dc3545;font-weight:600;">✗ Invalid CNR format: ' +
+      '<span style="color:#dc3545;font-weight:600;">Ã¢Å“â€” Invalid CNR format: ' +
         escHtml(invalidList.join(", ")) +
-        " — expected 4 letters followed by 12 digits</span>",
+        " Ã¢â‚¬â€ expected 4 letters followed by 12 digits</span>",
     );
   }
   var dupKeys = [];
   for (var dk in res.dupMap) {
     if (Object.prototype.hasOwnProperty.call(res.dupMap, dk)) {
-      dupKeys.push(dk + " ×" + res.dupMap[dk]);
+      dupKeys.push(dk + " Ãƒâ€”" + res.dupMap[dk]);
     }
   }
   if (dupKeys.length) {
     lines.push(
-      '<span style="color:#B8942E;font-weight:600;">⚠ Duplicate CNR(s): ' +
+      '<span style="color:#B8942E;font-weight:600;">Ã¢Å¡Â  Duplicate CNR(s): ' +
         escHtml(dupKeys.join(", ")) +
         "</span>",
     );
@@ -1616,7 +1616,7 @@ window.sendCNRCoutCases = async function (modalId) {
   var dupKeys = [];
   for (var dk2 in res.dupMap) {
     if (Object.prototype.hasOwnProperty.call(res.dupMap, dk2)) {
-      dupKeys.push(dk2 + " ×" + res.dupMap[dk2]);
+      dupKeys.push(dk2 + " Ãƒâ€”" + res.dupMap[dk2]);
     }
   }
   if (dupKeys.length) {
@@ -1672,7 +1672,7 @@ window.sendCNRCoutCases = async function (modalId) {
       1,
       1,
     );
-    console.log("📥 CNR-by-CSV Import:", response);
+    console.log("Ã°Å¸â€œÂ¥ CNR-by-CSV Import:", response);
 
     if (response && response.su == 1) {
       hndlRspo108(response);
@@ -2112,7 +2112,7 @@ window.updateCaseRecord = async function () {
   payload0.fn = 98;
 
   console.log(
-    "📤 Update Case (" + (isECourt ? "E-Court CNR" : "Manual") + "):",
+    "Ã°Å¸â€œÂ¤ Update Case (" + (isECourt ? "E-Court CNR" : "Manual") + "):",
     "a=" + editingRecordId,
     isECourt
       ? JSON.stringify(payload0.cs91, null, 2)
@@ -2132,7 +2132,7 @@ window.updateCaseRecord = async function () {
         1,
         1,
       );
-      console.log("📥 Server:", response);
+      console.log("Ã°Å¸â€œÂ¥ Server:", response);
 
       if (response && response.su == 1) {
         await hndlRspo98(response, {
@@ -2171,7 +2171,7 @@ window.hndlRspo98 = async function (response, ctx) {
   renderTable();
   showMessageModal(
     "Success",
-    "✅ Case updated successfully!\n\n" +
+    "Ã¢Å“â€¦ Case updated successfully!\n\n" +
       (ctx.isECourt
         ? "CNR: " + ctx.cnrNumber
         : "Number: " + ctx.caseNumber + "/" + ctx.caseYear) +
@@ -2360,7 +2360,7 @@ window.saveCase = async function (modalId) {
   );
   var partySide = parseInt(partySideRadio?.value) || 1;
 
-  // ✅ Build MySQL-aligned payload
+  // Ã¢Å“â€¦ Build MySQL-aligned payload
   if (isECourt) {
     payload0.cs91 = {
       e: cnrNumber,
@@ -2418,7 +2418,7 @@ window.saveCase = async function (modalId) {
   payload0.fn = 92; //Function number is here ---- insert payload
 
   console.log(
-    "📤 Save Case (" + (isECourt ? "E-Court CNR" : "Manual") + "):",
+    "Ã°Å¸â€œÂ¤ Save Case (" + (isECourt ? "E-Court CNR" : "Manual") + "):",
     isECourt
       ? JSON.stringify(payload0.cs91, null, 2)
       : JSON.stringify(payload0.p, null, 2),
@@ -2437,7 +2437,7 @@ window.saveCase = async function (modalId) {
         1,
         1,
       );
-      console.log("📥 Server:", response);
+      console.log("Ã°Å¸â€œÂ¥ Server:", response);
 
       if (response && response.su == 1) {
         await hndlRspo92(response, {
@@ -2477,7 +2477,7 @@ window.hndlRspo92 = async function (response, ctx) {
   renderTable();
   showMessageModal(
     "Success",
-    "✅ Case saved successfully!\n\n" +
+    "Ã¢Å“â€¦ Case saved successfully!\n\n" +
       (ctx.isECourt
         ? "CNR: " + ctx.cnrNumber
         : "Number: " + ctx.caseNumber + "/" + ctx.caseYear) +
@@ -2523,6 +2523,20 @@ window.selectAnswererParty = function (record) {
     nameInput.value = record.h || record.i || record.e || "";
 };
 
+// Resolve the cs91-table primary key that is linked to a case row.
+// - a cs91 record itself: its own id (record.a)
+// - a cs row linked to cs91 (cs.e == 91): the linked id (record.f)
+// Returns null when there is no linked cs91 record.
+function resolveLinkedCs91Id(rec) {
+  if (!rec) return null;
+  try {
+    if (rec.tmt !== undefined) return rec.a;
+  } catch (e) {}
+  try {
+    if (String(rec.e) === "91" && rec.f != null && rec.f !== "") return rec.f;
+  } catch (e) {}
+  return null;
+}
 window.deleteCaseRecord = function (record) {
   var caseDatesForRecord = caseDates.filter(function (cd) {
     return cd.td === record.a;
@@ -2627,6 +2641,7 @@ window.deleteCaseRecord = function (record) {
         '<span class="spinner-border spinner-border-sm me-1"></span> Deleting...';
 
       try {
+        window._deleteCaseLinkedId = resolveLinkedCs91Id(record);
         payload0.x1 = record.a;
         delete payload0.dldt;
         payload0.fn = 101;
@@ -2655,7 +2670,8 @@ window.deleteCaseRecord = function (record) {
           var db = dbDexieManager.dbCache.get(dbnm);
           if (db) {
             await db.table("cs").where("a").equals(record.a).delete();
-            await db.table("cs91").where("a").equals(record.a).delete();
+            var linkedId = resolveLinkedCs91Id(record);
+            if (linkedId != null) { await db.table("cs91").where("a").equals(linkedId).delete(); }
             await db
               .table("a")
               .filter(function (d) {
@@ -2782,7 +2798,9 @@ window.hndlRspo101 = async function (response, recordA) {
   var db = dbDexieManager.dbCache.get(dbnm);
   if (db) {
     await db.table("cs").where("a").equals(recordA).delete();
-    await db.table("cs91").where("a").equals(recordA).delete();
+    var linkedId = window._deleteCaseLinkedId;
+    if (linkedId == null && typeof caseRecords !== "undefined") { var rc = caseRecords.find(function (r) { return r.a == recordA; }); linkedId = resolveLinkedCs91Id(rc); }
+    if (linkedId != null) { await db.table("cs91").where("a").equals(linkedId).delete(); }
     await db
       .table("a")
       .filter(function (d) {
@@ -2796,4 +2814,4 @@ window.hndlRspo101 = async function (response, recordA) {
   }, 1500);
 };
 
-console.log("📂 addNewCase.js loaded");
+console.log("Ã°Å¸â€œâ€š addNewCase.js loaded");
