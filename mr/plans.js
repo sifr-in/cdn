@@ -93,7 +93,7 @@
    "font-size:12px;font-weight:600;color:var(--mrp-ember-deep);background:var(--mrp-cream);",
    "border:1px solid rgba(201,164,92,.5);}",
    ".mrp-perk i{font-size:11px;}",
-   ".mrp-plan-price{flex:0 0 auto;font-size:20px;font-weight:800;color:var(--mrp-ember);white-space:nowrap;}",
+   ".mrp-plan-price{flex:0 0 auto;font-size:26px;font-weight:800;color:var(--mrp-ember);white-space:nowrap;}",
    ".mrp-plan-price small{display:block;font-size:10px;font-weight:600;letter-spacing:.8px;",
    "text-transform:uppercase;color:var(--mrp-muted);}",
    ".mrp-buy{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;",
@@ -107,6 +107,11 @@
    ".mrp-plan--free .mrp-plan-price{color:#1f9d55;}",
    ".mrp-plan--free .mrp-perk{color:#14663a;background:#e7f7ee;border-color:rgba(34,150,84,.4);}",
    ".mrp-buy--free{background-image:linear-gradient(135deg,#34c26b,#1f9d55);box-shadow:0 10px 24px rgba(34,150,84,.32);color:#fff;}",
+   ".mrp-plan--added{border-color:rgba(224,122,26,.55);background:linear-gradient(180deg,#fff5e9,#ffffff);}",
+   ".mrp-plan--added:hover{border-color:#e07a1a;box-shadow:0 10px 26px rgba(224,122,26,.16);}",
+   ".mrp-plan--added .mrp-plan-price{color:#e07a1a;}",
+   ".mrp-plan--added .mrp-perk{color:#8a4a0b;background:#fdefdd;border-color:rgba(224,122,26,.4);}",
+   ".mrp-buy--added{background-image:linear-gradient(135deg,#f59e42,#e07a1a);box-shadow:0 10px 24px rgba(224,122,26,.32);color:#fff;}",
    ".mrp-empty{text-align:center;color:var(--mrp-muted);font-size:13.5px;padding:22px 6px;}",
    "@media (max-width:480px){",
    ".mrp-overlay{align-items:flex-end;padding:0;}",
@@ -125,6 +130,8 @@
 
  /* ---- modal plumbing --------------------------------------------------------------- */
  function close() {
+  //stop any sound the shared button is playing when this modal closes
+  if (window.mrSoundBtn) window.mrSoundBtn.hide();
   var ov = document.getElementById(MODAL_ID);
   if (!ov) return;
   ov.classList.remove("open");
@@ -139,7 +146,7 @@
   close();
  }, true);
 
- //free plan button: "You already added" for any registered member (own profile row present)
+ //free plan button: "All free count Used" for any registered member (own profile row present)
   function ownMyEinMR() {
     try {
       var live = (typeof window.myEinMR !== "undefined" && window.myEinMR) || {};
@@ -153,12 +160,26 @@
     return {};
   }
 
-  //free plan button: any registered member (own profile row present) => "You already added"
+  //free plan button: any registered member (own profile row present) => "All free count Used"
   function freeAlreadyAdded() {
     try {
       var me = ownMyEinMR();
       return !!(me && me.a != null && me.a !== "");
     } catch (e) { return false; }
+  }
+
+  //mr.da.wajiw lookup by key ('pgf' = Get Free, 'pga' = All free count Used)
+  function soundRawOf(key) {
+    var wj = cfg().wajiw;
+    if (!Array.isArray(wj)) return "";
+    for (var i = 0; i < wj.length; i++) {
+      if (wj[i] && String(wj[i].a) === String(key)) return wj[i].e || "";
+    }
+    return "";
+  }
+  //which info sound the plans modal offers: free plan not added vs already added
+  function freePlanSoundRaw() {
+    return soundRawOf(freeAlreadyAdded() ? "pga" : "pgf");
   }
 
   function planHtml(plan, recommended) {
@@ -168,22 +189,24 @@
   var isFree = Number(plan.e) === 0;
   var freeAdded = isFree && freeAlreadyAdded();
   var price = isFree ? "Free" : currency(plan.e);
+  var priceWorth = currency(plan.g);
   var perk = '<span class="mrp-perk"><i class="fas fa-unlock"></i>' +
    (count > 0 ? "+" + count + " profile unlock" + (count === 1 ? "" : "s") : "profile access") +
    '</span>';
   return '<div class="mrp-plan' + (recommended ? ' mrp-plan--rec' : '') +
-   (isFree ? ' mrp-plan--free' : '') + '" data-plan="' + id + '">' +
+   (isFree ? ' mrp-plan--free' : '') +
+   (freeAdded ? ' mrp-plan--added' : '') + '" data-plan="' + id + '">' +
    (recommended ? '<span class="mrp-rec">Best match</span>' : '') +
    '<div class="mrp-plan-top">' +
    '<div>' +
    '<h4 class="mrp-plan-name">' + name + '</h4>' +
    '<div class="mrp-plan-perks">' + perk + '</div>' +
    '</div>' +
-   '<div class="mrp-plan-price">' + price + '<small>' + (isFree ? 'no cost' : 'one-time') + '</small></div>' +
+   '<div class="mrp-plan-price">' + price + ' <span class="fs-4 text-danger text-decoration-line-through">' + priceWorth + '</span></div>' +
    '</div>' +
-   '<button type="button" class="mrp-buy' + (isFree ? ' mrp-buy--free' : '') + '" data-buy="' + id + '">' +
+   '<button type="button" class="mrp-buy' + (isFree ? ' mrp-buy--free' : '') + (freeAdded ? ' mrp-buy--added' : '') + '" data-buy="' + id + '" '+ (isFree && freeAdded ? 'disabled' : '') +'>' +
    '<i class="fas fa-' + (isFree ? (freeAdded ? 'check' : 'gift') : 'bolt') + '"></i>' +
-   (isFree ? (freeAdded ? 'You already added' : 'Get Free') : 'Buy') + '</button>' +
+   (isFree ? (freeAdded ? 'All free count Used' : 'Get Free') : 'Buy') + '</button>' +
    '</div>';
  }
 
@@ -232,6 +255,16 @@
   );
   ov.appendChild(box);
   document.body.appendChild(ov);
+  //shared single sound button: free-plan state decides which wajiw sound is armed
+  if (window.mrSoundBtn) {
+   var planSnd = freePlanSoundRaw();
+   if (!planSnd) console.warn("plans: no wajiw sound for", freeAlreadyAdded() ? "pga" : "pgf");
+   window.mrSoundBtn.show(planSnd);
+   if (planSnd) {
+    if (typeof window.mrPlaySound === "function") window.mrPlaySound(planSnd); //auto-play via the shared pipeline
+    else window.mrSoundBtn.play(planSnd);
+   }
+  }
   requestAnimationFrame(function () { ov.classList.add("open"); });
 
   ov.addEventListener("click", function (e) { if (e.target === ov) close(); });
@@ -242,16 +275,13 @@
     var id = btn.getAttribute("data-buy");
     var plan = list.find(function (p) { return String(p.a) === id; });
     if (!plan) return;
-    //free plans (price 0) go to the temporary handler; paid plans to the gateway hook
+    //free plans (price 0) always go through the backend handler
     if (Number(plan.e) === 0) { window.beCheckPlan_fn(plan); return; }
-    var mrRows = (typeof window.proflFullData !== "undefined" && window.proflFullData) || [];
-    var noMrRecord = mrRows.length === 0;
-    if (Number(plan.e) === 0 && noMrRecord) { window.beCheckPlan_fn(plan); return; }
-    var rows = [];
-    try { rows = (await dbDexieManager.getAllRecords(window.dbnm, "mr")) || []; } catch (e) { rows = []; }
-    var me = (typeof window.myEinMR !== "undefined" && window.myEinMR) || {};
-    var hasMrRecord = rows.length > 0 || (me && me.a != null);
-    if (!hasMrRecord) { window.beCheckPlan_fn(plan); return;}
+    //paid plan: a member who has no OWN mr record yet must create it first - the
+    //backend handler does that and then continues to mrPayForPlan. The test is the
+    //same "own row present" one the free button uses (myEinMR / <tn>_myEinMR), so
+    //the button state, the info sound and this routing never disagree.
+    if (!freeAlreadyAdded()) { window.beCheckPlan_fn(plan); return; }
     window.mrPayForPlan(plan);
    });
   });
@@ -371,5 +401,8 @@
   startPhonePePayment({ paymentPhonePayGT: Number(plan.e) || 0, grandTotal: Number(plan.e) || 0, plan: plan }, orderId);
  };
 
+ //close hook for the shared fn-70 success handler (git/mr.js hndlRspo70): the plans
+ //modal can be the origin of a login/"Get Free" flow and is stale once it succeeds
+ window.mrCloseMarriagePlans = close;
  window.showMarriagePlans = showMarriagePlans;
 })();

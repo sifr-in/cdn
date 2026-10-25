@@ -1,17 +1,6 @@
 (function () {
  'use strict';
 
- // ---------------------------------------------------------------
- // Admin Dashboard (full-screen page, NOT a bootstrap modal).
- // Rebuilds the old admin workings on the current endpoints:
- //   fn 60  get all marriage records   -> https://my1.in/2/e.php
- //   fn 61  get all plans              -> https://my1.in/2/g.php
- //   fn 62  admin add new profile      -> https://my1.in/2/f.php  (regis admin mode)
- //   fn 63  admin update profile       -> https://my1.in/2/f.php  (regis admin mode)
- //   fn 65  admin update plan          -> https://my1.in/2/e.php
- //   fn 67  admin mark profile deleted -> https://my1.in/2/h.php
- // ---------------------------------------------------------------
-
  var PAGE_ID = "mrAdminPage";
  var DLG_ID = "mrAdminDialog";
  var REGIS_ID = "rgRegistrationModal";
@@ -25,28 +14,59 @@
  var search_ = "";
  var status_ = "";
  var tab_ = "profiles";
- var prevOverflow_ = "";
-
- var FALLBACK_STATUSES = [
-  { a: 0, e: "Entry" },
-  { a: 1, e: "Accepted" },
-  { a: 2, e: "Under process" },
-  { a: 127, e: "denied" }
- ];
+ //page scroll position saved while the admin page locks the body (restored on close)
+ var savedScrollY_ = 0;
+ var mqRows_ = [];
+ var reUpOpen_ = 0;
+ var cRows_ = [];       // local "c" table (contacts): c.e is the member's mobile
+ var muRows_ = [];      // local "mu" table (unlock records): used count = rows where mu.e == mr.e
+ var cardsView_ = 0;    // admin profile list: 1 = card view, 0 = table view (persisted)
 
  function statusList() {
+  var out = [];
   try {
-   if (Array.isArray(window.entryStatus) && window.entryStatus.length) { return window.entryStatus; }
+   var cfg = window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].clientConfig;
+   var m = cfg && cfg.statusMapingAllFromOne;
+   if (Array.isArray(m) && m.length) { out = m; }
   } catch (eS) { }
-  return FALLBACK_STATUSES;
+  if (!out.length) {
+   try { if (Array.isArray(window.entryStatus) && window.entryStatus.length) { out = window.entryStatus; } } catch (eE) { }
+  }
+  if (!out.length) {
+   out = [
+    { a: 0, e: "Pending" }, { a: 1, e: "Accepted" },
+    { a: 2, e: "Under process" }, { a: -1, e: "Denied By Admin" }
+   ];
+  }
+  return out;
  }
 
  function statusName(v) {
+  //null/empty means the initial state (0 = Pending), same rule reUpPending uses
+  var key = (v == null || v === "") ? "0" : String(v);
   var list = statusList();
   for (var i = 0; i < list.length; i++) {
-   if (String(list[i].a) === String(v)) { return list[i].e; }
+   if (String(list[i].a) === key) { return list[i].e; }
   }
-  return "Entry";
+  return key;
+ }
+
+ //action -> status value, always read from mr.da.statusMapingAllFromOne (never
+ //hardcode the numbers): accept matches "Accepted", reject "Denied By Admin",
+ //block matches the "Admin blocked because sexual content update" entry.
+ function statusValueFor(role, fallback) {
+  var list = statusList();
+  var needles = role === "accept" ? ["accept"]
+   : role === "reject" ? ["denied", "reject"]
+    : ["block"];
+  for (var n = 0; n < needles.length; n++) {
+   for (var i = 0; i < list.length; i++) {
+    var it = list[i] || {};
+    var e = String(it.e == null ? "" : it.e).toLowerCase();
+    if (e.indexOf(needles[n]) >= 0 && it.a != null && it.a !== "") { return it.a; }
+   }
+  }
+  return fallback;
  }
 
  function esc(s) {
@@ -86,15 +106,37 @@
   return String(Math.max(0, new Date().getFullYear() - yr));
  }
 
- function cityOf(b4) {
-  if (b4 === undefined || b4 === null || b4 === "") { return ""; }
+ function cityOf(path) {
+  if (path === undefined || path === null || path === "") { return ""; }
   if (typeof __mrCityName === "function") {
    try {
-    var nm = __mrCityName(b4);
+    var nm = __mrCityName(path);
     if (nm) { return String(nm); }
    } catch (eC) { }
   }
-  return String(b4);
+  return String(path);
+ }
+
+ function placePathOf(p, root) {
+  if (!p) { return ""; }
+  if (typeof window.__mrPlacePath === "function") {
+   try { var j = window.__mrPlacePath(p, root); if (j) { return j; } } catch (eP) { }
+  }
+  var groups = {
+   a2: ["a2", "a3", "a4", "a5", "a6"],
+   b2: ["b2", "b3", "b4", "b5", "b6"],
+   c3: ["c3", "c4", "c5", "c6", "c7"]
+  };
+  var grp = groups[root];
+  if (!grp) { return ""; }
+  var out = [];
+  for (var i = 0; i < grp.length; i++) {
+   var v = p[grp[i]];
+   //keep the gap: a flat country stores its city in the last slot (a6/b6/c7)
+   if (v === undefined || v === null || v === "" || String(v) === "0") { continue; }
+   out.push(String(v));
+  }
+  return out.join(",");
  }
 
  function phoneOf(l) {
@@ -117,6 +159,50 @@
  }
 
  // ---------------------------------------------------------------
+ // Card-view helpers
+ // ---------------------------------------------------------------
+ function cardsPrefKey() {
+  try { return ((window.appOwner && window.appOwner.tn) || "mr") + "_admCardsView"; }
+  catch (eK) { return "mr_admCardsView"; }
+ }
+ function loadCardsPref() {
+  try { cardsView_ = localStorage.getItem(cardsPrefKey()) === "1" ? 1 : 0; }
+  catch (eL) { cardsView_ = 0; }
+ }
+ function saveCardsPref() {
+  try { localStorage.setItem(cardsPrefKey(), cardsView_ ? "1" : "0"); } catch (eS) { }
+ }
+ 
+ // "c" row whose id (c.a) matches the profile's registering-customer id (mr.e)
+ function cRowOfProfile(p) {
+  var id = (p && p.e != null) ? String(p.e) : "";
+  if (!id) { return null; }
+  for (var i = 0; i < cRows_.length; i++) {
+   if (String(cRows_[i].a) === id) { return cRows_[i]; }
+  }
+  return null;
+ }
+ // Mobile number from the joined "c" table (c.e, where c.a == mr.e)
+ function mobileOfProfile(p) {
+  var c = cRowOfProfile(p);
+  return c ? String(c.e == null ? "" : c.e) : "";
+ }
+ // Used count = how many "mu" (unlock) rows carry this member's id (mu.e == mr.e)
+ function usedCountOf(p) {
+  var id = (p && p.e != null) ? String(p.e) : "";
+  if (!id) { return 0; }
+  var n = 0;
+  for (var i = 0; i < muRows_.length; i++) {
+   if (String(muRows_[i].e) === id) { n++; }
+  }
+  return n;
+ }
+ function d2Of(p) { var n = parseInt((p && p.d2) || 0, 10); return (n > 0) ? n : 0; }
+ function d1Of(p) { var n = parseInt((p && p.d1) || 0, 10); return (n > 0) ? n : 0; }
+ function totalCountOf(p) { return d2Of(p) + d1Of(p); }
+ function dash(v) { var s = (v == null) ? "" : String(v).trim(); return s ? s : "-"; }
+
+ // ---------------------------------------------------------------
  // CSS
  // ---------------------------------------------------------------
  function ensureCss() {
@@ -134,30 +220,27 @@
    ".adm-head-title .adm-kicker{display:block;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#f3dfae;}" +
    ".adm-icon{width:38px;height:38px;border:none;border-radius:50%;background:#fff;color:#8B1E3F;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:transform .15s ease,box-shadow .15s ease;}" +
    ".adm-icon:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.25);}" +
-   ".adm-body{flex:1 1 auto;overflow:auto;padding:16px 18px 60px;}" +
-   ".adm-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px;}" +
-   ".adm-stat{background:#fff;border:1px solid var(--adm-line);border-top:3px solid var(--adm-gold);border-radius:14px;padding:12px 14px;box-shadow:0 2px 8px rgba(110,23,51,.06);}" +
-   ".adm-stat b{display:block;font-size:25px;line-height:1.1;color:var(--adm-ember);}" +
-   ".adm-stat span{font-size:12px;color:var(--adm-mut);text-transform:uppercase;letter-spacing:.5px;}" +
-   ".adm-tabs{display:flex;gap:8px;margin-bottom:14px;border-bottom:1px solid var(--adm-line);}" +
-   ".adm-tab{background:transparent;border:none;padding:10px 18px;font-size:14px;font-weight:600;color:var(--adm-mut);cursor:pointer;position:relative;}" +
-   ".adm-tab:hover{color:var(--adm-ember);}" +
-   ".adm-tab-on{color:var(--adm-ember);}" +
-   ".adm-tab-on::after{content:'';position:absolute;left:8px;right:8px;bottom:-1px;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--adm-ember),var(--adm-gold));}" +
+   ".adm-body{flex:1 1 auto;overflow:auto;overscroll-behavior:contain;padding:16px 18px 60px;}" +
+   //admin owns its own scroll lock as a class: never write body.style.overflow, which
+   //Bootstrap's modal (the menu that opens this page) also manages and resets async
+   "body.mr-admin-locked{overflow:hidden;}" +
    ".adm-panel{display:block;animation:admIn .2s ease;}" +
    ".adm-panel-off{display:none;}" +
    "@keyframes admIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}" +
-   ".adm-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;}" +
-   ".adm-search{flex:1 1 240px;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--adm-line);border-radius:40px;padding:0 14px;height:42px;}" +
+   //search + status + Re-Up + Profl sit on ONE row from tablet up; only phones wrap
+   //(the search takes the first line, the select + buttons the second).
+   ".adm-toolbar{display:flex;flex-wrap:nowrap;gap:10px;align-items:center;margin-bottom:12px;}" +
+   ".adm-search{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--adm-line);border-radius:40px;padding:0 14px;height:42px;}" +
    ".adm-search i{color:var(--adm-mut);}" +
-   ".adm-search input{flex:1 1 auto;border:none;border-bottom:1px solid #d3c39f;outline:none;background:transparent;font-size:14px;color:var(--adm-ink);}" +
-   ".adm-toolbar-rt{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}" +
+   ".adm-search input{flex:1 1 auto;min-width:0;border:none;border-bottom:1px solid #d3c39f;outline:none;background:transparent;font-size:14px;color:var(--adm-ink);}" +
+   ".adm-toolbar-rt{display:flex;flex-wrap:nowrap;gap:8px;align-items:center;flex:0 0 auto;}" +
+   ".adm-toolbar-rt .adm-btn{flex:0 0 auto;white-space:nowrap;}" +
    ".adm-btn{border:none;border-radius:40px;padding:10px 18px;font-size:13.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:transform .15s ease,box-shadow .15s ease;}" +
    ".adm-btn:hover{transform:translateY(-1px);}" +
    ".adm-btn-gold{background:linear-gradient(135deg,#c9a45c,#b08d45);color:#3a2c10;box-shadow:0 3px 10px rgba(176,141,69,.35);}" +
    ".adm-btn-ghost{background:#fff;color:#8B1E3F;border:1px solid var(--adm-line);}" +
    ".adm-btn-danger{background:linear-gradient(135deg,#c0392b,#92261a);color:#fff;box-shadow:0 3px 10px rgba(146,38,26,.3);}" +
-   ".adm-sel{height:42px;border:1px solid var(--adm-line);border-radius:40px;padding:0 12px;background:#fff;color:var(--adm-ink);font-size:13.5px;outline:none;cursor:pointer;}" +
+   ".adm-sel{flex:0 1 160px;width:auto;min-width:0;max-width:38%;height:42px;border:1px solid var(--adm-line);border-radius:40px;padding:0 12px;background:#fff;color:var(--adm-ink);font-size:13.5px;outline:none;cursor:pointer;text-overflow:ellipsis;}" +
    ".adm-state{text-align:center;padding:46px 16px;color:var(--adm-mut);}" +
    ".adm-state .adm-spin{display:inline-block;width:34px;height:34px;border:3px solid var(--adm-line);border-top-color:var(--adm-ember);border-radius:50%;animation:admSpin .7s linear infinite;}" +
    "@keyframes admSpin{to{transform:rotate(360deg)}}" +
@@ -173,11 +256,16 @@
    ".adm-tb-id{color:var(--adm-mut);font-size:12.5px;}" +
    ".adm-tb-name{font-weight:600;color:var(--adm-ink);}" +
    ".adm-tb-sub{font-size:12.5px;color:var(--adm-mut);font-weight:400;}" +
-   ".adm-chip{display:inline-block;padding:3px 10px;border-radius:30px;font-size:12px;font-weight:600;white-space:nowrap;}" +
-   ".adm-chip-s0{background:#efe9dc;color:#57503f;}" +
-   ".adm-chip-s1{background:#f5e9c8;color:#6d5614;}" +
-   ".adm-chip-s2{background:#fde6d3;color:#8a4a12;}" +
-   ".adm-chip-s127{background:#f6d9d4;color:#92261a;}" +
+   ".adm-chip{display:inline-block;padding:3px 10px;border-radius:30px;font-size:12px;font-weight:600;white-space:nowrap;border:1px solid transparent;background:#efe9dc;color:#57503f;}" +
+   ".adm-chip-s0{background:#efe9dc;color:#57503f;border-color:#d8cfba;}" +
+   ".adm-chip-s1{background:#f5e9c8;color:#6d5614;border-color:#e2cc90;}" +
+   ".adm-chip-s2{background:#fde6d3;color:#8a4a12;border-color:#f0c7a3;}" +
+   ".adm-chip-s-1{background:#f6d9d4;color:#92261a;border-color:#e6b3aa;}" +
+   ".adm-chip-s-2,.adm-chip-s-3{background:#f3c9c3;color:#7a1c12;border-color:#d9a49b;}" +
+   //red "block this profile" checkbox inside the reject confirmation dialog
+   ".adm-block{display:flex;align-items:flex-start;gap:9px;margin:2px 0 12px;padding:10px 12px;border:1px solid #e6b3aa;border-radius:10px;background:#fdf1ef;color:#92261a;font-size:13px;font-weight:600;line-height:1.35;cursor:pointer;}" +
+   ".adm-block input{width:16px;height:16px;margin:1px 0 0;accent-color:#92261a;flex:0 0 auto;cursor:pointer;}" +
+   ".adm-block span{flex:1 1 auto;}" +
    ".adm-tb-act{white-space:nowrap;text-align:right;}" +
    ".adm-tb-act button{width:32px;height:32px;border:none;border-radius:50%;margin-left:6px;cursor:pointer;font-size:13px;background:#efe9dc;color:#6f5640;transition:transform .12s ease;}" +
    ".adm-tb-act button:hover{transform:translateY(-1px);}" +
@@ -210,40 +298,80 @@
    ".adm-ta{resize:vertical;min-height:70px;font-family:inherit;}" +
    ".adm-dlg-err{display:none;background:#f6d9d4;color:#92261a;border-radius:10px;padding:9px 12px;font-size:13px;margin:4px 16px 0;}" +
    ".adm-dlg-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 16px 16px;}" +
-   "@media(max-width:560px){.adm-head-title h1{font-size:18px;}.adm-stats{grid-template-columns:repeat(2,1fr);}}";
+   ".adm-dlg{position:relative;}" +
+   ".adm-dlg-sm{width:min(300px,92vw);}" +
+   ".adm-dlg-x{position:absolute;top:6px;right:8px;border:none;background:transparent;color:var(--adm-mut);font-size:20px;line-height:1;cursor:pointer;padding:2px 7px;border-radius:8px;}" +
+   ".adm-dlg-x:hover{color:var(--adm-ember);background:#f5f0e2;}" +
+   ".adm-dlg-sm .adm-dlg-body{padding:20px 14px 4px;}" +
+   ".adm-dlg-sm .adm-dlg-foot{padding:8px 14px 12px;}" +
+   ".adm-radios{display:flex;flex-direction:column;gap:6px;}" +
+   ".adm-radio{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--adm-ink);padding:7px 10px;border:1px solid var(--adm-gold);border-radius:8px;background:#fff;cursor:pointer;}" +
+   ".adm-radio:hover{background:var(--adm-cream);}" +
+   ".adm-radio input{accent-color:var(--adm-ember);margin:0;}" +
+   ".adm-radio:has(input:checked){border-color:var(--adm-ember);background:var(--adm-cream);box-shadow:0 0 0 2px rgba(201,164,92,.25);}" +
+   ".adm-tb-status{cursor:pointer;}" +
+   ".adm-tb-status:hover .adm-chip{filter:brightness(.96);}" +
+   ".adm-toolbar-main{display:flex;flex-wrap:nowrap;gap:10px;align-items:center;flex:1 1 auto;min-width:0;}" +
+   ".adm-reup-on .adm-toolbar-main{display:none;}" +
+   ".adm-tb-back{display:none;flex:1 1 auto;gap:12px;align-items:center;flex-wrap:wrap;}" +
+   ".adm-reup-on .adm-tb-back{display:flex;}" +
+   //phones: search takes its own full-width line, then the status select + the two
+   //buttons share the next line (select grows; Re-Up/Profl keep their icons and size)
+   "@media(max-width:640px){" +
+   ".adm-toolbar-main{flex-wrap:wrap;gap:8px;}" +
+   ".adm-search{flex:1 1 100%;padding:0 10px;}" +
+   ".adm-toolbar-rt{flex:1 1 100%;min-width:0;gap:6px;}" +
+   ".adm-sel{flex:1 1 auto;max-width:none;padding:0 10px;font-size:13px;}" +
+   "}" +
+   ".adm-reup-title{font-size:15.5px;font-weight:700;color:#fff;}" +
+   ".adm-reup-hint{font-size:12.5px;color:var(--adm-mut);margin:0 0 10px;}" +
+   ".adm-reup{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}" +
+   ".adm-ru{background:#fff;border:1px solid var(--adm-line);border-top:3px solid var(--adm-ember);border-radius:14px;padding:14px;box-shadow:0 3px 12px rgba(110,23,51,.07);display:flex;flex-direction:column;gap:10px;}" +
+   ".adm-ru-top{display:flex;align-items:center;gap:10px;}" +
+   ".adm-ru-top img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--adm-gold);flex:0 0 auto;}" +
+   ".adm-ru-id{min-width:0;flex:1 1 auto;}" +
+   ".adm-ru-when{font-size:12px;color:var(--adm-mut);white-space:nowrap;}" +
+   ".adm-ru-sec{font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--adm-mut);}" +
+   ".adm-ru-hero{width:100%;height:150px;border-radius:10px;object-fit:cover;border:1px solid var(--adm-line);background:#f5f0e2;display:block;margin-top:3px;}" +
+   ".adm-ru-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:6px;margin-top:3px;}" +
+   ".adm-ru-gal img{width:100%;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--adm-line);}" +
+   ".adm-ru-empty{font-size:12.5px;color:var(--adm-mut);}" +
+   ".adm-ru-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;flex-wrap:nowrap;}" +
+   ".adm-ru-foot>.adm-chip{flex:0 0 auto;}" +
+   ".adm-ru-foot>.adm-btn{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;padding:8px 12px;font-size:12.5px;}" +
+   "@media(max-width:560px){.adm-head-title h1{font-size:18px;}.adm-reup-title{font-size:14px;}.adm-ru-foot{gap:6px;}.adm-ru-foot>.adm-chip{font-size:11px;padding:2px 7px;}.adm-ru-foot>.adm-btn{flex:1 1 0;justify-content:center;padding:7px 8px;font-size:11.5px;gap:5px;}}" +
+   "@media(max-width:380px){.adm-ru-foot{gap:5px;}.adm-ru-foot>.adm-chip{font-size:10.5px;padding:2px 6px;}.adm-ru-foot>.adm-btn{padding:7px 5px;font-size:11px;gap:4px;}.adm-ru-foot>.adm-btn i{display:none;}}" +
+   ".adm-cardsview{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.45);color:#fff;border-radius:20px;padding:7px 13px;font-size:12.5px;cursor:pointer;user-select:none;white-space:nowrap;}" +
+   ".adm-cardsview input{width:15px;height:15px;accent-color:var(--adm-gold);cursor:pointer;margin:0;}" +
+   
+   /* Card view CSS */
+   ".adm-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}" +
+   ".adm-pc{background:#fff;border:1px solid var(--adm-line);border-top:3px solid var(--adm-ember);border-radius:14px;padding:16px;box-shadow:0 3px 12px rgba(110,23,51,.07);display:flex;gap:14px;align-items:flex-start;}" +
+   ".adm-pc-img{flex:0 0 auto;}" +
+   ".adm-pc-img img{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--adm-gold);display:block;}" +
+   ".adm-pc-img .adm-av{width:60px;height:60px;font-size:22px;}" +
+   ".adm-pc-body{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px;}" +
+   ".adm-pc-idrow{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;margin-bottom:2px;}" +
+   ".adm-pc-idrow .id{color:var(--adm-mut);font-size:12.5px;}" +
+   ".adm-pc-idrow .uid{color:var(--adm-mut);font-size:12.5px;}" +
+   ".adm-pc-name{font-weight:700;font-size:15px;color:var(--adm-ink);margin-bottom:2px;}" +
+   ".adm-pc-counts{font-size:13px;font-weight:600;color:var(--adm-ink);}" +
+   ".adm-pc-counts span{font-weight:400;color:var(--adm-mut);}" +
+   ".adm-pc-mob{font-size:13px;color:var(--adm-ink);margin-top:2px;}" +
+   ".adm-pc-statusrow{display:flex;align-items:center;gap:10px;margin-top:4px;}" +
+   ".adm-pc-date{font-size:12px;color:var(--adm-mut);}" +
+   ".adm-pc-acts{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}" +
+   ".adm-pc-acts button{border:none;cursor:pointer;border-radius:6px;padding:5px 10px;font-size:12px;display:inline-flex;align-items:center;gap:4px;background:#f5f0e2;color:var(--adm-ink);}" +
+   ".adm-pc-acts .adm-act-view{background:#eef4ee;color:#2e7d32;}" +
+   ".adm-pc-acts .adm-act-edit{background:#fdf3e2;color:#9a6b12;}" +
+   ".adm-pc-acts .adm-act-del{background:#fbe9e7;color:#b3261e;}" +
+   ".adm-pc-acts button:hover{filter:brightness(.95);}";
   var head = document.head || document.documentElement;
   head.appendChild(st);
  }
 
- // ---------------------------------------------------------------
- // API helper (payload0 + fnj3, mirroring the old admin calls)
- // ---------------------------------------------------------------
- function api(url, body) {
-  return new Promise(function (resolve, reject) {
-   var sent = false;
-   function cleanup() {
-    try {
-     ["x1", "x2", "x3", "la", "vw", "drml"].forEach(function (k) { delete payload0[k]; });
-    } catch (eX) { }
-   }
-   function done(ok, val) {
-    if (sent) { return; }
-    sent = true;
-    cleanup();
-    if (ok) { resolve(val); } else { reject(val); }
-   }
-   try {
-    if (typeof clearPayload0 === "function") { clearPayload0(); }
-    payload0.vw = 4;
-    if (body) {
-     Object.keys(body).forEach(function (k) { payload0[k] = body[k]; });
-    }
-    fnj3(url, payload0, 1, true, null, 20000, 0, 1, 1, 1)
-     .then(function (r) { done(true, r); }, function (err) { done(false, err); });
-   } catch (err) {
-    done(false, err);
-   }
-  });
+ function admClear() {
+  try { ["x1", "x2", "x3", "la", "vw", "drml", "cd"].forEach(function (k) { delete payload0[k]; }); } catch (eC) { }
  }
 
  function maxDate(tbs) {
@@ -259,9 +387,6 @@
   });
  }
 
- // ---------------------------------------------------------------
- // Data loading
- // ---------------------------------------------------------------
  function localRows(tbl) {
   return new Promise(function (res) {
    try {
@@ -275,38 +400,49 @@
   });
  }
 
- // Profiles straight from the local IndexedDB 'mr' table (no network).
  async function loadProfilesFromDexie() {
   setStateIdle("admProfilesState");
   try {
    var local = await localRows("mr");
    rows_ = Array.isArray(local) ? local : [];
+   try { cRows_ = (await localRows("c")) || []; } catch (eC) { cRows_ = []; }
+   try { muRows_ = (await localRows("mu")) || []; } catch (eM) { muRows_ = []; }
    renderProfiles();
   } catch (err) {
    setStateErr("admProfilesState", (err && err.message) || "Could not read local profiles.");
   }
  }
 
- // Manual server sync only (fn 60 via e.php) - fired only by the Refresh buttons.
- async function loadProfiles() {
-  setStateIdle("admProfilesState");
+ async function syncProfiles() {
   try {
-   var r = await api("https://my1.in/2/e.php", { fn: 60, la: await maxDate([{ tb: "c" }, { tb: "mr" }]) });
+   if (typeof clearPayload0 === "function") { clearPayload0(); }
+   payload0.vw = 4;
+   payload0.fn = 60;
+   payload0.la = await maxDate([{ tb: "c" }, { tb: "mr" }, { tb: "mq" }, { tb: "ma" }, { tb: "mu" }]);
+   var r = await fnj3("https://my1.in/2/e.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+   admClear();
    if (r && r.su == 1) {
     try {
      if (typeof handl_mr_rspons === "function") { await handl_mr_rspons(r); }
     } catch (eH) { }
-    rows_ = (r.mr && r.mr.l) || [];
-    renderProfiles();
-   } else {
-    setStateErr("admProfilesState", (r && (r.ms || r.m)) || "Failed to load profiles.");
+    return 1;
    }
+   toast((r && (r.ms || r.m)) || "Sync failed; showing saved profiles.", "error");
+   return 0;
   } catch (err) {
-   setStateErr("admProfilesState", (err && err.message) || "Failed to load profiles.");
+   admClear();
+   toast("Sync failed: " + ((err && err.message) || err) + " \u2014 showing saved profiles.", "error");
+   return 0;
   }
  }
 
- // Plans straight from the local IndexedDB 'mp' table (no network).
+ async function loadProfiles() {
+  setStateIdle("admProfilesState");
+  await syncProfiles();
+  if (reUpOpen_) { await loadReUpFromDexie(); return; }
+  await loadProfilesFromDexie();
+ }
+
  async function loadPlansFromDexie() {
   var st = document.getElementById("admPlansState");
   if (st) { st.innerHTML = '<div class="adm-spin"></div>'; }
@@ -319,29 +455,48 @@
   }
  }
 
- // Manual server sync only (fn 61 via g.php) - fired only by the Refresh plans button.
  async function loadPlans() {
   var st = document.getElementById("admPlansState");
   if (st) { st.innerHTML = '<div class="adm-spin"></div>'; }
   try {
-   var r = await api("https://my1.in/2/g.php", { fn: 61, la: await maxDate([{ tb: "mp" }]) });
+   if (typeof clearPayload0 === "function") { clearPayload0(); }
+   payload0.vw = 4;
+   payload0.fn = 61;
+   payload0.la = await maxDate([{ tb: "mp" }]);
+   var r = await fnj3("https://my1.in/2/g.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+   admClear();
    if (r && r.su == 1) {
     try {
      if (typeof handl_mr_rspons === "function") { await handl_mr_rspons(r); }
     } catch (eH) { }
-    planRows_ = (r.mp && r.mp.l) || [];
-    renderPlans();
+    await loadPlansFromDexie();
    } else {
-    setStateErr("admPlansState", (r && (r.ms || r.m)) || "Failed to load plans.");
+    await loadPlansFromDexie();
+    toast((r && (r.ms || r.m)) || "Sync failed; showing saved plans.", "error");
    }
   } catch (err) {
-   setStateErr("admPlansState", (err && err.message) || "Failed to load plans.");
+   admClear();
+   await loadPlansFromDexie();
+   toast("Sync failed: " + ((err && err.message) || err) + " \u2014 showing saved plans.", "error");
   }
  }
 
- // ---------------------------------------------------------------
- // Rendering
- // ---------------------------------------------------------------
+ //"last added first": sort by the Added date (rd), falling back to the profile id
+ //when a row has no usable date. Both the table and the card view use this order.
+ function addedTs(p) {
+  var raw = (p && p.rd != null) ? String(p.rd).trim() : "";
+  if (!raw) { return NaN; }
+  var d = new Date(raw.indexOf("-") >= 0 ? raw.replace(/-/g, "/") : raw);
+  return isNaN(d.getTime()) ? NaN : d.getTime();
+ }
+ function newestFirst(x, y) {
+  var tx = addedTs(x), ty = addedTs(y);
+  var hasX = !isNaN(tx), hasY = !isNaN(ty);
+  if (hasX && hasY && tx !== ty) { return ty - tx; }   //newest added date first
+  if (hasX !== hasY) { return hasX ? -1 : 1; }         //dated rows before undated
+  return Number(y.a || 0) - Number(x.a || 0);          //fallback: highest id first
+ }
+
  function filteredRows() {
   var s = search_.toLowerCase();
   return rows_.filter(function (p) {
@@ -350,42 +505,12 @@
    return String(p.m || "").toLowerCase().indexOf(s) >= 0 ||
     String(p.n || "").toLowerCase().indexOf(s) >= 0 ||
     String(p.l || "").toLowerCase().indexOf(s) >= 0 ||
-    String(p.a || "").toLowerCase().indexOf(s) >= 0;
-  });
- }
-
- function countRows(dv) {
-  var c = 0;
-  var i;
-  for (i = 0; i < rows_.length; i++) { if (String(rows_[i].d) === String(dv)) { c++; } }
-  return c;
- }
-
- function renderStats() {
-  var el = document.getElementById("admStats");
-  if (!el) { return; }
-  var st = [
-   { v: "total", n: "Profiles" },
-   { v: "d1", n: "Accepted" },
-   { v: "d2", n: "Under process" },
-   { v: "d127", n: "Denied" },
-   { v: "plans", n: "Plans" }
-  ];
-  var html = "";
-  for (var i = 0; i < st.length; i++) {
-   var val = "—";
-   if (st[i].v === "total") { val = rows_.length; }
-   else if (st[i].v === "plans") { val = planRows_.length; }
-   else if (st[i].v === "d1") { val = countRows(1); }
-   else if (st[i].v === "d2") { val = countRows(2); }
-   else if (st[i].v === "d127") { val = countRows(127); }
-   html += '<div class="adm-stat"><b>' + val + '</b><span>' + st[i].n + '</span></div>';
-  }
-  el.innerHTML = html;
+    String(p.a || "").toLowerCase().indexOf(s) >= 0 ||
+    String(p.w || "").toLowerCase().indexOf(s) >= 0;
+  }).sort(newestFirst);
  }
 
  function renderProfiles() {
-  renderStats();
   var state = document.getElementById("admProfilesState");
   var wrap = document.getElementById("admTableWrap");
   if (!wrap) { return; }
@@ -401,10 +526,19 @@
    return;
   }
   if (state) { state.innerHTML = ""; }
+  
+  if (cardsView_) {
+   var cardsHtml = "";
+   for (var ci = 0; ci < list.length; ci++) { cardsHtml += profileCardHtml(list[ci]); }
+   wrap.innerHTML = '<div class="adm-cards">' + cardsHtml + "</div>";
+   if (window.mrImg) { try { window.mrImg.hydrate(wrap); } catch (eHC) { } }
+   return;
+  }
+  
   var head =
    "<table class='adm-table' summary='Profiles'>" +
    "<thead><tr>" +
-   "<th>Photo</th><th>ID</th><th>Name</th><th>Mobile</th><th>Age</th><th>Status</th><th>Native place</th><th>Added</th><th></th>" +
+   "<th>Photo</th><th>ID</th><th>UID</th><th>Free + Paid</th><th>Used</th><th>Name</th><th>Mobile</th><th>Status</th><th>Native place</th><th>Added</th><th></th>" +
    "</tr></thead><tbody>";
   var trs = "";
   for (var i = 0; i < list.length; i++) {
@@ -416,20 +550,21 @@
 
  function rowHtml(p) {
   var av = thumbOf(p);
-  var photo = av ? '<img data-lazy="' + esc(av) + '" alt="" loading="lazy" decoding="async">' : '<div class="adm-av">' + esc((p.m || "?").charAt(0).toUpperCase()) + '</div>';
+  var photo = av ? '<img data-lazy="' + esc(av) + '" alt="" loading="lazy" decoding="async">' : '<div class="adm-av">' + esc(((p && p.m) || "?").charAt(0).toUpperCase()) + '</div>';
   var chip = "adm-chip-s" + String(p.d == null ? "" : p.d);
   var stNm = statusName(p.d);
-  var age = ageOf(p.g);
-  var city = cityOf(p.b4);
-  var added = fmtDate(p.b);
+  var city = cityOf(placePathOf(p, "b2"));
+  var added = ((function(){ var rawAdded = (p.rd != null && String(p.rd).trim() !== "") ? p.rd : ""; return rawAdded ? fmtDate(rawAdded) : "-"; })());
   return "<tr>" +
    '<td class="adm-tb-img">' + photo + "</td>" +
    '<td><div class="adm-tb-id">#' + esc(p.a) + "</div></td>" +
-   '<td><div class="adm-tb-name">' + esc(p.m) + '</div><div class="adm-tb-sub">' + esc(p.n) + "</div></td>" +
-   "<td>" + esc(phoneOf(p.l)) + "</td>" +
-   "<td>" + esc(age) + "</td>" +
-   '<td><span class="adm-chip ' + chip + '">' + esc(stNm) + "</span></td>" +
-   "<td>" + esc(city) + "</td>" +
+   '<td><div class="adm-tb-id">' + esc(dash(p.w)) + "</div></td>" +
+   "<td>" + esc(totalCountOf(p)) + "</td>" +
+   "<td>" + esc(usedCountOf(p)) + "</td>" +
+   '<td><div class="adm-tb-name">' + esc(dash(p.m)) + '</div><div class="adm-tb-sub">' + esc(dash(p.n)) + "</div></td>" +
+   "<td>" + esc(dash(phoneOf(p.l))) + "</td>" +
+   '<td class="adm-tb-status" data-act="status" data-id="' + esc(p.a) + '" data-d="' + esc(p.d == null ? "" : p.d) + '"><span class="adm-chip ' + chip + '">' + esc(stNm) + "</span></td>" +
+   "<td>" + esc(dash(city)) + "</td>" +
    "<td>" + esc(added) + "</td>" +
    '<td class="adm-tb-act">' +
    '<button data-act="view" data-id="' + esc(p.a) + '" title="View" class="adm-act-view"><i class="fa-solid fa-eye"></i></button>' +
@@ -438,12 +573,51 @@
    "</td></tr>";
  }
 
+ function profileCardHtml(p) {
+  var av = thumbOf(p);
+  var photo = av ? '<img data-lazy="' + esc(av) + '" alt="" loading="lazy" decoding="async">' : '<div class="adm-av">' + esc(((p && p.m) || "?").charAt(0).toUpperCase()) + '</div>';
+  var chip = "adm-chip-s" + String(p.d == null ? "" : p.d);
+  var stNm = statusName(p.d);
+  
+  // Mobile from table "c" where c.a = mr.e
+  var mobVal = mobileOfProfile(p);
+  var mobHtml = mobVal ? '<div class="adm-pc-mob"><i class="fa-solid fa-mobile-screen"></i> ' + esc(mobVal) + '</div>' : '';
+  
+  // Counts
+  var countsHtml = '<div class="adm-pc-counts">' + esc(d2Of(p)) + ', ' + esc(d1Of(p)) + ', ' + esc(usedCountOf(p)) + ' <span>//free, paid, used</span></div>';
+  
+  // Date
+  var added = ((function(){ var rawAdded = (p.rd != null && String(p.rd).trim() !== "") ? p.rd : ""; return rawAdded ? fmtDate(rawAdded) : ""; })());
+  var dateHtml = added ? '<span class="adm-pc-date"><i class="fa-regular fa-calendar" style="margin-right:4px;"></i>' + esc(added) + '</span>' : '';
+
+  return '<div class="adm-pc">' +
+   '<div class="adm-pc-img">' + photo + '</div>' +
+   '<div class="adm-pc-body">' +
+     '<div class="adm-pc-idrow">' +
+       '<span class="id">#' + esc(p.a) + '</span>' +
+       '<span class="uid">' + esc(dash(p.w)) + '</span>' +
+     '</div>' +
+     '<div class="adm-pc-name">' + esc(dash(p.m)) + '</div>' +
+     countsHtml +
+     mobHtml +
+     '<div class="adm-pc-statusrow">' +
+       '<span class="adm-chip ' + chip + '" data-act="status" data-id="' + esc(p.a) + '" data-d="' + esc(p.d == null ? "" : p.d) + '" style="cursor:pointer;">' + esc(stNm) + '</span>' +
+       dateHtml +
+     '</div>' +
+     '<div class="adm-pc-acts">' +
+       '<button data-act="view" data-id="' + esc(p.a) + '" class="adm-act-view"><i class="fa-solid fa-eye"></i> View</button>' +
+       '<button data-act="edit" data-id="' + esc(p.a) + '" class="adm-act-edit"><i class="fa-solid fa-pen"></i> Edit</button>' +
+       '<button data-act="del" data-id="' + esc(p.a) + '" class="adm-act-del"><i class="fa-solid fa-trash"></i> Delete</button>' +
+     '</div>' +
+   '</div>' +
+   '</div>';
+ }
+
  function planVal(v) {
   return (v === undefined || v === null || v === "") ? "" : (String(v) === "-1" ? "Unlimited" : v);
  }
 
  function renderPlans() {
-  renderStats();
   var state = document.getElementById("admPlansState");
   var grid = document.getElementById("admPlansGrid");
   if (!grid) { return; }
@@ -483,9 +657,6 @@
   el.innerHTML = '<div class="adm-ico"><i class="fa-solid fa-triangle-exclamation"></i></div><div>' + esc(msg) + '</div>';
  }
 
- // ---------------------------------------------------------------
- // Page lifecycle
- // ---------------------------------------------------------------
  window.openMrAdmin = function () {
   if (open_) {
    var root = document.getElementById(PAGE_ID);
@@ -494,11 +665,12 @@
   }
   open_ = 1;
   ensureCss();
-  prevOverflow_ = document.body.style.overflow;
-  document.body.style.overflow = "hidden";
-buildPage();
-   loadProfilesFromDexie();
-  };
+  loadCardsPref();
+  savedScrollY_ = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+  document.body.classList.add("mr-admin-locked");
+  buildPage();
+  loadProfilesFromDexie();
+ };
 
  function buildPage() {
   var prev = document.getElementById(PAGE_ID);
@@ -512,23 +684,22 @@ buildPage();
    "<header class='adm-head'>" +
    "<button type='button' class='adm-icon' data-act='close' title='Back'><i class='fa-solid fa-arrow-left'></i></button>" +
    "<div class='adm-head-title'><span class='adm-kicker'>my1 matrimony</span><h1 class='text-white'>Admin Dashboard</h1></div>" +
+   "<label class='adm-cardsview' title='Toggle card view'><input type='checkbox' id='admCardsView'" + (cardsView_ ? " checked" : "") + "><span>Cards view</span></label>" +
    "<button type='button' class='adm-icon' data-act='refresh' title='Refresh'><i class='fa-solid fa-rotate-right'></i></button>" +
    "</header>" +
    "<div class='adm-body'>" +
-   "<div class='adm-stats' id='admStats'></div>" +
-   "<div class='adm-tabs'>" +
-   '<button type="button" class="adm-tab adm-tab-on" data-tab="profiles">Profiles</button>' +
-   '<button type="button" class="adm-tab" data-tab="plans">Plans</button>' +
-   "</div>" +
    "<section class='adm-panel' id='admPanelProfiles'>" +
    "<div class='adm-toolbar'>" +
+   "<div class='adm-tb-back'><button type='button' class='adm-btn adm-btn-ghost' data-act='reupback'><i class='fa-solid fa-arrow-left'></i> Back to profiles</button><span class='adm-reup-title'>Image update requests</span></div>" +
+   "<div class='adm-toolbar-main' id='admToolbarMain'>" +
    "<div class='adm-search'><i class='fa-solid fa-magnifying-glass'></i><input type='search' id='admSearch' placeholder='Search name, father, mobile or ID...'></div>" +
    "<div class='adm-toolbar-rt'>" +
    "<select id='admStatus' class='adm-sel' aria-label='Status'></select>" +
-   "<button type='button' class='adm-btn adm-btn-gold' id='admAddProfile'><i class='fa-solid fa-user-plus'></i> Add New Profile</button>" +
-   "<button type='button' class='adm-btn adm-btn-ghost' data-act='refresh'><i class='fa-solid fa-rotate-right'></i> Refresh</button>" +
+   "<button type='button' class='adm-btn adm-btn-gold' id='reUpProfile'><i class='fa-solid fa-rotate'></i> Re-Up</button>" +
+   "<button type='button' class='adm-btn adm-btn-gold' id='admAddProfile'><i class='fa-solid fa-user-plus'></i> Profl</button>" +
    "</div></div>" +
-   "<div class='adm-state' id='admProfilesState'></div>" +
+   "</div>" +
+   "<div class='adm-state d-none' id='admProfilesState'></div>" +
    "<div class='adm-table-wrap' id='admTableWrap'></div>" +
    "</section>" +
    "<section class='adm-panel adm-panel-off' id='admPanelPlans'>" +
@@ -558,11 +729,21 @@ buildPage();
     else if (rAct === "del") { confirmDelete(rid); }
     return;
    }
+   var stCell = node ? node.closest('[data-act="status"]') : null;
+   if (stCell && root.contains(stCell)) { openStatus(findRow(stCell.getAttribute("data-id"))); return; }
    var addBtn = node ? node.closest("#admAddProfile") : null;
    if (addBtn && root.contains(addBtn)) { openReg(null); return; }
-   var tabBtn = node ? node.closest(".adm-tab") : null;
-   if (tabBtn && root.contains(tabBtn)) {
-    switchTab(tabBtn.getAttribute("data-tab"), root);
+   var reUpBtn = node ? node.closest("#reUpProfile") : null;
+   if (reUpBtn && root.contains(reUpBtn)) { openReUp(); return; }
+   var backBtn = node ? node.closest('[data-act="reupback"]') : null;
+   if (backBtn && root.contains(backBtn)) { closeReUp(); return; }
+   var ruBtn = node ? node.closest('[data-act="reup-accept"],[data-act="reup-reject"]') : null;
+   if (ruBtn && root.contains(ruBtn)) {
+    var ruId = ruBtn.getAttribute("data-id");
+    var ruKind = ruBtn.getAttribute("data-act") === "reup-accept" ? "accept" : "reject";
+    for (var k = 0; k < mqRows_.length; k++) {
+     if (String(mqRows_[k].a) === String(ruId)) { confirmReUp(mqRows_[k], ruKind); break; }
+    }
     return;
    }
    var planBtn = node ? node.closest("[data-plan]") : null;
@@ -577,7 +758,7 @@ buildPage();
    if (actBtn && root.contains(actBtn)) {
     var act = actBtn.getAttribute("data-act");
     if (act === "close") { closeAdmin(); }
-    else if (act === "refresh") { loadProfiles(); if (tab_ === "plans") { loadPlans(); } }
+    else if (act === "refresh") { loadProfiles(); }
     else if (act === "loadplans") { loadPlans(); }
    }
   });
@@ -590,13 +771,22 @@ buildPage();
    status_ = this.value;
    renderProfiles();
   });
-
+  var cv = root.querySelector("#admCardsView");
+  if (cv) {
+   cv.addEventListener("change", function () {
+    cardsView_ = this.checked ? 1 : 0;
+    saveCardsPref();
+    if (reUpOpen_) { return; }
+    renderProfiles();
+   });
+  }
   pageKeyH_ = function (e) {
    if (e.key !== "Escape") { return; }
    var rr = document.getElementById(REGIS_ID);
    var dd = document.getElementById(DLG_ID);
    var pv = document.getElementById(MODAL_PROFILE_ID);
    if (rr || dd || pv) { return; }
+   if (reUpOpen_) { closeReUp(); return; }
    closeAdmin();
   };
   document.addEventListener("keydown", pageKeyH_);
@@ -618,7 +808,22 @@ buildPage();
  function closeAdmin() {
   if (!open_) { return; }
   open_ = 0;
-  try { document.body.style.overflow = prevOverflow_ || ""; } catch (eO) { }
+  reUpOpen_ = 0;
+  mqRows_ = [];
+  try { document.body.classList.remove("mr-admin-locked"); } catch (eO) { }
+  //put the page back where the member left it; scroll-behavior:smooth (Bootstrap
+  //reboot) would turn this into an animation, so force an instant jump
+  if (savedScrollY_) {
+   var y = savedScrollY_;
+   savedScrollY_ = 0;
+   try {
+    var de = document.documentElement;
+    var prevSb = de.style.scrollBehavior;
+    de.style.scrollBehavior = "auto";
+    window.scrollTo(0, y);
+    if (prevSb) { de.style.scrollBehavior = prevSb; } else { de.style.removeProperty("scroll-behavior"); }
+   } catch (eS) { }
+  }
   if (pageKeyH_) {
    try { document.removeEventListener("keydown", pageKeyH_); } catch (eK) { }
    pageKeyH_ = null;
@@ -629,9 +834,6 @@ buildPage();
   if (root && root.parentNode) { root.parentNode.removeChild(root); }
  }
 
- // ---------------------------------------------------------------
- // Row actions
- // ---------------------------------------------------------------
  function findRow(id) {
   for (var i = 0; i < rows_.length; i++) {
    if (String(rows_[i].a) === String(id)) { return rows_[i]; }
@@ -656,9 +858,6 @@ buildPage();
   raiseOverlay(MODAL_PROFILE_ID);
  }
 
- // prfl.js opens its overlay with z-index 1045 (rg-overlay CSS). The admin page
- // sits at 3000, so raise the profile/unlock overlays above it and keep the
- // admin page open underneath ("stay on current").
  function raiseOverlay(id) {
   var tries = 0;
   var t = setInterval(function () {
@@ -680,7 +879,6 @@ buildPage();
    var ov = document.getElementById(REGIS_ID);
    if (ov) { ov.style.zIndex = "3200"; }
   }
-  // Use loadExe2Fn to ensure regis.js is loaded and showRegistrationModal is ready for admin
   try {
    loadExe2Fn(14, [id, { admin: true }], [1]);
    setTimeout(bump, 400);
@@ -728,7 +926,14 @@ buildPage();
  async function doDelete(p, reason) {
   try {
    var x2 = (p.l != null && String(p.l).trim() !== "") ? String(p.l).trim() : (p.w || "");
-   var r = await api("https://my1.in/2/h.php", { fn: 67, x1: reason, x2: x2, x3: p.m || "" });
+   if (typeof clearPayload0 === "function") { clearPayload0(); }
+   payload0.vw = 4;
+   payload0.fn = 67;
+   payload0.x1 = reason;
+   payload0.x2 = x2;
+   payload0.x3 = p.m || "";
+   var r = await fnj3("https://my1.in/2/h.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+   admClear();
    if (r && (r.su == 1 || (r.cd != null && Number(r.cd) > 0))) {
     toast("Profile removed.", "success");
     for (var i = 0; i < rows_.length; i++) {
@@ -743,9 +948,55 @@ buildPage();
   }
  }
 
- // ---------------------------------------------------------------
- // Plans edit (fn 65)
- // ---------------------------------------------------------------
+ function openStatus(p) {
+  if (!p) { return; }
+  var cur = (p.d == null ? "" : String(p.d));
+  var body = '<div id="admStatusUpd" class="adm-radios mt-2" role="radiogroup" aria-label="Status">' +
+  statusList().map(function (o) {
+    return '<label class="adm-radio"><input type="radio" name="admStatusUpd" value="' + esc(o.a) + '"' +
+     (String(o.a) === cur ? " checked" : "") + '><span>' + esc(o.e) + '</span></label>';
+   }).join("") +
+   "</div>";
+  var ctl = null;
+  ctl = openDlg({
+   compact: true,
+   body: body,
+   okLabel: "Update",
+   onOk: function () {
+    var picked = ctl.q('#admStatusUpd input[name="admStatusUpd"]:checked');
+    var v = picked ? picked.value : "";
+    ctl.close();
+    updateStatus(p, v);
+   },
+   onCancel: function () { if (ctl) { ctl.close(); } }
+  });
+ }
+
+ async function updateStatus(p, val) {
+  try {
+   if (typeof clearPayload0 === "function") { clearPayload0(); }
+   payload0.vw = 4;
+   payload0.fn = 63;
+   payload0.la = await maxDate([{ tb: "mr" }]);
+   payload0.x1 = p.a;
+   payload0.x2 = { e: p.e, f: p.f, d: val };
+   var r = await fnj3("https://my1.in/2/f.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+   admClear();
+   if (r && r.su == 1) {
+    toast("Status updated.", "success");
+    try {
+     if (typeof handl_mr_rspons === "function") { await handl_mr_rspons(r); }
+    } catch (eH) { }
+    await loadProfilesFromDexie();
+   } else {
+    toast((r && (r.ms || r.m)) || "Update failed.", "error");
+   }
+  } catch (err) {
+   admClear();
+   toast("Update failed: " + ((err && err.message) || err), "error");
+  }
+ }
+
  function editPlan(plan) {
   var f = plan.f == null ? "" : plan.f;
   var g = plan.g == null ? "" : plan.g;
@@ -809,7 +1060,14 @@ buildPage();
  async function sendPlanUpdate(planId, vals) {
   try {
    var x2 = { plan_id: planId, e: vals.e, f: vals.f === "" ? null : vals.f, g: vals.g === "" ? null : vals.g, i: vals.i === "" ? null : vals.i, h: vals.h === "" ? null : vals.h, j: vals.j };
-   var r = await api("https://my1.in/2/e.php", { fn: 65, la: await maxDate([{ tb: "mp" }]), x1: planId, x2: x2 });
+   if (typeof clearPayload0 === "function") { clearPayload0(); }
+   payload0.vw = 4;
+   payload0.fn = 65;
+   payload0.la = await maxDate([{ tb: "mp" }]);
+   payload0.x1 = planId;
+   payload0.x2 = x2;
+   var r = await fnj3("https://my1.in/2/e.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+   admClear();
    if (r && r.su == 1) {
     toast("Plan updated.", "success");
     try {
@@ -824,9 +1082,181 @@ buildPage();
   }
  }
 
- // ---------------------------------------------------------------
- // Small dialog
- // ---------------------------------------------------------------
+ function reUpPending(r) { return String(r.d == null ? "0" : r.d) === "0"; }
+
+ function reUpStateName(v) {
+  var s = String(v == null ? "0" : v);
+  var list = statusList();
+  for (var i = 0; i < list.length; i++) {
+   if (String(list[i].a) === s) { return list[i].e; }
+  }
+  return "Handled";
+ }
+
+ function reUpStateChip(v) {
+  var s = String(v == null ? "0" : v);
+  var cls = s === "1" ? "adm-chip-s1" : (s === "-1" ? "adm-chip-s-1" : (s === "0" ? "adm-chip-s0" : (s === "-2" || s === "-3" ? "adm-chip-s" + s : "adm-chip-s2")));
+  return '<span class="adm-chip ' + cls + '">' + esc(reUpStateName(v)) + "</span>";
+ }
+
+ async function openReUp() {
+  reUpOpen_ = 1;
+  var panel = document.getElementById("admPanelProfiles");
+  if (panel) { panel.classList.add("adm-reup-on"); }
+  var state = document.getElementById("admProfilesState");
+  if (state) { state.innerHTML = ""; }
+  var wrap = document.getElementById("admTableWrap");
+  if (wrap) { wrap.innerHTML = '<div class="adm-state"><div class="adm-spin"></div></div>'; }
+  //await syncProfiles();
+  await loadReUpFromDexie();
+ }
+
+ function closeReUp() {
+  reUpOpen_ = 0;
+  var panel = document.getElementById("admPanelProfiles");
+  if (panel) { panel.classList.remove("adm-reup-on"); }
+  renderProfiles();
+ }
+
+ async function loadReUpFromDexie() {
+  try {
+   var local = await localRows("mq");
+   mqRows_ = Array.isArray(local) ? local : [];
+  } catch (err) {
+   mqRows_ = [];
+  }
+  renderReUp();
+ }
+
+ function reUpWhen(b) {
+  var s = String(b == null ? "" : b).trim();
+  if (!s) { return ""; }
+  var parts = s.split(" ");
+  return fmtDate(parts[0]) + (parts[1] ? " " + parts[1] : "");
+ }
+
+ function reUpRowHtml(r) {
+  var p = findRow(r.e);
+  var nm = p ? [p.m, p.n].filter(Boolean).join(" ") : "";
+  var av = p ? thumbOf(p) : "";
+  var hero = null;
+  var gal = [];
+  try {
+   if (typeof window.mrResolveProfileImages === "function") {
+    var hr = window.mrResolveProfileImages(r.u);
+    hero = hr.display || hr.thumbnail || null;
+   }
+  } catch (eH) { }
+  try {
+   var raw = (typeof window.mrParseGalleryImages === "function") ? window.mrParseGalleryImages(r.u1) : [];
+   gal = raw.map(function (tok) {
+    var g = (typeof window.mrResolveProfileImages === "function") ? window.mrResolveProfileImages(tok) : null;
+    return g ? (g.display || g.thumbnail) : null;
+   }).filter(Boolean);
+  } catch (eG) { }
+  var pending = reUpPending(r);
+  var actions = pending
+   ? '<button type="button" class="adm-btn adm-btn-gold" data-act="reup-accept" data-id="' + esc(r.a) + '"><i class="fa-solid fa-check"></i> Accept update</button>' +
+     '<button type="button" class="adm-btn adm-btn-danger" data-act="reup-reject" data-id="' + esc(r.a) + '"><i class="fa-solid fa-xmark"></i> Reject</button>'
+   : reUpStateChip(r.d);
+  return '<div class="adm-ru">' +
+   '<div class="adm-ru-top">' +
+   (av ? '<img data-lazy="' + esc(av) + '" alt="" loading="lazy" decoding="async">' : '<div class="adm-av">' + esc((nm || "?").charAt(0).toUpperCase()) + "</div>") +
+   '<div class="adm-ru-id"><div class="adm-tb-name">' + (esc(nm) || "Profile #" + esc(r.e)) + '</div><div class="adm-tb-sub">#' + esc(r.e) + (p && p.d != null ? " &middot; " + esc(statusName(p.d)) : "") + "</div></div>" +
+   '<div class="adm-ru-when">' + esc(reUpWhen(r.b)) + "</div>" +
+   "</div>" +
+   (hero ? '<div><div class="adm-ru-sec">New top image</div><img class="adm-ru-hero" data-lazy="' + esc(hero) + '" alt="" loading="lazy" decoding="async"></div>' : "") +
+   (gal.length ? '<div><div class="adm-ru-sec">New gallery (' + gal.length + ')</div><div class="adm-ru-gal">' + gal.map(function (src) { return '<img data-lazy="' + esc(src) + '" alt="" loading="lazy" decoding="async">'; }).join("") + "</div></div>" : "") +
+   (!hero && !gal.length ? '<div class="adm-ru-empty">No image previews in this request.</div>' : "") +
+   '<div class="adm-ru-foot"><span class="adm-chip adm-chip-s0">Request #' + esc(r.a) + "</span>" + actions + "</div>" +
+   "</div>";
+ }
+
+ function renderReUp() {
+  var state = document.getElementById("admProfilesState");
+  var wrap = document.getElementById("admTableWrap");
+  if (!wrap) { return; }
+  if (state) { state.innerHTML = ""; }
+  var list = mqRows_.slice().sort(function (x, y) {
+   var dx = String(x.b || ""), dy = String(y.b || "");
+   if (dx !== dy) { return dy < dx ? -1 : 1; }
+   return Number(y.a || 0) - Number(x.a || 0);
+  });
+  if (!list.length) {
+   wrap.innerHTML = '<div class="adm-state"><div class="adm-ico"><i class="fa-solid fa-images"></i></div><div>No image update requests yet.</div><div style="font-size:12.5px;margin-top:6px">Requests appear here when members change their photos (use <b>Refresh</b> to sync).</div></div>';
+   return;
+  }
+  wrap.innerHTML = '<div class="adm-reup-hint">Requested photo updates. <b>Accept</b> applies the new top image and gallery to the profile; <b>Reject</b> declines and keeps the current photos.</div>' +
+   '<div class="adm-reup">' + list.map(reUpRowHtml).join("") + "</div>";
+  if (window.mrImg) { try { window.mrImg.hydrate(wrap); } catch (eH) { } }
+ }
+
+ function confirmReUp(r, kind) {
+  var p = findRow(r.e);
+  var nm = p ? ([p.m, p.n].filter(Boolean).join(" ") || "profile #" + r.e) : "profile #" + r.e;
+  var accepting = kind === "accept";
+  var galCnt = 0;
+  try {
+   galCnt = (typeof window.mrParseGalleryImages === "function") ? window.mrParseGalleryImages(r.u1).length : 0;
+  } catch (eG) { }
+  var body = "<p class='adm-dlg-sub'>" +
+   (accepting
+    ? "Apply the requested image update to <b>" + esc(nm) + "</b> (profile # " + esc(r.e) + ")? The new top image and gallery (" + galCnt + " photo" + (galCnt === 1 ? "" : "s") + ") replace the current ones."
+    : "Decline the requested image update for <b>" + esc(nm) + "</b> (profile # " + esc(r.e) + ")? The current photos stay unchanged.") +
+   "</p>" +
+   (accepting ? "" :
+    '<label class="adm-block">' +
+    '<input type="checkbox" id="admReUpBlock">' +
+    '<span>Admin blocked because sexual content update</span>' +
+    '</label>') +
+   '<div class="adm-dlg-err" id="admReUpErr"></div>';
+  var ctl = null;
+  ctl = openDlg({
+   icon: accepting ? "fa-images" : "fa-ban",
+   title: (accepting ? "Accept update \u2014 " : "Reject request \u2014 ") + nm,
+   body: body,
+   okLabel: accepting ? "Accept update" : "Reject request",
+   cancelLabel: "Cancel",
+   onOk: function () {
+    var cb = ctl.q("#admReUpBlock");
+    var blocked = !!(cb && cb.checked);
+    ctl.close();
+    sendReUp(r, kind, blocked);
+   },
+   onCancel: function () { if (ctl) { ctl.close(); } }
+  });
+ }
+
+ async function sendReUp(r, kind, blocked) {
+  try {
+   if (typeof clearPayload0 === "function") { clearPayload0(); }
+   payload0.vw = 4;
+   payload0.fn = 120;
+   payload0.x1 = r.a; //mq.a = image update request id
+   var accepting = kind === "accept";
+   var stAccept = statusValueFor("accept", 1);
+   var stReject = statusValueFor("reject", -1);
+   //the block entry's "a" is the x3 flag sent with a reject, not a status for x2
+   var stBlock = statusValueFor("block", -3);
+   payload0.x2 = accepting ? stAccept : stReject;
+   //x3 is only sent for the "block" case; a plain accept/reject omits it entirely
+   if (!accepting && blocked) { payload0.x3 = stBlock; }
+   var resp = await fnj3("https://my1.in/2/u.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+   admClear();
+   if (resp && (resp.su == 1 || (resp.cd != null && Number(resp.cd) > 0))) {
+    toast(accepting
+     ? "Request accepted."
+     : (blocked ? "Request rejected and profile blocked." : "Request rejected."), "success");
+    //await syncProfiles();
+    await loadReUpFromDexie();
+   } else {
+    toast((resp && (resp.ms || resp.m)) || "Request failed.", "error");
+   }
+  } catch (err) {
+   toast("Request failed: " + ((err && err.message) || err), "error");
+  }
+ }
+
  function openDlg(opts) {
   var prev = document.getElementById(DLG_ID);
   if (prev && prev.parentNode) { prev.parentNode.removeChild(prev); }
@@ -835,13 +1265,16 @@ buildPage();
   modal.className = "adm-ovl";
   modal.setAttribute("role", "alertdialog");
   modal.setAttribute("aria-modal", "true");
+  var compact = !!opts.compact;
   modal.innerHTML =
-   "<div class='adm-dlg'>" +
-   "<div class='adm-dlg-top'><i class='fa-solid " + (opts.icon || "fa-circle-info") + "'></i><span>ADMIN</span></div>" +
-   "<div class='adm-dlg-title'>" + esc(opts.title || "") + "</div>" +
+   "<div class='adm-dlg" + (compact ? " adm-dlg-sm" : "") + "'>" +
+   (compact
+    ? '<button type="button" class="adm-dlg-x" data-sure="cancel" aria-label="Close">&times;</button>'
+    : "<div class='adm-dlg-top'><i class='fa-solid " + (opts.icon || "fa-circle-info") + "'></i><span>ADMIN</span></div>") +
+   (opts.title ? "<div class='adm-dlg-title'>" + esc(opts.title) + "</div>" : "") +
    "<div class='adm-dlg-body'>" + (opts.body || "") + "</div>" +
    "<div class='adm-dlg-foot'>" +
-   '<button type="button" class="adm-btn adm-btn-ghost" data-sure="cancel">' + esc(opts.cancelLabel || "Cancel") + "</button>" +
+   (compact ? "" : '<button type="button" class="adm-btn adm-btn-ghost" data-sure="cancel">' + esc(opts.cancelLabel || "Cancel") + "</button>") +
    '<button type="button" class="adm-btn adm-btn-gold" data-sure="ok">' + esc(opts.okLabel || "OK") + "</button>" +
    "</div></div>";
   document.body.appendChild(modal);
@@ -873,9 +1306,6 @@ buildPage();
   return ctl;
  }
 
- // ---------------------------------------------------------------
- // Exports & helpers
- // ---------------------------------------------------------------
  function toast(msg, type) {
   if (typeof showToast === "function") {
    try {
@@ -891,6 +1321,6 @@ buildPage();
   var root = document.getElementById(PAGE_ID);
   if (!root) { return Promise.resolve(0); }
   if (root.style.display === "none") { root.style.display = ""; }
-  return loadProfilesFromDexie();
+  return reUpOpen_ ? loadReUpFromDexie() : loadProfilesFromDexie();
  };
 })();

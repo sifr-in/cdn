@@ -1,3 +1,31 @@
+//mr.da wajiw lookup for the filter flow sounds (a = fltr / fltrappl)
+function fltrSoundRaw(key) {
+ try {
+  var P = (window.my1uzr && window.my1uzr.worknOnPg) ? window[window.my1uzr.worknOnPg] : null;
+  var C = window.da_mr || (P && P.clientConfig) || {};
+  var wj = C.wajiw;
+  if (!Array.isArray(wj)) return "";
+  for (var i = 0; i < wj.length; i++) {
+   if (wj[i] && String(wj[i].a) === String(key)) return wj[i].e || "";
+  }
+ } catch (e) { }
+ return "";
+}
+
+//reveal the shared sound button and play (auto path: honors the global pause
+//counter). A sound that is already playing is kept as-is, so pressing Apply
+//twice never restarts it.
+function fltrPlaySound(key) {
+ var raw = fltrSoundRaw(key);
+ if (!raw) return;
+ try {
+  if (window.mrSoundBtn && typeof window.mrSoundBtn.show === "function") window.mrSoundBtn.show(raw);
+  if (typeof window.mrSoundIsPlaying === "function" && window.mrSoundIsPlaying(raw)) return;
+  if (typeof window.mrPlaySound === "function") window.mrPlaySound(raw);
+  else if (window.mrSoundBtn && typeof window.mrSoundBtn.play === "function") window.mrSoundBtn.play(raw);
+ } catch (e) { }
+}
+
 async function showFilterBox() {
  // Create modal dynamically
  const modal = create_modal_dynamically('filterModal');
@@ -7,7 +35,7 @@ async function showFilterBox() {
 
  // Set modal title with violet theme
  modalContentEl.insertAdjacentHTML('afterbegin', `
-        <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border-bottom: 1px solid rgba(255,255,255,0.2); padding: 12px 16px;">
+        <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border-bottom: 1px solid rgba(255,255,255,0.2); padding: 11px 16px;">
             <h5 class="modal-title" style="color: var(--text-on-primary); font-size: 1.1rem; margin: 0;">
                 <i class="fas fa-filter me-2"></i>Filter Profiles
             </h5>
@@ -16,8 +44,7 @@ async function showFilterBox() {
     `);
 
 // Generate Marital Status HTML dynamically
-const maritalStatusOptions = window.marital_status;
-
+const maritalStatusOptions = window.marital_status || [];
 let maritalStatusHtml = '';
 maritalStatusOptions.forEach(status => {
  if (status.a === 0) return;
@@ -32,7 +59,7 @@ maritalStatusOptions.forEach(status => {
 });
 
 // Load saved filters from localStorage
-const storageKey = my1uzr.worknOnPg + "_marriage_filter";
+const storageKey = (window.my1uzr && my1uzr.worknOnPg ? my1uzr.worknOnPg : 'app') + "_marriage_filter";
 let savedFilters = {};
 try {
  const saved = localStorage.getItem(storageKey);
@@ -76,10 +103,10 @@ maritalStatusOptions.forEach(status => {
 
 // Set modal content with dynamic HTML
 modalContent.innerHTML = `
-<div class="container-fluid p-3">
-<form id="filterForm" novalidate>
+<div class="container-fluid p-2">
+<form id="filterForm" novalidate onsubmit="event.preventDefault();">
 <!-- Basic Filters Section -->
-<div class="filter-section mb-3">
+<div class="filter-section mb-1">
   <div class="dropdown mb-2">
     <button class="btn btn-outline-primary w-100 text-start dropdown-toggle d-flex justify-content-between align-items-center filter-dropdown marital-dropdown" 
       type="button" 
@@ -95,20 +122,19 @@ modalContent.innerHTML = `
     </ul>
   </div>
 
-  <div class="dropdown mb-2">
-    <button class="btn btn-outline-primary w-100 text-start dropdown-toggle d-flex justify-content-between align-items-center filter-dropdown"
-      type="button"
-      id="cityDropdown"
-      data-bs-toggle="dropdown"
-      data-bs-auto-close="outside"
-      aria-expanded="false">
-      <span id="cityText"><i class="fas fa-city me-2" style="color: var(--primary-color);"></i>Country</span>
-      <i class="fas fa-chevron-down ms-auto text-muted"></i>
-    </button>
-    <ul class="dropdown-menu w-100 p-2 filter-dropdown-menu" style="max-height: 260px; overflow-y: auto;" aria-labelledby="cityDropdown">
-      <li class="dropdown-item p-1 filter-search-li"><input type="text" class="form-control form-control-sm" id="citySearch" placeholder="Search country..."></li>
-      <div id="cityList"></div>
-    </ul>
+  <div class="filter-group mb-2" data-place="b2">
+    <input type="hidden" id="flt-b2" name="flt-b2" value="">
+    <div class="flt-place-box filter-input" id="fltbox-b2"></div>
+  </div>
+
+  <div class="filter-group mb-2" data-place="c3">
+    <input type="hidden" id="flt-c3" name="flt-c3" value="">
+    <div class="flt-place-box filter-input" id="fltbox-c3"></div>
+  </div>
+
+  <div class="filter-group mb-2" data-place="a2">
+    <input type="hidden" id="flt-a2" name="flt-a2" value="">
+    <div class="flt-place-box filter-input" id="fltbox-a2"></div>
   </div>
 
   <div class="dropdown mb-0">
@@ -121,7 +147,7 @@ modalContent.innerHTML = `
       <span id="degreeText"><i class="fas fa-graduation-cap me-2" style="color: var(--primary-color);"></i>Education</span>
       <i class="fas fa-chevron-down ms-auto text-muted"></i>
     </button>
-    <ul class="dropdown-menu w-100 p-2 filter-dropdown-menu" style="max-height: 260px; overflow-y: auto;" aria-labelledby="degreeDropdown">
+    <ul class="dropdown-menu w-100 p-2 filter-dropdown-menu" style="max-height: 220px; overflow-y: auto;" aria-labelledby="degreeDropdown">
       <li class="dropdown-item p-1 filter-search-li"><input type="text" class="form-control form-control-sm" id="degreeSearch" placeholder="Search education..."></li>
       <div id="degreeList"></div>
       <input type="hidden" id="selectedDegrees" value="">
@@ -130,80 +156,56 @@ modalContent.innerHTML = `
 </div>
 
 <!-- Demographics Section -->
-<div class="filter-section mb-3">
-  <div class="filter-group mb-2">
-    <label class="form-label filter-label">
-      <i class="fas fa-birthday-cake me-1"></i>Age (years)
-    </label>
-    <div class="row g-2">
-      <div class="col">
-        <input type="number" class="form-control form-control-sm filter-input" name="min_age" placeholder="Min" min="18" max="99" value="${getSavedValue('min_age')}" aria-label="Min age">
+<div class="filter-section mb-1">
+  <div class="row g-2">
+    <div class="col-6">
+      <div class="filter-group filter-range mb-0 flex-column align-items-start">
+        <label class="form-label filter-label w-100 mb-1">
+          <i class="fas fa-birthday-cake me-1"></i>Age (years)
+        </label>
+        <div class="d-flex w-100 gap-1">
+            <input type="number" class="form-control form-control-sm filter-input" name="min_age" placeholder="Min" min="18" max="99" value="${getSavedValue('min_age')}" aria-label="Min age">
+          <span class="text-muted align-self-center">-</span>
+            <input type="number" class="form-control form-control-sm filter-input" name="max_age" placeholder="Max" min="18" max="99" value="${getSavedValue('max_age')}" aria-label="Max age">
+        </div>
       </div>
-      <div class="col-auto align-self-center">
-        <span class="text-muted small">to</span>
-      </div>
-      <div class="col">
-        <input type="number" class="form-control form-control-sm filter-input" name="max_age" placeholder="Max" min="18" max="99" value="${getSavedValue('max_age')}" aria-label="Max age">
+    </div>
+    <div class="col-6">
+      <div class="filter-group filter-range mb-0 flex-column align-items-start">
+        <label class="form-label filter-label w-100 mb-1">
+          <i class="fas fa-ruler-vertical me-1"></i>Height (ft.in)
+        </label>
+        <div class="d-flex w-100 gap-1">
+            <input type="text" class="form-control form-control-sm filter-input" name="min_height" placeholder="5.2" pattern="^(\\d{1,2})(\\.\\d{1,2})?$" value="${getSavedValue('min_height')}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\\..*?)\\./g, '$1');">
+          <span class="text-muted align-self-center">-</span>
+            <input type="text" class="form-control form-control-sm filter-input" name="max_height" placeholder="6.0" pattern="^(\\d{1,2})(\\.\\d{1,2})?$" value="${getSavedValue('max_height')}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\\..*?)\\./g, '$1');">
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="filter-group mb-2">
-    <label class="form-label filter-label">
-      <i class="fas fa-ruler-vertical me-1"></i>Height (feet.inch)
+  <div class="filter-group filter-range mt-2 mb-0 flex-column align-items-start">
+    <label class="form-label filter-label w-100 mb-1">
+      <i class="fas fa-rupee-sign me-1"></i>Yearly Income (Lakhs)
     </label>
-    <div class="row g-2">
-      <div class="col">
-        <input type="text" class="form-control form-control-sm filter-input" name="min_height" placeholder="5.2" pattern="^(\\d{1,2})(\\.\\d{1,2})?$" 
-          title="e.g., 5 or 5.2" value="${getSavedValue('min_height')}" aria-label="Min height"
-          oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\\..*?)\\./g, '$1');">
-      </div>
-      <div class="col-auto align-self-center">
-        <span class="text-muted small">to</span>
-      </div>
-      <div class="col">
-        <input type="text" class="form-control form-control-sm filter-input" name="max_height" placeholder="6.0" pattern="^(\\d{1,2})(\\.\\d{1,2})?$" 
-          title="e.g., 6 or 6.2" value="${getSavedValue('max_height')}" aria-label="Max height"
-          oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\\..*?)\\./g, '$1');">
-      </div>
-    </div>
-  </div>
-
-  <div class="filter-group mb-0">
-    <label class="form-label filter-label">
-      <i class="fas fa-rupee-sign me-1"></i>Yearly Income (lakhs)
-    </label>
-    <div class="row g-2">
-      <div class="col">
-        <input type="text" class="form-control form-control-sm filter-input" name="min_income" placeholder="2.4" pattern="^(\\d{1,4})(\\.\\d{1,2})?$" 
-          title="e.g., 2 or 2.4" value="${getSavedValue('min_income')}" aria-label="Min income"
-          oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\\..*?)\\./g, '$1');">
-      </div>
-      <div class="col-auto align-self-center">
-        <span class="text-muted small">to</span>
-      </div>
-      <div class="col">
-        <input type="text" class="form-control form-control-sm filter-input" name="max_income" placeholder="6" pattern="^(\\d{1,4})(\\.\\d{1,2})?$" 
-          title="e.g., 6 or 6.5" value="${getSavedValue('max_income')}" aria-label="Max income"
-          oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\\..*?)\\./g, '$1');">
-      </div>
+    <div class="d-flex w-100 gap-1">
+        <input type="text" class="form-control form-control-sm filter-input" name="min_income" placeholder="Min e.g. 2.4" pattern="^(\\d{1,4})(\\.\\d{1,2})?$" value="${getSavedValue('min_income')}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\\..*?)\\./g, '$1');">
+      <span class="text-muted align-self-center">-</span>
+        <input type="text" class="form-control form-control-sm filter-input" name="max_income" placeholder="Max e.g. 6" pattern="^(\\d{1,4})(\\.\\d{1,2})?$" value="${getSavedValue('max_income')}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\\..*?)\\./g, '$1');">
     </div>
   </div>
 </div>
 
 <!-- Specific Profile Section -->
-<div class="filter-section mb-3">
-  <div class="filter-group mb-2">
+<div class="filter-section mb-0">
+  <div class="filter-group mb-0">
     <label class="form-label filter-label" for="specific_profile_id">
       <i class="fas fa-id-card me-1"></i>Specific Profile ID
     </label>
-    <input type="text" class="form-control form-control-sm filter-input" id="specific_profile_id" name="specific_profile_id" placeholder="6-8 characters (a-z, 0-9)" pattern="^[0-9a-z]{6,8}$" maxlength="8" value="${getSavedValue('specific_profile_id')}" aria-label="Specific profile ID" style="text-transform: lowercase;" oninput="this.value = this.value.replace(/[^0-9a-z]/g, '').toLowerCase();">
-    <div class="invalid-feedback small">Profile ID must be 6-8 characters (a-z, 0-9)</div>
-  </div>
-
-  <div class="form-check filter-checkbox">
-    <input class="form-check-input" type="checkbox" name="with_photos" value="1" id="withPhotos" ${savedFilters.with_photos === '1' || (Array.isArray(savedFilters.with_photos) && savedFilters.with_photos.includes('1')) ? 'checked' : ''}>
-    <label class="form-check-label" for="withPhotos" style="cursor: pointer;">Profiles with photos only</label>
+    <div class="filter-range-field">
+      <input type="text" class="form-control form-control-sm filter-input" id="specific_profile_id" name="specific_profile_id" placeholder="6-8 chars (a-z, 0-9)" pattern="^[0-9a-z]{6,8}$" maxlength="8" value="${getSavedValue('specific_profile_id')}" style="text-transform: lowercase;" oninput="this.value = this.value.replace(/[^0-9a-z]/g, '').toLowerCase();">
+      <div class="invalid-feedback small">Profile ID must be 6-8 characters (a-z, 0-9)</div>
+    </div>
   </div>
 </div>
 </form>
@@ -211,10 +213,9 @@ modalContent.innerHTML = `
 `;
 
 // Append footer as a direct sibling of .modal-body (inside .modal-content)
-// so it stays pinned to the bottom without sticky hacks.
 modalContentEl.insertAdjacentHTML('beforeend', `
-<div class="modal-footer d-flex justify-content-between gap-2">
-  <button type="button" class="btn btn-outline-primary btn-sm flex-fill" id="resetFilters"><i class="fas fa-undo me-1"></i>Reset</button>
+<div class="modal-footer d-flex justify-content-between gap-2" style="padding: 10px 16px; background: #fafafa; border-top: 1px solid var(--border-color);">
+  <button type="button" class="btn btn-outline-secondary btn-sm flex-fill border-secondary" id="resetFilters"><i class="fas fa-undo me-1"></i>Reset</button>
   <button type="button" class="btn btn-primary btn-sm flex-fill" id="applyFilters" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border: none;" disabled><i class="fas fa-search me-1"></i>Apply</button>
 </div>
 `);
@@ -222,22 +223,25 @@ modalContentEl.insertAdjacentHTML('beforeend', `
  // Add custom CSS for better styling
  addFilterModalStyles();
 
- // Load cities dynamically
- await loadCities();
+ // Paint the three place pickers
+ initPlacePickers();
 
- // Load degree checkboxes from window.var_degres (the app's lookup)
+ // Load degree checkboxes from window.var_degres
  loadDegrees();
 
- // Ensure dropdown menus float above the scrollable modal body (no clipping)
+ // Ensure dropdown menus float above the scrollable modal body
  initFilterDropdowns();
 
  // Show the modal
  modalInstance.show();
 
- // Initialize dropdown text updates (will also load saved selections)
+ //filter page sound (mr.da wajiw "fltr"), through the shared sound button
+ fltrPlaySound("fltr");
+
+ // Initialize dropdown text updates
  initializeDropdownTexts();
 
- // Setup search input focus when dropdown opens
+ // Setup search input focus
  setupCitySearchFocus();
 
  // Add event listeners
@@ -266,6 +270,8 @@ function setupValidationListeners() {
     applyBtn.disabled = false;
     return;
    }
+  } else if (specificProfileId) {
+   specificProfileId.classList.remove('is-invalid');
   }
   
   // Validate Height inputs
@@ -292,9 +298,10 @@ function setupValidationListeners() {
  }
  
  const inputs = document.querySelectorAll('#filterForm input');
- inputs.forEach(input => { input.addEventListener('input', validateForm);input.addEventListener('change', validateForm);input.addEventListener('blur', validateForm); });
+ inputs.forEach(input => { input.addEventListener('input', validateForm); input.addEventListener('change', validateForm); input.addEventListener('blur', validateForm); });
  validateForm();
 }
+
 // Confirmation modal for specific profile ID
 function showSpecificProfileConfirmModal(profileId, callback) {
  const modalId = 'specificProfileConfirmModal';
@@ -304,12 +311,10 @@ function showSpecificProfileConfirmModal(profileId, callback) {
  const modalObj = create_modal_dynamically(modalId);
  const modalInstance = modalObj.modalInstance;
  const modalElement = modalObj.modalElement;
- const modalBody = modalObj.contentElement;
- modalElement.classList.add('confirm-profile-modal');
- const modalDialog = modalElement.querySelector('.modal-dialog');
- modalDialog.classList.add('modal-sm');
  const modalContent = modalElement.querySelector('.modal-content');
  modalContent.innerHTML = '';
+ 
+ modalElement.querySelector('.modal-dialog').classList.add('modal-sm');
  
  const header = document.createElement('div');
  header.className = 'modal-header';
@@ -343,20 +348,24 @@ function showSpecificProfileConfirmModal(profileId, callback) {
 
 async function applyFilters() {
  const specificProfileId = getInputValue('specific_profile_id');
+ const storageKey = (window.my1uzr && my1uzr.worknOnPg ? my1uzr.worknOnPg : 'app') + "_marriage_filter";
  
  // If specific profile ID is provided and valid
  if (specificProfileId && /^[0-9a-z]{6,8}$/.test(specificProfileId)) {
   showSpecificProfileConfirmModal(specificProfileId, async (confirmed) => {
    if (confirmed) {
+    fltrPlaySound("fltrappl");
     const filters = {specific_profile_id: specificProfileId};
-    const storageKey = my1uzr.worknOnPg + "_marriage_filter";
-    try { localStorage.setItem(storageKey, JSON.stringify(filters)); } catch (e) { console.error('Error saving filters to localStorage:', e); }
+    try { localStorage.setItem(storageKey, JSON.stringify(filters)); } catch (e) { console.error('Error saving filters:', e); }
     if (typeof window[my1uzr.worknOnPg] === 'undefined') { window[my1uzr.worknOnPg] = {}; }
     window[my1uzr.worknOnPg].activeFilters = filters;
+    
     const container = document.getElementById('profiles-container');
     if (container) { container.innerHTML = `<div class="col-12 text-center p-5"><div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"><span class="visually-hidden">Loading...</span></div><p class="mt-3 text-muted">Searching profile...</p></div>`; }
+    
     const modalElement = document.getElementById('filterModal');
     if (modalElement) { const modal = bootstrap.Modal.getInstance(modalElement); if (modal) { modal.hide(); } }
+    
     try { await fetchFilteredRecords(filters); showToast('Profile search completed', { type: 'success', duration: 2000 }); }
     catch (error) { console.error('Error searching profile:', error); showToast('Error searching profile: ' + error.message, { type: 'error' }); }
    }
@@ -365,18 +374,25 @@ async function applyFilters() {
  }
  
  // Original filter logic for non-specific ID searches
- const filters = {marital_status: getSelectedValuesFromDropdown('maritalStatusDropdown'),min_age: getInputValue('min_age'),max_age: getInputValue('max_age'),with_photos: getCheckboxValue('with_photos'),inter_caste: getCheckboxValue('inter_caste'),city: getSelectedValuesFromDropdown('cityDropdown'),min_height: getInputValue('min_height'),max_height: getInputValue('max_height'),min_income: getInputValue('min_income'),max_income: getInputValue('max_income'),degree: getDegreeValues(),occupation: getOccupationValues()};
+ const filters = {marital_status: getSelectedValuesFromDropdown('maritalStatusDropdown'),min_age: getInputValue('min_age'),max_age: getInputValue('max_age'),native_city: getInputValue('flt-b2'),living_city: getInputValue('flt-c3'),working_city: getInputValue('flt-a2'),min_height: getInputValue('min_height'),max_height: getInputValue('max_height'),min_income: getInputValue('min_income'),max_income: getInputValue('max_income'),degree: getDegreeValues(),occupation: getOccupationValues()};
+ 
  if (filters.min_age && filters.max_age) { const minAge = parseInt(filters.min_age);const maxAge = parseInt(filters.max_age);if (minAge > maxAge) { showToast('Minimum age cannot be greater than maximum age', { type: 'error' });return; } }
  if (filters.min_height && filters.max_height) { const minHeight = parseFloat(filters.min_height);const maxHeight = parseFloat(filters.max_height);if (minHeight > maxHeight) { showToast('Minimum height cannot be greater than maximum height', { type: 'error' });return; } }
  if (filters.min_income && filters.max_income) { const minIncome = parseFloat(filters.min_income);const maxIncome = parseFloat(filters.max_income);if (minIncome > maxIncome) { showToast('Minimum income cannot be greater than maximum income', { type: 'error' });return; } }
- const storageKey = my1uzr.worknOnPg + "_marriage_filter";
- try { localStorage.setItem(storageKey, JSON.stringify(filters)); } catch (e) { console.error('Error saving filters to localStorage:', e); }
+
+ //filter apply sound (mr.da wajiw "fltrappl"), only after the ranges are valid
+ fltrPlaySound("fltrappl");
+
+ try { localStorage.setItem(storageKey, JSON.stringify(filters)); } catch (e) { console.error('Error saving filters:', e); }
  if (typeof window[my1uzr.worknOnPg] === 'undefined') { window[my1uzr.worknOnPg] = {}; }
  window[my1uzr.worknOnPg].activeFilters = filters;
+ 
  const container = document.getElementById('profiles-container');
  if (container) { container.innerHTML = `<div class="col-12 text-center p-5"><div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"><span class="visually-hidden">Loading...</span></div><p class="mt-3 text-muted">Applying filters...</p></div>`; }
+ 
  const modalElement = document.getElementById('filterModal');
  if (modalElement) { const modal = bootstrap.Modal.getInstance(modalElement); if (modal) { modal.hide(); } }
+ 
  try {
   await fetchFilteredRecords(filters);
   showToast('Filters applied successfully', { type: 'success', duration: 2000 });
@@ -386,260 +402,143 @@ async function applyFilters() {
   if (container) { container.innerHTML = `<div class="col-12"><div class="alert alert-danger text-center"><i class="fas fa-exclamation-triangle me-2"></i>Error applying filters: ${error.message}</div></div>`; }
  }
 }
+
 function addFilterModalStyles() {
  if (!document.getElementById('filterModalStyles')) {
   const style = document.createElement('style');
   style.id = 'filterModalStyles';
   style.textContent = `
 .filter-modal .modal-dialog {
-margin: 0.5rem auto;
+    margin: 1.75rem auto;
+    max-width: 500px; /* limits width */
 }
 .filter-modal .modal-content {
-display: flex;
-flex-direction: column;
-border: 1px solid var(--border-color);
-border-radius: 12px;
-box-shadow: 0 10px 30px rgba(78, 12, 35, 0.18);
-max-height: 95vh;
-overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(78, 12, 35, 0.18);
+    max-height: 80vh; /* Minimized height */
+    overflow: hidden;
 }
 .filter-modal .modal-body {
-flex: 1 1 auto;
-padding: 12px !important;
-max-height: none !important;
-overflow-y: auto !important;
+    flex: 1 1 auto;
+    padding: 12px !important;
+    max-height: none !important;
+    overflow-y: auto !important;
 }
 .filter-section {
-background: #f8f9fa;
-border: 1px solid #e9ecef;
-border-radius: 8px;
-padding: 10px 12px 12px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 10px 12px;
 }
 .filter-group {
-margin-bottom: 8px;
+    margin-bottom: 8px;
 }
 .filter-label {
-font-size: 0.75rem;
-font-weight: 600;
-color: #495057;
-margin-bottom: 4px;
-display: flex;
-align-items: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
 }
 .filter-dropdown {
-border: 1px solid var(--primary-dark) !important;
-color: var(--primary-color) !important;
-background: #fff !important;
-border-radius: 8px !important;
-padding: 8px 12px !important;
-font-weight: 500;
-font-size: 0.95rem;
-transition: all 0.2s ease;
-box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    border: 1px solid var(--primary-dark) !important;
+    color: var(--primary-color) !important;
+    background: #fff !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 .filter-dropdown:hover {
-background: rgba(139, 30, 63, 0.06) !important;
-border-color: var(--primary-dark) !important;
-color: var(--primary-dark) !important;
+    background: rgba(139, 30, 63, 0.06) !important;
+    border-color: var(--primary-dark) !important;
+    color: var(--primary-dark) !important;
 }
 .filter-dropdown:focus {
-box-shadow: 0 0 0 3px rgba(201, 164, 92, 0.35) !important;
-}
-.filter-dropdown.show {
-border-color: var(--primary-dark) !important;
-color: var(--primary-dark) !important;
+    box-shadow: 0 0 0 3px rgba(201, 164, 92, 0.35) !important;
 }
 .filter-dropdown-menu {
-border: 1px solid var(--border-color);
-border-radius: 8px;
-box-shadow: 0 5px 15px rgba(36, 29, 18, 0.14);
-margin-top: 5px !important;
-max-height: 220px;
-overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(36, 29, 18, 0.14);
+    margin-top: 5px !important;
+    max-height: 200px;
+    overflow-y: auto;
 }
 .filter-dropdown-menu .dropdown-item {
-padding: 0;
-border-radius: 6px;
-margin: 1px 0;
-background: transparent;
+    padding: 0;
+    border-radius: 6px;
+    margin: 1px 0;
+    background: transparent;
 }
 .filter-dropdown-menu .dropdown-item:hover,
 .filter-dropdown-menu .dropdown-item:focus {
-background: rgba(139, 30, 63, 0.06);
+    background: rgba(139, 30, 63, 0.06);
 }
 .filter-dropdown-menu .form-check {
-padding-left: 2.1em;
-min-height: 30px;
+    padding-left: 2.1em;
+    min-height: 30px;
 }
 .filter-dropdown-menu .form-check-label {
-cursor: pointer;
-font-size: 0.9rem;
-color: var(--text-dark);
-padding: 6px 10px 6px 2px;
-min-height: 30px;
-width: 100%;
-border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    padding: 6px 10px 6px 2px;
+    min-height: 30px;
+    width: 100%;
+    border-radius: 6px;
 }
 .filter-input {
-border: 1px solid var(--border-color);
-border-radius: 8px;
-padding: 10px 15px;
-transition: all 0.2s ease;
-}
-.filter-input {
-font-size: 0.875rem;
-padding: 6px 10px;
-border-radius: 6px;
-border: 1px solid var(--primary-dark);
-transition: all 0.2s ease;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
 }
 .filter-modal .filter-input {
-border-color: var(--primary-dark) !important;
+    border-color: var(--primary-dark) !important;
 }
 .filter-input:focus {
-	border-color: var(--primary-color);
-	box-shadow: 0 0 0 0.2rem rgba(201, 164, 92, 0.25);
-	outline: none;
-}
-.filter-input:hover {
-	border-color: var(--primary-light);
-	background: #fff;
-	transition: all 0.2s ease;
-}
-.filter-checkbox {
-border: 1px solid var(--primary-dark);
-border-radius: 8px;
-background: #fff;
-padding: 6px 10px;
-margin-bottom: 0;
-transition: all 0.2s ease;
-box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-.filter-checkbox:hover {
-border-color: var(--primary-light);
-background: rgba(201, 164, 92, 0.05);
-}
-.filter-checkbox .form-check-input {
-width: 1.1em;
-height: 1.1em;
-margin-top: 0.15em;
-cursor: pointer;
-border: 1px solid var(--primary-dark);
-}
-.filter-checkbox .form-check-input:checked {
-background-color: var(--primary-color);
-border-color: var(--primary-color);
-}
-.filter-checkbox .form-check-input:focus {
-box-shadow: 0 0 0 3px rgba(201, 164, 92, 0.35);
-}
-.filter-checkbox .form-check-label {
-cursor: pointer;
-color: var(--text-dark);
-font-size: 0.875rem;
-padding-top: 1px;
-}
-.filter-dropdown-menu .form-check-input {
-width: 1.1em;
-height: 1.1em;
-margin-top: 0.1em;
-border: 1px solid var(--primary-dark);
-}
-.filter-dropdown-menu .form-check-label {
-cursor: pointer;
-font-size: 0.9rem;
-color: var(--text-dark);
-}
-.filter-modal .btn-outline-secondary {
-border: 1px solid var(--border-color);
-color: var(--text-secondary);
-border-radius: 8px;
-padding: 8px 16px;
-}
-.filter-modal .btn-outline-primary {
-border: 1px solid var(--primary-color);
-color: var(--primary-color);
-border-radius: 8px;
-padding: 8px 16px;
-}
-.filter-modal .btn-primary {
-border-radius: 8px;
-padding: 8px 20px;
-font-weight: 500;
-}
-.filter-dropdown-menu::-webkit-scrollbar {
-width: 6px;
-}
-.filter-dropdown-menu::-webkit-scrollbar-track {
-background: var(--light-color);
-border-radius: 3px;
-}
-.filter-dropdown-menu::-webkit-scrollbar-thumb {
-background: var(--primary-light);
-border-radius: 3px;
-}
-.filter-dropdown-menu::-webkit-scrollbar-thumb:hover {
-background: var(--primary-color);
-}
-.filter-modal .text-muted {
-color: var(--text-secondary) !important;
-}
-.filter-dropdown .fa-chevron-down {
-color: var(--text-secondary) !important;
-transition: transform 0.2s ease;
-}
-.filter-dropdown.show .fa-chevron-down {
-transform: rotate(180deg);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(201, 164, 92, 0.25);
+    outline: none;
 }
 .filter-dropdown-menu .filter-search-li {
-position: sticky;
-top: 0;
-z-index: 3;
-background: var(--bs-body-bg, #fff);
-border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: var(--bs-body-bg, #fff);
+    border-bottom: 1px solid var(--border-color);
 }
-.filter-dropdown-menu .filter-search-li:hover,
-.filter-dropdown-menu .filter-search-li:focus-within {
-background: var(--bs-body-bg, #fff);
+#degreeSearch {
+    border: none;
+    border-radius: 0;
+    box-shadow: none !important;
 }
-#citySearch, #degreeSearch {
-border: none;
-border-radius: 0;
-box-shadow: none !important;
-}
-#citySearch:focus, #degreeSearch:focus {
-	box-shadow: none !important;
-	border: 1px solid var(--border-color) !important;
-}
-#citySearch:hover, #degreeSearch:hover {
-	border: 1px solid var(--border-color);
-	background: transparent;
-	transition: border-color 0.2s ease;
-}
-.filter-modal .modal-footer {
-flex-shrink: 0;
-position: static;
-margin-top: 0;
-border-top: 1px solid var(--border-color);
-background: #fafafa;
-padding: 10px 12px;
-border-bottom-left-radius: 12px;
-border-bottom-right-radius: 12px;
+.filter-modal .flt-place-box {
+    border-color: var(--primary-dark);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.875rem;
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 @media (max-width: 576px) {
-  .filter-modal .modal-dialog {
-    margin: 0.25rem;
-  }
-  .filter-modal .modal-content {
-    max-height: 98vh;
-  }
-  .filter-modal .modal-body {
-    padding: 10px !important;
-  }
-}
-.input-group-text.bg-transparent {
-background: transparent !important;
-border-color: var(--border-color);
+    .filter-modal .modal-dialog {
+        margin: 0.5rem;
+    }
+    .filter-modal .modal-content {
+        max-height: 90vh;
+    }
 }
 `;
   document.head.appendChild(style);
@@ -652,7 +551,7 @@ border-color: var(--border-color);
 }
 
 function setupCitySearchFocus() {
- [['cityDropdown', 'citySearch'], ['degreeDropdown', 'degreeSearch']].forEach(([dropdownId, searchId]) => {
+ [['degreeDropdown', 'degreeSearch']].forEach(([dropdownId, searchId]) => {
   const dropdown = document.getElementById(dropdownId);
   if (!dropdown) return;
   dropdown.addEventListener('shown.bs.dropdown', function () {
@@ -668,17 +567,15 @@ function setupCitySearchFocus() {
 
 function initFilterDropdowns() {
  if (typeof bootstrap === 'undefined' || !bootstrap.Dropdown) return;
- ['maritalStatusDropdown', 'cityDropdown', 'degreeDropdown'].forEach(id => {
+ ['maritalStatusDropdown', 'degreeDropdown'].forEach(id => {
   const el = document.getElementById(id);
   if (!el) return;
   const existing = bootstrap.Dropdown.getInstance(el);
   if (existing) existing.dispose();
-  new bootstrap.Dropdown(el, {
-   autoClose: 'outside',
-   popperConfig: function (defaultConfig) {
-    return Object.assign({}, defaultConfig, { strategy: 'fixed' });
-   }
-  });
+  //plain init: the HTML data-bs-auto-close="outside" already supplies autoClose,
+  //and popper's 'fixed' strategy made the menu jump / break its open-close
+  //animation on click (it pinned the menu to the viewport instead of the button)
+  new bootstrap.Dropdown(el);
  });
 }
 
@@ -777,7 +674,6 @@ function callBackfn_set_degrees(selectedDegrees) {
 function initializeDropdownTexts() {
  updateDropdownText('maritalStatusDropdown', 'maritalStatusText');
  updateDropdownText('religionDropdown', 'religionText');
- updateDropdownText('cityDropdown', 'cityText');
  updateDropdownText('degreeDropdown', 'degreeText');
  updateDropdownText('occupationDropdown', 'occupationText');
 
@@ -798,8 +694,6 @@ function updateDropdownText(dropdownId, textId) {
 
  const menu = dropdown.nextElementSibling;
 
- //the education list can be search-filtered, so count from the saved selection
- //(hidden #selectedDegrees) rather than only the rows currently rendered
  let values = Array.from(menu.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
  if (dropdownId === 'degreeDropdown') {
   const hidden = document.getElementById('selectedDegrees');
@@ -827,101 +721,197 @@ function updateDropdownText(dropdownId, textId) {
  }
 }
 
-async function loadCities() {
+var PLACE_FIELDS = ['b2', 'c3', 'a2'];
+var PLACE_GROUPS = {
+ a2: ['a2', 'a3', 'a4', 'a5', 'a6'],
+ b2: ['b2', 'b3', 'b4', 'b5', 'b6'],
+ c3: ['c3', 'c4', 'c5', 'c6', 'c7']
+};
+var PLACE_META = {
+ b2: { label: 'Native city', countryCfg: 'defaultNativeCountry', cntryCfg: 'fltrNativeCntry' },
+ c3: { label: 'Living city', countryCfg: 'defaultLivingCountry', cntryCfg: 'fltrLivingCntry' },
+ a2: { label: 'Working city', countryCfg: 'defaultWorkingCountry', cntryCfg: 'fltrWorkingCntry' }
+};
+var PLACE_FILTER_KEYS = { b2: 'native_city', c3: 'living_city', a2: 'working_city' };
+
+function placeSqlCondition(root, path) {
+ var grp = PLACE_GROUPS[root];
+ if (!grp || !path) return '';
+ function q(v) { return String(v).replace(/'/g, "''"); }
+ var ids = String(path).split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+ //a flat country's city sits in the last slot (a6/b6/c7), not in the state slot
+ var slots = (typeof window.__mrPlaceSlots === 'function')
+  ? window.__mrPlaceSlots(root, path)
+  : ids.slice(0, grp.length);
+ var parts = [];
+ for (var i = 0; i < grp.length; i++) {
+  if (slots[i]) parts.push(grp[i] + " = '" + q(slots[i]) + "'");
+ }
+ if (!parts.length) return '';
+ var next = '(' + parts.join(' AND ') + ')';
+ //rows saved before the flat-country fix kept the city in the state slot:
+ //match that legacy shape too until those rows are saved again
+ var legacy = [];
+ for (var j = 0; j < ids.length && j < grp.length; j++) {
+  legacy.push(grp[j] + " = '" + q(ids[j]) + "'");
+ }
+ if (legacy.join('|') !== parts.join('|')) {
+  next = '(' + next + ' OR (' + legacy.join(' AND ') + '))';
+ }
+ return next;
+}
+
+function fltClientCfg() {
  try {
-  const cityList = document.getElementById('cityList');
-  if (!cityList) return;
-
-  cityList.innerHTML = '<div class="text-center text-muted p-3">Loading cities...</div>';
-
-  let cities = [];
-
-  if (typeof window[my1uzr.worknOnPg] !== 'undefined' &&
-   window[my1uzr.worknOnPg].cty &&
-   Array.isArray(window[my1uzr.worknOnPg].cty)) {
-   cities = window[my1uzr.worknOnPg].cty;
-  }
-
-  if (cities.length === 0) {
-   const url = "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1d275e7/cmn/ctco.da";
-   const response = await fetch(url);
-   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-   }
-   window[my1uzr.worknOnPg].cty = await response.json();
-   cities = window[my1uzr.worknOnPg].cty;
-  }
-
-  renderCities(cities);
-
- } catch (error) {
-  console.error('Error loading cities:', error);
-  const cityList = document.getElementById('cityList');
-  if (cityList) {
-   cityList.innerHTML = '<div class="text-center text-danger p-3">Failed to load cities</div>';
-  }
- }
+  var pg = (typeof my1uzr !== 'undefined' && my1uzr.worknOnPg) ? window[my1uzr.worknOnPg] : null;
+  if (!pg) return {};
+  return pg.clientConfig || pg.config || pg.appInfo || {};
+ } catch (e) { return {}; }
 }
 
-function renderCities(cities) {
- const cityList = document.getElementById('cityList');
- const citySearch = document.getElementById('citySearch');
+function placeSelCfg(k) {
+ var cfgs = fltClientCfg().selectFields || {};
+ return cfgs[k] || {};
+}
 
- if (!cityList || cities.length === 0) {
-  cityList.innerHTML = '<div class="text-center text-muted p-3">No cities available</div>';
-  return;
+function placeArr(k) {
+ return placeSelCfg(k).arr || 'var_ctco,@ctry,x,x,x';
+}
+
+function placeDepth(k) {
+ var d = Number(placeSelCfg(k).depth);
+ return d > 0 ? d : String(placeArr(k)).split(',').length;
+}
+
+function placeLabel(k) {
+ return (PLACE_META[k] && PLACE_META[k].label) || k;
+}
+
+function placeCountryInfo(k) {
+ var meta = PLACE_META[k];
+ if (!meta) return null;
+ var cfgAll = fltClientCfg();
+ var cfg = (meta.cntryCfg && cfgAll[meta.cntryCfg]) || cfgAll[meta.countryCfg] || {};
+ var raw = cfg.a;
+ if (raw === undefined || raw === null || String(raw).trim() === '') return null;
+ var want = String(raw).trim();
+ var list = Array.isArray(window.var_ctco) ? window.var_ctco : [];
+ var id = '';
+ if (/^\d+$/.test(want)) {
+  id = want;
+ } else {
+  var wantLc = want.toLowerCase();
+  for (var i = 0; i < list.length; i++) {
+   var it = list[i] || {};
+   if ((it.iso2 && String(it.iso2).toLowerCase() === wantLc) || String(it.a) === want) { id = String(it.a); break; }
+  }
  }
+ if (!id) return null;
+ var row = null;
+ for (var j = 0; j < list.length; j++) { if (String((list[j] || {}).a) === id) { row = list[j]; break; } }
+ var code = (row && row.iso2) ? String(row.iso2).toUpperCase() : id;
+ var canChange = (cfg.canChngeCountry === undefined || cfg.canChngeCountry === null || cfg.canChngeCountry === '')
+  ? true
+  : Number(cfg.canChngeCountry) === 1;
+ return {
+  id: id,
+  name: (row && (row.e || row.n)) || '',
+  code: code,
+  canChange: canChange,
+  partially: Number(cfg.Partially) === 1,
+  countryField: ''
+ };
+}
 
- renderCityList(cities, '');
+function ensurePlaceLib() {
+ if (typeof window.setValByPrprtyDepthToElm === 'function' && typeof window.openDepthSelectionModal === 'function') {
+  return Promise.resolve(true);
+ }
+ if (typeof loadExe2Fn !== 'function') return Promise.resolve(false);
+ return Promise.resolve(loadExe2Fn(47, [null, null, null, null, null], [1]))
+  .then(function () { return typeof window.setValByPrprtyDepthToElm === 'function'; })
+  .catch(function () { return false; });
+}
 
- if (citySearch) {
-  let searchTimeout;
-  citySearch.addEventListener('input', function () {
-   clearTimeout(searchTimeout);
-   searchTimeout = setTimeout(() => {
-    renderCityList(cities, this.value.toLowerCase());
-   }, 300);
+function placeFallbackText(k) {
+ return '<span class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>Search By ' + placeLabel(k).toLowerCase() + '</span>';
+}
+
+function paintPlace(k) {
+ var box = document.getElementById('fltbox-' + k);
+ var inp = document.getElementById('flt-' + k);
+ if (!box || !inp) return;
+ if (typeof window.setValByPrprtyDepthToElm !== 'function' || !inp.value) { box.innerHTML = placeFallbackText(k); return; }
+ try {
+  window.setValByPrprtyDepthToElm(inp.id, inp.value, box.id, k, {
+   c: placeArr(k),
+   canAdd: 0,
+   depthForNative: placeDepth(k)
   });
+ } catch (e) {
+  box.innerHTML = placeFallbackText(k);
  }
 }
 
-function renderCityList(cities, searchTerm) {
- const cityList = document.getElementById('cityList');
+function liftPlaceModal() {
+ setTimeout(function () {
+  try {
+   var last = null;
+   document.querySelectorAll('.modal[id^="depth_select_modal_"]').forEach(function (m) { m.style.zIndex = '100001'; last = m; });
+   var bds = document.querySelectorAll('.modal-backdrop');
+   if (bds.length) bds[bds.length - 1].style.zIndex = '100000';
+   if (last) { var dlg = last.querySelector('.modal-dialog'); if (dlg) dlg.style.zIndex = '100002'; }
+  } catch (e) { }
+ }, 40);
+}
 
- //the .da country rows carry their name in `e` (`n` kept as a fallback)
- const filteredCities = searchTerm ?
-  cities.filter(city => String(city.n || city.e || '').toLowerCase().includes(searchTerm)) :
-  cities.slice(0, 20);
-
- if (filteredCities.length === 0) {
-  cityList.innerHTML = '<div class="text-center text-muted p-3">No cities found</div>';
+async function openPlace(k) {
+ var box = document.getElementById('fltbox-' + k);
+ var inp = document.getElementById('flt-' + k);
+ if (!box || !inp) return;
+ var ok = await ensurePlaceLib();
+ if (!ok || typeof window.openDepthSelectionModal !== 'function') {
+  if (typeof showToast === 'function') showToast('Location picker is unavailable', { type: 'error' });
   return;
  }
-
- const prevChecked = new Set();
- cityList.querySelectorAll('input:checked').forEach(i => prevChecked.add(i.value));
- cityList.innerHTML = '';
- filteredCities.forEach(city => {
-  const div = document.createElement('div');
-  div.className = 'dropdown-item p-0 filter-item';
-  div.innerHTML = `
-            <div class="form-check m-0">
-                <input class="form-check-input" type="checkbox" value="${city.a}" id="city${city.a}" ${prevChecked.has(String(city.a)) ? 'checked' : ''}>
-                <label class="form-check-label w-100 d-flex align-items-center" for="city${city.a}">${city.n || city.e || ''}</label>
-            </div>
-        `;
-  cityList.appendChild(div);
- });
-
- //re-rendered checkboxes lost the shared change listener - rebind label refresh
- cityList.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-  cb.addEventListener('change', () => updateDropdownText('cityDropdown', 'cityText'));
- });
- updateDropdownText('cityDropdown', 'cityText');
+ var fo = null;
+ if (typeof window.mrDepthPickerObject === 'function') {
+  try { fo = window.mrDepthPickerObject(k); } catch (e) { fo = null; }
+ }
+ if (!fo) fo = { e: placeArr(k), f: placeDepth(k) };
+ var ci = placeCountryInfo(k);
+ if (ci) { fo.ctry = ci; fo.partially = ci.partially; }
+ try {
+  window.openDepthSelectionModal(inp.id, inp.value, box.id, k, fo);
+  liftPlaceModal();
+ } catch (e) {
+  if (typeof showToast === 'function') showToast('Could not open the location picker', { type: 'error' });
+ }
 }
 
-/* degree checkboxes straight from window.var_degres - replaces the old
- * loadExe2Fn(31) picker, which needs a csh entry this app does not carry */
+async function initPlacePickers() {
+ var saved = {};
+ try { saved = JSON.parse(localStorage.getItem((window.my1uzr && my1uzr.worknOnPg ? my1uzr.worknOnPg : 'app') + '_marriage_filter') || '{}') || {}; } catch (e) { saved = {}; }
+ PLACE_FIELDS.forEach(function (k) {
+  var box = document.getElementById('fltbox-' + k);
+  var inp = document.getElementById('flt-' + k);
+  if (box && box.getAttribute('data-bound') !== '1') {
+   box.setAttribute('data-bound', '1');
+   box.setAttribute('tabindex', '0');
+   box.setAttribute('role', 'button');
+   box.style.cursor = 'pointer';
+   box.addEventListener('click', function () { openPlace(k); });
+   box.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); openPlace(k); }
+   });
+  }
+  if (inp && saved[PLACE_FILTER_KEYS[k]]) inp.value = saved[PLACE_FILTER_KEYS[k]];
+  if (box) box.innerHTML = placeFallbackText(k);
+ });
+ await ensurePlaceLib();
+ PLACE_FIELDS.forEach(paintPlace);
+}
+
 function loadDegrees() {
  const degreeList = document.getElementById('degreeList');
  if (!degreeList) return;
@@ -933,18 +923,14 @@ function loadDegrees() {
  }
 
  let saved = {};
- try { saved = JSON.parse(localStorage.getItem(my1uzr.worknOnPg + "_marriage_filter")) || {}; } catch (e) { saved = {}; }
+ try { saved = JSON.parse(localStorage.getItem((window.my1uzr && my1uzr.worknOnPg ? my1uzr.worknOnPg : 'app') + "_marriage_filter")) || {}; } catch (e) { saved = {}; }
  const savedDegrees = Array.isArray(saved.degree) ? saved.degree.map(String) : [];
 
- //master list (skip the empty entry a===0) kept in memory so search re-renders
  const allDegrees = degrees.filter(degree => degree.a !== 0 && degree.e);
- //selection survives a search re-render
  const prevChecked = new Set(savedDegrees);
 
  const writeSelected = () => {
   const hiddenInput = document.getElementById('selectedDegrees');
-  //write the full selection, not just the rows currently rendered, so a search
-  //that hides some checked degrees does not drop them from the payload
   if (hiddenInput) hiddenInput.value = Array.from(prevChecked).join(',');
  };
 
@@ -977,7 +963,6 @@ function loadDegrees() {
  render('');
  writeSelected();
 
- //search inside the education dropdown (mirrors the city one)
  const search = document.getElementById('degreeSearch');
  if (search) {
   let searchTimeout;
@@ -1007,17 +992,13 @@ function setupFilterEventListeners() {
   minAge.addEventListener('change', function () {
    const min = parseInt(this.value) || 18;
    const max = parseInt(maxAge.value) || 99;
-   if (min > max) {
-    maxAge.value = min;
-   }
+   if (min > max) { maxAge.value = min; }
   });
 
   maxAge.addEventListener('change', function () {
    const min = parseInt(minAge.value) || 18;
    const max = parseInt(this.value) || 99;
-   if (max < min) {
-    minAge.value = max;
-   }
+   if (max < min) { minAge.value = max; }
   });
  }
 
@@ -1044,10 +1025,8 @@ function setupFilterEventListeners() {
 function validateHeight() {
  const input = this;
  const value = input.value.trim();
-
  if (!value) return;
 
- // Validate height format: integer (feet) OR feet.inch (with 1-2 decimal places)
  const pattern = /^(\d{1,2})(\.(\d{1,2}))?$/;
  if (!pattern.test(value)) {
   showToast('Invalid height format. Use feet (e.g., 5) or feet.inch (e.g., 5.6)', { type: 'error', duration: 3000 });
@@ -1055,7 +1034,6 @@ function validateHeight() {
   return;
  }
 
- // If decimal exists, check inches part
  if (value.includes('.')) {
   const [feet, inches] = value.split('.');
   if (parseInt(inches) > 11) {
@@ -1066,54 +1044,32 @@ function validateHeight() {
 }
 
 function resetFilters() {
- // Reset all checkboxes
- document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-  cb.checked = false;
- });
+ document.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+ document.querySelectorAll('input[type="text"], input[type="number"]').forEach(input => { input.value = ''; });
 
- // Reset all input fields
- document.querySelectorAll('input[type="text"], input[type="number"]').forEach(input => {
-  input.value = '';
- });
-
- // Reset degree selection
  const degreeText = document.getElementById('degreeText');
  const hiddenDegree = document.getElementById('selectedDegrees');
- if (degreeText) {
-  degreeText.innerHTML = '<i class="fas fa-graduation-cap me-2"></i>Select Education';
- }
- if (hiddenDegree) {
-  hiddenDegree.value = '';
- }
+ if (degreeText) degreeText.innerHTML = '<i class="fas fa-graduation-cap me-2"></i>Select Education';
+ if (hiddenDegree) hiddenDegree.value = '';
 
- // Reset occupation selection
  const occupationText = document.getElementById('occupationText');
  const hiddenOccupation = document.getElementById('selectedOccupations');
- if (occupationText) {
-  occupationText.innerHTML = '<i class="fas fa-briefcase me-2"></i>Select Occupation';
- }
- if (hiddenOccupation) {
-  hiddenOccupation.value = '';
- }
+ if (occupationText) occupationText.innerHTML = '<i class="fas fa-briefcase me-2"></i>Select Occupation';
+ if (hiddenOccupation) hiddenOccupation.value = '';
  
-const specificProfileId = document.querySelector('input[name="specific_profile_id"]');
-if (specificProfileId) { specificProfileId.value = ''; specificProfileId.classList.remove('is-invalid'); }
+ const specificProfileId = document.querySelector('input[name="specific_profile_id"]');
+ if (specificProfileId) { specificProfileId.value = ''; specificProfileId.classList.remove('is-invalid'); }
 
- // Reset all dropdown texts
  initializeDropdownTexts();
 
- // Clear saved filters from localStorage
- const storageKey = my1uzr.worknOnPg + "_marriage_filter";
- try {
-  localStorage.removeItem(storageKey);
- } catch (e) {
-  console.error('Error clearing filters from localStorage:', e);
- }
+ PLACE_FIELDS.forEach(function (k) { var inp = document.getElementById('flt-' + k); if (inp) inp.value = ''; });
+ PLACE_FIELDS.forEach(paintPlace);
 
- //re-render education list so it is not left filtered by a stale search term
+ const storageKey = (window.my1uzr && my1uzr.worknOnPg ? my1uzr.worknOnPg : 'app') + "_marriage_filter";
+ try { localStorage.removeItem(storageKey); } catch (e) { console.error('Error clearing filters:', e); }
+
  loadDegrees();
 
- // Show loader in the profiles container
  const container = document.getElementById('profiles-container');
  if (container) {
   container.innerHTML = `
@@ -1126,28 +1082,22 @@ if (specificProfileId) { specificProfileId.value = ''; specificProfileId.classLi
   `;
  }
 
- // Close the modal
  const modalElement = document.getElementById('filterModal');
  if (modalElement) {
   const modal = bootstrap.Modal.getInstance(modalElement);
-  if (modal) {
-   modal.hide();
-  }
+  if (modal) { modal.hide(); }
  }
 
- // Reset profiles data and reload
  profilesData = [];
  hasMore = true;
  currentPage = 0;
  
- // Fetch all profiles
  pullNwProfiles(null, true).then(result => {
   if (result && result.profiles) {
    profilesData = result.profiles;
    hasMore = result.hasMore;
    
-   // Update UI
-if (container) {
+   if (container) {
      container.innerHTML = '';
      if (typeof createEmptyProfileCard === 'function') container.appendChild(createEmptyProfileCard());
      profilesData.forEach(profile => {
@@ -1157,7 +1107,6 @@ if (container) {
      window.initLazyLoadImages();
     }
    
-   // Update loader container
    const loaderContainer = document.getElementById('loader-container');
    if (loaderContainer) {
     if (hasMore) {
@@ -1197,7 +1146,6 @@ function getDegreeValues() {
 function getSelectedValuesFromDropdown(dropdownId) {
  const dropdown = document.getElementById(dropdownId);
  if (!dropdown) return [];
-
  const menu = dropdown.nextElementSibling;
  const checkboxes = menu.querySelectorAll('input[type="checkbox"]:checked');
  return Array.from(checkboxes).map(cb => cb.value);
@@ -1208,26 +1156,16 @@ function getInputValue(name) {
  return input ? input.value.trim() : '';
 }
 
-function getCheckboxValue(name) {
- const checkbox = document.querySelector(`input[name="${name}"]`);
- return checkbox && checkbox.checked ? checkbox.value : '';
-}
-
 window.filterResultsUpdated = function(filteredProfiles) {
  console.log('filterResultsUpdated called with', filteredProfiles?.length || 0, 'profiles');
  
  try {
   const container = document.getElementById('profiles-container');
-  if (!container) {
-   console.error('profiles-container not found');
-   return;
-  }
+  if (!container) { return; }
   
-  // Clear existing cards
   container.innerHTML = '';
   if (typeof createEmptyProfileCard === 'function') container.appendChild(createEmptyProfileCard());
   
-  // Add new filtered cards
   if (filteredProfiles && filteredProfiles.length > 0) {
    filteredProfiles.forEach(profile => {
     const profileCard = createProfileCard(profile);
@@ -1235,13 +1173,9 @@ window.filterResultsUpdated = function(filteredProfiles) {
    });
    window.initLazyLoadImages();
    
-   // Update loader container
    const loaderContainer = document.getElementById('loader-container');
-   if (loaderContainer) {
-    loaderContainer.innerHTML = '';
-   }
+   if (loaderContainer) { loaderContainer.innerHTML = ''; }
    
-   // Reset infinite scroll variables
    hasMore = false;
    currentPage = 0;
    
@@ -1264,17 +1198,16 @@ async function fetchFilteredRecords(filters) {
  try {
   const whereConditions = [];
   
-  // Specific Profile ID
   if (filters.specific_profile_id) {
    whereConditions.push(`w = '${filters.specific_profile_id}'`);
   }
   
-  // Only apply other filters if no specific profile ID
   if (!filters.specific_profile_id) {
    if (filters.marital_status && filters.marital_status.length > 0) { whereConditions.push(`j IN (${filters.marital_status.join(',')})`); }
    if (filters.min_age || filters.max_age) { const currentDate = new Date(); if (filters.min_age) { const minDate = new Date(); minDate.setFullYear(currentDate.getFullYear() - parseInt(filters.min_age)); whereConditions.push(`g <= '${convertDateFormatToComputer(minDate)}'`); } if (filters.max_age) { const maxDate = new Date(); maxDate.setFullYear(currentDate.getFullYear() - parseInt(filters.max_age)); whereConditions.push(`g >= '${convertDateFormatToComputer(maxDate)}'`); } }
-   if (filters.with_photos === '1') { whereConditions.push(`(u IS NOT NULL AND u != '')`); }
-   if (filters.city && filters.city.length > 0) { whereConditions.push(`(b5 IN (${filters.city.join(',')}))`); }
+   if (filters.native_city) { const cN = placeSqlCondition('b2', filters.native_city); if (cN) whereConditions.push(cN); }
+   if (filters.living_city) { const cL = placeSqlCondition('c3', filters.living_city); if (cL) whereConditions.push(cL); }
+   if (filters.working_city) { const cW = placeSqlCondition('a2', filters.working_city); if (cW) whereConditions.push(cW); }
    if (filters.min_height || filters.max_height) { const minHeight = parseFloat(filters.min_height) || 4.9; const maxHeight = parseFloat(filters.max_height) || 7.11; whereConditions.push(`h BETWEEN ${minHeight} AND ${maxHeight}`); }
    if (filters.min_income || filters.max_income) { if (filters.min_income && filters.max_income) { whereConditions.push(`i BETWEEN ${parseFloat(filters.min_income)} AND ${parseFloat(filters.max_income)}`); } else if (filters.min_income) { whereConditions.push(`i >= ${parseFloat(filters.min_income)}`); } else if (filters.max_income) { whereConditions.push(`i <= ${parseFloat(filters.max_income)}`); } }
    if (filters.degree && filters.degree.length > 0) { const degreeConditions = filters.degree.map(deg => `s LIKE '%${deg}%'`); whereConditions.push(`(${degreeConditions.join(' OR ')})`); }
@@ -1289,12 +1222,27 @@ async function fetchFilteredRecords(filters) {
    window[my1uzr.worknOnPg].filteredProfiles = result.profiles;
    profilesData = result.profiles;
    hasMore = result.hasMore;
+   
    const container = document.getElementById('profiles-container');
-   if (container) { container.innerHTML = ''; if (typeof createEmptyProfileCard === 'function') container.appendChild(createEmptyProfileCard()); if (result.profiles.length > 0) { result.profiles.forEach(profile => { const profileCard = createProfileCard(profile); container.appendChild(profileCard); }); window.initLazyLoadImages(); } else { container.innerHTML = `<div class="col-12"><div class="alert alert-info text-center"><i class="fas fa-info-circle me-2"></i>No profiles found matching your filters. Try adjusting your criteria.</div></div>`; } }
+   if (container) { 
+     container.innerHTML = ''; 
+     if (typeof createEmptyProfileCard === 'function') container.appendChild(createEmptyProfileCard()); 
+     if (result.profiles.length > 0) { 
+       result.profiles.forEach(profile => { 
+         const profileCard = createProfileCard(profile); 
+         container.appendChild(profileCard); 
+       }); 
+       window.initLazyLoadImages(); 
+     } else { 
+       container.innerHTML = `<div class="col-12"><div class="alert alert-info text-center"><i class="fas fa-info-circle me-2"></i>No profiles found matching your filters. Try adjusting your criteria.</div></div>`; 
+     } 
+   }
+   
    const loaderContainer = document.getElementById('loader-container');
    if (loaderContainer) { loaderContainer.innerHTML = ''; }
    hasMore = false;
    currentPage = 0;
+   
    const count = result.profiles.length;
    showToast(`Found ${count} matching profiles`, {type: 'success',duration: 3000});
    return result.profiles;
@@ -1307,10 +1255,3 @@ window.showFilterBox = showFilterBox;
 window.applyFilters = applyFilters;
 window.resetFilters = resetFilters;
 window.fetchFilteredRecords = fetchFilteredRecords;
-
-
-
-
-
-
-

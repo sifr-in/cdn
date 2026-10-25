@@ -291,33 +291,6 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
       })();
     }
   },
-  /*{
-   title: 'Gallery Photos',
-   icon: 'fas fa-images',
-   color: '#6c757d', // Grey color
-   onClick: () => {
-    showGalInModal(myEinMR.b6);
-   }
-  },
-  {
-      title: 'Shortlisted Profiles',
-      icon: 'fas fa-heart',
-      color: '#6c757d', // Grey color
-      onClick: () => console.log('Shortlisted Profiles clicked')
-  },
-  {
-      title: 'Viewed Contacts',
-      icon: 'fas fa-eye',
-      color: '#6c757d', // Grey color
-      onClick: () => console.log('Viewed Contacts clicked')
-  },
-  {
-      title: 'My Active Plan',
-      icon: 'fas fa-crown',
-      color: '#6c757d', // Grey color
-      onClick: () => console.log('My Active Plan clicked')
-  },
-  */
   {
       title: 'Membership Plans',
       icon: 'fas fa-gem',
@@ -382,7 +355,37 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
     console.log('Share App clicked');
     shareApp();
    }
-  }
+  },
+//   {
+//    title: 'upload file',
+//    icon: 'fas fa-upload',
+//    color: '#337cbb',
+//    onClick: () => {
+//     (async () => {
+//      await loadExe2Fn(101, [], [1]);
+//     })();
+//    }
+// },
+  {
+   title: 'After unlock',
+   icon: 'fas fa-unlock',
+   color: '#43bb33ea',
+   onClick: () => {
+    (async () => {
+     await loadExe2Fn(23, [window[my1uzr.worknOnPg].clientConfig?.unlockWitchKey,window[my1uzr.worknOnPg].clientConfig?.unlockMsg], [1]);
+    })();
+   }
+},
+  {
+   title: 'Clear All Data',
+   icon: 'fas fa-trash',
+   color: '#e63119',
+   onClick: () => {
+    (async () => {
+     await showClearCacheModal();
+    })();
+   }
+}
  ];
 
  // Use provided menu items or default ones
@@ -614,22 +617,28 @@ function toggleDrawer(menuItems = [], title = 'Menu', position = 'left') {
  }
 }
 
-function shareApp() {
- if (typeof Android !== 'undefined' && Android && typeof Android.shareApp === 'function') {
-  Android.shareApp();
- } else if (navigator.share) {
-  navigator.share({
-   title: 'My App',
-   text: 'Check out this amazing app!',
-   url: window.location.href
-  }).catch(() => fallbackShare());
+function shareApp(opts) {
+ opts = opts || {};
+ var url = opts.url || window.location.href;
+ var title = opts.title || document.title || 'My App';
+ var text = opts.text || 'Check out this profile!';
+ if (typeof Android !== 'undefined' && Android) {
+  if (typeof Android.shareApp === 'function') {
+   try { Android.shareApp(url, title, text); return; } catch (e) {}
+   try { Android.shareApp(); return; } catch (e) {}
+  }
+  if (typeof Android.shareUrl === 'function') { try { Android.shareUrl(url); return; } catch (e) {} }
+ }
+ if (navigator.share) {
+  navigator.share({ title: title, text: text, url: url }).catch(function () { fallbackShare(url); });
  } else {
-  fallbackShare();
+  fallbackShare(url);
  }
 }
 
-function fallbackShare() {
- prompt('Copy this link:', window.location.href);
+function fallbackShare(url) {
+ url = url || window.location.href;
+ try { prompt('Copy this link:', url); } catch (e) {}
 }
 
 // Updated toggle button function with profile
@@ -687,18 +696,3 @@ function createDrawerToggleButton(menuItems = [], title = 'Menu', position = 'le
 
  return toggleButton;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

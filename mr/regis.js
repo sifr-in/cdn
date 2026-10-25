@@ -9,6 +9,7 @@ const defnTabsToUs = { s: [2, 3], de: 2 };
  //the live modal's own close(), so hndlRspo68 can dismiss it after a save
  //(a bare close() there resolves to the browser's window.close, which is a no-op).
  var activeClose = null;
+ //fn 69 delete reasons: the server reads x1 as the negative status code
 
  var CSS = [
   ".rg-overlay{",
@@ -17,9 +18,12 @@ const defnTabsToUs = { s: [2, 3], de: 2 };
   "--rg-err:#a33120;--rg-ok:#2e7d5b;",
   "position:fixed;inset:0;z-index:1045;display:flex;align-items:center;justify-content:center;",
   "padding:16px;background:rgba(30,24,12,.55);backdrop-filter:blur(3px);",
-  "opacity:0;transition:opacity .26s ease;box-sizing:border-box;",
+  "opacity:0;transition:opacity .26s ease;box-sizing:border-box;overflow-x:hidden;",
   "}",
   ".rg-overlay.open{opacity:1;}",
+  //every form child sizes inside its own box: padding/borders can never add
+  //extra width and push a row past the screen edge
+  ".rg-overlay,.rg-overlay *{box-sizing:border-box;}",
   ".rg-box{position:relative;width:100%;max-width:440px;background:var(--rg-surface);",
   "border:1px solid rgba(201,164,92,.5);border-radius:20px;overflow:hidden;",
   "box-shadow:0 24px 60px rgba(0,0,0,.35);transform:translateY(16px);",
@@ -39,14 +43,15 @@ const defnTabsToUs = { s: [2, 3], de: 2 };
   "color:#fff;font-size:16px;cursor:pointer;transition:background .2s ease,transform .2s ease;}",
   ".rg-x:hover{background:rgba(255,255,255,.28);transform:rotate(90deg);}",
   ".rg-body{padding:18px 20px 20px;}",
-  ".rg-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}",
-  ".rg-field{display:flex;flex-direction:column;gap:5px;min-width:0;}",
+  ".rg-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:12px;min-width:0;}",
+  ".rg-field{display:flex;flex-direction:column;gap:5px;min-width:0;overflow-wrap:anywhere;}",
   ".rg-field.full{grid-column:1 / -1;}",
   ".rg-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.1px;",
   "color:var(--rg-muted);}",
   ".rg-label .rg-req{color:var(--rg-err);margin-left:3px;font-weight:700;}",
   ".rg-inwrap{display:flex;align-items:stretch;border:1px solid var(--rg-ember-deep);",
-  "border-radius:12px;background:#fff;overflow:hidden;transition:border-color .2s ease,box-shadow .2s ease;}",
+  "border-radius:12px;background:#fff;overflow:hidden;transition:border-color .2s ease,box-shadow .2s ease;",
+  "max-width:100%;min-width:0;}",
   ".rg-inwrap:focus-within{border-color:var(--rg-gold);box-shadow:0 0 0 3px rgba(201,164,92,.22);}",
   ".rg-prefix{display:flex;align-items:center;padding:0 10px;font-size:13.5px;font-weight:600;",
   "color:var(--rg-muted);background:var(--rg-cream);border-right:1px solid rgba(150,120,70,.35);",
@@ -56,10 +61,13 @@ const defnTabsToUs = { s: [2, 3], de: 2 };
   ".rg-in::placeholder{color:#9c937f;}",
   ".rg-selbox{min-height:46px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;cursor:pointer;",
   "border:1px solid var(--rg-ember-deep);border-radius:12px;background:#fff;padding:7px 10px;",
-  "transition:border-color .2s ease,box-shadow .2s ease;}",
+  "transition:border-color .2s ease,box-shadow .2s ease;max-width:100%;min-width:0;}",
   ".rg-selbox:focus-within{border-color:var(--rg-gold);box-shadow:0 0 0 3px rgba(201,164,92,.22);}",
   ".rg-selbox p{margin:0;color:#9c937f;font-size:14px;}",
-  ".rg-selbox>div{margin-top:0 !important;}",
+  ".rg-selbox>div{margin-top:0 !important;max-width:100%;min-width:0;}",
+  //value badges are built by slkt.js with inline styles; override them here so
+  //an older cached copy of that file can't reintroduce the nowrap overflow
+  ".rg-selbox .mra_-relation-badge{white-space:normal !important;overflow-wrap:anywhere;word-break:break-word;max-width:100%;line-height:1.3;}",
   ".rg-selbox .rg-selopen{min-height:32px;padding:4px 14px;border-radius:999px;",
   "border:1px dashed var(--rg-ember-deep);background:var(--rg-cream);color:var(--rg-muted);",
   "font-size:13.5px;font-weight:600;cursor:pointer;}",
@@ -68,10 +76,11 @@ const defnTabsToUs = { s: [2, 3], de: 2 };
   ".rg-selbox[data-locked=\"1\"] button{display:none;}",
   ".rg-date-wrap{position:relative;cursor:pointer;}",
   ".rg-date-wrap .rg-in{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;}",
-  ".rg-date-disp{display:flex;align-items:center;min-height:46px;padding:0 12px;font-size:15px;color:var(--rg-ink);}",
+  ".rg-date-disp{display:flex;align-items:center;min-height:46px;padding:0 12px;font-size:15px;color:var(--rg-ink);",
+  "min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}",
    ".rg-date-disp:empty::before{content:\"DD-MM-YYYY\";color:#9c937f;}",
-   ".rg-dt-row{display:flex;gap:10px;}",
-   ".rg-dt-row .rg-inwrap{flex:1 1 0;min-width:0;}",
+   ".rg-dt-row{display:flex;gap:10px;flex-wrap:wrap;min-width:0;}",
+   ".rg-dt-row .rg-inwrap{flex:1 1 130px;min-width:0;}",
    "[id^=\"rgtime-\"]:empty::before{content:\"HH:MM\";color:#9c937f;}",
   ".rg-cal{margin-left:auto;display:flex;align-items:center;padding:0 12px;color:var(--rg-muted);}",
   "body .tempus-dominus-widget.show{z-index:100002 !important;}",
@@ -87,16 +96,18 @@ const defnTabsToUs = { s: [2, 3], de: 2 };
   "@keyframes rg-snd-pulse{0%,100%{box-shadow:0 0 0 0 rgba(201,164,92,.55);}",
   "50%{box-shadow:0 0 0 10px rgba(201,164,92,0);}}",
   ".rg-in.rg-ta{height:auto;min-height:78px;padding:10px 12px;line-height:1.45;resize:vertical;}",
-  ".rg-dp{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}",
-  ".rg-dp-thumb{width:84px;height:84px;border-radius:14px;border:1px dashed var(--rg-ember-deep);",
+  ".rg-dp{display:flex;gap:12px;align-items:center;flex-wrap:wrap;max-width:100%;min-width:0;}",
+  ".rg-dp-thumb{width:clamp(104px,30vw,200px);height:clamp(104px,30vw,200px);min-height:0;border-radius:14px;",
+  "border:1px dashed var(--rg-ember-deep);",
   "background:var(--rg-cream);display:flex;align-items:center;justify-content:center;overflow:hidden;",
-  "flex:0 0 auto;color:var(--rg-muted);font-size:26px;}",
+  "flex:0 0 auto;color:var(--rg-muted);font-size:32px;}",
   ".rg-dp-thumb img{width:100%;height:100%;object-fit:cover;}",
-  ".rg-dp-actions{display:flex;gap:8px;flex-wrap:wrap;}",
-  ".rg-dp-actions .rg-btn{height:42px;padding:0 16px;font-size:13.5px;}",
+  ".rg-dp-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex:1 1 140px;min-width:0;}",
+  ".rg-dp-actions .rg-btn{height:44px;padding:0 12px;font-size:13px;white-space:nowrap;flex:0 0 auto;}",
   ".rg-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;}",
-  ".rg-gal-item{position:relative;aspect-ratio:1/1;border-radius:12px;overflow:hidden;",
+  ".rg-gal-item{position:relative;aspect-ratio:1/1;border-radius:12px;overflow:hidden;cursor:pointer;",
   "border:1px solid rgba(201,164,92,.55);background:var(--rg-cream);}",
+  ".rg-gal-item:hover{border-color:var(--rg-gold);box-shadow:0 0 0 2px rgba(201,164,92,.35);}",
   ".rg-gal-item img{width:100%;height:100%;object-fit:cover;display:block;}",
   ".rg-gal-x{position:absolute;top:3px;right:3px;width:22px;height:22px;padding:0;border:none;",
   "border-radius:50%;background:rgba(36,29,18,.68);color:#fff;font-size:12px;line-height:1;",
@@ -114,10 +125,34 @@ const defnTabsToUs = { s: [2, 3], de: 2 };
   ".rg-msg.err{color:var(--rg-err);background:rgba(163,49,32,.08);border:1px solid rgba(163,49,32,.28);}",
   ".rg-msg.ok{color:var(--rg-ok);background:rgba(46,125,91,.09);border:1px solid rgba(46,125,91,.3);}",
   ".rg-err{display:none;font-size:12px;font-weight:600;color:var(--rg-err);}",
-  ".rg-field.bad .rg-inwrap{border-color:var(--rg-err);box-shadow:0 0 0 3px rgba(163,49,32,.16);}",
-  ".rg-field.bad .rg-selbox{border-color:var(--rg-err);box-shadow:0 0 0 3px rgba(163,49,32,.16);}",
+  ".rg-field.bad .rg-inwrap{border:4px solid var(--rg-err);box-shadow:0 0 0 2px rgba(163,49,32,.22);}",
+  ".rg-field.bad .rg-selbox{border:4px solid var(--rg-err);box-shadow:0 0 0 2px rgba(163,49,32,.22);}",
+  ".rg-field.bad .rg-dp-thumb{border:4px solid var(--rg-err) !important;box-shadow:0 0 0 2px rgba(163,49,32,.22);}",
+  ".rg-field.bad .rg-dp-actions .rg-btn{border-color:var(--rg-err);color:var(--rg-err);}",
+  ".rg-field.bad .rg-gal{outline:2px solid rgba(163,49,32,.35);outline-offset:2px;border-radius:12px;}",
+  ".rg-field.bad .rg-gal-add{border:4px solid var(--rg-err);box-shadow:0 0 0 2px rgba(163,49,32,.22);}",
   ".rg-field.bad .rg-err{display:block;}",
   ".rg-actions{display:flex;flex-direction:column;gap:10px;margin-top:18px;}",
+  ".rg-actions-row{flex-direction:row;align-items:stretch;}",
+  ".rg-actions-row #rgRegSend{flex:1 1 auto;min-width:0;}",
+  ".rg-reason{position:fixed;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;",
+  "padding:16px;background:rgba(30,24,12,.5);backdrop-filter:blur(2px);opacity:0;",
+  "transition:opacity .18s ease;}",
+  ".rg-reason.open{opacity:1;}",
+  ".rg-reason-box{width:100%;max-width:360px;max-height:90vh;overflow:auto;padding:18px 16px;",
+  "background:var(--rg-surface);border:1px solid rgba(201,164,92,.55);border-radius:16px;",
+  "box-shadow:0 18px 44px rgba(0,0,0,.32);transform:translateY(8px);transition:transform .18s ease;}",
+  ".rg-reason.open .rg-reason-box{transform:translateY(0);}",
+  ".rg-reason-title{font-size:16.5px;font-weight:700;color:var(--rg-ink);margin:0 0 4px;}",
+  ".rg-reason-sub{font-size:13px;line-height:1.45;color:var(--rg-muted);margin:0 0 10px;}",
+  ".rg-reason-opt{display:flex;align-items:center;gap:10px;width:100%;margin-top:8px;padding:11px 12px;",
+  "text-align:left;background:var(--rg-cream);border:1px solid rgba(201,164,92,.45);border-radius:10px;",
+  "font-family:inherit;font-size:14px;font-weight:600;color:var(--rg-ink);cursor:pointer;}",
+  ".rg-reason-opt:hover{background:#fff;border-color:var(--rg-gold);}",
+  ".rg-reason-num{flex:0 0 24px;height:24px;border-radius:50%;background:rgba(139,30,63,.1);",
+  "color:var(--rg-ember);display:inline-flex;align-items:center;justify-content:center;",
+  "font-size:12px;font-weight:700;}",
+  ".rg-reason-cancel{width:100%;height:42px;margin-top:12px;}",
   ".rg-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;",
   "border-radius:999px;border:1px solid transparent;font-size:15px;font-weight:600;cursor:pointer;",
   "transition:filter .2s ease,transform .18s ease;}",
@@ -133,14 +168,26 @@ const defnTabsToUs = { s: [2, 3], de: 2 };
   "box-shadow:0 10px 24px rgba(138,71,8,.3);}",
   ".rg-btn-ghost{background:transparent;color:var(--rg-muted);border-color:rgba(201,164,92,.55);}",
   ".rg-btn-ghost:hover{background:var(--rg-cream);color:var(--rg-ink);}",
+  ".rg-btn-danger{flex:0 0 auto;padding:0 18px;background:transparent;color:var(--rg-err);",
+  "border-color:rgba(163,49,32,.55);white-space:nowrap;}",
+  ".rg-btn-danger:hover:not(:disabled){background:rgba(163,49,32,.08);}",
   ".rgAlrdyRegMem{background:linear-gradient(135deg,var(--rg-gold-light),var(--rg-gold));color:var(--rg-ember-deep);border-color:var(--rg-gold);width:auto;margin:4px auto 0;padding:0 18px;height:42px;font-size:13.5px;}",
-  ".rg-view{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:11px 14px;}",
+  ".rg-view{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:11px 14px;}",
   ".rg-view-item{display:flex;flex-direction:column;gap:3px;min-width:0;padding:8px 10px;",
   "border:1px solid rgba(119,79,1,.9);border-radius:8px;background:var(--rg-surface,#fffdf6);}",
   ".rg-view-item.full{grid-column:1 / -1;}",
   ".rg-view-key{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--rg-muted);}",
-  ".rg-view-val{font-size:14.5px;line-height:1.4;color:var(--rg-ink);word-break:break-word;}",
+  ".rg-view-val{font-size:14.5px;line-height:1.4;color:var(--rg-ink);word-break:break-word;min-width:0;}",
   ".rg-view-val:empty::before{content:\"\\2014\";color:#b9b1a2;}",
+  ".rg-view-val .rg-casc-tree{min-width:0;}",
+  ".rg-view-val .rg-casc-node{white-space:normal;overflow-wrap:anywhere;}",
+  ".rg-view-val .rg-casc-node.rg-casc-dash{color:var(--rg-muted);}",
+  //place values a2/b2/c3 read larger than the religion tree, without touching labels
+  ".rg-view-item.rg-view-place .rg-casc-node.lv0{font-size:16px;}",
+  ".rg-view-item.rg-view-place .rg-casc-node.lv1{font-size:15px;}",
+  ".rg-view-item.rg-view-place .rg-casc-node.lv2,",
+  ".rg-view-item.rg-view-place .rg-casc-node.lv3,",
+  ".rg-view-item.rg-view-place .rg-casc-node.lv4{font-size:14.5px;}",
    ".rg-more{flex:0 0 auto;align-self:center;height:30px;min-width:58px;margin:0 8px 0 4px;",
    "padding:0 12px;border-radius:999px;border:1px solid var(--rg-ember-deep);",
    "background:var(--rg-cream);color:var(--rg-muted);font-size:12.5px;font-weight:700;",
@@ -152,16 +199,18 @@ const defnTabsToUs = { s: [2, 3], de: 2 };
    ".rg-morepane{display:none;}",
    ".rg-morepane.open{display:block;}",
    ".rg-morepane-grid{grid-template-columns:1fr;}",
-   ".rg-morefold{grid-column:1 / -1;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}",
-   ".rg-cascbox{justify-content:space-between;align-items:flex-start;}",
-   ".rg-cascbox-val{font-size:15px;color:var(--rg-ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}",
+   ".rg-morefold{grid-column:1 / -1;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:12px;min-width:0;}",
+   ".rg-cascbox{justify-content:space-between;align-items:flex-start;max-width:100%;min-width:0;}",
+   ".rg-cascbox-val{font-size:15px;color:var(--rg-ink);min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}",
    ".rg-cascbox-val.empty{color:#9c937f;}",
    ".rg-casc-tree{display:flex;flex-direction:column;gap:1px;min-width:0;max-width:100%;}",
    ".rg-casc-node{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}",
-   ".rg-casc-node.lv0{font-size:15px;font-weight:600;color:var(--rg-ink);}",
-   ".rg-casc-node.lv1{font-size:13.5px;color:var(--rg-muted);padding-left:14px;}",
-   ".rg-casc-node.lv2{font-size:12.5px;color:var(--rg-muted);padding-left:28px;}",
-   ".rg-casc-node.lv1::before,.rg-casc-node.lv2::before{content:\"↳ \";color:var(--rg-gold);}",
+   ".rg-casc-node.lv0{font-size:.9rem;font-weight:600;color:#8B1E3F;}",
+   ".rg-casc-node.lv1{font-size:.85rem;color:#6E1733;padding-left:16px;}",
+   ".rg-casc-node.lv2{font-size:.8rem;color:#212529;padding-left:32px;}",
+   ".rg-casc-node.lv3{font-size:.78rem;color:#212529;padding-left:48px;}",
+   ".rg-casc-node.lv4{font-size:.76rem;color:#212529;padding-left:64px;}",
+   ".rg-casc-node.lv1::before,.rg-casc-node.lv2::before,.rg-casc-node.lv3::before,.rg-casc-node.lv4::before{content:\"⤵ \";color:#c9a45c;font-size:.7rem;}",
    ".rg-cascbox[data-locked=\"1\"]{cursor:pointer;background:#fff;}",
    ".rg-cascbox[data-locked=\"1\"] .rg-selopen{display:inline-flex !important;}",
   "@media (max-width:480px){",
@@ -172,6 +221,9 @@ const defnTabsToUs = { s: [2, 3], de: 2 };
   ".rg-body{padding:16px 16px calc(20px + env(safe-area-inset-bottom));}",
   ".rg-head{padding:16px 16px 14px;}",
   ".rg-titles h3{font-size:18px;}",
+  ".rg-actions-row{gap:8px;}",
+  ".rg-actions-row .rg-btn{font-size:14px;gap:6px;}",
+  ".rg-actions-row .rg-btn-danger{padding:0 12px;}",
   "}",
   "@media (prefers-reduced-motion:reduce){",
   ".rg-overlay,.rg-box,.rg-x,.rg-btn{transition:none !important;}",
@@ -244,21 +296,18 @@ const defnTabsToUs = { s: [2, 3], de: 2 };
    { a: 7, e: "Cooperative Society" }, { a: 8, e: "Trust" }, { a: 9, e: "NGO" }
   ],
   mr_bsns_typs: [{ a: 0, e: "-" }, { a: 1, e: "IT & Software Development" }, { a: 2, e: "Real Estate" }, { a: 3, e: "Construction" }],
-  entryStatus: [{ a: 0, e: "Entry" }, { a: 1, e: "Accepted" }, { a: 2, e: "Under process" }, { a: 127, e: "denied" }]
+  entryStatus: [{ a: 0, e: "Entry" }, { a: 1, e: "Accepted" }, { a: 2, e: "Under process" }, { a: -1, e: "denied by admin" }]
  };
 
  var BUILTIN_SEL_FIELDS = {
-  a5: { arr: "var_genders" },
+  c8: { arr: "var_genders" },
   j: { arr: "marital_status" },
-  k: { arr: "var_caste_rlgns" },
-k1: { arr: "var_caste_rlgns,castes", parent: "k", show: 1 },
-   k2: { arr: "var_sub_caste_type", parent: "k1", show: 1 },
-   a3: { arr: "var_ctco", show: 1 },
-   a2: { arr: "var_ctco,cities", parent: "a3", show: 1 },
-   b5: { arr: "var_ctco", show: 1 },
-   b4: { arr: "var_ctco,cities", parent: "b5" },
-   c5: { arr: "var_ctco", show: 1 },
-   c6: { arr: "var_ctco,cities", parent: "c5", show: 1 },
+  k: { arr: "var_caste_rlgns,x,x", depth: 3 },
+  k1: { arr: "var_caste_rlgns,x", parent: "k", show: 1 },
+  k2: { arr: "var_caste_rlgns,x,x", parent: "k1", show: 1 },
+  a2: { arr: "var_ctco,@ctry,x,x,x", show: 1, depth: 5 },
+  b2: { arr: "var_ctco,@ctry,x,x,x", show: 1, depth: 5 },
+  c3: { arr: "var_ctco,@ctry,x,x,x", show: 1, depth: 5 },
   q: { arr: "mr_job_types" },
   qa: { arr: "mr_desig_posis" },
   qb: { arr: "mr_bsns_forms" },
@@ -323,7 +372,7 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
  //level descriptors for a cascade root: level 0 is the root's own array; a
  //child is "nested" when its array is the previous array plus one segment
  //(read that segment off the selected item), otherwise it is a flat global
- //array. e.g. k/var_caste_rlgns -> k1 nested "castes" -> k2 flat.
+ //array. e.g. k/var_caste_rlgns -> k1 nested "x" -> k2 flat.
  function cascadeLevels(rootKey) {
   var chain = cascadeChain(rootKey);
   if (!chain.length) return [];
@@ -343,20 +392,33 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
   return levels;
  }
 
- //parent's currently chosen id (live input wins, base row and "97" as fallbacks)
+ //parent's currently chosen id (live input wins, the base row next, then the
+ //configured default country - a child select hangs off its parent field)
  var rgClearedParents = {};
 
- function liveParentVal(parentKey, base) {
+ //fallback parent id for a field: a place picker root (a2/b2/c3) is country-rooted
+ //and stores its country as level 0, so it needs no parent; the religion chain
+ //(k -> k1, k1 -> k2) declares its parent directly.
+ function defaultParentId(forKey, parentKey) {
+  var m = COUNTRY_OF_FIELD[forKey];
+  if (m && m.countryField === parentKey) return countryIdFromCfg((rgCfg()[m.cfg] || {}).a);
+  return "";
+ }
+
+ function liveParentVal(parentKey, base, forKey) {
   var pv = "";
   try {
-   if (rgClearedParents[parentKey]) pv = "97";
+   if (rgClearedParents[parentKey]) pv = defaultParentId(forKey, parentKey);
    else {
     var el = document.getElementById("rgf-" + parentKey);
     if (el && el.value !== undefined && el.value !== null) pv = String(el.value);
    }
   } catch (e) { }
   if (!pv) pv = baseVal(base, parentKey);
-  if (!pv || pv === "0") pv = "97";
+  if (!pv || pv === "0") pv = defaultParentId(forKey, parentKey);
+  //a cascade root input holds the whole "religion,caste,subcaste" path while a
+  //nested child only needs its own level id (the same value the base row keeps)
+  if (pv) pv = String(pv).split(",")[0].trim();
   return pv;
  }
 
@@ -365,28 +427,65 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
   return cfg.multi ? 2 : 1;
  }
 
- //city field -> its country config block in mr.da. The country fields (a3/b5/c5)
- //are not part of the registration form, so the country shown/scoped for a city
- //picker comes from the config default `.a` (see default*Country in mr.da).
+ //address place picker -> its country config block in mr.da. The picker root
+ //(a2/b2/c3) stores the country as its first level, and the country shown/scoped
+ //for the picker comes from the config default `.a` (see default*Country in mr.da).
  var COUNTRY_OF_FIELD = {
-  b4: { cfg: "defaultNativeCountry", countryField: "b5" },
-  a2: { cfg: "defaultWorkingCountry", countryField: "a3" },
-  c6: { cfg: "defaultLivingCountry", countryField: "c5" }
+  b2: { cfg: "defaultNativeCountry" },
+  a2: { cfg: "defaultWorkingCountry" },
+  c3: { cfg: "defaultLivingCountry" }
  };
 
- //Country id/name/canChange for a city field. `overrideId` lets a caller show a
- //country the user just picked (config default is used otherwise).
+ //mr.da default*Country `.a` may be a numeric country id (97) or an ISO2 code
+ //("in"). Both resolve to the id var_ctco stores; an unknown code answers "" so
+ //the picker shows no default country instead of a phantom "#in".
+ function countryIdFromCfg(raw) {
+  if (raw === undefined || raw === null || raw === "") return "";
+  var s = String(raw).trim();
+  if (/^\d+$/.test(s)) return s;
+  var list = window.var_ctco || BUILTIN_LISTS.var_ctco || [];
+  if (!Array.isArray(list)) return "";
+  var want = s.toLowerCase();
+  for (var i = 0; i < list.length; i++) {
+   var it = list[i];
+   if (!it) continue;
+   if (String(it.a) === s) return String(it.a);
+   if (it.iso2 && String(it.iso2).toLowerCase() === want) return String(it.a);
+  }
+  return "";
+ }
+
+ //the country id the field's config names (used as the picker root's level-0 default)
+ function defaultCountryId(fieldKey) {
+  var m = COUNTRY_OF_FIELD[fieldKey];
+  return m ? countryIdFromCfg((rgCfg()[m.cfg] || {}).a) : "";
+ }
+
+ //Country id/name/badge/canChange for a city field. `overrideId` lets a caller
+ //show a country the user just picked (config default is used otherwise).
+ //`code` is the banner badge: the country's ISO2 when its var_ctco row has one
+ //("#IN"), else the numeric id - the same badge the picker shows once a country
+ //is committed, so it never flips between the default and the picked state.
  function countryInfoFor(key, overrideId) {
   var m = COUNTRY_OF_FIELD[key];
   if (!m) return null;
   var c = rgCfg()[m.cfg] || {};
-  var id = (overrideId !== undefined && overrideId !== null && overrideId !== "")
-   ? String(overrideId)
-   : (c.a !== undefined && c.a !== null && c.a !== "" ? String(c.a) : "");
+  var override = (overrideId !== undefined && overrideId !== null && overrideId !== "");
+  var id = (override ? String(overrideId) : countryIdFromCfg(c.a));
+  var code = id;
+  if (id) {
+   var row = (window.var_ctco || []).filter(function (it) { return it && String(it.a) === id; })[0];
+   if (row && row.iso2) code = String(row.iso2).toUpperCase();
+   else if (!override && c.a !== undefined && c.a !== null && !/^\d+$/.test(String(c.a).trim())) {
+    code = String(c.a).trim().toUpperCase();
+   }
+  }
   return {
    id: id,
    name: id ? rgNameFromList("var_ctco", id) : "",
-   canChange: Number(c.canChngeCountry) === 1,
+   code: code,
+   canChange: cfgCanChange(c, "canChngeCountry"),
+   mustSelectTillLast: cfgMustSelectTillLast(c),
    countryField: m.countryField || ""
   };
  }
@@ -396,7 +495,7 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
   return !!(cfg && Number(cfg.depth) > 0);
  }
 
- //which selects show their value as an indented tree (like native city b4).
+ //which selects show their value as an indented tree (like a place picker a2/b2/c3).
  //mr.da "showTreeView" (comma list) drives it; when that key is absent the
  //legacy selectFields.<k>.depth flag decides.
  function isTreeField(key) {
@@ -411,14 +510,61 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
   return { c: cfg.arr, canAdd: selCanAdd(cfg), depthForNative: Number(cfg.depth) || String(cfg.arr || "").split(",").length };
  }
 
+ //per-field labels/title for the slkt2 depth picker, from mr.da "depthPicker"
+ //(e.g. religion k -> Religion / Caste / Sub caste instead of State/District/...)
+ function depthPickerCfg(key) {
+  var dp = (rgCfg() && rgCfg().depthPicker) || null;
+  return (dp && dp[key]) || null;
+ }
+
  //fullObject for openDepthSelectionModal: e = array path, f = required depth
  function selDepthModalObject(key) {
   var cfg = selCfg(key);
   var fo = { e: cfg.arr, f: Number(cfg.depth) || String(cfg.arr || "").split(",").length };
   var ct = countryInfoFor(key);
-  if (ct) fo.ctry = ct;
+  if (ct) {
+   fo.ctry = ct;
+   //mr.da default*Country mustSelectTillLast drives the picker's OK button
+   fo.mustSelectTillLast = ct.mustSelectTillLast;
+  }
+  var dp = depthPickerCfg(key);
+  if (dp) {
+   if (dp.labels) fo.labels = splitCsv(dp.labels);
+   if (dp.title) fo.title = String(dp.title);
+  }
+  //religion/caste tree: names are stored compound ("Muslim - Malik") and must be
+  //shown in full, unlike the bilingual location lists ("JAMMU & KASHMIR - हिंदी")
+  if (String(cfg.arr || "").indexOf("var_caste_rlgns") === 0) {
+   fo.fullNames = 1;
+   //dfltReligious (level 0) / dfltCaste (level 1) freeze their own level: those
+   //levels can never be changed or cleared (dfltTreeLockLevels)
+   var lockedLv = dfltTreeLockLevels();
+   if (lockedLv.length) {
+    fo.lockedLevels = lockedLv;
+    fo.fixedDepth = lockedLv.length;
+   }
+   //city-modal parity: the configured default religion seeds the picker (when the
+   //field is empty) and drives the banner + Change button, exactly like the default
+   //country (fo.ctry) does for a2/b2/c3; dfltCaste adds the caste line to that banner
+   var relInf = dfltReligiousInfo();
+   if (relInf) fo.relig = relInf;
+   var cstCfg = dfltCasteCfg();
+   if (cstCfg && dfltIdValid(cstCfg.a, true)) {
+    fo.caste = {
+     id: String(cstCfg.a),
+     name: rgNameFromList("var_caste_rlgns,x", cstCfg.a),
+     canChange: cfgCanChange(cstCfg, "canChngeCaste")
+    };
+   }
+   //0 also offers the OK button (a religion-only path can commit), 1 needs the full chain
+   fo.mustSelectTillLast = dfltMustSelectTillLast();
+  }
   return fo;
  }
+
+ //the depth-picker object for a field, exposed so slkt2's inline edit button opens
+ //the same modal (labels, full names, frozen levels) as the field box itself
+ window.mrDepthPickerObject = selDepthModalObject;
 
  function selFullObject(key, base) {
   var cfg = selCfg(key);
@@ -427,7 +573,7 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
   //a flat array (e.g. k2) still declares a parent for child-clearing, but must
   //open at root (no "1-<id>" depth path) or the picker would find no item.
   if (cfg.parent && String(cfg.arr).indexOf(",") >= 0) {
-   var pv = liveParentVal(cfg.parent, base);
+   var pv = liveParentVal(cfg.parent, base, key);
    fo.e = pv;
    fo.g = "1-" + pv;
   }
@@ -438,15 +584,15 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
  function selModalObject(key, base) {
   var cfg = selCfg(key);
   var fo = { e: cfg.arr, f: selCanAdd(cfg) };
-  //city pickers (a2/c6) scope to the country from mr.da config; the country
-  //fields (a3/c5) are not part of the form, so their stored value is ignored.
-  var ct = countryInfoFor(key);
+  //place picker roots (a2/b2/c3) are country-rooted: the stored level-0 id, or
+  //the mr.da config default, scopes the picker to that country.
+  var ct = countryInfoFor(key, baseVal(base, key));
   if (ct) {
    fo.ctry = ct;
    if (ct.id) fo.g = "1-" + ct.id;
   } else if (cfg.parent && String(cfg.arr).indexOf(",") >= 0) {
    //only navigate by parent when the array is nested; flat arrays open at root
-   var pv = liveParentVal(cfg.parent, base);
+   var pv = liveParentVal(cfg.parent, base, key);
    fo.g = "1-" + pv;
   }
   if (hasSelChildren(key)) fo.h = "mrRegisParentSelected";
@@ -465,40 +611,293 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
  //fields that must sit on their own full-width row, from mr.da "showOnSeparateRow"
  function sepRowSet() {
   var raw = rgCfg() && rgCfg().showOnSeparateRow;
-  var src = (raw === undefined || raw === null || raw === "") ? "m,l,g,b4,s" : String(raw);
+  var src = (raw === undefined || raw === null || raw === "") ? "m,l,g,b2,s" : String(raw);
   var o = {};
   splitCsv(src).forEach(function (k) { if (k) o[k] = 1; });
   return o;
  }
 
- var TYPE_MAP = {
-  u: "image",
-  b6: "gallery",
-  l: "tel",
-  g: "date",
-  x2: "textarea"
- };
+ //fields that must sit on their own full-width row in the read-only detail view,
+ //from mr.da "showOnSeparateRowToDispOnCard"
+ function sepRowCardSet() {
+  var raw = rgCfg() && rgCfg().showOnSeparateRowToDispOnCard;
+  var src = (raw === undefined || raw === null || raw === "") ? "a2,b2,c3,c9" : String(raw);
+  var o = {};
+  splitCsv(src).forEach(function (k) { if (k) o[k] = 1; });
+  return o;
+ }
 
- var PLACEHOLDERS = {
-  m: "First name",
-  n: "Surname",
-  o: "Father's first name",
-  p: "Mother's first name",
-  h: "e.g. 5.6",
-  i: "e.g. 6.50",
-  r: "e.g. 12",
-  d1: "00",
-  c2: "leave blank if not",
-  va: "e.g. patil, kadam",
-  x2: "What are you looking for in a partner?",
-  l: "10-digit number"
- };
-
-  var NUM_INPUTMODE = { h: "decimal", i: "decimal", d1: "numeric", r: "numeric" };
+ //field widget metadata comes from mr.da "fieldInput" (one config object):
+ //  typeMap      key -> "image" | "gallery" | "tel" | "date" | "textarea"
+ //               (everything else is a text input; selects come from selectFields)
+ //  placeholders key -> placeholder text
+ //  numInputmode key -> inputmode for plain text inputs
+ function fieldInputCfg() {
+  var raw = rgCfg() && rgCfg().fieldInput;
+  return (raw && typeof raw === "object") ? raw : {};
+ }
+ function fieldTypeOf(key) {
+  var m = fieldInputCfg().typeMap;
+  return (m && m[key]) ? String(m[key]) : "text";
+ }
+ function fieldPlaceholderOf(key) {
+  var m = fieldInputCfg().placeholders;
+  return (m && m[key] != null) ? String(m[key]) : "";
+ }
+ function fieldInputmodeOf(key) {
+  var m = fieldInputCfg().numInputmode;
+  return (m && m[key]) ? String(m[key]) : "";
+ }
 
  function labelText(map, key) {
   var s = map[key] != null ? String(map[key]) : String(key);
   return s.replace(/;\s*$/, "").trim();
+ }
+
+ //religion (k) is stored as three ids (k, k1, k2) but its picker/box work on a
+ //single "a,b,c" path exactly like the address picker roots (a2/b2/c3). Build the path
+ //hierarchy-aware: a caste only counts when a religion precedes it, a sub caste
+ //only when a caste precedes it.
+ function kPathFromBase(base) {
+  var out = [];
+  var k0 = baseVal(base, "k");
+  if (k0 && k0 !== "0") {
+   out.push(k0);
+   var k1 = baseVal(base, "k1");
+   if (k1 && k1 !== "0") {
+    out.push(k1);
+    var k2 = baseVal(base, "k2");
+    if (k2 && k2 !== "0") out.push(k2);
+   }
+  }
+  return out.join(",");
+ }
+
+ //address places are stored as five ids per block (working a2..a6, native
+ //b2..b6, living c3..c7) exactly like religion (k/k1/k2): the picker box works on
+ //one joined "country,state,district,taluka,city" path while the row keeps the
+ //five ids apart. Map each picker root to its five level keys.
+ var PLACE_GROUPS = {
+  a2: ["a2", "a3", "a4", "a5", "a6"],
+  b2: ["b2", "b3", "b4", "b5", "b6"],
+  c3: ["c3", "c4", "c5", "c6", "c7"]
+ };
+ function placePathFromBase(base, root) {
+  var grp = PLACE_GROUPS[root];
+  if (!grp) return "";
+  var out = [];
+  for (var i = 0; i < grp.length; i++) {
+   var v = baseVal(base, grp[i]);
+   //skip a gap instead of stopping: a flat country stores its city in the
+   //last slot (a6/b6/c7) with the middle levels empty
+   if (!v || v === "0") continue;
+   out.push(v);
+  }
+  return out.join(",");
+ }
+
+ //View-only place resolver. Old profiles keep the country and city in separate
+ //legacy slots (b5/b4, a3/a2, c5/c6) while new rows store the five levels in
+ //order (b2..b6, a2..a6, c3..c7). Build every plausible path, resolve its
+ //names and keep the best one. This never writes to the profile.
+ var VIEW_LEGACY_PLACE = {
+  a2: { country: "a3", city: "a2" },
+  b2: { country: "b5", city: "b4" },
+  c3: { country: "c5", city: "c6" }
+ };
+ var VIEW_DEFAULT_PLACE_CFG = {
+  a2: "defaultWorkingCountry",
+  b2: "defaultNativeCountry",
+  c3: "defaultLivingCountry"
+ };
+
+ function viewPlaceCountry(id) {
+  var list = Array.isArray(window.var_ctco) ? window.var_ctco : [];
+  var s = String(id == null ? "" : id).trim().toLowerCase();
+  if (!s) return null;
+  for (var i = 0; i < list.length; i++) {
+   var c = list[i];
+   if (!c) continue;
+   if (String(c.a) === s || String(c.iso2 || "").toLowerCase() === s) return c;
+  }
+  return null;
+ }
+
+ function viewPlaceIds(v) {
+  //place levels are positive numeric ids; this also ignores an old b6 gallery
+  //list or a JSON blob instead of letting it contaminate the path
+  if (v === undefined || v === null) return [];
+  return String(v).split(",").map(function (x) { return x.trim(); })
+   .filter(function (x) { return /^\d+$/.test(x) && x !== "0"; });
+ }
+
+ function viewPlaceDefaultCountry(root) {
+  var cfg = rgCfg() || {};
+  var block = cfg[VIEW_DEFAULT_PLACE_CFG[root]];
+  return block && block.a ? viewPlaceCountry(block.a) : null;
+ }
+
+ function viewPlaceFlatNames(countryId, cityId) {
+  var country = viewPlaceCountry(countryId);
+  if (!country) return [];
+  var names = [];
+  var cn = country.e != null ? String(country.e) : (country.n != null ? String(country.n) : "");
+  if (cn) names.push(cn);
+  var cities = country.x || country.cities || [];
+  var city = null;
+  for (var i = 0; i < cities.length; i++) {
+   if (cities[i] && String(cities[i].a) === String(cityId)) { city = cities[i]; break; }
+  }
+  if (!city) return names;
+  var nm = city.e != null ? String(city.e) : (city.n != null ? String(city.n) : "");
+  if (nm) names.push(nm);
+  return names;
+ }
+
+ function viewPlaceCandidates(profile, root) {
+  var grp = PLACE_GROUPS[root];
+  if (!grp) return { ids: [], list: [], legacy: null, def: null };
+  var ids = [];
+  var filled = [];
+  for (var i = 0; i < grp.length; i++) {
+   var part = viewPlaceIds(baseVal(profile, grp[i]));
+   if (part.length) filled.push({ key: grp[i], ids: part });
+   ids = ids.concat(part);
+  }
+  var leg = VIEW_LEGACY_PLACE[root];
+  var legCountry = leg ? viewPlaceCountry(baseVal(profile, leg.country)) : null;
+  var legCity = leg ? viewPlaceIds(baseVal(profile, leg.city)) : [];
+  var def = viewPlaceDefaultCountry(root);
+  var list = [];
+  var seen = {};
+  function add(arr, flat, stored) {
+   var clean = arr.map(function (v) { return String(v); })
+    .filter(function (v) { return v && v !== "0"; });
+   if (!clean.length) return;
+   var key = clean.join(",") + (flat ? "|f" : "|t");
+   if (seen[key]) return;
+   seen[key] = 1;
+   list.push({ ids: clean, flat: !!flat, stored: stored !== false });
+  }
+  //a country in the first slot with its city in the last slot is a flat-country
+  //picker row (Germany + Aach), not country + state
+  if (filled.length === 2 && filled[0].key === grp[0] &&
+      filled[1].key === grp[grp.length - 1] &&
+      viewPlaceCountry(filled[0].ids[0]) && filled[1].ids.length === 1) {
+   add([filled[0].ids[0], filled[1].ids[0]], true);
+  }
+  //new rows: the stored level order already starts with the country
+  add(ids);
+  //old rows: dedicated country slot + city/path slot; a lone city is flat
+  if (legCountry && legCity.length) add([String(legCountry.a)].concat(legCity), legCity.length === 1);
+  //rows already saved once by the current form: the country ended up after the city
+  for (var j = 1; j < ids.length; j++) {
+   var c = viewPlaceCountry(ids[j]);
+   if (c) {
+    var before = ids.slice(0, j);
+    var after = ids.slice(j + 1);
+    add([String(c.a)].concat(before, after), before.length === 1 && after.length === 0);
+    break;
+   }
+  }
+  //no country at all: fall back to the configured default (India)
+  if (def && !legCountry && ids.length) {
+   var firstLegacyCity = !!(leg && filled.length && filled[0].key === leg.city);
+   //a2 doubles as the country slot in the new flat layout (a2 = country, a6 = city).
+   //when another level id is present, a2 must be read as a country, not as a legacy
+   //city - otherwise a real country id (108 = Japan) is misread as the India city with
+   //the same id (108 = Basti). A lone city id keeps the old default-country reading.
+   if (firstLegacyCity && filled[0].key === grp[0] && ids.length > 1 &&
+       viewPlaceCountry(filled[0].ids[0])) firstLegacyCity = false;
+   var addDefault = firstLegacyCity;
+   if (!addDefault) {
+    var hasCountry = false;
+    for (var h = 0; h < ids.length; h++) {
+     if (viewPlaceCountry(ids[h])) { hasCountry = true; break; }
+    }
+    addDefault = !hasCountry;
+   }
+   if (addDefault) {
+    //the legacy city slot is the real city; later junk slots must not join the path
+    var defIds = (firstLegacyCity && legCity.length) ? legCity : ids;
+    add([String(def.a)].concat(defIds), defIds.length === 1, false);
+   }
+  }
+  return { ids: ids, list: list, legacy: legCountry, def: def };
+ }
+
+ function viewPlaceNames(ids) {
+  var names = [];
+  if (!ids || !ids.length) return names;
+  var arr = Array.isArray(window.var_ctco) ? window.var_ctco : [];
+  var firstCountry = null;
+  for (var i = 0; i < ids.length; i++) {
+   var found = null;
+   for (var j = 0; j < arr.length; j++) {
+    if (arr[j] && String(arr[j].a) === String(ids[i])) { found = arr[j]; break; }
+   }
+   if (!found) break;
+   if (i === 0) firstCountry = found;
+   var nm = found.e != null ? String(found.e) : (found.n != null ? String(found.n) : "");
+   if (nm && !/^-+\s*select\s*-+$/i.test(nm.trim())) names.push(nm);
+   if (i >= 4) break;
+   if (i === 0) {
+    var region = null;
+    if (typeof window.__mrCtryRegionList === "function") {
+     try { region = window.__mrCtryRegionList(found); } catch (eR) { region = null; }
+    }
+    if (!region && String(found.iso2 || "").toLowerCase() === "in" && Array.isArray(window.var_intal)) {
+     region = window.var_intal;
+    }
+    arr = region || found.x || found.cities || [];
+   } else {
+    arr = found.x || found.cities || [];
+   }
+  }
+  //a flat-country city sits in the country's own city list, not in its
+  //state list (India + 673 = Nashik); only needed for a 2-id path
+  if (names.length === 1 && firstCountry && ids.length === 2) {
+   var cities = firstCountry.x || firstCountry.cities || [];
+   for (var k = 0; k < cities.length; k++) {
+    if (cities[k] && String(cities[k].a) === String(ids[1])) {
+     var cn = cities[k].e != null ? String(cities[k].e) : (cities[k].n != null ? String(cities[k].n) : "");
+     if (cn && !/^-+\s*select\s*-+$/i.test(cn.trim())) names.push(cn);
+     break;
+    }
+   }
+  }
+  return names.filter(Boolean);
+ }
+
+ function viewResolvePlace(profile, root) {
+  var c = viewPlaceCandidates(profile, root);
+  var best = null;
+  for (var i = 0; i < c.list.length; i++) {
+   var cand = c.list[i];
+   var names = cand.flat ? viewPlaceFlatNames(cand.ids[0], cand.ids[1]) : viewPlaceNames(cand.ids);
+   if (!names.length) continue;
+   var score = names.length;
+   if (c.def && String(cand.ids[0]) === String(c.def.a)) score += 0.5;
+   if (c.legacy && String(cand.ids[0]) === String(c.legacy.a)) score += 0.25;
+   //a single city id that happens to collide with a country id (27 = Brazil)
+   //must keep its flat-country reading over the tree reading
+   if (!best || score > best.score || (score === best.score && cand.flat && !best.flat)) {
+    best = { ids: cand.ids, names: names, score: score, flat: !!cand.flat, stored: cand.stored !== false };
+   }
+  }
+  //a guessed default country alone is not enough to claim the place exists
+  if (best && !best.stored && best.names.length < 2) best = null;
+  if (!best) return { ids: c.ids, names: [], levels: [] };
+  //always show the five slots: country, state, district, taluka, city
+  var levels = ["-", "-", "-", "-", "-"];
+  levels[0] = best.names[0] || "-";
+  if (best.flat) {
+   //old flat city / flat-country city belongs in the last slot
+   if (best.names.length > 1) levels[4] = best.names[best.names.length - 1];
+  } else {
+   for (var j = 1; j < best.names.length && j < 5; j++) levels[j] = best.names[j];
+  }
+  return { ids: c.ids, names: best.names, levels: levels };
  }
 
  function baseVal(base, key) {
@@ -539,6 +938,25 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
   return m ? (m[1] + ":" + m[2]) : "";
  }
 
+ //"yyyy-mm-dd" for "today minus N years": caps the birth date so the member is
+ //already of the configured marriageable age (mr.da.magiageAge)
+ function ymdYearsAgo(years) {
+  var d = new Date();
+  d.setFullYear(d.getFullYear() - years);
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+ }
+
+ //parse a config date bound ("1950" or "2008-10-17") into a Date; a missing
+ //month/day falls back to the start of the range (or the end when endOfDay)
+ function ymdToDate(ymd, endOfDay) {
+  var m = /^(\d{4})(?:-(\d{1,2}))?(?:-(\d{1,2}))?/.exec(String(ymd == null ? "" : ymd).trim());
+  if (!m) return null;
+  var y = parseInt(m[1], 10);
+  var mo = m[2] ? parseInt(m[2], 10) - 1 : (endOfDay ? 11 : 0);
+  var da = m[3] ? parseInt(m[3], 10) : (endOfDay ? 31 : 1);
+  return new Date(y, mo, da, endOfDay ? 23 : 0, endOfDay ? 59 : 0, endOfDay ? 59 : 0);
+ }
+
  function isoToBday(v, P) {
   var raw = v || "";
   var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(raw);
@@ -559,7 +977,22 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
  //(N = mr.da "autoPlaySoundStopAfter", default 2) auto-play stops for that sound.
  //Persisted in localStorage so it survives reloads. Manual play always still works.
  function audioPauseKey() {
-  return ((window.appOwner && window.appOwner.tn) || "mr") + "_mrAudioPauseCounts";
+  //V2 = one-time clear of the old counter map: the old key kept counts that were
+  //accumulated while noteAudioPause was unreachable (regisSoundToggle delegated away),
+  //which left those sounds permanently auto-off.
+  return ((window.appOwner && window.appOwner.tn) || "mr") + "_mrAudioPauseCountsV2";
+ }
+ //The shared sound button reports its pauses here (mrSoundBtn.toggle in my1e3.js).
+ //Only a USER pause counts toward mr.da "autoPlaySoundStopAfter"; pipeline stops
+ //(another sound starting, a view closing) are not user pauses and never count.
+ if (!window.__mrAudioPauseBound) {
+  window.__mrAudioPauseBound = 1;
+  try { localStorage.removeItem(((window.appOwner && window.appOwner.tn) || "mr") + "_mrAudioPauseCounts"); } catch (eOld) { }
+  document.addEventListener("mrsoundpause", function (ev) {
+   //my1e3.js counts every pause globally (all sounds/forms); avoid a double count
+   if (window.__mrAudioPauseGlobal) return;
+   try { noteAudioPause(ev && ev.detail && ev.detail.raw); } catch (eN) { }
+  });
  }
  function audioStopAfter() {
   try {
@@ -577,6 +1010,10 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
   try { localStorage.setItem(audioPauseKey(), JSON.stringify(map)); } catch (eS) { }
  }
  function isAudioAutoOff(raw) {
+  //the global counter (my1e3.js) is the single source of truth for every sound
+  if (typeof window.mrSoundAutoOff === "function") {
+   try { return !!window.mrSoundAutoOff(raw); } catch (eG) { }
+  }
   var limit = audioStopAfter();
   if (!(limit > 0) || !raw) return false;
   return (parseInt(loadAudioPauseCounts()[String(raw)], 10) || 0) >= limit;
@@ -604,6 +1041,11 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
  function regisPlaySound(raw) {
   if (!rgAudioOn) return;
   if (!raw) return;
+  //unified: one global pipeline stops any previous sound (welcome/plans/field)
+  //and keeps the shared sound button in sync, so nothing ever overlaps.
+  if (typeof window.mrPlaySound === "function") {
+   try { window.mrPlaySound(raw); return; } catch (eG) { }
+  }
   var prev = regisLastAudio;
   if (prev && typeof prev.pause === "function" && !prev.ended) {
    try { prev.pause(); } catch (eP) { }
@@ -621,6 +1063,10 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
 
  function regisSoundToggle(raw) {
   if (!rgAudioOn) return;
+  //unified pause/resume of whichever sound is actually playing
+  if (window.mrSoundBtn && typeof window.mrSoundBtn.toggle === "function") {
+   try { window.mrSoundBtn.toggle(); return; } catch (eT2) { }
+  }
   var a = regisLastAudio;
   if (a && typeof a.pause === "function" && !a.ended) {
    if (a.paused) {
@@ -665,10 +1111,16 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
   return "";
  }
 
-  // Resolve a comma path ("stateId,districtId,talukaId") against a nested
-  // hierarchy list ("var_intal,dstrcts,thsls") into "State / District / Taluka".
+  // Resolve a comma path ("countryId,stateId,districtId,talukaId") against a
+  // nested hierarchy list ("var_ctco,@ctry,x,x") into "Country / State / ...".
+  // The shared resolver in git/mr.js understands the "@ctry" country level
+  // (children come from the country's own var_<iso2>tal list); the local loop
+  // below is the plain-nesting fallback.
   function rgDepthNameFromList(listName, path) {
    if (!listName || path === null || path === undefined || path === "") return "";
+   if (typeof window.__mrPathName === "function") {
+    try { return window.__mrPathName(listName, path) || ""; } catch (ePN) { }
+   }
    var parts = String(listName).split(",").map(function (p) { return p.trim(); });
    var top = window[parts[0]];
    if (!Array.isArray(top)) return "";
@@ -696,7 +1148,11 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
    if (key === "l") return toDisplayPhone(raw);
    var cfg = selCfg(key);
    if (!cfg) return raw;
-   if (isTreeField(key)) return rgDepthNameFromList(cfg.arr, raw) || raw;
+   if (isTreeField(key)) {
+    //address picker roots store their five level ids apart; resolve the joined path
+    if (PLACE_GROUPS[key]) raw = placePathFromBase(base, key);
+    return rgDepthNameFromList(cfg.arr, raw) || raw;
+   }
    if (cfg.multi) {
    return String(raw).split(",").map(function (v) {
     var t = v.trim();
@@ -733,6 +1189,83 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
    return !mrDetailHideSet(hiddenKeys).u;
   }
 
+  //display names for a nested select field (e.g. k -> var_caste_rlgns,x,x), walking
+  //the field's own arr path and the field chain (root -> child by parent). Works
+  //without any moreinfo declaration, so it is the primary religion-chain resolver.
+  function treeChainNames(profile, rootKey) {
+   var cfg = selCfg(rootKey);
+   if (!cfg) return [];
+   var parts = String(cfg.arr || "").split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+   if (parts.length < 2) return [];
+   var arrName = parts[0];
+   var segs = parts.slice(1);
+   var keys = [rootKey];
+   var cur = rootKey;
+   for (var d = 0; d < segs.length; d++) {
+    var kids = childKeysOf(cur);
+    if (!kids.length) break;
+    keys.push(kids[0]);
+    cur = kids[0];
+   }
+   var names = [];
+   var list = Array.isArray(window[arrName]) ? window[arrName] : [];
+   for (var i = 0; i < keys.length; i++) {
+    var id = baseVal(profile, keys[i]);
+    if (!id || id === "0") break;
+    var found = null;
+    for (var j = 0; j < list.length; j++) {
+     if (list[j] && String(list[j].a) === String(id)) { found = list[j]; break; }
+    }
+    if (!found) break;
+    names.push(found.e != null ? String(found.e) : "");
+    var seg = (i < segs.length) ? segs[i] : "x";
+    list = (found && Array.isArray(found[seg])) ? found[seg] : [];
+   }
+   return names.filter(Boolean);
+  }
+
+  //religion -> caste -> sub caste display names for a profile, walking the nested
+  //caste.da arrays (var_caste_rlgns -> .x -> .x). Empty when nothing is set.
+  function cascChainNames(profile, rootKey) {
+   //prefer the field's own nested selectFields path (no moreinfo needed)
+   var viaFields = treeChainNames(profile, rootKey);
+   if (viaFields.length) return viaFields;
+   var levels = cascadeLevels(rootKey);
+   var names = [];
+   var item = null;
+   for (var i = 0; i < levels.length; i++) {
+    var id = baseVal(profile, levels[i].key);
+    if (!id) break;
+    var list;
+    if (i === 0) list = Array.isArray(window[levels[0].arr]) ? window[levels[0].arr] : [];
+    else if (levels[i].nested) list = (item && Array.isArray(item[levels[i].prop])) ? item[levels[i].prop] : [];
+    else list = Array.isArray(window[levels[i].arr]) ? window[levels[i].arr] : [];
+    var found = null;
+    for (var j = 0; j < list.length; j++) {
+     if (list[j] && String(list[j].a) === String(id)) { found = list[j]; break; }
+    }
+    if (!found) break;
+    names.push(found.e != null ? String(found.e) : "");
+    item = found;
+   }
+   return names.filter(Boolean);
+  }
+
+  //the cascade chain rendered like the selection box (indented tree nodes)
+  function cascTreeHtml(names) {
+   return '<div class="rg-casc-tree">' + names.map(function (nm, i) {
+    var dash = (nm === "-" || nm === "\u2014") ? " rg-casc-dash" : "";
+    return '<div class="rg-casc-node lv' + i + dash + '">' + esc(nm) + "</div>";
+   }).join("") + "</div>";
+  }
+
+  //numeric zero placeholders (Education "0", Package Lk "0.00") and an unset
+  //select id ("0") mean "not provided" in the read-only view: print a dash
+  function mrZeroText(v) {
+   if (v === null || v === undefined) return false;
+   return /^[+-]?0+(?:\.0+)?$/.test(String(v).trim().replace(/,/g, ""));
+  }
+
 function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
     profile = profile || {};
     ensureSelLists();
@@ -740,6 +1273,9 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
     var hideSet = mrDetailHideSet(hiddenKeys);
     var seq = mrDetailSeq();
     if (!seq.length) return "";
+    var fullSet = sepRowCardSet();
+    //when the k cascade tree is shown its child rows (k1/k2) are redundant
+    var kTreeOn = cascChainNames(profile, "k").length > 0;
     var out = "";
     var rows = "";
     var headDone = false;
@@ -752,7 +1288,7 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
     }
     //value + label for one detail key; null = nothing to print
     function detailRow(k) {
-     if (!k || k === "u" || k === "b6") return null;
+     if (!k || k === "u" || k === "u1") return null;
      if (hideSet[k] || SKIP_UI[k]) return null;
      var v;
      var keyLabel;
@@ -765,35 +1301,59 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
      } else {
       if (map[k] === undefined) return null;
       keyLabel = labelText(map, k);
+      //religion -> caste -> sub caste: show the cascade chain (tree when k is a
+      //"showTreeView" field, flat "a / b / c" otherwise)
+      if (k === "k") {
+       var kNames = cascChainNames(profile, "k");
+       if (kNames.length) {
+        return { label: keyLabel, val: kNames.join(" / "), valHtml: isTreeField("k") ? cascTreeHtml(kNames) : null };
+       }
+      }
+      //place picker roots (a2/b2/c3): resolve the stored levels (new rows and
+      //the old country+city pairs) into names for display only
+      if (PLACE_GROUPS[k]) {
+       var pRes = viewResolvePlace(profile, k);
+       if (!pRes.ids.length) return null;
+       if (!pRes.names.length) return { label: keyLabel, val: "\u2014" };
+       return { label: keyLabel, val: pRes.levels.join(" / "), valHtml: isTreeField(k) ? cascTreeHtml(pRes.levels) : null };
+      }
       v = rgFieldValue(k, profile);
      }
+     //0 / 0.00 / 0.0 from numeric inputs, and a select id with no matching
+     //list entry (e.g. Business "0"), read as "not provided" -> show "-"
+     if (mrZeroText(v)) v = "-";
      //skip fields that resolved to nothing, so blank columns don't print empty rows
      if (v === null || v === undefined || String(v).trim() === "") return null;
      return { label: keyLabel, val: String(v) };
     }
-    function rowHtml(r) {
-     var full = r.val.length > 28 ? " full" : "";
-     return '<div class="rg-view-item' + full + '">' +
+    function rowHtml(k, r) {
+     var valHtml = r.valHtml || esc(r.val);
+     var cls = "rg-view-item" +
+      (fullSet[k] ? " full" : "") +
+      (PLACE_GROUPS[k] ? " rg-view-place" : "");
+     return '<div class="' + cls + '">' +
       '<span class="rg-view-key">' + esc(r.label) + '</span>' +
-      '<span class="rg-view-val">' + esc(r.val) + '</span></div>';
+      '<span class="rg-view-val">' + valHtml + '</span></div>';
     }
     seq.forEach(function (k) {
      if (!k || k === "u") return;
-     if (k === "b6") {
-      //gallery sits at the "b6" position of colsToDispOnCard
-      if (!hideSet.b6 && !galDone && galleryHtmlStr) { flushRows(); out += galleryHtmlStr; galDone = true; }
+     if (kTreeOn && (k === "k1" || k === "k2")) return;
+     if (k === "u1") {
+      //gallery sits at the "u1" position of colsToDispOnCard
+      if (!hideSet.u1 && !galDone && galleryHtmlStr) { flushRows(); out += galleryHtmlStr; galDone = true; }
       return;
      }
      var r = detailRow(k);
-     if (r) rows += rowHtml(r);
+     if (r) rows += rowHtml(k, r);
     });
     flushRows();
     //extra rows behind the "more" button: colsToDispOnCardOnMoreBtn minus colsToDispOnCard
     var moreRows = "";
     mrDetailMoreSeq().forEach(function (k) {
      if (!k || seq.indexOf(k) >= 0) return;
+     if (kTreeOn && (k === "k1" || k === "k2")) return;
      var r = detailRow(k);
-     if (r) moreRows += rowHtml(r);
+     if (r) moreRows += rowHtml(k, r);
     });
     if (moreRows) {
      if (!headDone) { out += '<div class="mrd-section">Details</div>'; headDone = true; }
@@ -857,10 +1417,15 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
  }
 
  function fieldHtml(key, map, base, P, reqSet, lockSet) {
-  var type = selCfg(key) ? "sel" : (TYPE_MAP[key] || "text");
+  var type = selCfg(key) ? "sel" : fieldTypeOf(key);
   var label = esc(labelText(map, key)) + (reqSet && reqSet[key] ? '<span class="rg-req">*</span>' : "");
   var val = baseVal(base, key);
-  var ph = PLACEHOLDERS[key] || "";
+  //religion "k" carries the picked chain as one path; the depth picker / box read it
+  if (key === "k") val = kPathFromBase(base);
+  //address picker roots (a2/b2/c3) carry the whole place as one path; its five
+  //level ids are stored apart, so rebuild the path from the base row
+  if (PLACE_GROUPS[key]) val = placePathFromBase(base, key);
+  var ph = fieldPlaceholderOf(key);
   var inner = "";
   var cls = "";
   var sepSet = sepRowSet();
@@ -875,9 +1440,9 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
    cls = "full";
    inner =
     '<div class="rg-dp">' +
-    '<div class="rg-dp-thumb" data-dp-thumb></div>' +
+    '<div class="rg-dp-thumb" data-act="dp-pick" data-dp-thumb></div>' +
     '<div class="rg-dp-actions">' +
-    '<button type="button" class="rg-btn rg-btn-ghost" data-act="dp-pick"><i class="fa-solid fa-camera"></i> Add photo</button>' +
+    '<button type="button" class="rg-btn rg-btn-ghost" data-act="dp-pick"><i class="fa-solid fa-camera"></i> Main image</button>' +
     '<button type="button" class="rg-btn rg-btn-ghost" data-act="dp-rm" hidden><i class="fa-solid fa-trash"></i> Remove</button>' +
     "</div>" +
     "</div>" +
@@ -915,7 +1480,8 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
     '<div class="rg-inwrap"><textarea class="rg-in rg-ta" data-name="' + key + '" rows="3" ' +
     'placeholder="' + esc(ph) + '">' + esc(val) + "</textarea></div>";
   } else {
-   var im = NUM_INPUTMODE[key] ? ' inputmode="' + NUM_INPUTMODE[key] + '"' : "";
+   var imRaw = fieldInputmodeOf(key);
+   var im = imRaw ? ' inputmode="' + esc(imRaw) + '"' : "";
    inner =
     '<div class="rg-inwrap"><input class="rg-in" data-name="' + key + '" type="text"' + im +
     ' placeholder="' + esc(ph) + '" value="' + esc(val) + '"></div>';
@@ -1167,7 +1733,7 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
      if (!meetsMaxDate(dateObj, maxConfig)) {
       result.su = 0;
       result.fld = fieldKey;
-      result.ms = customMessage || "Date is after maximum allowed (" + maxValue + ") for field: " + fieldKey;
+      result.ms = rules.mxms || customMessage || "Date is after maximum allowed (" + maxValue + ") for field: " + fieldKey;
       return result;
      }
     }
@@ -1235,6 +1801,25 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
   return defMatch ? defMatch[1] : "0";
  }
 
+ //canChngeReligious / canChngeCaste mirror the cities picker's canChngeCountry
+ // (mr.da default*Country): 0 freezes the level, 1 (or an absent/empty key) keeps it
+ // changeable, so a config that only names a default id behaves as it always did
+ function cfgCanChange(cfg, flag) {
+  if (!cfg) return true;
+  var v = cfg[flag];
+  if (v === undefined || v === null || v === "") return true;
+  return Number(v) !== 0;
+ }
+
+ //mustSelectTillLast: 1 (or absent) = only a full path down to the last level may be
+ // committed; 0 = the picker also offers its OK button for a partial path
+ function cfgMustSelectTillLast(cfg) {
+  if (!cfg) return 1;
+  var v = cfg.mustSelectTillLast;
+  if (v === undefined || v === null || v === "") return 1;
+  return Number(v) === 0 ? 0 : 1;
+ }
+
  function dfltReligiousCfg() {
   var cfg = rgCfg().dfltReligious;
   if (cfg && typeof cfg === "object") return cfg;
@@ -1247,7 +1832,9 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
   var cfg = dfltReligiousCfg();
   if (!cfg) return profileData;
   var id = cfg.a;
-  if (id === undefined || id === null || id === "") return profileData;
+  //a:0 (and "") means "no default": leave the field completely unselected instead
+  //of writing a zero id into the record
+  if (id === undefined || id === null || id === "" || Number(id) === 0) return profileData;
   var list = (typeof window !== "undefined" && window.var_caste_rlgns) || [];
   var hit = null;
   for (var i = 0; i < list.length; i++) {
@@ -1258,9 +1845,43 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
  }
  window.setDfltReligious = setDfltReligious;
 
+ //A lock only counts with a real default id: a missing / unknown / zero "a" leaves the
+ //field fully selectable, so { a:0, canChngeReligious:0 } never freezes an empty field
  function dfltReligiousLock() {
   var cfg = dfltReligiousCfg();
-  return !!(cfg && Number(cfg.z) === 1);
+  if (!cfg || cfgCanChange(cfg, "canChngeReligious")) return false;
+  return dfltIdValid(cfg.a, false);
+ }
+
+ //true when `id` is a usable default: non-empty, not 0 and - once the caste tree
+ //is loaded - present in var_caste_rlgns (asCaste searches inside each religion's
+ //castes instead of the religion level)
+ function dfltIdValid(id, asCaste) {
+  if (id === undefined || id === null || id === "") return false;
+  if (Number(id) === 0) return false;
+  var list = (typeof window !== "undefined" && window.var_caste_rlgns) || [];
+  if (!list.length) return true;
+  for (var i = 0; i < list.length; i++) {
+   var r = list[i];
+   if (!r) continue;
+   if (!asCaste && String(r.a) === String(id)) return true;
+   if (asCaste && Array.isArray(r.x)) {
+    for (var j = 0; j < r.x.length; j++) {
+     if (r.x[j] && String(r.x[j].a) === String(id)) return true;
+    }
+   }
+  }
+  return false;
+ }
+
+ //levels of the religion chain frozen by config, always as a prefix: a locked caste
+ //(level 1) also pins the religion (level 0), because a caste id exists under one
+ //religion only and a free religion would strand the locked caste
+ function dfltTreeLockLevels() {
+  var out = [];
+  if (dfltReligiousLock() || dfltCasteLock()) out.push(0);
+  if (dfltCasteLock()) out.push(1);
+  return out;
  }
 
  function dfltCasteCfg() {
@@ -1271,18 +1892,27 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
  }
 
  //dfltCaste.a is the id of the default caste (k1), nested under a religion's
- //castes; prefer a match inside the already-chosen religion, else any religion.
+ //castes ("x"); prefer a match inside the already-chosen religion, else any religion.
  function setDfltCaste(profileData) {
   if (!profileData) return profileData;
   var cfg = dfltCasteCfg();
   if (!cfg) return profileData;
   var id = cfg.a;
-  if (id === undefined || id === null || id === "") return profileData;
+  //a:0 (and "") means "no default caste": clear k1/k2 so a configured k1 default
+  //(mr.js defaFieldVals "k1~9") can't ride along on a defaulted religion and render
+  //a phantom caste; the old code instead matched the placeholder { a:0 } that every
+  //religion carries and silently defaulted the whole religion to the first one
+  if (id === undefined || id === null || id === "" || Number(id) === 0) {
+   profileData.k1 = 0;
+   profileData.k2 = 0;
+   return profileData;
+  }
   var list = (typeof window !== "undefined" && window.var_caste_rlgns) || [];
   var preK = profileData.k;
   var hit = null;
+  var hitRlgn = null;
   function findIn(religion) {
-   var castes = religion && religion.castes;
+   var castes = religion && religion.x;
    if (!Array.isArray(castes)) return null;
    for (var j = 0; j < castes.length; j++) {
     if (castes[j] && String(castes[j].a) === String(id)) return castes[j];
@@ -1291,10 +1921,14 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
   }
   if (preK !== undefined && preK !== null && preK !== "") {
    for (var i = 0; i < list.length && !hit; i++) {
-    if (String(list[i] && list[i].a) === String(preK)) hit = findIn(list[i]);
+    if (String(list[i] && list[i].a) === String(preK)) { hit = findIn(list[i]); if (hit) hitRlgn = list[i]; }
    }
   }
-  for (var m = 0; m < list.length && !hit; m++) hit = findIn(list[m]);
+  for (var m = 0; m < list.length && !hit; m++) { hit = findIn(list[m]); if (hit) hitRlgn = list[m]; }
+  //the chain "k,k1" only renders with a non-zero religion, so a default caste
+  //brings its own religion along (unless dfltReligious set one explicitly)
+  var relCfg = dfltReligiousCfg();
+  if (hit && hitRlgn && !(relCfg && dfltIdValid(relCfg.a, false))) profileData.k = hitRlgn.a;
   profileData.k1 = hit ? hit.a : id;
   return profileData;
  }
@@ -1302,14 +1936,44 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
 
  function dfltCasteLock() {
   var cfg = dfltCasteCfg();
-  return !!(cfg && Number(cfg.z) === 1);
+  if (!cfg || cfgCanChange(cfg, "canChngeCaste")) return false;
+  return dfltIdValid(cfg.a, true);
+ }
+
+ //how deep the religion/caste picker must be taken: dfltReligious owns the picker
+ //(field k), so its flag wins whenever it defines one; dfltCaste only fills in the
+ //gap. Absent everywhere -> 1 (only a full path down to the last level commits)
+ function dfltMustSelectTillLast() {
+  var rel = dfltReligiousCfg();
+  if (rel && rel.mustSelectTillLast !== undefined &&
+   rel.mustSelectTillLast !== null && rel.mustSelectTillLast !== "") {
+   return cfgMustSelectTillLast(rel);
+  }
+  return cfgMustSelectTillLast(dfltCasteCfg());
+ }
+
+ //id / name / canChange of the configured default religion - the religion-side twin
+ //of countryInfoFor() (mr.da default*Country), so slkt2 can seed the picker and draw
+ //the same banner + Change button it draws for a default country. Null when there is
+ //no usable default id: the picker then opens unseeded on the religion list
+ function dfltReligiousInfo() {
+  var cfg = dfltReligiousCfg();
+  if (!cfg || !dfltIdValid(cfg.a, false)) return null;
+  return {
+   id: String(cfg.a),
+   name: rgNameFromList("var_caste_rlgns", cfg.a),
+   canChange: cfgCanChange(cfg, "canChngeReligious")
+  };
  }
 
  function defaultProfileData() {
   return setDfltCaste(setDfltReligious({
    d: 0, e: 0, g: "", j: 0, q: "", qa: "", qb: "", qc: "", s: "", x: "", z: "",
-   a2: "", b4: "", c6: "", a9: "", a5: 0, a7: 0, b6: [], u: "",
-   k: 0, k1: 9, k2: 0, a3: 97, b5: 97, c5: 97
+   a2: defaultCountryId("a2"), a3: "", a4: "", a5: "", a6: "",
+   b2: defaultCountryId("b2"), b3: "", b4: "", b5: "", b6: "",
+   c3: defaultCountryId("c3"), c4: "", c5: "", c6: "", c7: "",
+   a9: "", a7: 0, c8: 0, u1: [], u: "",
+   k: 0, k1: 0, k2: 0
   }));
  }
 
@@ -1321,6 +1985,10 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
    if (parts.length !== 2) return;
    var field = parts[0];
    var value = parts[1];
+   //the religion chain children (k1/k2) are derived from the "k" path (dfltCaste /
+   //the picker), so a raw field default such as defaFieldVals "k1~9" must never
+   //leave a caste stranded without its religion
+   if (field === "k1" || field === "k2") return;
    if (!Object.prototype.hasOwnProperty.call(profileData, field)) return;
    var originalValue = profileData[field];
    if (typeof originalValue === "number") {
@@ -1351,13 +2019,27 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
     cnvo.currentFormat = P.bdayFormat || "dd-mm-yyyy";
    }
    rule.cnvo = cnvo;
+   //"mnAge" = minimum age (years) for a date field; the value may be a number
+   //or the name of a top-level config key (e.g. "magiageAge"), resolved here so
+   //the age floor lives in exactly one place
+   if (rule.mnAge != null) {
+    var ageSrc = rule.mnAge;
+    if (typeof ageSrc === "string" && !/^\d+(?:\.\d+)?$/.test(ageSrc.trim())) {
+     var ageKey = ageSrc.trim();
+     ageSrc = (C && C[ageKey] != null) ? C[ageKey] : (P ? P[ageKey] : 0);
+    }
+    var ageNum = Number(ageSrc);
+    if (isFinite(ageNum) && ageNum > 0) rule.mnAge = ageNum;
+    else delete rule.mnAge;
+   }
    out[k] = rule;
   });
   return out;
  }
 
- function findProfile(id) {
+ async function findProfile(id) {
   try {
+    const profilesData = await dbDexieManager.getAllRecords(dbnm, 'mr');
    if (typeof profilesData !== "undefined" && Array.isArray(profilesData)) {
     for (var i = 0; i < profilesData.length; i++) {
      if (profilesData[i] && String(profilesData[i].a) === String(id)) return profilesData[i];
@@ -1450,7 +2132,7 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
   return t.id.indexOf("depth_select_modal_") === 0 || t.id.indexOf("rgCasc_") === 0;
  }
 
- window.showRegistrationModal = function (recordId, opts) {
+ window.showRegistrationModal = async function (recordId, opts) {
   ensureCss();
   bindSelGuards();
   selOverlayOpen = false;
@@ -1483,15 +2165,15 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
   //are submitted as hidden carry inputs so their stored values survive the save
   var submitKeys = splitCsv(seqOrder).concat(reqKeys);
    //image-gallery cap; config-driven with a safe default so a missing key never blocks uploads
-   var galleryMax = parseInt(C.imageGalleryMax || P.imageGalleryMax || 12, 10);
+   var galleryMax = parseInt(C.cust_da_const?.imageGalleryMax || P.cust_da_const?.imageGalleryMax || 12, 10);
    if (!(galleryMax > 0)) galleryMax = 12;
    //server-vs-local image handling: mr.da "getDirectIdFromServer" (1=server fn:118, 0=local)
-   var imageServerFlag = (C.getDirectIdFromServer != null) ? C.getDirectIdFromServer
-    : (P.getDirectIdFromServer != null ? P.getDirectIdFromServer : 1);
+   var imageServerFlag = (C.cust_da_const?.getDirectIdFromServer != null) ? C.cust_da_const?.getDirectIdFromServer
+    : (P.cust_da_const?.getDirectIdFromServer != null ? P.cust_da_const?.getDirectIdFromServer : 1);
 var reqStar = {};
    reqKeys.forEach(function (k) { reqStar[k] = 1; });
    var lockSet = {};
-   if (dfltReligiousLock()) lockSet.k = 1;
+   if (dfltTreeLockLevels().length) lockSet.k = 1;
    if (dfltCasteLock()) lockSet.k1 = 1;
    var moreMap = moreInfoMap(C, P);
    //entries whose children are all selects drive the root's cascade modal, not
@@ -1508,7 +2190,7 @@ var reqStar = {};
 
   var base;
   if (isUpdate) {
-   base = findProfile(recordId);
+   base = await findProfile(recordId);
    if (!base) {
     if (typeof showToast === "function") {
      showToast("Profile #" + recordId + " not found to edit.", { type: "error", duration: 3000, position: "top" });
@@ -1527,6 +2209,14 @@ var reqStar = {};
    rules.g.cnvo.currentFormat = "yyyy-mm-dd HH:MM";
    rules.g.cnvo.targetFormat = "yyyy-mm-dd HH:MM";
   }
+  //birth date: the member must already be of marriageable age (mr.da.magiageAge),
+  //so cap the latest allowed date at "today minus that many years". Folding the
+  //cap into the existing "mx" rule keeps cmnVldet (and the picker below) simple.
+  if (vis.indexOf("g") >= 0 && rules && rules.g && rules.g.ty === "dt" && rules.g.mnAge > 0) {
+   var ageMax = ymdYearsAgo(rules.g.mnAge);
+   if (!rules.g.mx || ageMax < rules.g.mx) rules.g.mx = ageMax;
+   rules.g.mxms = rules.g.mxms || ("age must be at least " + rules.g.mnAge + " years");
+  }
   if (reqKeys.length) {
    if (!rules) rules = {};
    reqKeys.forEach(function (k) {
@@ -1537,9 +2227,30 @@ var reqStar = {};
     }
    });
   }
+  //validation follows the configured required-column order: the first invalid
+  //field the user hits is the first one listed in colsRequiredOnProfileSave /
+  //colsRequiredOnProfileUpdate, then any remaining rules in their original order
+  if (rules) {
+   var orderedRules = {};
+   reqKeys.forEach(function (k) {
+    if (rules[k]) orderedRules[k] = rules[k];
+   });
+   Object.keys(rules).forEach(function (k) {
+    if (!orderedRules[k]) orderedRules[k] = rules[k];
+   });
+   rules = orderedRules;
+  }
   var sendLabel = isUpdate ? "Update profile" : "Save profile";
+  //owner delete (fn 69) only exists on the member's own update form and only while
+  //the profile is still live (d < 0 means it is already submitted for deletion)
+  var showRemove = isUpdate && !adminMode && !(base && Number(base.d) < 0);
   var pickerOpen = false;
+  //>= 0 while the image picker is replacing the gallery photo at that slot
+  //(clicking an existing rg-gal-item instead of the "+" add button)
+  var galReplaceIdx = -1;
   var sending = false;
+  var removeBusy = false;
+  var reasonOpen = false;
   var lastFocus = document.activeElement;
 
   var ov = document.createElement("div");
@@ -1564,8 +2275,11 @@ var reqStar = {};
    if (moreMap[k] && moreMap[k].length) fieldsHtml += morePaneHtml(k, moreMap[k]);
   });
   var carryHtml = carryKeys.map(function (k) {
-   return '<input type="hidden" data-name="' + esc(k) + '" value="' + esc(baseVal(base, k)) + '">';
+   //id lets the cascade read/write these (selInput "rgf-<key>"); data-name feeds collectData()
+   return '<input type="hidden" id="rgf-' + esc(k) + '" data-name="' + esc(k) + '" value="' + esc(baseVal(base, k)) + '">';
   }).join("");
+
+  const hasMrRecords = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "mr" }]);
 
   ov.innerHTML =
    '<div class="rg-box">' +
@@ -1577,16 +2291,18 @@ var reqStar = {};
    '<button type="button" class="rg-x" data-close title="Close" aria-label="Close">' +
    '<i class="fa-solid fa-xmark"></i></button>' +
    "</div>" +
-   '<div class="rg-body rg-alrdy' + (isUpdate ? ' d-none' : '') + '">' +
+   '<div class="rg-body rg-alrdy' + (adminMode ? ' d-none' : '') + '">' +
    '<button type="button" class="rg-btn rgAlrdyRegMem" id="rgAlrdyRegMem">' +
-   '<i class="fa-solid fa-user-check"></i><span>Already Registered</span></button>' +
+   '<i class="fa-solid ' + (isUpdate ? 'fa-rotate"></i><span>  Refresh' : 'fa-user-check"></i><span>  Already Registered') + '</span></button>' +
    '</div>' +
    '<div class="rg-body">' +
    '<form id="rgRegForm" novalidate>' +
    '<div class="rg-fields">' + fieldsHtml + carryHtml + "</div>" +
    '<div class="rg-msg" id="rgRegMsg"></div>' +
-   '<div class="rg-actions">' +
-   '<button type="submit" class="rg-btn rg-btn-main ' + (isUpdate ? 'rg-btn-update' : 'rg-btn-add') + '" id="rgRegSend">' +
+   '<div class="rg-actions' + (showRemove ? ' rg-actions-row' : '') + '">' +
+   (showRemove ? '<button type="button" class="rg-btn rg-btn-white bg-danger text-white '+ (hasMrRecords?.w ? '' : 'd-none') +'" id="rgRegRemove">' +
+    '<i class="fa-solid fa-trash"></i><span>Remove</span></button>' : '') +
+   '<button type="submit" class="rg-btn rg-btn-main ' + (isUpdate ? 'rg-btn-update' : 'rg-btn-add') +'" id="rgRegSend">' +
    '<i class="fa-solid fa-check"></i><span>' + sendLabel + "</span></button>" +
    "</div>" +
    "</form>" +
@@ -1610,20 +2326,11 @@ var reqStar = {};
    try { sndRaw = P.wajiwSnds["1"].getAttribute("src") || ""; } catch (eSP) { }
   }
 
-  var sndBtn = document.createElement("button");
-  sndBtn.type = "button";
-  sndBtn.className = "rg-snd";
-  sndBtn.title = "Play information sound";
-  sndBtn.setAttribute("aria-label", "Play information sound");
-  sndBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
-  sndBtn.addEventListener("click", function () { regisSoundToggle(sndRaw); });
-  if (adminMode) { sndBtn.style.display = "none"; }
-  var onAudioState = function (ev) {
-   var playing = !!(ev && ev.detail && ev.detail.playing);
-   sndBtn.classList.toggle("rg-snd-play", playing);
-  };
-  document.addEventListener("mraudiostate", onAudioState);
-  ov.appendChild(sndBtn);
+  //shared single sound button (defined in my1e3.js -> window.mrSoundBtn)
+  if (window.mrSoundBtn) {
+   if (adminMode) window.mrSoundBtn.hide();
+   else window.mrSoundBtn.show(sndRaw);
+  }
 
   var form = ov.querySelector("#rgRegForm");
 
@@ -1632,6 +2339,23 @@ var reqStar = {};
    var t = ev.target;
    var f = t && t.closest ? t.closest('.rg-field[data-key]') : null;
    return f ? f.getAttribute('data-key') : "";
+  }
+  //select-box fields (religion "k", the place pickers a2/b2/c3) carry no .rg-in, so the focusin
+  //path never reaches them: their only trigger is this click. The box's own controls
+  //(the depth-picker pencil in slkt2.js, a locked tree box) call stopPropagation() on
+  //click, so the listener is registered in the CAPTURE phase -- that runs before those
+  //handlers and their stopPropagation() cannot cancel it. One tap can reach us twice
+  //(capture click + focusin on inputs, or a box tap that re-clicks the pencil), so a
+  //short guard collapses that to a single play.
+  var lastSndKey = "", lastSndAt = 0;
+  function playFieldSound(k, raw) {
+   if (!raw) return;
+   var now = Date.now();
+   var sig = k + "|" + raw;
+   if (sig === lastSndKey && (now - lastSndAt) < 350) return;
+   lastSndKey = sig;
+   lastSndAt = now;
+   if (!isAudioAutoOff(raw)) regisPlaySound(raw);
   }
   function onFieldSound(ev) {
    var k = fieldKeyOf(ev);
@@ -1643,7 +2367,7 @@ var reqStar = {};
     var t = ev.target;
     if (!(t.closest && (t.closest('.rg-dp-thumb') || t.closest('.rg-dp-actions')))) return;
    }
-   if (!isAudioAutoOff(sndMap[k])) regisPlaySound(sndMap[k]);
+   playFieldSound(k, sndMap[k]);
   }
   var suppressInitFocusSound = false;
   var onFieldFocus = function (ev) {
@@ -1651,9 +2375,10 @@ var reqStar = {};
    if (ev.target && ev.target.classList && ev.target.classList.contains('rg-in')) onFieldSound(ev);
   };
   form.addEventListener("focusin", onFieldFocus);
-  form.addEventListener("click", onFieldSound);
+  form.addEventListener("click", onFieldSound, true);
 
   var sendBtn = ov.querySelector("#rgRegSend");
+  var removeBtn = ov.querySelector("#rgRegRemove");
   var allreadyBtn = ov.querySelector("#rgAlrdyRegMem");
 
   //"Already Registered Member" -> fn 70 (chkMyCount): fetch my own profile by my mobile
@@ -1671,7 +2396,7 @@ var reqStar = {};
      p0 = window.payload0;
      p0.vw = 4;
      p0.fn = 70; //fn 70 = chkMyCount (my own profile)
-     var resp = await fnj3("https://my1.in/2/c.php", p0, 1, true, null, 20000, 0, 2, 1, 1);
+     var resp = await fnj3("https://my1.in/3/d.php", p0, 1, true, null, 20000, 0, 2, 1, 1);
      hndlRspo70(resp);
     } catch (err) {
      showMsg("err", "Failed to load profile: " + ((err && err.message) || err));
@@ -1679,6 +2404,99 @@ var reqStar = {};
      try { if (p0) { delete p0.x1; delete p0.x2; delete p0.la; delete p0.drml; } } catch (eX) { }
      setSending(false);
     }
+   });
+  }
+
+  //Remove own profile -> fn 69 (public delete by profile owner). Three steps:
+  //1) are you sure, 2) pick a reason (-1/-2/-3), 3) cannot be undone.
+  //Payload is the server's own contract: x1=reason, x2=unique ID (w), x3=first name (m).
+  if (removeBtn) {
+   removeBtn.addEventListener("click", async function () {
+    if (sending || removeBusy || reasonOpen) return;
+    hideMsg();
+    if (typeof window.showConfirmModal !== "function") { showMsg("err", "Confirmation dialog unavailable."); return; }
+    var ok = await window.showConfirmModal("Are you sure you want to remove your profile?");
+    if (!ok) return;
+    var reason = await askRemoveReason();
+    if (reason == null) return;
+    var sure = await window.showConfirmModal("You can not undo this delete. Do you want to proceed?");
+    if (!sure) return;
+    if (!base || base.a == null) { showMsg("err", "Profile not found."); return; }
+    if (typeof fnj3 !== "function") { showMsg("err", "Network helper unavailable."); return; }
+    setRemoveBusy(true);
+    try {
+     if (typeof clearPayload0 === "function") clearPayload0();
+     payload0.vw = 4;
+     payload0.fn = 69; //fn 69 = delete profile by profile owner
+     payload0.x1 = reason; //1 got partner / 2 not interested / 3 personal reason
+     payload0.x2 = base.a; //ID
+     payload0.x3 = base.w; //UID
+     var resp = await fnj3("https://my1.in/3/d.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+     if (resp && (resp.su == 1 || Number(resp.cd) > 0)) {
+      //drop the local row too: mrRenderList merges Dexie rows back into the list
+      try {
+       if (typeof dbDexieManager !== "undefined" && dbDexieManager &&
+        typeof dbDexieManager.deleteRecords === "function" && dbnm) {
+        await dbDexieManager.deleteRecords(dbnm, "mr", base.a);
+       }
+      } catch (eD) { console.warn("regis: local remove failed", eD); }
+      //forget the cached own row so the drawer offers Register again
+      try {
+       var tn = window.appOwner && window.appOwner.tn;
+       if (tn) localStorage.removeItem(tn + "_myEinMR");
+       window.myEinMR = null;
+      } catch (eL) { }
+      //if (typeof safeReload === "function") safeReload(); else location.reload();
+      return;
+     }
+     window.showelsemodal((resp && (resp.ms || resp.m)) || "Could not remove your profile. Please try again.");
+    } catch (err) {
+     window.showelsemodal("Failed to remove profile: " + ((err && err.message) || err));
+    } finally {
+     try { if (p0) { delete p0.x1; delete p0.x2; delete p0.x3; } } catch (eX) { }
+     setRemoveBusy(false);
+    }
+   });
+  }
+
+  //second confirmation step: pick one of the three delete reasons
+  function askRemoveReason() {
+   return new Promise(function (resolve) {
+    var wrap = document.createElement("div");
+    wrap.className = "rg-reason";
+    wrap.innerHTML =
+     '<div class="rg-reason-box" role="dialog" aria-modal="true" aria-label="Reason for removing profile">' +
+     '<h4 class="rg-reason-title">Why are you removing your profile?</h4>' +
+     '<p class="rg-reason-sub">Please select a reason to continue.</p>' +
+     window[my1uzr.worknOnPg].clientConfig?.RG_REMOVE_REASONS.map(function (r, i) {
+      return '<button type="button" class="rg-reason-opt" data-reason="' + r.v + '">' +
+       '<span class="rg-reason-num">' + (i + 1) + '</span><span>' + esc(r.t) + '</span></button>';
+     }).join("") +
+     '<button type="button" class="rg-btn rg-btn-ghost rg-reason-cancel" data-reason-cancel="1">Cancel</button>' +
+     '</div>';
+    ov.appendChild(wrap);
+    reasonOpen = true;
+    requestAnimationFrame(function () { wrap.classList.add("open"); });
+    var settled = false;
+    function finish(val) {
+     if (settled) return;
+     settled = true;
+     reasonOpen = false;
+     wrap.classList.remove("open");
+     setTimeout(function () { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); }, 180);
+     resolve(val);
+    }
+    wrap.addEventListener("click", function (e) {
+     if (e.target === wrap) { finish(null); return; }
+     var opt = e.target.closest ? e.target.closest("[data-reason]") : null;
+     if (opt) { finish(Number(opt.getAttribute("data-reason"))); return; }
+     if (e.target.closest && e.target.closest("[data-reason-cancel]")) finish(null);
+    });
+    wrap.addEventListener("keydown", function (e) {
+     if (e.key === "Escape") { e.stopPropagation(); finish(null); }
+    });
+    var first = wrap.querySelector(".rg-reason-opt");
+    if (first) { try { first.focus(); } catch (e) { } }
    });
   }
 
@@ -1764,6 +2582,21 @@ var reqStar = {};
   //cascade roots (moreinfo-declared) get their own box: it shows the chosen
   //chain as a tree (like native city) and opens the single cascade modal
   //instead of the flat slkt picker.
+  //cascade roots (religion "k", place roots a2/b2/c3) keep the whole "a,b,c"
+  //path in their input while every child input keeps a single id; split the
+  //root path so each level can find its item by id (and not by "1,5,12").
+  function cascadeIds(levels) {
+   var ids = levels.map(function (lv) {
+    var inp = selInput(lv.key);
+    return inp && inp.value != null && inp.value !== "" ? String(inp.value) : "";
+   });
+   var parts = String(ids[0] || "").split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+   if (parts.length > 1) {
+    for (var i = 0; i < levels.length && i < parts.length; i++) ids[i] = parts[i];
+   }
+   return ids;
+  }
+
   function paintCascBox(k) {
    var box = selBox(k);
    if (!box) return false;
@@ -1773,28 +2606,43 @@ var reqStar = {};
    //walk the cascade levels and render each chosen value as a tree node
    //(religion -> caste -> sub caste), mirroring the native-city field
    var levels = cascadeLevels(k);
-   var ids = levels.map(function (lv) {
-    var inp = selInput(lv.key);
-    return inp && inp.value != null ? String(inp.value) : "";
-   });
+   var ids = cascadeIds(levels);
    var nodes = [];
+   var names = [];
    for (var i = 0; i < levels.length; i++) {
     if (!ids[i]) break;
     var it = cascItem(levels, ids, i);
     var nm = it ? it.e : selDisplayName(levels[i].key);
     if (!nm) break;
+    names.push(nm);
     nodes.push('<div class="rg-casc-node lv' + i + '">' + esc(nm) + "</div>");
    }
-   var valHtml = nodes.length
-    ? '<div class="rg-casc-tree">' + nodes.join("") + "</div>"
-    : '<div class="rg-cascbox-val empty">Not specified</div>';
+   //tree vs flat is config-driven: mr.da "showTreeView" must contain this root key
+   var asTree = isTreeField(k);
+   var valHtml;
+   if (names.length) {
+    valHtml = asTree
+     ? '<div class="rg-casc-tree">' + nodes.join("") + "</div>"
+     : '<div class="rg-cascbox-val">' + esc(names.join(" / ")) + "</div>";
+   } else {
+    valHtml = '<div class="rg-cascbox-val empty">Not specified</div>';
+   }
    box.innerHTML =
     valHtml +
-    '<button type="button" class="rg-selopen">' + (locked || !nodes.length ? "Select..." : "Change") + "</button>";
+    '<button type="button" class="rg-selopen">' + (locked || !names.length ? "Select..." : "Change") + "</button>";
    //even a locked root (fixed dfltReligious) opens the cascade so the child
    //levels (caste / sub caste) can still be chosen; finish() never rewrites it.
    box.onclick = function () { openMrCascadeModal(k); };
    return true;
+  }
+
+  //a locked tree field (fixed religion) has no edit button (removed by lockSelBox)
+  //and the generic .rg-selbox handler ignores locked boxes, so wire the box itself
+  //to open the depth picker (which opens on the first editable level, fixedDepth)
+  function wireLockedTreeBox(k) {
+   var box = selBox(k);
+   if (!box) return;
+   box.onclick = function (e) { if (e && e.stopPropagation) e.stopPropagation(); openSelModal(k); };
   }
 
   function paintSelField(k) {
@@ -1803,13 +2651,15 @@ var reqStar = {};
    var box = selBox(k);
    if (!input || !box) return false;
    if (cascadeChain(k).length) return paintCascBox(k);
-   if (box.getAttribute("data-painted") === "slkt") { lockSelBox(box); return true; }
+   if (box.getAttribute("data-painted") === "slkt") { if (box.getAttribute("data-locked") === "1") wireLockedTreeBox(k); return true; }
    if (isTreeField(k)) {
     if (typeof setValByPrprtyDepthToElm !== "function") return false;
     try {
      setValByPrprtyDepthToElm(input.id, input.value, box.id, k, selDepthFullObject(k));
      box.setAttribute("data-painted", "slkt");
-     lockSelBox(box);
+     //a locked tree root (fixed religion) keeps its edit button: the picker opens
+     //on the first editable level, so caste / sub caste stay choosable
+     if (box.getAttribute("data-locked") === "1") wireLockedTreeBox(k);
      return true;
     } catch (eD) { return false; }
    }
@@ -1854,10 +2704,30 @@ var reqStar = {};
    if (!paintSelField(k)) paintSelFallback(k);
   }
 
+  //repaint a field's box from its CURRENT value (unlike repaintSel, which wipes
+  //the value first). Used after a cascade selection commits so the chosen chain
+  //keeps rendering in the box instead of being reset.
+  function repaintSelKeep(k) {
+   var box = selBox(k);
+   //a locked field holds a fixed default (dfltReligious/dfltCaste); leave its box
+   if (box && box.getAttribute("data-locked") === "1") return;
+   if (box) {
+    box.removeAttribute("data-painted");
+    box.removeAttribute("data-initialized");
+    box.removeAttribute("data-can-add");
+    box.removeAttribute("data-selection-array");
+    box.removeAttribute("data-original-depth-path");
+    box.removeAttribute("data-depth-for-native");
+    box.removeAttribute("data-selection-callback");
+    box.innerHTML = "";
+   }
+   if (!paintSelField(k)) paintSelFallback(k);
+  }
+
   //slkt.js calls window[fullObject.h](sel, inputId, divId, key) after a parent selection
   window.mrRegisParentSelected = function (sel, inputId, divId, key) {
    if (!key) return;
-   //remember cleared parents so descendants fall back to the default (97) branch
+   //remember cleared parents so descendants fall back to their configured default
    var inp = null;
    try { inp = document.getElementById("rgf-" + key); } catch (eI) { }
    if (inp && inp.value) delete rgClearedParents[key];
@@ -1904,10 +2774,10 @@ var reqStar = {};
     "border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);color:#fff;cursor:pointer;",
     "display:flex;align-items:center;justify-content:center;font-size:14px;}",
     p + " .rg-casc-x{flex:0 0 auto;width:34px;height:34px;border-radius:50%;",
-    "border:1px solid #6c757d;background:#6c757d;color:#fff;cursor:pointer;",
+    "border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);color:#fff;cursor:pointer;",
     "display:flex;align-items:center;justify-content:center;font-size:14px;}",
     p + " .rg-casc-back:disabled{opacity:.35;cursor:not-allowed;}",
-    p + " .rg-casc-x:hover{background:#5c636a;}",
+    p + " .rg-casc-x:hover{background:rgba(255,255,255,.28);}",
     p + " .rg-casc-body{padding:14px;}",
     p + " .rg-casc-info{background:#faf4e6;border-radius:8px;padding:8px 10px;margin-bottom:10px;",
     "font-size:12.5px;font-weight:600;color:#8B1E3F;text-align:center;}",
@@ -1928,10 +2798,14 @@ var reqStar = {};
     p + " .rg-casc-item:hover{border-color:#8B1E3F;background:#faf4e6;}",
     p + " .rg-casc-item.on{background-image:linear-gradient(135deg,#c9a45c,#e6cf9b);color:#6E1733;border-color:#c9a45c;font-weight:600;}",
     p + " .rg-casc-none{grid-column:1 / -1;padding:22px;text-align:center;color:#9c937f;font-size:13.5px;}",
-    p + " .rg-casc-foot{display:flex;justify-content:center;padding-top:12px;}",
-    p + " .rg-casc-clear{height:38px;padding:0 20px;border-radius:999px;border:1px solid rgba(201,164,92,.55);",
-    "background:transparent;color:#6f6656;font-size:13.5px;font-weight:600;cursor:pointer;}",
-    p + " .rg-casc-clear:hover{background:#faf4e6;color:#241d12;}"
+    p + " .rg-casc-foot{display:flex;justify-content:center;gap:10px;padding-top:12px;}",
+    p + " .rg-casc-clear{height:38px;padding:0 20px;border-radius:999px;border:1px solid #6c757d;",
+    "background:#6c757d;color:#fff;font-size:13.5px;font-weight:600;cursor:pointer;}",
+    p + " .rg-casc-clear:hover{background:#5c636a;border-color:#5c636a;color:#fff;}",
+    p + " .rg-casc-done{height:38px;padding:0 22px;border-radius:999px;border:1px solid #8B1E3F;",
+    "background-image:linear-gradient(135deg,#8B1E3F,#6E1733);color:#fff;font-size:13.5px;font-weight:600;cursor:pointer;}",
+    p + " .rg-casc-done:hover{filter:brightness(1.08);}",
+    p + " .rg-casc-done:disabled{opacity:.4;cursor:not-allowed;filter:none;}"
    ].join("");
   }
 
@@ -1942,10 +2816,7 @@ var reqStar = {};
     showMsg("err", "Selection list is unavailable.");
     return;
    }
-   var ids = levels.map(function (lv) {
-    var inp = selInput(lv.key);
-    return inp && inp.value != null && inp.value !== "" ? String(inp.value) : "";
-   });
+   var ids = cascadeIds(levels);
    var rootBox = selBox(rootKey);
    var rootLocked = !!(rootBox && rootBox.getAttribute("data-locked") === "1");
    //a locked root (fixed dfltReligious) keeps its value: start at the first
@@ -1980,7 +2851,10 @@ var reqStar = {};
     '<input type="text" class="rg-casc-search" placeholder="Search..." autocomplete="off">' +
     '<div class="rg-casc-crumbs"></div>' +
     '<div class="rg-casc-grid"></div>' +
-    '<div class="rg-casc-foot"><button type="button" class="rg-casc-clear"><i class="fa-solid fa-eraser"></i> Clear</button></div>' +
+    '<div class="rg-casc-foot">' +
+    '<button type="button" class="rg-casc-clear"><i class="fa-solid fa-eraser"></i> Clear</button>' +
+    '<button type="button" class="rg-casc-done" disabled><i class="fa-solid fa-check"></i> Done</button>' +
+    '</div>' +
     "</div>";
 
    var infoEl = content.querySelector(".rg-casc-info");
@@ -1988,6 +2862,7 @@ var reqStar = {};
    var crumbsEl = content.querySelector(".rg-casc-crumbs");
    var gridEl = content.querySelector(".rg-casc-grid");
    var backBtn = content.querySelector(".rg-casc-back");
+   var doneBtn = content.querySelector(".rg-casc-done");
 
    function crumbLabel(i) {
     if (ids[i]) {
@@ -2015,9 +2890,12 @@ var reqStar = {};
      }).join("")
      : '<div class="rg-casc-none">No items available</div>';
     backBtn.disabled = cur <= startMin;
+    if (doneBtn) doneBtn.disabled = !ids[0];
    }
 
    function finish() {
+    //a cascade always needs its root (religion) before it can commit
+    if (!ids[0]) return;
     levels.forEach(function (lv, i) {
      var box = selBox(lv.key);
      if (box && box.getAttribute("data-locked") === "1") return;
@@ -2025,7 +2903,7 @@ var reqStar = {};
      if (inp) inp.value = ids[i] || "";
     });
     levels.forEach(function (lv) {
-     repaintSel(lv.key);
+     repaintSelKeep(lv.key);
      var f = form.querySelector('.rg-field[data-key="' + lv.key + '"]');
      if (f) {
       f.classList.remove("bad");
@@ -2057,6 +2935,9 @@ var reqStar = {};
     if (cur > startMin) { cur--; searchEl.value = ""; render(); }
    });
    content.querySelector(".rg-casc-x").addEventListener("click", function () { inst.hide(); });
+   //"Done" commits the chain as picked so far (used when a caste has no sub-castes,
+   //so the kept sub-caste step still has a way out)
+   if (doneBtn) doneBtn.addEventListener("click", function () { finish(); });
    content.querySelector(".rg-casc-clear").addEventListener("click", function () {
     levels.forEach(function (lv) {
      var box = selBox(lv.key);
@@ -2083,7 +2964,7 @@ var reqStar = {};
   function openSelModal(k) {
    var input = selInput(k);
    var box = selBox(k);
-   if (box && box.getAttribute("data-locked") === "1") return;
+   if (box && box.getAttribute("data-locked") === "1" && !isTreeField(k)) return;
    if (!input || !box) {
     showMsg("err", "Selection list is unavailable.");
     return;
@@ -2189,12 +3070,40 @@ var reqStar = {};
     if (gField) gField.classList.remove("bad");
     hideMsg();
    }
+   //keep the picker inside the validation window: [mi, mx] where mx already
+   //carries the marriageable-age cap set above. Also open the calendar on a
+   //usable month (the youngest allowed date when empty) instead of today, whose
+   //days are all disabled by that cap.
+   var gRule = (rules && rules.g) || null;
+   var gRestrictions = null;
+   var gViewDate = null;
+   if (gRule && gRule.ty === "dt") {
+    var pMin = gRule.mi ? ymdToDate(gRule.mi, false) : null;
+    var pMax = gRule.mx ? ymdToDate(gRule.mx, true) : null;
+    if (pMin || pMax) {
+     gRestrictions = {};
+     if (pMin) gRestrictions.minDate = pMin;
+     if (pMax) gRestrictions.maxDate = pMax;
+    }
+    var curD = new Date(String(baseVal(base, "g")).replace(" ", "T"));
+    if (!isNaN(curD.getTime())) {
+     if (pMin && curD < pMin) curD = pMin;
+     if (pMax && curD > pMax) curD = pMax;
+     gViewDate = curD;
+    } else if (pMax) {
+     gViewDate = pMax;
+    }
+   }
    Promise.resolve(window.initDateTimePicker(gEl.id, {
     mode: "date",
     autoNow: false,
     readonly: true,
     initialValue: toInputDate(baseVal(base, "g")),
     displayFormatter: fmtDdMmYyyy,
+    useCurrent: false,
+    restrictions: gRestrictions,
+    viewDate: gViewDate,
+    hideTodayButton: true,
     onChange: onPick
    })).then(function (api) {
     dateApi = api;
@@ -2250,9 +3159,9 @@ var reqStar = {};
    }
    selOverlayOpen = false;
    ov.classList.remove("open");
-   document.removeEventListener("mraudiostate", onAudioState);
+   if (window.mrSoundBtn) window.mrSoundBtn.hide();
    form.removeEventListener('focusin', onFieldFocus);
-   form.removeEventListener('click', onFieldSound);
+   form.removeEventListener('click', onFieldSound, true);
    if (regisLastAudio && typeof regisLastAudio.pause === "function") {
     try { regisLastAudio.pause(); } catch (eS) { }
    }
@@ -2269,7 +3178,7 @@ var reqStar = {};
   activeClose = close;
 
   function onKey(e) {
-   if (e.key === "Escape" && !pickerOpen && !selOverlayOpen && document.getElementById(MODAL_ID) === ov) close();
+   if (e.key === "Escape" && !pickerOpen && !selOverlayOpen && !reasonOpen && document.getElementById(MODAL_ID) === ov) close();
   }
 
   function showMsg(kind, text) {
@@ -2285,9 +3194,22 @@ var reqStar = {};
   function setSending(on) {
    sending = on;
    sendBtn.disabled = on;
+   if (removeBtn) removeBtn.disabled = on;
    sendBtn.innerHTML = on
     ? '<i class="fa-solid fa-spinner fa-spin"></i><span>Saving...</span>'
     : '<i class="fa-solid fa-check"></i><span>' + sendLabel + "</span>";
+  }
+
+  //delete in flight: keep both buttons locked, but label only the Remove button
+  function setRemoveBusy(on) {
+   removeBusy = on;
+   sendBtn.disabled = on;
+   if (removeBtn) {
+    removeBtn.disabled = on;
+    removeBtn.innerHTML = on
+     ? '<i class="fa-solid fa-spinner fa-spin"></i><span>Removing...</span>'
+     : '<i class="fa-solid fa-trash"></i><span>Remove</span>';
+   }
   }
 
   function clearBad() {
@@ -2311,8 +3233,19 @@ var reqStar = {};
    var err = f.querySelector(".rg-err");
    if (err) err.textContent = ms || "";
    var ctl = f.querySelector(".rg-in") || f.querySelector(".rg-selbox button");
+   if (!ctl) {
+    //image / gallery fields have no text input: focus their picker box instead
+    ctl = f.querySelector('button[data-act="dp-pick"]') ||
+     f.querySelector('button[data-act="gal-pick"]') ||
+     f.querySelector("[data-dp-thumb]") ||
+     f.querySelector("[data-gal-grid]");
+   }
    if (ctl) {
-    try { ctl.focus(); ctl.scrollIntoView({ block: "center" }); } catch (e) { }
+    if (!ctl.hasAttribute("tabindex") && ctl.tagName !== "BUTTON" && ctl.tagName !== "INPUT") {
+     ctl.setAttribute("tabindex", "-1");
+    }
+    try { ctl.focus({ preventScroll: true }); } catch (eF) { try { ctl.focus(); } catch (eF2) { } }
+    try { ctl.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (eS) { }
    }
   }
 
@@ -2376,10 +3309,10 @@ var reqStar = {};
     });
   }
 
-  // ---- image gallery (b6) ---------------------------------------------------------
-  //The gallery keeps its tokens in the b6 hidden input as a JSON array and re-renders
+  // ---- image gallery (u1) ---------------------------------------------------------
+  //The gallery keeps its tokens in the u1 hidden input as a JSON array and re-renders
   //its thumbnail grid from that value, so add/remove stays in sync with what is submitted.
-  function galInput() { return form.querySelector('[data-name="b6"]'); }
+  function galInput() { return form.querySelector('[data-name="u1"]'); }
 
   function galArray() {
    var input = galInput();
@@ -2409,7 +3342,8 @@ var reqStar = {};
      var r = (typeof window.mrResolveProfileImages === "function")
       ? window.mrResolveProfileImages(arr[i]) : { display: null, thumbnail: null };
      var src = r.display || r.thumbnail || "";
-     html += '<div class="rg-gal-item">' +
+     //data-idx marks an existing photo: clicking it replaces that slot
+     html += '<div class="rg-gal-item" data-act="gal-pick" data-idx="' + i + '">' +
       (src ? '<img src="' + esc(src) + '" alt="Gallery photo">' : '<i class="fa-solid fa-image"></i>') +
       '<button type="button" class="rg-gal-x" data-act="gal-rm" data-idx="' + i + '" aria-label="Remove photo"><i class="fa-solid fa-xmark"></i></button>' +
       "</div>";
@@ -2448,17 +3382,28 @@ var reqStar = {};
     return;
    }
    var arr = galArray();
-   if (arr.indexOf(tok) < 0) arr.push(tok);
+   //a photo clicked in the grid replaces that slot; only "+" appends a new one
+   var replaced = (galReplaceIdx >= 0 && galReplaceIdx < arr.length);
+   if (replaced) {
+    arr[galReplaceIdx] = tok;
+   } else if (arr.indexOf(tok) < 0) {
+    arr.push(tok);
+   }
+   galReplaceIdx = -1;
    setGalArray(arr);
    hideMsg();
    if (typeof showToast === "function") {
-    showToast("Photo added!", { type: "success", duration: 2000, position: "top" });
+    showToast(replaced ? "Photo updated!" : "Photo added!", { type: "success", duration: 2000, position: "top" });
    }
   }
 
-  function openGalPicker() {
+  function openGalPicker(replaceIdx) {
    if (pickerOpen) return;
-   if (galArray().length >= galleryMax) {
+   var rep = (replaceIdx !== null && replaceIdx !== undefined && String(replaceIdx).trim() !== '')
+    ? parseInt(replaceIdx, 10) : -1;
+   if (!(rep >= 0)) rep = -1;
+   //only the ADD path is capped; replacing an existing slot is always allowed
+   if (rep < 0 && galArray().length >= galleryMax) {
     showMsg("err", "You can add up to " + galleryMax + " gallery photos.");
     return;
    }
@@ -2467,6 +3412,7 @@ var reqStar = {};
     return;
    }
    pickerOpen = true;
+   galReplaceIdx = rep;
    Promise.resolve(loadExe2Fn(9, [onGalPicked, window.imgObjDimensRqd || [], defnTabsToUs, '',
     imageServerFlag], [1]))
     .then(function () {
@@ -2475,6 +3421,7 @@ var reqStar = {};
     })
     .catch(function (err) {
      pickerOpen = false;
+     galReplaceIdx = -1;
      showMsg("err", "Could not open image picker: " + ((err && err.message) || err));
     });
   }
@@ -2512,8 +3459,22 @@ var reqStar = {};
      out.l = toDisplayPhone(el.value);
     } else if (k === "u") {
      out.u = uForSend(el.value);
-    } else if (k === "b6") {
-     out.b6 = galForSend(el.value);
+    } else if (k === "u1") {
+     out.u1 = galForSend(el.value);
+    } else if (PLACE_GROUPS[k]) {
+     //address picker holds the whole place as one path; save its five level ids apart.
+     //__mrPlaceSlots pins a flat country's city to the last slot (a6/b6/c7); without
+     //it fall back to the plain positional split (a country with a region keeps 1:1)
+     var pp = (typeof window.__mrPlaceSlots === "function")
+      ? window.__mrPlaceSlots(k, el.value)
+      : String(el.value || "").split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+     PLACE_GROUPS[k].forEach(function (gk, gi) { out[gk] = pp[gi] || ""; });
+    } else if (k === "k") {
+     //religion field holds the whole chain as a path; save the three ids apart
+     var kp = String(el.value || "").split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+     out.k = kp[0] || "";
+     out.k1 = kp[1] || "";
+     out.k2 = kp[2] || "";
     } else {
      out[k] = el.value;
     }
@@ -2544,7 +3505,9 @@ var reqStar = {};
       renderDp();
       hideMsg();
      } else if (a === "gal-pick") {
-      openGalPicker();
+      //items carry data-idx (replace that photo); the "+" button has none (add)
+      var gidx = act.getAttribute("data-idx");
+      openGalPicker(gidx !== null && gidx !== "" ? parseInt(gidx, 10) : -1);
      } else if (a === "gal-rm") {
       var gi = parseInt(act.getAttribute("data-idx"), 10);
       var ga = galArray();
@@ -2601,7 +3564,7 @@ var reqStar = {};
 
   form.addEventListener("submit", async function (e) {
    e.preventDefault();
-   if (sending) return;
+   if (sending || removeBusy) return;
    hideMsg();
    clearBad();
    var out = collectData();
@@ -2632,7 +3595,10 @@ var reqStar = {};
     }
     payload0.x2 = out;
     if (C.drml) payload0.drml = C.drml;
-    var resp = await fnj3("https://my1.in/2/" + (adminMode && !isUpdate ? "f.php" : "c.php"), payload0, 1, true, null, 20000, 0, 2, 1, 1);
+    var endpoint = payload0.fn === 68
+    ? "https://my1.in/3/e.php"
+    : "https://my1.in/2/" + (adminMode && !isUpdate ? "f.php" : "c.php");
+    var resp = await fnj3(endpoint, payload0, 1, true, null, 20000, 0, 2, 1, 1);
     hndlRspo68(resp);
    } catch (err) {
     showMsg("err", "Failed to save: " + ((err && err.message) || err));
@@ -2660,11 +3626,11 @@ var reqStar = {};
    var savedMsg = "Profile saved successfully!";
    if (isUpdate && !adminMode) {
     var elU = form.querySelector('[data-name="u"]');
-    var elB6 = form.querySelector('[data-name="b6"]');
+    var elB6 = form.querySelector('[data-name="u1"]');
     var beforeU = uForSend(baseVal(base, "u"));
-    var beforeB6 = galForSend(baseVal(base, "b6"));
+    var beforeB6 = galForSend(baseVal(base, "u1"));
     var nowU = uForSend(elU ? elU.value : baseVal(base, "u"));
-    var nowB6 = galForSend(elB6 ? elB6.value : baseVal(base, "b6"));
+    var nowB6 = galForSend(elB6 ? elB6.value : baseVal(base, "u1"));
     imgRequestSend = (nowU !== beforeU) || (nowB6 !== beforeB6);
     savedMsg = imgRequestSend
      ? "Profile update successfully! and Image request sent for approval."

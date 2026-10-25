@@ -285,7 +285,7 @@ font-size: 1.1rem !important;
 }
 
 .${pageUniqueClass} .modal-header .close-button {
-background: var(--bs-secondary, #6c757d) !important;
+background: rgba(255, 255, 255, 0.2) !important;
 border: none !important;
 border-radius: 50% !important;
 width: 36px !important;
@@ -300,7 +300,7 @@ margin-left: 8px !important;
 }
 
 .${pageUniqueClass} .modal-header .close-button:hover {
-background: #5c636a !important;
+background: rgba(255, 255, 255, 0.3) !important;
 transform: scale(1.1) !important;
 }
 
@@ -580,7 +580,7 @@ font-weight: 500 !important;
  footer.className = 'modal-footer';
  const footerClearBtn = document.createElement('button');
  footerClearBtn.type = 'button';
- footerClearBtn.className = 'btn btn-outline-secondary clear-btn';
+ footerClearBtn.className = 'btn btn-secondary clear-btn';
  footerClearBtn.innerHTML = '<i class="fas fa-eraser me-1"></i> Clear';
  const startHasValue = value !== null && value !== undefined && String(value).trim() !== '';
  footerClearBtn.disabled = !startHasValue;
@@ -1272,11 +1272,11 @@ function setValByProprtyToElm(inputId, value, divId, key, fullObject) {
 
  // Create main container for tags and edit button
  const mainContainer = document.createElement('div');
- mainContainer.style.cssText = 'display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px;';
+ mainContainer.style.cssText = 'display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; min-width: 0; max-width: 100%;';
 
  // Create container for tags
  const tagsContainer = document.createElement('div');
- tagsContainer.style.cssText = 'display: flex; flex-wrap: wrap; gap: 8px;';
+ tagsContainer.style.cssText = 'display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; max-width: 100%; flex: 1 1 auto;';
 
  // Process each value
  valueArray.forEach(singleValue => {
@@ -1359,7 +1359,9 @@ function setValByProprtyToElm(inputId, value, divId, key, fullObject) {
   // Create individual tag element
   const tagElement = document.createElement('span');
   tagElement.className = 'badge mra_-relation-badge';
-  tagElement.style.cssText = 'display: inline-block; background: linear-gradient(135deg, var(--primary-color, #7B1FA2), var(--primary-dark, #4A148C)); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.875rem; font-weight: 500; transition: all 0.2s ease; white-space: nowrap;';
+  //long labels (e.g. a degree name) must wrap inside the field box: a nowrap
+  //badge would set the row's min-content width and push past the modal edge
+  tagElement.style.cssText = 'display: inline-block; background: linear-gradient(135deg, var(--primary-color, #7B1FA2), var(--primary-dark, #4A148C)); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.875rem; font-weight: 500; transition: all 0.2s ease; max-width: 100%; white-space: normal; overflow-wrap: anywhere; word-break: break-word; line-height: 1.3; text-align: center;';
   tagElement.textContent = matchedLabel;
 
   if (fullPathName && fullPathName !== matchedLabel) {
@@ -1382,7 +1384,9 @@ function setValByProprtyToElm(inputId, value, divId, key, fullObject) {
 // Helper function to add edit button
 function addEditButton(container, inputId, value, divId, key, fullObject, canAddValue) {
  const editButtonContainer = document.createElement('div');
- editButtonContainer.style.cssText = 'display: inline-flex; margin-left: auto;';
+ //never squeeze the pencil: margin-left auto keeps it right-aligned and it
+ //moves to its own line when a wrapped badge fills the row
+ editButtonContainer.style.cssText = 'display: inline-flex; margin-left: auto; flex: 0 0 auto;';
 
  const editBtn = document.createElement('button');
  editBtn.innerHTML = '<i class="fas fa-edit"></i>';

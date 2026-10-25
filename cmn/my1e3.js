@@ -2,8 +2,9 @@ window.appcss = null;
 let xtraj_payload = null;
 async function set_owner() {
  const pathParts = window.location.pathname.split('/').filter(p => p);
- const eo = window?.ownr_eo || pathParts[0];
- const ec = window?.ownr_ec || pathParts[1];
+  const eo = window.ownr_eo = window.ownr_eo || pathParts[0];
+  const ec = window.ownr_ec = window.ownr_ec || pathParts[1];
+  const pj = window.ownr_pj = window.ownr_pj || pathParts[2];
  window.appOwner = {
   tn: `${eo}_${ec}`.replace(/\./g, "_"),
   eo: eo,
@@ -102,7 +103,7 @@ window.showsuccessmodal = function (successMsg, callback) {
  var modal = document.createElement('div');
  modal.style.cssText = 'background:white;border-radius:8px;margin-top:120px;max-width:400px;width:90%;box-shadow:0 4px 20px rgba(0,0,0,0.3);animation:fadeIn 0.3s ease;';
  modal.innerHTML = '<div style="padding:24px;text-align:center;">' +
-  '<div style="margin-bottom:16px;"><i style="font-size:48px;color:#198754;">&#10004;</i></div>' +
+  //'<div style="margin-bottom:16px;"><i style="font-size:48px;color:#198754;">&#10004;</i></div>' +
   '<h5 style="color:#198754;margin-bottom:8px;font-size:18px;">Success</h5>' +
   '<p style="color:#6c757d;margin-bottom:16px;font-size:14px;">' + (typeof window.escapeHTML === 'function' ? window.escapeHTML(successMsg) : successMsg) + '</p>' +
   '<button style="background:#198754;color:white;border:none;padding:6px 16px;border-radius:4px;cursor:pointer;font-size:14px;" id="successOkBtn">&#10003; OK</button>' +
@@ -1958,15 +1959,23 @@ function mrTrackAudio(audio) {
  return audio;
 }
 
-// Resolve a raw value (direct URL, Drive URL, or bare Drive file ID) to a playable URL.
+// Resolve a raw value to a playable URL: a Google Drive URL or bare file id, a direct
+// http(s) URL, a local/test path (./ ../ / C:\ file://), or a plain filename are all
+// handled. mr.da wajiw entries carry their "e" here.
 function mrResolveAudioUrl(raw) {
- if (raw === null || raw === undefined) return "";
+ if (raw == null) return "";
  const s = String(raw).trim();
  if (!s) return "";
+ // Google Drive URL: extract file ID
+ const driveId = extractGoogleDriveFileId(s);
+ if (driveId) return encodeURIComponent(driveId);
+ // Direct HTTP/HTTPS URL: preserve URL
  if (/^https?:\/\//i.test(s)) return s;
- const id = extractGoogleDriveFileId(s) ||
-  (/^[A-Za-z0-9_-]{10,}$/.test(s) ? s : null);
- if (id) return `https://my1.in/curl.php?id=${encodeURIComponent(id)}`;
+ // Local/test paths and relative file paths: preserve path
+ if (/^(?:\.{0,2}\/|\/|[A-Za-z]:[\\/]|file:\/\/)/i.test(s)) return s;
+ // Bare Google Drive ID or other file ID
+ if (/^[A-Za-z0-9_-]{10,}$/.test(s)) return `https://my1.in/curl.php?id=${encodeURIComponent(s)}`;
+ // Other filenames, e.g. git/pga.opus or git/pgf.mpeg
  return s;
 }
 
@@ -1997,11 +2006,212 @@ function preloadWajiwSounds(list) {
   const item = list[i];
   if (!item || item.e === undefined || item.e === null || item.e === "") continue;
   const audio = mrGetAudio(item.e);
+  if (audio && !audio.__mrSndKey) {
+   //remember which config entry this element belongs to, and say so if the file
+   //never downloads (a dead/unshared Drive id would otherwise just mean silence)
+   audio.__mrSndKey = String(item.a);
+   audio.__mrSndRaw = String(item.e);
+   audio.addEventListener("error", function () {
+    console.warn("[mr] sound failed to download:", audio.__mrSndKey,
+     "| id:", audio.__mrSndRaw, "|", audio.src,
+     "-> check the Drive file id and its link sharing");
+   });
+  }
   if (audio && bucket) bucket[String(item.a)] = audio;
  }
 }
 
+/* ---- Global "Play information sound" button ---------------------------------------
+ * Defined ONCE here and revealed/hidden by each context via window.mrSoundBtn.
+ * The sound table lives in mr.da ("wajiw"); mrSoundBtn.show(<entry>.e) shows the
+ * button and arms it with that entry. Playback is a toggle (tap starts/stops).
+ * The playing look is a full CSS experience (vibration + flip icon + darker gold). */
+(function mrSoundBtnInit() {
+ const CSS_ID = "mrSoundBtnCss";
+ const BTN_ID = "mrSoundBtnEl";
+ const ICON = '<i class="fa-solid fa-volume-high"></i>';
+ const CSS = [
+  "#" + BTN_ID + "{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:99999999999999999;",
+  "width:48px;height:48px;padding:0;border-radius:50%;border:1px solid rgba(201,164,92,.7);",
+  "display:none;align-items:center;justify-content:center;cursor:pointer;",
+  "background-image:linear-gradient(135deg,#e6cf9b,#c9a45c);color:#2a2010;font-size:19px;",
+  "box-shadow:0 10px 22px rgba(0,0,0,.3);transition:transform .18s ease,filter .2s ease;",
+  "-webkit-user-select:none;user-select:none;touch-action:manipulation;}",
+  "#" + BTN_ID + ".is-on{display:flex;}",
+  "#" + BTN_ID + ":hover{filter:brightness(1.07);}",
+  "#" + BTN_ID + ":active{transform:scale(.94);}",
+  "#" + BTN_ID + " i{pointer-events:none;}",
+  /*playing: darker shade of the same gold + vibration, icon flips front/back*/
+  "#" + BTN_ID + ".is-playing{background-image:linear-gradient(135deg,#b8933f,#8f6f2c);",
+  "color:#fff;border-color:#7d6024;box-shadow:0 10px 26px rgba(0,0,0,.45);",
+  "animation:mrSndVibe .42s linear infinite;}",
+  "#" + BTN_ID + ".is-playing i{animation:mrSndFlip 2.2s ease-in-out infinite;}",
+  "@keyframes mrSndVibe{0%{transform:translate(0,0) rotate(0);}",
+  "20%{transform:translate(-2.5px,1px) rotate(-7deg);}",
+  "40%{transform:translate(2.5px,-1px) rotate(7deg);}",
+  "60%{transform:translate(-2.5px,-1px) rotate(-5deg);}",
+  "80%{transform:translate(2.5px,1px) rotate(5deg);}",
+  "100%{transform:translate(0,0) rotate(0);}}",
+  "@keyframes mrSndFlip{0%,60%{transform:rotateY(0);}80%{transform:rotateY(180deg);}100%{transform:rotateY(360deg);}}"
+ ].join("");
+ /* currentRaw = the raw (config "e") that `last` was started with, so a USER pause
+ * can be reported with the exact key isAudioAutoOff() checks in regis.js. */
+let btn = null, armed = "", last = null, currentRaw = "";
+
+ /* ---- global pause counter --------------------------------------------------------
+  * Every sound (welcome, plans, filter, profile modal, registration...) is counted
+  * separately, by its raw config "e". After mr.da "autoPlaySoundStopAfter" user
+  * pauses (default 2) that sound is no longer AUTO-played; a manual tap on the
+  * shared button always plays it. Counting lives here because this file always
+  * loads, unlike a single form script. */
+ function daCfg() {
+  try {
+   const P = (window.my1uzr && window.my1uzr.worknOnPg) ? window[window.my1uzr.worknOnPg] : null;
+   return window.da_mr || (P && P.clientConfig) || {};
+  } catch (e) { return {}; }
+ }
+ function pauseKey() { return ((window.appOwner && window.appOwner.tn) || "mr") + "_mrAudioPauseCountsV2"; }
+ function stopAfter() {
+  const n = parseInt(daCfg().autoPlaySoundStopAfter, 10);
+  return isNaN(n) ? 2 : n;
+ }
+ function loadPauses() {
+  try { const o = JSON.parse(localStorage.getItem(pauseKey()) || "{}"); return (o && typeof o === "object") ? o : {}; } catch (e) { return {}; }
+ }
+ function savePauses(o) { try { localStorage.setItem(pauseKey(), JSON.stringify(o)); } catch (e) { } }
+ function notePause(raw) {
+  if (!raw || !(stopAfter() > 0)) return;
+  const o = loadPauses(); const k = String(raw);
+  o[k] = (parseInt(o[k], 10) || 0) + 1;
+  savePauses(o);
+ }
+ function isAutoOff(raw) {
+  const lim = stopAfter();
+  if (!(lim > 0) || !raw) return false;
+  return (parseInt(loadPauses()[String(raw)], 10) || 0) >= lim;
+ }
+
+ function injectCss() {
+  if (document.getElementById(CSS_ID)) return;
+  const s = document.createElement("style");
+  s.id = CSS_ID;
+  s.textContent = CSS;
+  document.head.appendChild(s);
+ }
+ function audioFor(raw) {
+  if (!raw) return null;
+  try { const a = mrGetAudio(raw); if (a) return a; } catch (e) { }
+  try { return mrTrackAudio(new Audio(mrResolveAudioUrl(raw))); } catch (e2) { return null; }
+ }
+ function play(raw) {
+  const a = audioFor(raw);
+  if (!a) return;
+  try {
+   mrPlayingAudios.forEach(function (other) {
+    if (other !== a && typeof other.pause === "function") { try { other.pause(); } catch (e) { } }
+   });
+  } catch (e) { }
+  last = a;
+  currentRaw = raw || "";   //the sound that just started (its config "e")
+  try { a.currentTime = 0; } catch (e) { }
+  Promise.resolve(a.play()).catch(function () { });
+ }
+ function toggle() {
+  if (last && typeof last.pause === "function" && !last.ended) {
+   if (last.paused) { try { Promise.resolve(last.play()).catch(function () { }); } catch (e) { } }
+   else {
+    try { last.pause(); } catch (e) { }
+    /* a USER pause through the shared button counts toward mr.da
+     * "autoPlaySoundStopAfter" for this exact sound. stopAll()/pipeline stops
+     * never count (and never dispatch this event). */
+    try { notePause(currentRaw); } catch (eN) { }
+    try { document.dispatchEvent(new CustomEvent("mrsoundpause", { detail: { raw: currentRaw } })); } catch (e) { }
+   }
+   return;
+  }
+  if (armed) play(armed);
+ }
+ function onAudioState(ev) {
+  if (!btn) return;
+  btn.classList.toggle("is-playing", !!(ev && ev.detail && ev.detail.playing));
+ }
+ function ensure() {
+  if (btn && document.body.contains(btn)) return btn;
+  if (!document.getElementById(CSS_ID)) {
+   const s = document.createElement("style");
+   s.id = CSS_ID; s.textContent = CSS; document.head.appendChild(s);
+  }
+  btn = document.getElementById(BTN_ID);
+  if (!btn) {
+   btn = document.createElement("button");
+   btn.type = "button";
+   btn.id = BTN_ID;
+   btn.title = "Play information sound";
+   btn.setAttribute("aria-label", "Play information sound");
+   btn.innerHTML = ICON;
+   btn.addEventListener("click", toggle);
+   document.body.appendChild(btn);
+  }
+  document.removeEventListener("mraudiostate", onAudioState);
+  document.addEventListener("mraudiostate", onAudioState);
+  return btn;
+ }
+
+ /* stop every currently playing sound (and forget the shared "last") */
+ function stopAll() {
+  try {
+   mrPlayingAudios.forEach(function (a) {
+    if (a && typeof a.pause === "function") { try { a.pause(); } catch (e) { } }
+   });
+  } catch (e) { }
+  last = null;
+ }
+
+ /* public API */
+ window.mrSoundBtn = {
+  /* reveal the button and arm it with a sound (raw = signal/URL) */
+  show: function (raw) { ensure(); armed = raw || ""; btn.classList.add("is-on"); },
+  /* hide it and stop whatever sound is playing (single global pipeline) */
+  hide: function () {
+   if (btn) btn.classList.remove("is-on", "is-playing");
+   stopAll();
+  },
+  /* current visibility */
+  isShown: function () { return !!(btn && btn.classList.contains("is-on")); },
+  /* arm a sound without changing visibility */
+  setSound: function (raw) { armed = raw || ""; if (btn) last = null; return armed; },
+  /* AUTO play the armed (or given) sound through the shared button: skipped once
+   * that sound hit the configured pause limit (manual tap still plays it) */
+  play: function (raw) { const r = raw || armed; if (isAutoOff(r)) return; play(r); },
+  /* pause/resume whichever sound is currently playing */
+  toggle: function () { toggle(); }
+ };
+
+ /* global helpers used by every context (filter, profile modal, plans, forms) */
+ window.mrSoundAutoOff = isAutoOff;
+ window.mrSoundIsPlaying = function (raw) {
+  return !!(last && typeof last.pause === "function" && !last.ended && !last.paused &&
+   (!raw || currentRaw === raw));
+ };
+ window.__mrAudioPauseGlobal = 1;   // regis.js must not count pauses a second time
+
+ /* ---- single global audio pipeline ------------------------------------------------
+  * Every context (welcome, plans, registration field/form) plays and stops through
+  * these, so a new play always halts the previous one and the shared button's "last"
+  * stays in sync with the sound that is actually playing. */
+ window.mrPlaySound = function (raw) { const r = raw || armed; if (isAutoOff(r)) return; play(r); };
+ window.mrStopSound = stopAll;
+})();
+
 function playAud(audioUrl) {
+ //route through the shared pipeline so a new play stops the previous sound and
+ //the floating sound button stays in sync (single source of truth for playback)
+ try {
+  if (typeof window.mrPlaySound === "function" && window.mrSoundBtn) {
+   window.mrPlaySound(audioUrl);
+   return Promise.resolve(mrGetAudio(audioUrl));
+  }
+ } catch (eDeleg) { }
  try {
   const src = mrResolveAudioUrl(audioUrl);
   if (!src) return Promise.reject(new Error("No audio source"));
@@ -2815,7 +3025,7 @@ window.initDateTimePicker = async function (inputId, options) {
   el._tdPicker.dispose();
  }
 
- const instance = new tempusDominus.TempusDominus(el, {
+ const tdOptions = {
   container: document.body, // mount widget at body level so fixed centering works (even inside Bootstrap modals)
   localization: {
    locale: 'en',
@@ -2833,9 +3043,18 @@ window.initDateTimePicker = async function (inputId, options) {
     minutes: mode !== 'date',
     seconds: false
    },
-   buttons: { today: true, clear: false, close: true }
+   buttons: { today: options.hideTodayButton !== true, clear: false, close: true }
   }
- });
+ };
+ //optional caller-supplied bounds / first view (e.g. a birth date must fall in a
+ //min/max window and the calendar should open on a usable month). Only forwarded
+ //when given so existing callers keep the previous behaviour.
+ if (options.restrictions && (options.restrictions.minDate || options.restrictions.maxDate)) {
+  tdOptions.restrictions = options.restrictions;
+ }
+ if (options.viewDate) tdOptions.viewDate = options.viewDate;
+ if (options.useCurrent !== undefined) tdOptions.useCurrent = options.useCurrent;
+ const instance = new tempusDominus.TempusDominus(el, tdOptions);
 
  // Tempus Dominus writes the input using our format - keep state in sync
  // NOTE: TD sets el.value itself and never fires the native DOM 'change'
