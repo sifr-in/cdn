@@ -171,7 +171,7 @@ window.showPhonePePostData = showPhonePePostData;
 
 (async function initMr() {
 try {
-    let result1 = await loadCshScriptsSequentially(1, 2, 3, 4, 5, 22, 25);//here keep only that no have c, r other must used with loadExe2fn for call
+    let result1 = await loadCshScriptsSequentially(1, 2, 3, 4, 5, 17, 22, 25);//here keep only that no have c, r other must used with loadExe2fn for call
     if (!result1.success) throw new Error("Failed to load required scripts: " + result1.error);
 
     console.log("ðŸ“¦ Creating database tables for:", dbnm);
@@ -286,15 +286,6 @@ try {
 } catch (e3) {
     console.error("list render failed:", e3);
 }
-//preload the plans module in the background so its open runs synchronously inside the
-//user's tap (loadExe2Fn then finds showMarriagePlans already defined) - this lets the
-//plans modal auto-play its sound on the very first open, not only after a cached load.
-try {
-    if (typeof loadPromiseScript === "function") loadPromiseScript("git/plans.js");
-} catch (ePL) { console.error("plans preload failed:", ePL); }
-//welcome ("wlcm") modal: shown on the first 2 app loads, then never again. It has a
-//top-right X (close only) and a bottom OK button; OK closes it and plays the welcome
-//sound from the user's tap, so playback is never blocked by the autoplay policy.
 try {
     __mrWelcomeModal();
 } catch (eW) { console.error("welcome modal failed:", eW); }
