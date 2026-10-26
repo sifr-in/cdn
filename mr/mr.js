@@ -110,7 +110,7 @@ window[my1uzr.worknOnPg].csh = [
     { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@a813e1f/cmn/my1ctr.js", c: "open_my1ctr", r: "open_my1ctr" },
     { a: 12, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/fltr.js", c: "showFilterBox", r: "showFilterBox" },
     { a: 13, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/drwr.js", c: "showDrawer", r: "showDrawer" },
-    { a: 14, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/regis.js", c: "showRegistrationModal", r: "showRegistrationModal" },
+    { a: 14, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12a98fe/mr/regis.js", c: "showRegistrationModal", r: "showRegistrationModal" },
     { a: 17, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/plans.js", c: "showMarriagePlans", r: "showMarriagePlans" },
     { a: 55, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/prfl.js", c: "mrPrflReady", r: "mrShowProfileDtlsLazy" },
     { a: 15, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/cmn/ei.min.js", c: "open_entind_crud", r: "open_entind_crud" },
