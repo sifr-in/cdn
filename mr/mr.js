@@ -1,4 +1,4 @@
-﻿/* active-filter dot on the nav's filter button: any non-empty entry in
+/* active-filter dot on the nav's filter button: any non-empty entry in
  * P.activeFilters (set by git/fltr.js) marks the button. Ported from the old app. */
 (function () {
     function u() {
@@ -41,22 +41,27 @@ const tblsRequired = ["f", "fp", "ma", "mr", "c", "mp", "mr_h", "mq", "mu"];
 const moduLst = [
  { a: ",60,61,62,63,65,67,", b: "Dashboard", c: "fa-chart-line", d: "aminPnl", e: "#9c6f7fea", cid: 130 }
 ];
+//120 admin accept/reject profiles image updates
 //67 admin margae buraro mark record as delete by amdin
 //65 admin update given marage plan
 //63 admin update specific marage profile entry
 //62 admin add new profile
-//61 admin get all marage plans
-//60 admin get all mmarage recornes
+//61 admin get all marage plans//we must shift to .da and remove this from server side;
+//60 admin get all mmarage records
 //public 70 get all my profile on my mobile number
 //public 66 short list (ma) and use count
 //bubilc 64 get 50 in marage entrys
 //pubilc 68 user update prorile
 //public 69 delete profile by profile owner
-const inTbls = ["dontCret~", "pubilc~64,66,67,68,69,70,118", "2/e-60~mr,c", "2/g-61~mp", "2/f-62~mr", "2/c-63~mr", "2/g-64~mr", "2/e-65~mp", "2/c-66~mu,mr,ma", "2/h-67~mr", "2/c-68~mr,mr_h,mq", "2/c-69~mr", "2/c-70~mr", "4/a-118~"];//118 for get image id
+//ma table - short listed profiles
+//mu table - used profiles
+const inTbls = ["dontCret~", "pubilc~64,66,67,68,69,70,118", "2/e-60~mr,c,mq,ma", "2/g-61~mp", "2/f-62~mr", "2/f-63~mr", "4/a-64~mr", "2/e-65~mp", "3/d-66~mu,mr,ma", "2/h-67~mr", "3/e-68~mr,mr_h,mq", "3/d-69~mr", "3/d-70~mr", "4/a-118~", "2/u-120~"];//118 for get image id
 const cust_const = [
  { "a": "paymentGatewayIntegrated", "b": 0, "c": "more customiztaion", "d": "if value is 1 payment gatewy will be shown, else manual", "u": "url-explaining-video" },
- { "a": "paymentRequiresProfile", "b": 0, "c": "", "d": "if value is 1 & payment gatewy on then will be users registration or profile is requred to use gatway, else cotinue as is", "u": "url-explaining-video" },
- { "a": "freeCnt", "b": 0, "c": "", "d": "free count to be given when profile is created fn-68 or plan-check--1", "u": "url-explaining-video" }
+ { "a": "paymentRequiresProfile", "b": 0, "c": "more custom...", "d": "if value is 1 & payment gatewy on then will be users registration or profile is requred to use gatway, else cotinue as is", "u": "url-explaining-video" },
+ { "a": "freeCnt", "b": 0, "c": "", "d": "free count to be given when profile is created fn-68 or plan-check--1", "u": "url-explaining-video" },
+ { "a": "imageGalleryMax", "b": 4, "c": "", "d": "how many gallery images can be useed that number to be given here exp: 4", "u": "url-explaining-video" },
+ { "a": "getDirectIdFromServer", "b": 1, "c": "", "d": "At my1img: if here have 1 then be use function to get ids directly and if 0/undefined then keep get and pass image url-data form cors64", "u": "url-explaining-video" }
 ];
 moduLst.hook = "onModuLstAllowed2";
 window[my1uzr.worknOnPg].moduLst = moduLst;
@@ -88,7 +93,7 @@ window[my1uzr.worknOnPg].emptBodyMs = "welcome to 'sifr' matrimoney app;";
 window[my1uzr.worknOnPg].cardHeight = 60;
 window[my1uzr.worknOnPg].nonEditableFields = ['a', 'b', 'c', 'k', 'k1'];
 window[my1uzr.worknOnPg].defaFieldVals = ['k1~9'];
-window[my1uzr.worknOnPg].seqnce = "u,ut,b6,a5,l,a7,m,n";
+window[my1uzr.worknOnPg].seqnce = "u,ut,u1,c8,l,a7,m,n";
 window[my1uzr.worknOnPg].bdayFormat = "dd-mm-yyyy";
 
 window[my1uzr.worknOnPg].csh = [
@@ -96,29 +101,32 @@ window[my1uzr.worknOnPg].csh = [
     { a: 2, u: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" },
     { a: 3, u: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" },
     { a: 4, u: "https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js" },
-    { a: 5, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1xi.min.js" },
+    { a: 5, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/my1xi.min.js" },
     { a: 6, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1lp.min.js", c: "open_shoLgnP", r: "open_shoLgnP" },
     { a: 7, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/cmn/my1lo.min.js", c: "open_shoLgnO", r: "open_shoLgnO" },
     { a: 8, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/conta.min.js", c: "showContactModal", r: "showContactModal" },
     { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1img.js", c: "open_addimage", r: "open_addimage" },
+    //{ a: 101, u: "git/my1gal.js", c: "open_my1gall", r: "open_my1gall" }, not in use keep as
     { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@a813e1f/cmn/my1ctr.js", c: "open_my1ctr", r: "open_my1ctr" },
-    { a: 12, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/mr/fltr.js", c: "showFilterBox", r: "showFilterBox" },
-    { a: 13, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/mr/drwr.js", c: "showDrawer", r: "showDrawer" },
-    { a: 14, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/mr/regis.js", c: "showRegistrationModal", r: "showRegistrationModal" },
-    { a: 17, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/mr/plans.js", c: "showMarriagePlans", r: "showMarriagePlans" },
-    { a: 55, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/mr/prfl.js", c: "mrPrflReady", r: "mrShowProfileDtlsLazy" },
+    { a: 12, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/fltr.js", c: "showFilterBox", r: "showFilterBox" },
+    { a: 13, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/drwr.js", c: "showDrawer", r: "showDrawer" },
+    { a: 14, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/regis.js", c: "showRegistrationModal", r: "showRegistrationModal" },
+    { a: 17, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/plans.js", c: "showMarriagePlans", r: "showMarriagePlans" },
+    { a: 55, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/prfl.js", c: "mrPrflReady", r: "mrShowProfileDtlsLazy" },
     { a: 15, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/cmn/ei.min.js", c: "open_entind_crud", r: "open_entind_crud" },
-    { a: 39, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/mr/slkt.js", c: "openCommonSelectionModal", r: "openCommonSelectionModal" },
-    { a: 47, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/mr/slkt2.js", c: "setValByPrprtyDepthToElm", r: "setValByPrprtyDepthToElm" },
-    { a: 48, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/mr/admr.js", c: "openMrAdmin", r: "openMrAdmin" },
-    { a: 18, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6a12ce/cmn/caste.da" },
-    { a: 19, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b39a4af/cmn/ctco.da" },
+    { a: 39, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/slkt.js", c: "openCommonSelectionModal", r: "openCommonSelectionModal" },
+    { a: 47, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/slkt2.js", c: "setValByPrprtyDepthToElm", r: "setValByPrprtyDepthToElm" },
+    { a: 48, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/admr.js", c: "openMrAdmin", r: "openMrAdmin" },
+    { a: 18, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/caste.da" },
+    { a: 19, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/ctco.da" },
     { a: 20, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/abot.js", c: "set_abot_us_innerHTML", r: "set_abot_us_innerHTML" },
     { a: 24, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/chldpol.js", c: "set_child_safety_pol_innerHTML", r: "set_child_safety_pol_innerHTML" },
+    { a: 23, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/unlockinfo.js", c: "mrUnlockInfoModal", r: "mrUnlockInfoModal" },
     { a: 31, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@666354f/cmn/degs.da" },
     { a: 33, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@0208362/cmn/occu.da" },
-    { a: 45, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/cmn/intal.da" },
-    { a: 22, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1ap.min.js" }
+    { a: 45, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/intal.da" },
+    { a: 22, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1ap.min.js" },
+    { a: 25, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1236a32/cmn/clrChe.min.js", c: "showClearCacheModal", r: "showClearCacheModal"}
 ];
 
 /* ------------------------------------------------------------------------------------------
@@ -136,7 +144,7 @@ async function showPhonePePostData() {
         if (!window.payload0) window.payload0 = {};
         var p = window.payload0;
         p.vw = 4;
-        p.fn = 70;                       //fn 70 = chkMyCount -> credits the paid unlock count
+        p.fn = 70;//fn 70 = chkMyCount -> credits the paid unlock count
         p.x1 = data.orderId;
         if (typeof dbDexieManager !== "undefined" && dbDexieManager &&
             typeof dbDexieManager.getMaxDateRecords === "function") {
@@ -163,7 +171,7 @@ window.showPhonePePostData = showPhonePePostData;
 
 (async function initMr() {
 try {
-    let result1 = await loadCshScriptsSequentially(1, 2, 3, 4, 5);//here keep only that no have c, r other must used with loadExe2fn for call
+    let result1 = await loadCshScriptsSequentially(1, 2, 3, 4, 5, 22, 25);//here keep only that no have c, r other must used with loadExe2fn for call
     if (!result1.success) throw new Error("Failed to load required scripts: " + result1.error);
 
     console.log("ðŸ“¦ Creating database tables for:", dbnm);
@@ -186,15 +194,65 @@ try {
     var cfg = await resp.json();
     if (!cfg || typeof cfg !== "object") throw new Error("bad config");
 
-    window[my1uzr.worknOnPg].clientConfig = cfg;
+    try { window.da_mr = cfg; } catch(e){}
+    try { if (!window[my1uzr.worknOnPg]) window[my1uzr.worknOnPg] = {}; window[my1uzr.worknOnPg].clientConfig = cfg; } catch(e){}
 } catch (e) {
     console.error("Failed to initialize:", e);
     window[my1uzr.worknOnPg].clientConfig = {};
 }
-//background preload of all wajiw sounds (fire-and-forget) so playback is instant later
+//resolve each wajiw "e" once, in place: Drive URL / bare file id / local path / normal
+//URL are all handled by mrResolveAudioUrl, so every entry carries a ready "resolvedE".
+try {
+    if (typeof mrResolveAudioUrl === "function") {
+        var __wjRes = (window[my1uzr.worknOnPg].clientConfig || {}).wajiw || [];
+        if (Array.isArray(__wjRes)) {
+            for (var __i = 0; __i < __wjRes.length; __i++) {
+                var __it = __wjRes[__i];
+                if (__it && __it.e != null && __it.e !== "") {
+                    __it.resolvedE = mrResolveAudioUrl(__it.e);
+                }
+            }
+        }
+    }
+} catch (eRes) {
+    console.error("wajiw resolve failed:", eRes);
+}
+//background preload of wajiw sounds (fire-and-forget) so playback is instant later.
+//welcome ("wlcm") is requested first; the 3 plan/unlock sounds (pgf, pga, unlk) are
+//chained behind its download so they don't compete with it. The chain always resolves:
+//whichever comes first - welcome loaded, welcome playable, welcome failed, or a 4s
+//timeout - preloads them, so they can never be left unloaded. Every other entry
+//(registration field sounds) still loads in parallel, ready at the first focus.
 try {
     if (typeof preloadWajiwSounds === "function") {
-        preloadWajiwSounds((window[my1uzr.worknOnPg].clientConfig || {}).wajiw || []);
+        var __wj = (window[my1uzr.worknOnPg].clientConfig || {}).wajiw || [];
+        if (!Array.isArray(__wj)) __wj = [];
+        var __only = function (keys) {
+            return __wj.filter(function (it) { return it && it.e && keys.indexOf(String(it.a)) >= 0; });
+        };
+        var __not = function (keys) {
+            return __wj.filter(function (it) { return it && it.e && keys.indexOf(String(it.a)) < 0; });
+        };
+
+        preloadWajiwSounds(__only(["wlcm"]));
+        preloadWajiwSounds(__not(["wlcm", "pgf", "pga", "unlk"]));
+
+        var __chained = false;
+        function __chainWajiwRest() {
+            if (__chained) return;
+            __chained = true;
+            try { preloadWajiwSounds(__only(["pgf", "pga", "unlk"])); }
+            catch (eCW) { console.error("chained wajiw preload failed:", eCW); }
+        }
+        var __wa = ((window[my1uzr.worknOnPg] || {}).wajiwSnds || {})["wlcm"];
+        if (!__wa || __wa.readyState >= 2 || __wa.error) {
+            __chainWajiwRest();   //already cached, or failed: don't wait
+        } else {
+            __wa.addEventListener("loadeddata", __chainWajiwRest, { once: true });
+            __wa.addEventListener("canplaythrough", __chainWajiwRest, { once: true });
+            __wa.addEventListener("error", __chainWajiwRest, { once: true });
+            setTimeout(__chainWajiwRest, 4000);   //slow or blocked: preload anyway
+        }
     }
 } catch (ePW) {
     console.error("wajiw preload failed:", ePW);
@@ -228,7 +286,80 @@ try {
 } catch (e3) {
     console.error("list render failed:", e3);
 }
+//preload the plans module in the background so its open runs synchronously inside the
+//user's tap (loadExe2Fn then finds showMarriagePlans already defined) - this lets the
+//plans modal auto-play its sound on the very first open, not only after a cached load.
+try {
+    if (typeof loadPromiseScript === "function") loadPromiseScript("git/plans.js");
+} catch (ePL) { console.error("plans preload failed:", ePL); }
+//welcome ("wlcm") modal: shown on the first 2 app loads, then never again. It has a
+//top-right X (close only) and a bottom OK button; OK closes it and plays the welcome
+//sound from the user's tap, so playback is never blocked by the autoplay policy.
+try {
+    __mrWelcomeModal();
+} catch (eW) { console.error("welcome modal failed:", eW); }
 })();
+
+/* welcome modal on complete init: shown at most on the first 2 visits (counted the
+ * moment it is shown, so X or OK both consume one). The welcome ("wlcm") sound plays
+ * only from the OK tap (a real user gesture) instead of auto-playing. The floating
+ * sound button (window.mrSoundBtn) is still shown as a manual replay fallback. */
+function __mrWelcomeModal() {
+    var P = window[my1uzr.worknOnPg] || {};
+    var wj = (P.clientConfig || {}).wajiw || [];
+    var raw = "";
+    for (var i = 0; i < wj.length; i++) {
+        if (wj[i] && String(wj[i].a) === "wlcm") { raw = wj[i].e || ""; break; }
+    }
+    if (!raw) return;
+
+    var key = ((window.appOwner && window.appOwner.tn) || "mr") + "_mrWelcomeModalSeen";
+    function seen() {
+        try { return parseInt(localStorage.getItem(key) || "0", 10) || 0; } catch (e) { return 2; }
+    }
+    if (seen() >= 2) return;
+
+    function playRaw() {
+        if (typeof window.mrPlaySound === "function") { window.mrPlaySound(raw); }
+        else if (window.mrSoundBtn) { window.mrSoundBtn.play(raw); }
+    }
+
+    function show() {
+        try { localStorage.setItem(key, String(seen() + 1)); } catch (eS) { }
+        if (window.mrSoundBtn && typeof window.mrSoundBtn.show === "function") {
+            window.mrSoundBtn.show(raw);   // floating button = manual replay fallback
+        }
+
+        var overlay = document.createElement("div");
+        overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;" +
+            "background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:99999;";
+        overlay.innerHTML =
+            '<div style="position:relative;background:#fff;border-radius:10px;padding:30px 26px 18px;' +
+                'min-width:220px;box-sizing:border-box;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.25);">' +
+                '<button type="button" data-mr-wlcm="x" aria-label="Close" ' +
+                    'style="position:absolute;top:6px;right:10px;border:none;background:transparent;' +
+                    'font-size:22px;line-height:1;color:#888;cursor:pointer;padding:2px 6px;">&times;</button>' +
+                '<div style="font-size:17px;color:#8B1E3F;margin:4px 0 18px;">welcome</div>' +
+                '<button type="button" data-mr-wlcm="ok" ' +
+                    'style="background:#8B1E3F;color:#fff;border:none;padding:7px 26px;border-radius:6px;' +
+                    'font-size:14px;cursor:pointer;">OK</button>' +
+            '</div>';
+        document.body.appendChild(overlay);
+
+        function close() {
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        }
+        overlay.addEventListener("click", function (ev) {
+            var el = ev.target && ev.target.closest ? ev.target.closest("[data-mr-wlcm]") : null;
+            var act = el ? el.getAttribute("data-mr-wlcm") : null;
+            if (act === "ok") { close(); playRaw(); }             // OK: close + play
+            else if (act === "x" || ev.target === overlay) { close(); }   // X / backdrop: close only
+        });
+    }
+
+    if (document.body) show();
+    else document.addEventListener("DOMContentLoaded", show, { once: true });
+}
 
 /* ==========================================================================================
  * STEP 1 - theme injection + shell view (navbar + footer).
@@ -342,7 +473,7 @@ function __mrApplyCardConfig(cfg) {
     //detail-view keys: rows come from colsToDispOnCard / colsToDispOnCardOnMoreBtn,
     //read straight from clientConfig by git/regis.js
     P.showTableViewOnCardClick = (cfg.showTableViewOnCardClick != null) ? cfg.showTableViewOnCardClick : 1;
-    P.fieldsOnCard = cfg.fieldsOnCard || "m~s~g,h,'budhdhist',k2,b4";
+    P.fieldsOnCard = cfg.fieldsOnCard || "m~s~g,h,'budhdhist',k2,b2";
     P.cardExtras = cfg.cardExtras || { bio: "", online: "", match: "" };
     P.shoBadge = cfg.shoBadge || "qa";
     //Font Awesome icon suffix (after "fa-") per card meta chip, keyed by field token
@@ -375,16 +506,33 @@ window.marital_status = [
     { "a": 6, "e": "Awaiting Divorce" }
 ];
 
-async function cmn_prep_data_set_to_var(varNm, mode, identifier) {
+//bump when the .da shape changes: the localStorage key carries this version, so a
+//stale copy written under an older shape is never served again (it is simply
+//refetched). v2 = nested child lists live under "x" (was castes/cities/dstrcts/thsls).
+const MR_LOOKUP_CACHE_V = 2;
+//the unsuffixed keys v1 used; dropped once so old-shape copies leave storage
+const MR_LOOKUP_LEGACY_KEYS = ['var_caste_rlgns', 'var_degres', 'var_ctco', 'mr_desig_posis', 'var_intal'];
+try {
+    MR_LOOKUP_LEGACY_KEYS.forEach(function (k) { localStorage.removeItem(k); });
+} catch (eLgc) { }
+
+async function cmn_prep_data_set_to_var(varNm, mode, identifier, urlOverride, silent, opts) {
     if (!window[varNm]) window[varNm] = null;
+    opts = opts || {};
+    var useStorage = (opts.useStorage !== false);
+
+    //versioned key: never reads a copy cached under another .da shape
+    const lsKey = varNm + '@' + MR_LOOKUP_CACHE_V;
 
     const getUrlFromCsh = () => {
+        if (urlOverride) return urlOverride;
         const cshItem = (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].csh)
             ? window[my1uzr.worknOnPg].csh.find(item => item.a === identifier) : null;
         return cshItem ? cshItem.u : null;
     };
 
     const safeStoreToLocalStorage = (key, data) => {
+        if (!useStorage) { return true; }
         try {
             localStorage.setItem(key, JSON.stringify(data));
             return true;
@@ -410,12 +558,13 @@ async function cmn_prep_data_set_to_var(varNm, mode, identifier) {
         try {
             const response = await fetch(url);
             const data = await response.json();
-            safeStoreToLocalStorage(varNm, data);
+            safeStoreToLocalStorage(lsKey, data);
             window[varNm] = data;
+            try { if (varNm) window['da_' + varNm] = data; } catch(e){}
             return data;
         } catch (error) {
             console.error('Error fetching data:', error);
-            if (typeof showToast === 'function') {
+            if (!silent && typeof showToast === 'function') {
                 showToast('Error fetching data for ' + varNm + ': ' + error.message, {
                     duration: 5000, position: 'top', type: 'error', dismissible: true
                 });
@@ -425,21 +574,24 @@ async function cmn_prep_data_set_to_var(varNm, mode, identifier) {
     };
 
     if (mode === 1) {
-        const storedData = localStorage.getItem(varNm);
-        if (storedData) {
-            let parsedData = null;
-            try {
-                parsedData = JSON.parse(storedData);
-                const isEmpty = parsedData === null || parsedData === undefined ||
-                    (Array.isArray(parsedData) && parsedData.length === 0) ||
-                    (typeof parsedData === 'object' && !Array.isArray(parsedData) && Object.keys(parsedData).length === 0);
-                if (!isEmpty) {
-                    window[varNm] = parsedData;
-                    return parsedData;
+        if (useStorage) {
+            const storedData = localStorage.getItem(lsKey);
+            if (storedData) {
+                let parsedData = null;
+                try {
+                    parsedData = JSON.parse(storedData);
+                    const isEmpty = parsedData === null || parsedData === undefined ||
+                        (Array.isArray(parsedData) && parsedData.length === 0) ||
+                        (typeof parsedData === 'object' && !Array.isArray(parsedData) && Object.keys(parsedData).length === 0);
+                    if (!isEmpty) {
+                        window[varNm] = parsedData;
+                        try { if (varNm) window['da_' + varNm] = parsedData; } catch(e){}
+                        return parsedData;
+                    }
+                } catch (e) {
+                    console.error('Error parsing localStorage data:', e);
+                    try { localStorage.removeItem(lsKey); } catch(e2){}
                 }
-            } catch (e) {
-                console.error('Error parsing localStorage data:', e);
-                localStorage.removeItem(varNm);
             }
         }
         return await fetchAndStoreData(getUrlFromCsh());
@@ -457,11 +609,11 @@ window.cmn_prep_data_set_to_var = cmn_prep_data_set_to_var;
 async function __mrPrepLookups() {
     try {
         await Promise.all([
-            cmn_prep_data_set_to_var('var_caste_rlgns', 1, 18),
-            cmn_prep_data_set_to_var('var_degres', 1, 31),
-            cmn_prep_data_set_to_var('var_ctco', 1, 19),
-            cmn_prep_data_set_to_var('mr_desig_posis', 1, 33),
-            cmn_prep_data_set_to_var('var_intal', 1, 45)
+            cmn_prep_data_set_to_var('var_caste_rlgns', 1, 18, null, false, { useStorage: false }),
+            cmn_prep_data_set_to_var('var_degres', 1, 31, null, false, { useStorage: false }),
+            cmn_prep_data_set_to_var('var_ctco', 1, 19, null, false, { useStorage: false }),
+            cmn_prep_data_set_to_var('mr_desig_posis', 1, 33, null, false, { useStorage: false }),
+            cmn_prep_data_set_to_var('var_intal', 1, 45, null, false, { useStorage: false })
         ]);
         //the filter's city list reads P.cty; hand it the lookup so it skips its own fetch
         const P = window[my1uzr.worknOnPg];
@@ -470,6 +622,106 @@ async function __mrPrepLookups() {
         console.error('lookup load failed:', e);
     }
 }
+
+/* ------------------------------------------------------------------------------------------
+ * COUNTRY-ROOTED TREES (a2/b2/c3). The first level lists countries from var_ctco. A country's
+ * own state/district/taluka list follows the ISO2 convention: file "<iso2lower>tal.da"
+ * assigned to window "var_<iso2lower>tal" (India IN -> var_intal / intal.da). The URL is
+ * derived from the India csh row, so the same code serves the local "git/" path and a CDN
+ * path. India is preloaded by __mrPrepLookups. Only countries listed in the config key
+ * "regionListCountries" (default "in") may open a region file; every other country stays a
+ * flat country -> city list from ctco, which is the old app's behaviour. Australia is not
+ * listed, so "autal.da" is never requested.
+ * ---------------------------------------------------------------------------------------- */
+const MR_CTRY_REF_CSH = 45; //India's lookup row; every country list shares its file pattern
+const __mrCtryRegionCache = {}; //tbl -> { status:'pending'|'loaded'|'missing', list, promise }
+
+//ISO2 codes allowed to load a "<iso2>tal.da" file; India is always allowed because the
+//5-level tree is built on it. Missing config keeps the default "in".
+function __mrRegionAllow() {
+    let raw = '';
+    try {
+        const P = window[my1uzr.worknOnPg];
+        raw = (P && P.clientConfig && P.clientConfig.regionListCountries) || '';
+    } catch (e) { }
+    const set = String(raw || 'in').toLowerCase().split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    if (set.indexOf('in') < 0) set.push('in');
+    return set;
+}
+
+function __mrCtryTbl(country) {
+    const iso2 = country && country.iso2;
+    if (!iso2) return '';
+    const t = String(iso2).toLowerCase().replace(/[^a-z]/g, '');
+    if (!t || __mrRegionAllow().indexOf(t) < 0) return '';
+    return t + 'tal';
+}
+
+function __mrCtryListVar(tbl) { return tbl ? 'var_' + tbl : ''; }
+
+//swap the file name in India's csh url ("git/intal.da", ".../cmn/intal.da" -> "<tbl>.da")
+function __mrCtryListUrl(tbl) {
+    if (!tbl) return null;
+    const P = window[my1uzr.worknOnPg];
+    const ref = (P && P.csh) ? P.csh.find(function (i) { return i.a === MR_CTRY_REF_CSH; }) : null;
+    const base = ref && ref.u ? String(ref.u) : '';
+    if (!base) return 'git/' + tbl + '.da';
+    return base.replace(/[^\/?]*\.da(?=([?#]|$))/, tbl + '.da');
+}
+
+//synchronous: the loaded region list for a country, or null while it is not in memory
+function __mrCtryRegionList(country) {
+    const tbl = __mrCtryTbl(country);
+    if (!tbl) return null;
+    const v = window[__mrCtryListVar(tbl)];
+    if (Array.isArray(v)) return v;
+    const st = __mrCtryRegionCache[tbl];
+    return (st && st.status === 'loaded') ? st.list : null;
+}
+
+//normalise the "@ctry" arr segment (children of a country come from its own list)
+function __mrIsCtryToken(seg) { return seg === '@ctry'; }
+
+//lazy fetch, de-duped; failures are remembered so a country without a file probes once
+function __mrLoadCtryRegion(country) {
+    const tbl = __mrCtryTbl(country);
+    if (!tbl) return Promise.resolve(null);
+    const st = __mrCtryRegionCache[tbl];
+    if (st && st.promise) return st.promise;
+    if (st && st.status === 'loaded') return Promise.resolve(st.list);
+    if (st && st.status === 'missing') return Promise.resolve(null);
+    //India's list is already in memory from __mrPrepLookups: no second fetch
+    const inMem = window[__mrCtryListVar(tbl)];
+    if (Array.isArray(inMem) && inMem.length) {
+        __mrCtryRegionCache[tbl] = { status: 'loaded', list: inMem };
+        return Promise.resolve(inMem);
+    }
+    const promise = cmn_prep_data_set_to_var(__mrCtryListVar(tbl), 1, MR_CTRY_REF_CSH, __mrCtryListUrl(tbl), true, { useStorage: false })
+        .then(function (list) {
+            if (Array.isArray(list) && list.length) {
+                __mrCtryRegionCache[tbl] = { status: 'loaded', list: list };
+                return list;
+            }
+            __mrCtryRegionCache[tbl] = { status: 'missing', list: null };
+            return null;
+        })
+        .catch(function () {
+            __mrCtryRegionCache[tbl] = { status: 'missing', list: null };
+            return null;
+        });
+    __mrCtryRegionCache[tbl] = { status: 'pending', list: null, promise: promise };
+    //re-resolve labels once the list (or its absence) is known
+    promise.then(function () {
+        if (typeof mrRenderMain === 'function' && profilesData.length && document.querySelector('.profile-card')) {
+            try { mrRenderMain(true); } catch (eRP) { }
+        }
+    });
+    return promise;
+}
+window.__mrLoadCtryRegion = __mrLoadCtryRegion;
+window.__mrCtryTbl = __mrCtryTbl;
+window.__mrCtryRegionList = __mrCtryRegionList;
+window.__mrIsCtryToken = __mrIsCtryToken;
 
 /* ==========================================================================================
  * DATA - the ONE "response.su == 1" handler. Global, as git/e.js and the login scripts
@@ -497,6 +749,17 @@ function handl_mr_rspons(response) {
                 }
                 if (response.mp != null && response.mp.l != null) {
                     await dbDexieManager.insertToDexie(dbnm, "mp", response.mp.l, true, ["a"]);
+                }
+                //mq = requested image updates (fn 68 image change / admin Re-Up list),
+                //mr_h = history, mu = misc uploads; store whenever a response carries them
+                if (response.mq != null && response.mq.l != null) {
+                    await dbDexieManager.insertToDexie(dbnm, "mq", response.mq.l, true, ["a"]);
+                }
+                if (response.mr_h != null && response.mr_h.l != null) {
+                    await dbDexieManager.insertToDexie(dbnm, "mr_h", response.mr_h.l, true, ["a"]);
+                }
+                if (response.mu != null && response.mu.l != null) {
+                    await dbDexieManager.insertToDexie(dbnm, "mu", response.mu.l, true, ["a"]);
                 }
             } else {
                 if (typeof window.showelsemodal === "function") {
@@ -553,14 +816,26 @@ async function hndlRspo70(resp) {
     if (myRow && myRow.a != null && typeof window.mrPersistMyEinMR === "function") {
         try { window.mrPersistMyEinMR(myRow); } catch (eP) { console.error(eP); }
     }
+    //this call can be the tail of the plans modal: "Get Free" while logged in
+    //(git/plans.js -> beCheckPlan_fn) or the guest path that opened the login modal and
+    //came back through my1lo as hndlRspo70(result.xtra). In both cases the plans modal
+    //is stale now; the view-profile modal already open underneath is left as it is and
+    //the unlock confirm still opens from its own "Unlock profile" button.
+    if (typeof window.mrCloseMarriagePlans === "function") {
+        try { window.mrCloseMarriagePlans(); } catch (ePC) { console.error(ePC); }
+    }
     //the server echoes the selected plan id as resp.pid; 0/absent = free or no plan -> no payment
     if (resp.pid != null && Number(resp.pid) !== 0 && typeof window.mrPayForPlan === "function") {
         const plan = __mrPlanByPid(resp.pid);
-        if (plan) { try { window.mrPayForPlan(plan); } catch (ePay) { console.error(ePay); } }
+        //a free plan (price 0) is already credited by the server: never send it to payment
+        if (plan && Number(plan.e) !== 0) { try { window.mrPayForPlan(plan); } catch (ePay) { console.error(ePay); } }
     }
-    //the "Already Registered" flow keeps its welcome toast; the cd:2 flow is silent (caller messages)
+    //the "Already Registered" flow keeps its welcome toast; the cd:2 flow is silent (caller messages).
+    //Decide from the row fn 70 actually returned: window.myEinMR is always defined (prfl.js
+    //installs a getter/setter) and was just updated above, so it can not tell whether a
+    //profile was found.
     if (!topShape && typeof showToast === "function") {
-        showToast("Welcome back!", { type: "success", duration: 3000, position: "top" });
+        showToast((myRow && myRow.a != null) ? "Welcome back!" : "Updated successfully", { type: "success", duration: 3000, position: "top" });
     }
     if (typeof activeClose === "function") { try { activeClose(); } catch (eC) { console.error(eC); } }
     if (typeof mrRenderList === "function") { try { await mrRenderList(true); } catch (eR) { console.error(eR); } }
@@ -588,7 +863,7 @@ async function pullProfiles(whr, reset) {
         payload0.fn = 64;
         payload0.x1 = (reset) ? '' : (__mrLowestProfileCursor() || '');
         payload0.whr = whr || '';
-        const response = await fnj3("https://my1.in/2/g.php", payload0, 0, true, null, 20000, 0, 1, 1, 0);
+        const response = await fnj3("https://my1.in/4/a.php", payload0, 0, true, null, 20000, 0, 1, 1, 0);
         if (!(response && response.su == 1)) {
             if (typeof window.showelsemodal === "function") {
                 window.showelsemodal((response && (response.ms || response.m)) || "Request failed");
@@ -629,7 +904,7 @@ window.initLazyLoadImages = function () { };
 /* ==========================================================================================
  * HELPERS - image tokens, card value formatting, reload.
  * ========================================================================================== */
-//Builds a Drive URL for one token of the `u` / `b6` value (the leading marker like
+//Builds a Drive URL for one token of the `u` / `u1` value (the leading marker like
 //"1_" is part of the stored id). Already-URL / data: values pass through.
 window.mrDriveUrlFromToken = function (token) {
     if (token == null) return null;
@@ -689,7 +964,7 @@ window.mrResolveProfileImages = function (value) {
     return out;
 };
 
-//Normalises the `b6` gallery value into a flat array of image tokens. The stored
+//Normalises the `u1` gallery value into a flat array of image tokens. The stored
 //shape has drifted between app versions, so accept all of them: a real array, a JSON
 //string ("[...]"), a JSON string of objects, and a plain comma/space separated list.
 //Each entry may itself be a bare token, a URL or the legacy {a,b} pair - callers run
@@ -728,7 +1003,7 @@ window.mrParseGalleryImages = function (value) {
     return out;
 };
 
-//Serialises the gallery tokens for storage. The app stores `b6` as a JSON array
+//Serialises the gallery tokens for storage. The app stores `u1` as a JSON array
 //string, matching the hidden input the registration form submits.
 window.mrSerializeGalleryImages = function (arr) {
     var list = window.mrParseGalleryImages(arr);
@@ -855,29 +1130,106 @@ function formatPackage(packageValue) {
 }
 
 //name from a comma path ("id,id,id") against a nested list name
-//("var_intal,dstrcts,thsls"): joins the matched level names with " / ".
+//("var_ctco,@ctry,x,x"): joins the matched level names with " / ".
+//"@ctry" marks the country level: the next ids resolve inside that country's
+//own region list (var_<iso2>tal) instead of a property on the country item.
 //Empty string when any level misses.
-function __mrPathName(listName, path) {
+//__mrPathNames is the per-level variant (array of names, for tree views);
+//this one just joins it.
+function __mrPathNames(listName, path) {
     const parts = String(listName || '').split(',').map(s => s.trim()).filter(Boolean);
     const top = parts.length ? window[parts[0]] : null;
-    if (!Array.isArray(top)) { return ''; }
+    if (!Array.isArray(top)) { return []; }
     const childKeys = parts.slice(1);
     const ids = String(path).split(',').map(s => s.trim()).filter(Boolean);
-    if (!ids.length) { return ''; }
+    if (!ids.length) { return []; }
     const names = [];
     let arr = top;
     for (let i = 0; i < ids.length; i++) {
         const found = arr.find(it => it && String(it.a) === ids[i]);
         if (!found) { break; }
-        names.push(found.e || found.n || '');
-        arr = (i < childKeys.length) ? (found[childKeys[i]] || []) : [];
+        const nm = found.e || found.n || '';
+        if (!/^-+\s*select\s*-+$/i.test(String(nm).trim())) names.push(nm);
+        if (i >= childKeys.length) { break; }
+        const seg = childKeys[i];
+        if (__mrIsCtryToken(seg)) {
+            const loaded = __mrCtryRegionList(found);
+            if (loaded) {
+                arr = loaded;
+            } else {
+                //not in memory yet: resolve from the ctco fallback now and kick
+                //the lazy load so a later render picks up the country's own list
+                if (__mrCtryTbl(found) && i < ids.length - 1) { __mrLoadCtryRegion(found); }
+                arr = found.x || [];
+            }
+        } else {
+            arr = found[seg] || [];
+        }
     }
-    return names.filter(Boolean).join(' / ');
+    return names.filter(Boolean);
 }
+window.__mrPathNames = __mrPathNames;
+
+function __mrPathName(listName, path) {
+    return __mrPathNames(listName, path).join(' / ');
+}
+window.__mrPathName = __mrPathName;
+
+//Address places store their five level ids apart (working a2..a6, native b2..b6,
+//living c3..c7) exactly like religion (k/k1/k2); the box / detail row shows them
+//joined as a single "country,state,district,taluka,city" path. Returns '' when the
+//root has no usable level.
+const __MR_PLACE_GROUPS = {
+    a2: ['a2', 'a3', 'a4', 'a5', 'a6'],
+    b2: ['b2', 'b3', 'b4', 'b5', 'b6'],
+    c3: ['c3', 'c4', 'c5', 'c6', 'c7']
+};
+function __mrPlacePath(profile, root) {
+    const grp = __MR_PLACE_GROUPS[root];
+    if (!grp || !profile) return '';
+    const ids = [];
+    for (let i = 0; i < grp.length; i++) {
+        const v = profile[grp[i]];
+        //skip a gap instead of stopping: a flat country stores its city in the
+        //last slot (a6/b6/c7) with the middle levels empty
+        if (v === undefined || v === null || v === '' || String(v) === '0') continue;
+        ids.push(String(v));
+    }
+    return ids.join(',');
+}
+window.__mrPlacePath = __mrPlacePath;
+
+//picker path -> the five stored level ids. Countries with their own region list
+//(India -> var_intal) keep the picker's 1:1 levels (state,district,taluka,city).
+//A country without one (Germany) lists cities directly and slkt2 labels that
+//level "City", so its last id belongs in the city slot even though the path
+//itself only has country + city.
+function __mrPlaceSlots(root, path) {
+    const grp = __MR_PLACE_GROUPS[root];
+    if (!grp) return [];
+    const ids = String(path || '').split(',').map(s => s.trim()).filter(Boolean);
+    const out = grp.map(() => '');
+    let flat = false;
+    if (ids.length > 1 && ids.length < grp.length) {
+        const list = Array.isArray(window.var_ctco) ? window.var_ctco : [];
+        const row = list.find(c => c && String(c.a) === ids[0]);
+        //no region list loaded for this country -> its children are cities
+        if (row && !__mrCtryRegionList(row)) flat = true;
+    }
+    if (!flat) {
+        for (let i = 0; i < ids.length && i < grp.length; i++) out[i] = ids[i];
+        return out;
+    }
+    const leaf = ids[ids.length - 1];
+    for (let i = 0; i < ids.length - 1 && i < grp.length - 1; i++) out[i] = ids[i];
+    out[grp.length - 1] = leaf;
+    return out;
+}
+window.__mrPlaceSlots = __mrPlaceSlots;
 
 //which fields render their value as a tree/path. mr.da "showTreeView" (comma
 //list) drives it; when that key is absent the legacy selectFields.<k>.depth
-//flag decides (b4 = native city).
+//flag decides (b2 = native city).
 function __mrIsTreeField(token) {
     const C = (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].clientConfig) || {};
     const raw = C.showTreeView;
@@ -888,16 +1240,16 @@ function __mrIsTreeField(token) {
     return String(raw).split(',').map(s => s.trim()).filter(Boolean).indexOf(String(token)) >= 0;
 }
 
-//city/country name by id; var_ctco is a list of countries with nested `cities`
-//(b5 = country, b4 = city within it). The name key in the .da files is `e`
-//(`n` kept as a fallback for older shapes), so this may legitimately answer ''
-//until the lookups land
+//city/country name by id; var_ctco is a list of countries with nested child
+//lists under `x` (a2/b2/c3 = country pickers, their levels nest below it). The name key in the .da
+//files is `e` (`n` kept as a fallback for older shapes), so this may legitimately
+//answer '' until the lookups land
 function __mrCityName(id) {
     if (id === undefined || id === null || id === '') { return ''; }
     const C = (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].clientConfig) || {};
-    if (__mrIsTreeField('b4')) {
-        const b4arr = (C.selectFields && C.selectFields.b4 && C.selectFields.b4.arr) || 'var_intal,dstrcts,thsls';
-        const depthNm = __mrPathName(b4arr, id);
+    if (__mrIsTreeField('b2')) {
+        const b2arr = (C.selectFields && C.selectFields.b2 && C.selectFields.b2.arr) || 'var_ctco,@ctry,x,x,x';
+        const depthNm = __mrPathName(b2arr, id);
         if (depthNm) { return depthNm; }
     }
     const list = window.var_ctco || [];
@@ -906,7 +1258,7 @@ function __mrCityName(id) {
             const nm = list[i].n || list[i].e;
             return nm ? String(nm) : '';
         }
-        const cities = list[i].cities || [];
+        const cities = list[i].x || [];
         for (let j = 0; j < cities.length; j++) {
             if (cities[j].a == id) {
                 const cnm = cities[j].n || cities[j].e;
@@ -1020,24 +1372,57 @@ function __mrCardFactValue(profile, token) {
     }
     if (token === 'h') return profile.h ? formatHeight(profile.h) : null;
     if (token === 'i') return profile.i ? formatPackage(profile.i) : null;
-    if (token === 'k' || token === 'k1') {
-        const rlgn = (window.var_caste_rlgns || []).find(item => item.a == profile.k);
-        if (token === 'k') return rlgn ? rlgn.e : null;
-        const caste = (rlgn && rlgn.castes) ? rlgn.castes.find(c => c.a == profile.k1) : null;
-        return caste ? caste.e : null;
+    if (token === 'k') {
+        if (!__mrIsSetId(profile.k)) return '-';
+        const rlgn = (window.var_caste_rlgns || []).find(function (item) { return item && __mrIsSetId(item.a) && String(item.a) === String(profile.k); });
+        return rlgn ? __mrTreeLabel(rlgn.e) : '-';
+    }
+    if (token === 'k1') {
+        if (!__mrIsSetId(profile.k)) return '-';
+        if (!__mrIsSetId(profile.k1)) return '-';
+        const rlgn = (window.var_caste_rlgns || []).find(function (item) { return item && __mrIsSetId(item.a) && String(item.a) === String(profile.k); });
+        if (!rlgn || !Array.isArray(rlgn.x)) return '-';
+        const caste = rlgn.x.find(function (c) { return c && __mrIsSetId(c.a) && String(c.a) === String(profile.k1); });
+        return caste ? __mrTreeLabel(caste.e) : '-';
     }
     if (token === 'k2') {
-        const subCaste = (window.var_sub_caste_type || []).find(item => item.a == profile.k2);
-        return subCaste ? subCaste.e : null;
+        //sub caste lives on the chosen caste (var_caste_rlgns -> religion.x -> caste.x)
+        if (!__mrIsSetId(profile.k) || !__mrIsSetId(profile.k1) || !__mrIsSetId(profile.k2)) return '-';
+        const rlgn = (window.var_caste_rlgns || []).find(function (item) { return item && __mrIsSetId(item.a) && String(item.a) === String(profile.k); });
+        const caste = (rlgn && Array.isArray(rlgn.x)) ? rlgn.x.find(function (c) { return c && __mrIsSetId(c.a) && String(c.a) === String(profile.k1); }) : null;
+        const subCaste = (caste && Array.isArray(caste.x)) ? caste.x.find(function (s) { return s && __mrIsSetId(s.a) && String(s.a) === String(profile.k2); }) : null;
+        return subCaste ? __mrTreeLabel(subCaste.e) : '-';
     }
     if (token === 's') return __mrDegreeNames(profile.s) || null;
     if (__mrIsTreeField(token)) {
         const tCfg = (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].clientConfig) || {};
         const tField = (tCfg.selectFields || {})[token];
-        return __mrPathName(tField && tField.arr, profile[token]) || null;
+        //place picker roots (a2/b2/c3) keep their five level ids apart - join them
+        const tPath = __mrPlacePath(profile, token) || profile[token];
+        return __mrPathName(tField && tField.arr, tPath) || null;
     }
-    if (token === 'b5') return __mrCityName(profile.b5) || null;
+    //individual place-level keys are not card tokens (the picker roots a2/b2/c3 carry the
+    //whole path); kept for safety - a level id still resolves through the var_ctco lookups
+    if (token === 'a3' || token === 'b5' || token === 'c5') return __mrCityName(profile[token]) || null;
     return profile[token] || null;
+}
+
+function __mrIsSetId(v) {
+    if (v === null || v === undefined) return false;
+    var s = String(v).trim();
+    if (s === '') return false;
+    if (s === '0') return false;
+    if (s === 'undefined') return false;
+    if (s === 'null') return false;
+    return true;
+}
+
+function __mrTreeLabel(v) {
+    if (v === null || v === undefined) return '-';
+    var s = String(v).trim();
+    if (s === '') return '-';
+    if (/^-+\s*select\s*-+$/i.test(s)) return '-';
+    return s;
 }
 
 //relation status label for a marital id (j); '' = no chip
@@ -1045,6 +1430,36 @@ function __mrRelationName(id) {
     if (id == null || id === '') return '';
     const s = (window.marital_status || []).find(x => x.a == id);
     return s ? (s.e || '') : '';
+}
+
+//religion chain names for a profile (religion -> caste -> sub caste), walking the
+//nested var_caste_rlgns arrays (religion.x -> caste.x). Empty when nothing is set.
+function __mrReligionNames(profile) {
+    var names = [];
+    if (!profile) return names;
+    var list = window.var_caste_rlgns || [];
+    if (!Array.isArray(list)) return names;
+    if (!__mrIsSetId(profile.k)) return names;
+    var rlgn = list.find(function (it) { return it && __mrIsSetId(it.a) && String(it.a) === String(profile.k); });
+    if (!rlgn) return names;
+    names.push(__mrTreeLabel(rlgn.e));
+
+    if (profile.k1 !== undefined) {
+        var castes = Array.isArray(rlgn.x) ? rlgn.x : [];
+        var caste = __mrIsSetId(profile.k1)
+            ? castes.find(function (c) { return c && __mrIsSetId(c.a) && String(c.a) === String(profile.k1); })
+            : null;
+        names.push(caste ? __mrTreeLabel(caste.e) : '-');
+
+        if (caste && profile.k2 !== undefined) {
+            var subs = Array.isArray(caste.x) ? caste.x : [];
+            var sub = __mrIsSetId(profile.k2)
+                ? subs.find(function (s) { return s && __mrIsSetId(s.a) && String(s.a) === String(profile.k2); })
+                : null;
+            names.push(sub ? __mrTreeLabel(sub.e) : '-');
+        }
+    }
+    return names;
 }
 
 function createProfileCard(profile) {
@@ -1064,13 +1479,19 @@ function createProfileCard(profile) {
     //a paid package is what marks a profile premium in this data model
     const isPremium = !!packageAmount;
 
-    const religionTxt = __mrCardFactValue(profile, 'k') || '';
+    const religionNames = __mrReligionNames(profile);
     const relationTxt = __mrRelationName(profile.j);
 
     const metaItem = (icon, text) => (text
         ? `<span class="app-card__meta-item"><i class="fas fa-${icon}"></i>${__mrEscHtml(text)}</span>`
         : '');
-    const metaHtml = metaItem(__mrMetaIcon('k'), religionTxt)
+    //religion chip shows the whole chain (religion -> caste -> sub caste) as a mini tree
+    const religionItem = religionNames.length
+        ? `<span class="app-card__meta-item app-card__meta-item--tree"><i class="fas fa-${__mrMetaIcon('k')}"></i><span class="app-card__tree">`
+            + religionNames.map((nm, i) => `<span class="app-card__tree-node lv${i}">${__mrEscHtml(nm)}</span>`).join('')
+            + `</span></span>`
+        : '';
+    const metaHtml = religionItem
         + metaItem(__mrMetaIcon('g'), ageTxt)
         + metaItem(__mrMetaIcon('h'), height)
         + metaItem(__mrMetaIcon('s'), degreeTxt);
@@ -1089,7 +1510,16 @@ function createProfileCard(profile) {
                      loading="lazy" decoding="async">
                 <div class="profile-overlay"></div>
                 ${isPremium ? '<span class="app-card__premium"><i class="fas fa-crown"></i>Premium</span>' : ''}
-                ${uniqueProflID ? `<span class="app-card__id">ID: ${__mrEscHtml(uniqueProflID)}</span>` : ''}
+                ${(() => {
+                    const uid = uniqueProflID || '';
+                    if (!uid) return '';
+                    const eo = window.ownr_eo || '';
+                    const ec = window.ownr_ec || '';
+                    const pj = window.ownr_pj || '';
+                    if (!eo || !ec || !pj) return `<span class="app-card__id">ID: ${__mrEscHtml(uid)}</span>`;
+                    const url = `http://my1.in/${eo}/${ec}/${pj}/p/${encodeURIComponent(uid)}.html`;
+                    return `<span class="app-card__id app-card__id--link" role="button" tabindex="0" title="Share profile" onclick="event.stopPropagation(); var u='${url.replace(/'/g,"\\'")}'; if(typeof shareApp==='function'){ shareApp({url:u, title:'Profile ${uid.replace(/'/g,"\\'")}', text:'Profile ${uid.replace(/'/g,"\\'")}' }); } else if(navigator.share){ navigator.share({title:'Profile ${uid.replace(/'/g,"\\'")}', text:'Profile ${uid.replace(/'/g,"\\'")}', url:u}).catch(function(){ try{prompt('Copy this link:',u);}catch(e){} }); } else { try{prompt('Copy this link:',u);}catch(e){} }">ID: ${__mrEscHtml(uid)}</span>`;
+                })()}
             </div>
 
             <div class="app-card__body">
@@ -1145,7 +1575,16 @@ function __mrNewCardDegreeOpts() {
 //registration modal reopens pre-filled and the app recognises the member's profile
 function __mrPersistMyRow(row) {
     if (!row) return;
-    try { window.myEinMR = row; } catch (e) { }
+    //prfl.js defines window.myEinMR with a setter that normalises the row (keeps known
+    //d1/d2 totals) and writes "<tn>_myEinMR" itself. Writing the raw row here afterwards
+    //would undo that, so only use the local fallback when the setter is absent.
+    var handled = false;
+    try {
+        var d = Object.getOwnPropertyDescriptor(window, "myEinMR");
+        if (d && typeof d.set === "function") { window.myEinMR = row; handled = true; }
+    } catch (e) { }
+    if (handled) return;
+    try { window.myEinMR = row; } catch (e1) { }
     try {
         var tn = window.appOwner && window.appOwner.tn;
         if (tn) localStorage.setItem(tn + "_myEinMR", JSON.stringify(row));
@@ -2115,6 +2554,14 @@ input.form-control.is-invalid:focus{ box-shadow:0 0 0 3px rgba(163,49,32,.2); }
 }
 .app-card__meta-item{ display:inline-flex; align-items:center; gap:.35rem; }
 .app-card__meta-item i{ color:var(--mr-primary); font-size:.78rem; }
+/* religion chip renders the whole chain as a compact mini tree (religion -> caste -> sub) */
+.app-card__meta-item--tree{ align-items:flex-start; }
+.app-card__tree{ display:inline-flex; flex-direction:column; line-height:1.25; min-width:0; }
+.app-card__tree-node{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.app-card__tree-node.lv0{ color:#8B1E3F; font-weight:700; }
+.app-card__tree-node.lv1{ color:#6E1733; font-size:.78rem; padding-left:12px; }
+.app-card__tree-node.lv2{ color:#6b6355; font-size:.74rem; padding-left:24px; }
+.app-card__tree-node.lv1::before,.app-card__tree-node.lv2::before{ content:"⤵ "; color:#c9a45c; font-size:.65rem; }
 
 .app-card__role{
   display:flex; align-items:center; gap:.4rem;
