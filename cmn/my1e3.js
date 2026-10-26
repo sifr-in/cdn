@@ -2113,11 +2113,12 @@ let btn = null, armed = "", last = null, currentRaw = "";
   } catch (e) { }
   last = a;
   currentRaw = raw || "";   //the sound that just started (its config "e")
+  armed = raw || "";        //the button follows the sound that actually played
   try { a.currentTime = 0; } catch (e) { }
   Promise.resolve(a.play()).catch(function () { });
  }
  function toggle() {
-  if (last && typeof last.pause === "function" && !last.ended) {
+  if (last && typeof last.pause === "function" && !last.ended && currentRaw === armed) {
    if (last.paused) { try { Promise.resolve(last.play()).catch(function () { }); } catch (e) { } }
    else {
     try { last.pause(); } catch (e) { }
@@ -2165,12 +2166,19 @@ let btn = null, armed = "", last = null, currentRaw = "";
    });
   } catch (e) { }
   last = null;
+  currentRaw = "";
  }
 
  /* public API */
  window.mrSoundBtn = {
   /* reveal the button and arm it with a sound (raw = signal/URL) */
-  show: function (raw) { ensure(); armed = raw || ""; btn.classList.add("is-on"); },
+  show: function (raw) {
+   ensure();
+   const r = raw || "";
+   if (r !== armed && last) stopAll();   //context changed: release the old sound
+   armed = r;
+   btn.classList.add("is-on");
+  },
   /* hide it and stop whatever sound is playing (single global pipeline) */
   hide: function () {
    if (btn) btn.classList.remove("is-on", "is-playing");
@@ -2179,7 +2187,12 @@ let btn = null, armed = "", last = null, currentRaw = "";
   /* current visibility */
   isShown: function () { return !!(btn && btn.classList.contains("is-on")); },
   /* arm a sound without changing visibility */
-  setSound: function (raw) { armed = raw || ""; if (btn) last = null; return armed; },
+  setSound: function (raw) {
+   const r = raw || "";
+   if (r !== armed) stopAll();           //switching context drops the old sound
+   armed = r;
+   return armed;
+  },
   /* AUTO play the armed (or given) sound through the shared button: skipped once
    * that sound hit the configured pause limit (manual tap still plays it) */
   play: function (raw) { const r = raw || armed; if (isAutoOff(r)) return; play(r); },

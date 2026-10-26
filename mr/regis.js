@@ -1977,6 +1977,20 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
   }));
  }
 
+ //New registration only: start the place and religion pickers empty. Their config
+ //defaults (mr.da default*Country / dfltReligious, e.g. India / religion 4) still
+ //seed the picker when it opens (selModalObject -> countryInfoFor / dfltReligiousInfo),
+ //but they must not be written into the form as if the member had chosen them.
+ //Update profiles keep whatever findProfile() returned.
+ function blankDefaultSelections(profileData) {
+  if (!profileData) return profileData;
+  profileData.a2 = "";   //working country (defaultWorkingCountry)
+  profileData.b2 = "";   //native country  (defaultNativeCountry)
+  profileData.c3 = "";   //living country  (defaultLivingCountry)
+  profileData.k = "";    //religion        (dfltReligious)
+  return profileData;
+ }
+
  function applyDefaultValues(profileData) {
   var defaultVals = rgP().defaFieldVals;
   if (!Array.isArray(defaultVals) || defaultVals.length === 0) return profileData;
@@ -2198,7 +2212,7 @@ var reqStar = {};
     return;
    }
   } else {
-   base = setDfltCaste(applyDefaultValues(defaultProfileData()));
+   base = blankDefaultSelections(setDfltCaste(applyDefaultValues(defaultProfileData())));
   }
 
   var rules = resolveValidationRules(P, C);
@@ -2355,6 +2369,11 @@ var reqStar = {};
    if (sig === lastSndKey && (now - lastSndAt) < 350) return;
    lastSndKey = sig;
    lastSndAt = now;
+   //re-arm the shared button to THIS field's sound (also when auto-play is off,
+   //so a manual tap plays the field's sound, not the modal's opening one)
+   if (rgAudioOn && window.mrSoundBtn && typeof window.mrSoundBtn.show === "function") {
+    try { window.mrSoundBtn.show(raw); } catch (eS) { }
+   }
    if (!isAudioAutoOff(raw)) regisPlaySound(raw);
   }
   function onFieldSound(ev) {
