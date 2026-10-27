@@ -3,7 +3,11 @@ const inTbls = ["dontCret:", "public:", "2/b-2~p,s", "2/b-3~c,b,i,r,ba,p,s,be", 
 const moduLst = [
  { "a": ",2,3,4,7,9,25,104,", "b": "Dashboard", "c": "fa-plus-circle", "d": "mn_prods", "e": "#198754" }
 ];
-const cust_const = [];// { "a": "paymentGatewayIntegrated", "b": 0, "c": "more customiztaion", "d": "if value is 1 payment gatewy will be shown, else manual booking", "u": "url-explaining-video" },
+const cust_const = [
+  { "a": "billingModule", "b": 0, "c": "more customiztaion", "d": "here for add item bill will be if 0 = normal, 1 = car garage, 2 = laundry", "u": "url-explaining-video" },
+  { "a": "bePrModule", "b": 3, "c": "more custom..", "d": "here for be print bill will be if 1 = normal as old view, 2 = normal with updated view, 3 = updaet new theme with updated view", "u": "url-explaining-video" },
+  { "a": "showEyeMesuremetsTableInBill", "b": 0, "c": "more customiztaion", "d": "here for eye measurments table in bill will be if 0 = don't show, 1 = show", "u": "url-explaining-video" }
+];
 moduLst.hook = "onModuLstAllowed";
 window[my1uzr.worknOnPg].moduLst = moduLst;
 window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
@@ -83,8 +87,51 @@ Object.defineProperty(window, 'clientConfig', {
  get() { return window[my1uzr.worknOnPg].clientConfig; },
  configurable: true
 });
-const showEyeMesuremetsTableInBill = 0;// 0 or undefiend const - don't show, 1 - show tables
-const billingModule = 1;//0 or null = normal; 1= garge / services ; 2=laundry;
+// ==================== b.da config (must be loaded before module selection / first render) ====================
+// 0 or undefined -> don't show measurement tables, 1 -> show. Sourced from b.da.
+let showEyeMesuremetsTableInBill = 0;
+// 0 or null = normal; 1 = garage / services. Sourced from b.da -> cust_da_const.billingModule.
+let billingModule = 0;
+// 1 = bePr.js, 2 = bePr2.js, 3 = bePr3.js (default). Sourced from b.da -> cust_da_const.bePrModule.
+let bePrModule = 3;
+
+// Loads b.da once and caches it on the page state so every later reader sees the same object.
+async function bDaConfig() {
+ const state = window[my1uzr.worknOnPg];
+ if (state.clientConfig && typeof state.clientConfig === 'object' && Object.keys(state.clientConfig).length) {
+  return state.clientConfig;
+ }
+ try {
+  const response = await fetch('b.da');
+  const config = (await response.json()) || {};
+  if (config.print_logo) {
+   const resolveLogo = typeof window.getGoogleDriveImageUrl === 'function' ? window.getGoogleDriveImageUrl : (value) => value;
+   config.print_logo = resolveLogo(config.print_logo) || 'https://i.postimg.cc/gJ62yjJf/my1.jpg';
+  }
+  state.clientConfig = config;
+ } catch (err) {
+  console.error('Failed to load b.da:', err);
+  state.clientConfig = state.clientConfig || {};
+ }
+ return state.clientConfig;
+}
+
+// Applies the config-driven constants and mirrors them on window for older readers.
+function applyBDaConfig(config) {
+ const cfg = config || {};
+ const daConst = (cfg.cust_da_const && typeof cfg.cust_da_const === 'object') ? cfg.cust_da_const : {};
+ const moduleValue = daConst.billingModule ?? cfg.billingModule ?? 0;
+ billingModule = Number(moduleValue) || 0;
+ const bePrValue = daConst.bePrModule ?? cfg.bePrModule ?? 3;
+ bePrModule = Number(bePrValue) || 3;
+ const eyeValue = daConst.showEyeMesuremetsTableInBill ?? cfg.showEyeMesuremetsTableInBill ?? 0;
+ showEyeMesuremetsTableInBill = Number(eyeValue) == 1 ? 1 : 0;
+ if (cfg.pickerTdVersion) window.PICKER_TD_VERSION = String(cfg.pickerTdVersion);
+ if (cfg.pickerDateFormat) window.PICKER_DATE_FORMAT = String(cfg.pickerDateFormat);
+ window.billingModule = billingModule;
+ window.bePrModule = bePrModule;
+ window.showEyeMesuremetsTableInBill = showEyeMesuremetsTableInBill;
+}
 appcss = `
  :root { --primary-purple: #6f42c1; --secondary-gold: #ffd700; --light-purple: #e2d9f3; --dark-purple: #4a2d7e }
  body { background-color: var(--light-purple); animation: fadeIn 1s ease-in; min-height: 100vh; display: flex; flex-direction: column }
@@ -114,8 +161,8 @@ appcss = `
 `;
 
 // ==================== Shared datetime picker (Bootstrap - Tempus Dominus) ====================
-const PICKER_TD_VERSION = '6.10.4';
-const PICKER_DATE_FORMAT = 'yyyy-MM-dd HH:mm';
+// Version + format come from window.PICKER_TD_VERSION / window.PICKER_DATE_FORMAT
+// (defaults set in my1e3.js, overridable via b.da -> pickerTdVersion / pickerDateFormat).
 
 let tdDepsPromise = null;
 function loadDatePickerDependencies() {
@@ -124,12 +171,12 @@ function loadDatePickerDependencies() {
   tdDepsPromise = new Promise((resolve, reject) => {
    const link = document.createElement('link');
    link.rel = 'stylesheet';
-   link.href = `https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@${PICKER_TD_VERSION}/dist/css/tempus-dominus.min.css`;
+   link.href = `https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@${window.PICKER_TD_VERSION}/dist/css/tempus-dominus.min.css`;
    link.onerror = () => reject(new Error('Failed to load Tempus Dominus CSS'));
    document.head.appendChild(link);
 
    const script = document.createElement('script');
-   script.src = `https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@${PICKER_TD_VERSION}/dist/js/tempus-dominus.min.js`;
+   script.src = `https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@${window.PICKER_TD_VERSION}/dist/js/tempus-dominus.min.js`;
    script.onload = () => resolve();
    script.onerror = () => reject(new Error('Failed to load Tempus Dominus JS'));
    document.head.appendChild(script);
@@ -159,9 +206,6 @@ function parsePickerValue(val) {
  return new tempusDominus.DateTime(d[0], d[1] - 1, d[2], t[0] || 0, t[1] || 0, t[2] || 0);
 }
 
-const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const MONTH_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
 function isDesktopView() {
  return window.innerWidth > 768;
 }
@@ -171,7 +215,7 @@ function formatLongDisplay(val) {
  const parts = String(val).trim().split(/[\sT]+/);
  const d = (parts[0] || '').split('-');
  if (d.length < 3) return val;
- const month = MONTH_FULL[Number(d[1]) - 1] || d[1];
+ const month = (window.MONTH_FULL || [])[Number(d[1]) - 1] || d[1];
  const day = String(d[2]).padStart(2, '0');
  const base = `${day}/${month}/${d[0]}`;
  const t = (parts[1] || '').split(':').map(Number);
@@ -190,7 +234,7 @@ function formatShortDisplay(val) {
  const parts = String(val).trim().split(/[\sT]+/);
  const d = (parts[0] || '').split('-');
  if (d.length < 3) return val;
- return String(d[2]).padStart(2, '0') + '/' + (MONTH_SHORT[Number(d[1]) - 1] || d[1]);
+ return String(d[2]).padStart(2, '0') + '/' + ((window.MONTH_SHORT || [])[Number(d[1]) - 1] || d[1]);
 }
 
 // Global datetime picker initializer - one function for all date/time fields.
@@ -218,8 +262,8 @@ function formatShortDisplay(val) {
   { "a": 8, "u": "https://code.jquery.com/jquery-3.6.0.min.js" },
   { "a": 9, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@asdf2e1/b/b.min.js", "c": "set_bill_innerHTML", "r": "set_bill_innerHTML" },
   { "a": 10, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@14002e4/b/ba.min.js", "c": "open_bil_inward", "r": "open_bil_inward" },
-  { "a": 11, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@cc71958/b/bn.js", "c": "set_add_itm_nw_innerHTML", "r": "set_add_itm_nw_innerHTML" },
-  { "a": 12, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/b/bp.js", "c": "set_deup_prod_innerHTML", "r": "set_deup_prod_innerHTML" },
+  { "a": 11, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/bn.js", "c": "set_add_itm_nw_innerHTML", "r": "set_add_itm_nw_innerHTML" },
+  { "a": 12, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/bp.js", "c": "set_deup_prod_innerHTML", "r": "set_deup_prod_innerHTML" },
   { "a": 13, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@a30ac23/b/bPrOp.min.css" },
   { "a": 14, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/ei.min.js", "c": "open_entind_crud", "r": "open_entind_crud" },
   { "a": 15, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1lp.min.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
@@ -228,9 +272,9 @@ function formatShortDisplay(val) {
   { "a": 18, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@24bf6ca/cmn/my1drv.min.js" },
   { "a": 19, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1e3.min.js", "c": "fileUploadTesting", "r": "fileUploadTesting" },
   { "a": 20, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fc84f58/cmn/my1dra.min.js", "c": "upldAnyFile2drv", "r": "upldAnyFile2drv" },
-  { "a": 21, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@cc71958/b/be.js", "c": "set_be_innerHTML", "r": "set_be_innerHTML" },
-  { "a": 22, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@31fba32/b/bePr.min.js", "c": "sho_bepr_mdl", "r": "sho_bepr_mdl" },
-  { "a": 23, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/b/be_da.js", "c": "showPrintSettings", "r": "showPrintSettings" },
+  { "a": 21, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/be.js", "c": "set_be_innerHTML", "r": "set_be_innerHTML" },
+  { "a": 22 },
+  { "a": 23, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/be_da.js", "c": "showPrintSettings", "r": "showPrintSettings" },
   { "a": 24, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1img.min.js", "c": "open_addimage", "r": "open_addimage" },
   { "a": 25, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1236a32/cmn/clrChe.js", "c": "showClearCacheModal", "r": "showClearCacheModal" },
   { "a": 26, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/b/bi.js", "c": "set_bill_Inverd_innerHTML", "r": "set_bill_Inverd_innerHTML" },
@@ -240,35 +284,42 @@ function formatShortDisplay(val) {
   { "a": 30, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
  ];
 
- let item1 = null;
+ // b.da must be ready before the add-item module is chosen or anything renders.
+ applyBDaConfig(await bDaConfig());
+
  const csh1 = window[my1uzr.worknOnPg].csh;
- if (typeof billingModule === 'undefined' || billingModule === 0 || billingModule == null) {
-  item1 = csh1.find(x => x.a === 29);
-  if (item1) {
-   Object.assign(item1, {
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/b/shoRegItm.js",
-    c: "showAddNormalItemModal",
-    r: "showAddNormalItemModal"
-   });
-  }
- } else if (billingModule === 1) {
-  item1 = csh1.find(x => x.a === 29);
-  if (item1) {
-   Object.assign(item1, {
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/b/shoCarwork.js",
-    c: "showAddCarWorkModal",
-    r: "showAddCarWorkModal"
-   });
-  }
- } else if (billingModule === 2) {
-  item1 = csh1.find(x => x.a === 29);
-  if (item1) {
-   Object.assign(item1, {
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/b/shoCarwork.js",
-    c: "showAddCarWorkModal",
-    r: "showAddCarWorkModal"
-   });
-  }
+ // billingModule 0 = normal items, 1 = garage / services.
+ // Any missing / unknown value (including 2 = laundry, until its module is supplied) falls back to 0.
+ const addItemModules = {
+  0: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/shoRegItm.js", c: "showAddNormalItemModal" },
+  1: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/shoCarwork.js", c: "showAddCarWorkModal" },
+  2: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/shoLodryItm.js", c: "showAddLondryItemModal" }
+ };
+ const addItemModule = addItemModules[billingModule] || addItemModules[0];
+ const item1 = csh1.find(x => x.a === 29);
+ if (item1) {
+  Object.assign(item1, {
+   u: addItemModule.u,
+   c: addItemModule.c,
+   r: addItemModule.c
+  });
+ }
+
+ // bePrModule 1 = bePr.js, 2 = bePr2.js, 3 = bePr3.js.
+ // Any missing / unknown value falls back to 3 (bePr3.js).
+ const bePrModules = {
+  1: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/bePr.js" },
+  2: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/bePr2.js" },
+  3: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/bePr3.js" }
+ };
+ const bePrModuleSelected = bePrModules[bePrModule] || bePrModules[1];
+ const bePrItem = csh1.find(x => x.a === 22);
+ if (bePrItem) {
+  Object.assign(bePrItem, {
+   u: bePrModuleSelected.u,
+   c: "sho_bepr_mdl",
+   r: "sho_bepr_mdl"
+  });
  }
 
  // Ensure UNIT_DATA is available
@@ -303,12 +354,9 @@ function formatShortDisplay(val) {
  window[my1uzr.worknOnPg].confg.addByQR = 1;
  window[my1uzr.worknOnPg].confg.scanDelayQR = 3000;
  //window[my1uzr.worknOnPg].confg.shodateofberthForEi = 1;
- const shoEyeMsrmntTbl =
-  typeof showEyeMesuremetsTableInBill !== "undefined"
-   ? showEyeMesuremetsTableInBill == 1
-   : null;
+ const shoEyeMsrmntTbl = showEyeMesuremetsTableInBill == 1;
 
- window.allowFloat = function (el, decimals = 2) {
+ window.allowFloat = function (el, decimals = 2, maxInt = 7) {
   let v = el.value;
 
   // Keep only numbers and .
@@ -322,10 +370,33 @@ function formatShortDisplay(val) {
 
   // Limit digits before and after the decimal point
   const parts = v.split('.');
-  const intPart = parts[0].slice(0, 7);
+  const intPart = parts[0].slice(0, maxInt);
   const decPart = parts[1] !== undefined ? parts[1].slice(0, decimals) : '';
 
   el.value = v.includes('.') ? intPart + '.' + decPart : intPart;
+ };
+
+ // Discount % input: 2 integer digits max (caps at 99), 2 decimals max.
+ // Leading-dot values such as ".90" are kept as typed.
+ window.allowDiscountPct = function (el) {
+  let v = String(el.value || '').replace(/[^0-9.]/g, '');
+
+  // Allow only one decimal point
+  const dotIndex = v.indexOf('.');
+  if (dotIndex !== -1) {
+   v = v.slice(0, dotIndex + 1) + v.slice(dotIndex + 1).replace(/\./g, '');
+  }
+
+  const parts = v.split('.');
+  let intPart = (parts[0] || '').replace(/^0+(?=\d)/, '');
+  let decPart = parts[1] !== undefined ? parts[1].slice(0, 2) : undefined;
+  // More than 2 digits means the user tried >= 100 -> clamp to 99.99.
+  if (intPart.length > 2) {
+   intPart = '99';
+   if (decPart !== undefined) decPart = '99';
+  }
+
+  el.value = v.includes('.') ? intPart + '.' + (decPart || '') : intPart;
  };
 
  window.closeModal = function (modalId, modalInstance) {
@@ -548,29 +619,19 @@ function formatShortDisplay(val) {
    console.log(`Only ${result1.loadedCount}/${result1.totalScripts} scripts loaded`);
   }
 
-
-  fetch('b.da')
-   .then(response => response.json())
-   .then(config => {
-    if (config && config.print_logo) {
-     config.print_logo = getGoogleDriveImageUrl(config.print_logo) || 'https://i.postimg.cc/gJ62yjJf/my1.jpg';
-    }
-    window[my1uzr.worknOnPg].clientConfig = config;
-   })
-   .catch(err => {
-    console.error('Failed to load b.da:', err);
-    window[my1uzr.worknOnPg].clientConfig = {};
-   });
+  // b.da is already loaded at the top of this IIFE (bDaConfig) and stored on
+  // window[my1uzr.worknOnPg].clientConfig, so nothing to fetch here.
 
   document
    .getElementById("sync_all_info")
    .addEventListener("click", function () {
     (async () => {
      try {
+      await clearPayload0();
       payload0.vw = 1;
       payload0.fn = 4;
       payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, getMaxDateTables());
-      const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+      const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 1);
       if (response && response.su == 1) {
        hndlRspo4(response, 1);
       } else {
@@ -581,6 +642,7 @@ function formatShortDisplay(val) {
      }
     })();
    });
+
   document
    .getElementById("bt_clr_locl_db")
    .addEventListener("click", function () {
@@ -592,7 +654,7 @@ function formatShortDisplay(val) {
  }
 
  window.hndlRspo4 = async function (response) {
-  handl_op_rspons(response, 1);
+  await handl_op_rspons(response, 1);
  };
 
  // ==================== FUNCTIONS ====================
@@ -795,11 +857,11 @@ function formatShortDisplay(val) {
 <div class="row g-2 mb-3" style="flex-wrap:nowrap;">
 <div class="col-6" style="min-width:0;">
 <label class="bm-label">Discount %</label>
-<input type="number" class="form-control bm-input bm-amt" id="discountPercentage" style="font-size:1.05rem;border:2px solid #000080;" min="0" max="100" step="0.1" placeholder="0.00" value="0">
+<input type="text" inputmode="decimal" maxlength="5" autocomplete="off" class="form-control bm-input bm-amt" id="discountPercentage" oninput="window.allowDiscountPct(this)" style="font-size:1.05rem;border:2px solid #000080;" placeholder="0.00" value="0">
 </div>
 <div class="col-6" style="min-width:0;">
 <label class="bm-label">Discount ₹</label>
-<input type="number" class="form-control bm-input bm-amt" id="discountAmount" style="font-size:1.05rem;border:2px solid #000080;" min="0" step="1" placeholder="0.00" value="0">
+<input type="text" inputmode="decimal" maxlength="8" autocomplete="off" class="form-control bm-input bm-amt" id="discountAmount" oninput="window.allowFloat(this,2,5)" style="font-size:1.05rem;border:2px solid #000080;" placeholder="0.00" value="0">
 </div>
 </div>
 
@@ -1372,6 +1434,14 @@ style="font-size: 0.8rem;">
   // Set the data-item-id attribute
   document.getElementById('modalItemName').setAttribute('data-item-id', item.a);
 
+  // Show the product's Tax 1 / Tax 2 (p.j / p.k) in the modal inputs.
+  // The legacy b.js modal has no tax inputs, so guard each lookup.
+  const rates = productTaxRates(item);
+  const modalTax1 = document.getElementById('modalItemTax1');
+  const modalTax2 = document.getElementById('modalItemTax2');
+  if (modalTax1) modalTax1.value = rates.tax1.toFixed(2);
+  if (modalTax2) modalTax2.value = rates.tax2.toFixed(2);
+
   calculateModalPrice();
 
   const imageContainer = document.getElementById('modalItemImageContainer');
@@ -1431,8 +1501,11 @@ onerror="this.style.display='none'; document.getElementById('modalItemImageConta
     setTimeout(() => {
      // Refresh items array if needed
      if (typeof dbDexieManager !== 'undefined') {
-      dbDexieManager.getAllRecords(dbnm, "s").then(refreshedItems => {
+      dbDexieManager.getAllRecords(dbnm, "s").then(async (refreshedItems) => {
        items = refreshedItems || [];
+       if (typeof window.refreshItemsWithTax === 'function') {
+        try { await window.refreshItemsWithTax(); } catch (e) { console.warn('refreshItemsWithTax failed', e); }
+       }
        const retryItem = findItem();
 
        if (retryItem) {
@@ -1508,8 +1581,21 @@ onerror="this.style.display='none'; document.getElementById('modalItemImageConta
   const addedItemsContainer = document.getElementById('addedItemsContainer');
   const uniqueItemId = Date.now();
 
+  // Apply the product's Tax 1 / Tax 2 rates to the new card.
+  // Prefer the modal inputs (what the user sees) when that modal has them.
+  const productRow = items.find(i => i.a == itemId) || null;
+  const tax1Input = document.getElementById('modalItemTax1');
+  const tax2Input = document.getElementById('modalItemTax2');
+  const rates = (tax1Input || tax2Input)
+   ? { tax1: itemTaxClampPercent(tax1Input && tax1Input.value), tax2: itemTaxClampPercent(tax2Input && tax2Input.value) }
+   : productTaxRates(productRow);
+  const taxAmounts = itemTaxAmounts(rates.tax1, rates.tax2, price);
+  const taxPercent = price > 0
+   ? itemTaxRound((taxAmounts.taxAmount / price) * 100)
+   : itemTaxRound(rates.tax1 + rates.tax2);
+
   const itemHTML = `
-<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}">
+<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}" data-item-tax1="${rates.tax1.toFixed(2)}" data-item-tax2="${rates.tax2.toFixed(2)}" data-item-tax1-amount="${taxAmounts.tax1Amount.toFixed(2)}" data-item-tax2-amount="${taxAmounts.tax2Amount.toFixed(2)}" data-item-tax-percent="${taxPercent.toFixed(2)}" data-item-tax-amount="${taxAmounts.taxAmount.toFixed(2)}">
 <div class="card-body">
 <div class="row">
 <!-- Left side - Image (fixed 3 columns) -->
@@ -1560,6 +1646,7 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
 </div>
 <div class="col-4">
 <strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${price.toFixed(2)}</span>
+${itemTaxLineHTML(uniqueItemId, rates.tax1, rates.tax2, taxAmounts.taxAmount)}
 </div>
 </div>
 
@@ -2015,8 +2102,9 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
    case 'del':
     const billData = stored_bill.find((c) => c.a == b346illID);
     if (billData && billData.a > 0) {
-     if (confirm(`Are you sure you want to delete this bill & it's data?`)) {
-      if (confirm(`this cannot be undone?`)) {
+     if (await window.showConfirmModal(`Are you sure you want to delete this bill & it's data?`)) {
+      if (await window.showConfirmModal(`This cannot be undone. Continue?`)) {
+       await clearPayload0();
        payload0.fn = 9;
        payload0.vw = 1;
        payload0.b = billData;
@@ -2070,10 +2158,13 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
   const availW = display.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
   if (availW <= 0) return;
 
-  // Responsive: make the paper fill the available width (width/height "auto").
-  // Height follows the paper's aspect ratio automatically, so the preview grows
-  // and shrinks with the screen; `.preview-display` scrolls if it gets tall.
-  let scale = availW / baseW;
+  // Responsive: fit the paper to the screen, but never let it grow wider than a
+  // phone-like preview. On desktop this keeps the invoice at mobile width
+  // (centered by `.preview-display`); on phones the available width is already
+  // below the cap, so nothing changes there. Height follows the paper's aspect
+  // ratio automatically via the same zoom; `.preview-display` scrolls if tall.
+  const MAX_PREVIEW_WIDTH = 390; // phone-like paper width on desktop
+  let scale = Math.min(availW, MAX_PREVIEW_WIDTH) / baseW;
   scale = Math.max(0.1, Math.min(scale, 6));
 
   previewMain.style.flexShrink = '0'; // never let the flex container distort the paper
@@ -2161,8 +2252,8 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
    modalContent.style.overflowY = 'auto';
   }
 
-  // Calculate bill total from items
-  const billTotal = s594CurrItems.reduce((sum, item) => sum + parseFloat(item.g || 0), 0);
+  // Calculate bill total from items (price + tax)
+  const billTotal = s594CurrItems.reduce((sum, item) => sum + (parseFloat(item.g) || 0) + billItemTaxBreakdown(item).total, 0);
 
   // Find the bill to get discount information
   const currentBill = stored_bill.find(bill => bill.a == b346illID);
@@ -2783,11 +2874,17 @@ ${renderExistingPayments(c594ashInfo)}
 
   // Find item details from items array
   const itemDetails = items.find(i => i.a == item.f) || {};
-  const savedRate = (parseFloat(item.g) || 0) / (parseFloat(item.h) || 1);
+  const linePrice = parseFloat(item.g) || 0;
+  const taxInfo = billItemTaxBreakdown(item);
+  const tax1 = linePrice > 0 ? itemTaxClampPercent((taxInfo.tax1 / linePrice) * 100) : 0;
+  const tax2 = linePrice > 0 ? itemTaxClampPercent((taxInfo.tax2 / linePrice) * 100) : 0;
+  const taxAmount = taxInfo.total;
+  const taxPercent = linePrice > 0 ? itemTaxRound((taxAmount / linePrice) * 100) : itemTaxRound(tax1 + tax2);
+  const savedRate = linePrice / (parseFloat(item.h) || 1);
   const rateToShow = savedRate > 0 ? savedRate : (parseFloat(itemDetails.k || 0) || 0);
 
   const itemHTML = `
-<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${item.f}" data-item-rate="${rateToShow}">
+<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${item.f}" data-item-rate="${rateToShow}" data-item-subname="${String(taxInfo.subName || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" data-item-tax1="${tax1.toFixed(2)}" data-item-tax2="${tax2.toFixed(2)}" data-item-tax1-amount="${taxInfo.tax1.toFixed(2)}" data-item-tax2-amount="${taxInfo.tax2.toFixed(2)}" data-item-tax-percent="${taxPercent.toFixed(2)}" data-item-tax-amount="${taxAmount.toFixed(2)}">
 <div class="card-body">
 <div class="row">
 <!-- Left side - Image -->
@@ -2837,7 +2934,8 @@ class="form-control form-control-sm d-inline-block w-auto"
  onblur="updateItemRate(${uniqueItemId}, this.value)">
 </div>
 <div class="col-4">
-<strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${parseFloat(item.g || 0).toFixed(2)}</span>
+<strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${linePrice.toFixed(2)}</span>
+${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
 </div>
 </div>
 
@@ -3044,13 +3142,16 @@ class="form-control form-control-sm d-inline-block w-auto"
     return validateAndScrollToField('itemName', 'Please add at least one item to the bill');
    }
 
-   if (typeof billingRequisit_be === 'function' && shoEyeMsrmntTbl) {
+   // Eye measurement is captured now (it reads the live form), but attached to payload0
+   // only AFTER clearPayload0() below - that helper deletes every key it does not keep.
+   let eyeMeasurementPayload = null;
+   if (typeof getEyeMeasurement === 'function' && shoEyeMsrmntTbl) {
     const eyeMeasurement = getEyeMeasurement();
     if (eyeMeasurement !== null) {
-     payload0.be = eyeMeasurement;
-     payload0.be.ef = r_eferrerId;
+     eyeMeasurement.ef = r_eferrerId;
+     eyeMeasurementPayload = eyeMeasurement;
     } else {
-     const confirmed = confirm("Save without eye measurement?");
+     const confirmed = await window.showConfirmModal("Save without eye measurement?");
      if (!confirmed) {
       return;
      }
@@ -3069,13 +3170,37 @@ class="form-control form-control-sm d-inline-block w-auto"
     const qty = parseInt(qtyInput.value) || 0;
     const price = parseFloat(priceElement.textContent) || 0;
     const description = descriptionElement.textContent === '' ? '' : descriptionElement.textContent;
+    const combinedTaxAmount = Math.round((parseFloat(item.getAttribute('data-item-tax-amount')) || 0) * 100) / 100;
+    const hasSplitAmounts = item.hasAttribute('data-item-tax1-amount') || item.hasAttribute('data-item-tax2-amount');
+    const tax1Amount = hasSplitAmounts
+     ? Math.round((parseFloat(item.getAttribute('data-item-tax1-amount')) || 0) * 100) / 100
+     : combinedTaxAmount;
+    const tax2Amount = hasSplitAmounts
+     ? Math.round((parseFloat(item.getAttribute('data-item-tax2-amount')) || 0) * 100) / 100
+     : 0;
+    const subName = item.getAttribute('data-item-subname') || '';
+
+    // Split layout: j/tax1 amount, k/tax2 amount, t/sub-name.
+    // Legacy layout: j/sub-name, t/combined tax amount.
+    if (itemTaxSplitEnabled()) {
+     return {
+      "h": qty.toString(), // Quantity
+      "f": itemId, // Item ID
+      "g": price, // Price
+      "i": description, // Description
+      "j": tax1Amount, // Tax 1 amount
+      "k": tax2Amount, // Tax 2 amount
+      "t": subName // Sub Name (laundry operation)
+     };
+    }
 
     return {
      "h": qty.toString(), // Quantity
      "f": itemId, // Item ID
      "g": price, // Price
      "i": description, // Description
-     "j": item.getAttribute('data-item-subname') || '' // Sub Name (laundry operation)
+     "j": subName, // Sub Name (laundry operation)
+     "t": combinedTaxAmount // Tax amount
     };
    });
 
@@ -3091,12 +3216,16 @@ class="form-control form-control-sm d-inline-block w-auto"
    });
 
    if (receivedPayments.length == 0) {
-    const confirmed = confirm("Continue without money?");
+    const confirmed = await window.showConfirmModal("Continue without money?");
     if (!confirmed) {
      return;
     }
    }
-
+   await clearPayload0();
+   if (eyeMeasurementPayload) {
+    if (fnNumber == 7) eyeMeasurementPayload.ea = billSelectedToUpdate.a;
+    payload0.be = eyeMeasurementPayload;
+   }
    payload0.i = billItems;
    payload0.b = {
     "e": clientId, // Client ID (validated above)
@@ -3201,8 +3330,9 @@ class="form-control form-control-sm d-inline-block w-auto"
 
   if (totalPrice <= 0) return;
 
-  // Calculate discount percentage
-  const discountPercentage = totalPrice > 0 ? (discountAmount / totalPrice) * 100 : 0;
+  // Calculate discount percentage (clamped to the input's 99.99 max)
+  let discountPercentage = totalPrice > 0 ? (discountAmount / totalPrice) * 100 : 0;
+  if (discountPercentage > 99.99) discountPercentage = 99.99;
   document.getElementById('discountPercentage').value = discountPercentage.toFixed(2);
 
   // No need to set finalAmount element as it doesn't exist
@@ -3854,6 +3984,7 @@ Continuous mode: Items will be added automatically. Click stop or press back but
   // Update the UI
   qtyInput.value = newQty;
   priceElement.textContent = newPrice.toFixed(2);
+  updateItemCardTax(itemCard, newPrice);
 
   // Update bill summary
   updateBillSummary();
@@ -3877,11 +4008,18 @@ Continuous mode: Items will be added automatically. Click stop or press back but
   const price = quantity * rate;
   const uniqueItemId = Date.now();
 
+  // Apply the product's Tax 1 / Tax 2 rates to the new card
+  const rates = productTaxRates(item);
+  const taxAmounts = itemTaxAmounts(rates.tax1, rates.tax2, price);
+  const taxPercent = price > 0
+   ? itemTaxRound((taxAmounts.taxAmount / price) * 100)
+   : itemTaxRound(rates.tax1 + rates.tax2);
+
   const addedItemsContainer = document.getElementById('addedItemsContainer');
   updateBillSectionsVisibility();
 
   const itemHTML = `
-<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}">
+<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}" data-item-tax1="${rates.tax1.toFixed(2)}" data-item-tax2="${rates.tax2.toFixed(2)}" data-item-tax1-amount="${taxAmounts.tax1Amount.toFixed(2)}" data-item-tax2-amount="${taxAmounts.tax2Amount.toFixed(2)}" data-item-tax-percent="${taxPercent.toFixed(2)}" data-item-tax-amount="${taxAmounts.taxAmount.toFixed(2)}">
 <div class="card-body">
 <div class="row">
 <!-- Left side - Image (fixed 3 columns) -->
@@ -3932,6 +4070,7 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
 </div>
 <div class="col-4">
 <strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${price.toFixed(2)}</span>
+${itemTaxLineHTML(uniqueItemId, rates.tax1, rates.tax2, taxAmounts.taxAmount)}
 </div>
 </div>
 
@@ -4066,7 +4205,12 @@ ${stockIndicator}
       itemElement.addEventListener('click', () => {
        dropdownClicked = true;
        if (blurTimeout) { clearTimeout(blurTimeout); blurTimeout = null; }
-       if (inputElement.id === 'modalItemName') selectModalItem(item);
+       if (inputElement.id === 'modalItemName') {
+        // Prefer the loaded add-item module (shoRegItm) so its selection logic —
+        // including Tax 1 / Tax 2 population — runs for the shared modal.
+        const picker = typeof window.selectModalItem === 'function' ? window.selectModalItem : selectModalItem;
+        picker(item);
+       }
        dropdown.remove();
        setTimeout(() => {
         if (inputElement.id === 'modalItemName') {
@@ -4094,6 +4238,153 @@ ${stockIndicator}
  }
 
  // Inline Edit Functions for Quantity and Rate
+ // ===== Item tax helpers (Tax 1 % + Tax 2 %, additive on the line price) =====
+ function itemTaxSplitEnabled() {
+  try {
+   const cc = (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].clientConfig) || {};
+   return Number(cc.billItemTaxSplit) === 1;
+  } catch (e) {
+   return false;
+  }
+ }
+
+ function itemTaxRound(value) {
+  return Math.round((Number(value) || 0) * 100) / 100;
+ }
+
+ function itemTaxClampPercent(value) {
+  const number = parseFloat(value);
+  if (!Number.isFinite(number) || number < 0) return 0;
+  return Math.min(99.99, itemTaxRound(number));
+ }
+
+ function productRecordFor(stockRow) {
+  const pid = stockRow && stockRow.g;
+  if (pid == null || !Array.isArray(prods)) return null;
+  return prods.find(p => p.a == pid) || null;
+ }
+
+ // True when the passed row is a product (`p`) record rather than a stock row.
+ // Product rows have no numeric stock `g` id and keep Tax 1 / Tax 2 on `j` / `k`;
+ // the `prods` identity check keeps a stock row's `k` (sale rate) from being
+ // mistaken for Tax 2.
+ function rowIsProductRecord(row) {
+  if (!row) return false;
+  if (Array.isArray(prods) && prods.some(p => p && p.a == row.a && p.e === row.e)) return true;
+  const g = row.g;
+  const hasStockProductId = g != null && String(g).trim() !== '' && Number.isFinite(Number(g));
+  return !hasStockProductId && Number.isFinite(parseFloat(row.j));
+ }
+
+ // Returns the two tax percentages for a stock/product row.
+ // Accepts either a stock row (`g` = product id, rates looked up on `p`) or a
+ // product row (rates stored directly on `j` / `k`).
+ function productTaxRates(stockRow) {
+  const prod = productRecordFor(stockRow);
+  const prod1 = parseFloat(prod && prod.j);
+  const prod2 = parseFloat(prod && prod.k);
+  if (Number.isFinite(prod1) || Number.isFinite(prod2)) {
+   return { tax1: itemTaxClampPercent(prod1), tax2: itemTaxClampPercent(prod2) };
+  }
+  const alias1 = parseFloat(stockRow && stockRow.tax1);
+  const alias2 = parseFloat(stockRow && stockRow.tax2);
+  if (Number.isFinite(alias1) || Number.isFinite(alias2)) {
+   return { tax1: itemTaxClampPercent(alias1), tax2: itemTaxClampPercent(alias2) };
+  }
+  // Product-shaped row passed straight in: Tax 1 / Tax 2 live on `j` / `k`.
+  if (rowIsProductRecord(stockRow)) {
+   return { tax1: itemTaxClampPercent(stockRow.j), tax2: itemTaxClampPercent(stockRow.k) };
+  }
+  // Legacy product: the tax was stored as an amount on the stock row (`t`).
+  const legacyAmount = Math.max(0, parseFloat(stockRow && stockRow.t) || 0);
+  const price = Math.max(0, parseFloat(stockRow && stockRow.k) || 0);
+  return { tax1: price > 0 ? itemTaxClampPercent((legacyAmount / price) * 100) : 0, tax2: 0 };
+ }
+
+ // Returns the stored tax for a bill row (`i` table).
+ // Split layout (billItemTaxSplit=1): j/tax1 amount, k/tax2 amount, t/sub-name.
+ // Legacy layout: j/sub-name, t/tax amount.
+ function billItemTaxBreakdown(billItem) {
+  if (!billItem) return { tax1: 0, tax2: 0, total: 0, subName: '' };
+  const kPresent = billItem.k !== undefined && billItem.k !== null && String(billItem.k).trim() !== '';
+  const jNumeric = Number.isFinite(parseFloat(billItem.j));
+  const tNumeric = Number.isFinite(parseFloat(billItem.t));
+  // Split rows always carry `k`; when the server drops a zero `k`, `j` is still a
+  // numeric amount and `t` holds the (usually non-numeric) sub-name.
+  if (itemTaxSplitEnabled() && (kPresent || (jNumeric && !tNumeric))) {
+   const tax1 = Math.max(0, parseFloat(billItem.j) || 0);
+   const tax2 = Math.max(0, parseFloat(billItem.k) || 0);
+   return { tax1: tax1, tax2: tax2, total: itemTaxRound(tax1 + tax2), subName: billItem.t == null ? '' : String(billItem.t) };
+  }
+  const legacyTotal = Math.max(0, parseFloat(billItem.t) || 0);
+  return { tax1: legacyTotal, tax2: 0, total: legacyTotal, subName: billItem.j == null ? '' : String(billItem.j) };
+ }
+
+ function itemTaxAmounts(tax1, tax2, linePrice) {
+  const amount1 = itemTaxRound((linePrice * itemTaxClampPercent(tax1)) / 100);
+  const amount2 = itemTaxRound((linePrice * itemTaxClampPercent(tax2)) / 100);
+  return { tax1Amount: amount1, tax2Amount: amount2, taxAmount: itemTaxRound(amount1 + amount2) };
+ }
+
+ function itemTaxRatesLabel(tax1, tax2) {
+  const a = itemTaxClampPercent(tax1);
+  const b = itemTaxClampPercent(tax2);
+  if (a > 0 && b > 0) return a.toFixed(2) + '% + ' + b.toFixed(2) + '%';
+  return (a + b).toFixed(2) + '%';
+ }
+
+ function itemTaxLineHTML(uniqueItemId, tax1, tax2, amount) {
+  return '<span class="item-tax-line" style="display:block;color:#6c757d;font-size:.75rem;">Tax: ₹<span id="itemTax-' + uniqueItemId + '">' + itemTaxRound(amount).toFixed(2) + '</span> (<span id="itemTaxRates-' + uniqueItemId + '">' + itemTaxRatesLabel(tax1, tax2) + '</span>)</span>';
+ }
+
+ // Recomputes tax for a card from its two stored rates (or the combined rate).
+ function updateItemCardTax(itemElement, price) {
+  const tax1 = itemTaxClampPercent(itemElement.getAttribute('data-item-tax1'));
+  const tax2 = itemTaxClampPercent(itemElement.getAttribute('data-item-tax2'));
+  const linePrice = Number(price) || 0;
+  const amounts = itemTaxAmounts(tax1, tax2, linePrice);
+  const combinedPercent = linePrice > 0
+   ? itemTaxRound((amounts.taxAmount / linePrice) * 100)
+   : itemTaxRound(tax1 + tax2);
+
+  itemElement.setAttribute('data-item-tax1', tax1.toFixed(2));
+  itemElement.setAttribute('data-item-tax2', tax2.toFixed(2));
+  itemElement.setAttribute('data-item-tax1-amount', amounts.tax1Amount.toFixed(2));
+  itemElement.setAttribute('data-item-tax2-amount', amounts.tax2Amount.toFixed(2));
+  itemElement.setAttribute('data-item-tax-amount', amounts.taxAmount.toFixed(2));
+  itemElement.setAttribute('data-item-tax-percent', combinedPercent.toFixed(2));
+
+  const taxAmountEl = itemElement.querySelector('span[id^="itemTax-"]');
+  const taxRatesEl = itemElement.querySelector('span[id^="itemTaxRates-"]');
+  if (taxAmountEl) taxAmountEl.textContent = amounts.taxAmount.toFixed(2);
+  if (taxRatesEl) taxRatesEl.textContent = itemTaxRatesLabel(tax1, tax2);
+  const legacyPctEl = itemElement.querySelector('span[id^="itemTaxPct-"]');
+  if (legacyPctEl) legacyPctEl.textContent = combinedPercent.toFixed(2);
+
+  return amounts.taxAmount;
+ }
+
+ // Re-reads Tax 1 / Tax 2 from the product table onto the in-memory stock rows.
+ async function refreshItemsWithTax() {
+  if (typeof dbDexieManager === 'undefined' || !dbDexieManager) return items;
+  try {
+   prods = await dbDexieManager.getAllRecords(dbnm, "p") || [];
+   const rows = await dbDexieManager.getAllRecords(dbnm, "s") || [];
+   rows.forEach(row => {
+    const prod = prods.find(p => p.a == row.g);
+    if (!prod) return;
+    const tax1 = parseFloat(prod.j);
+    const tax2 = parseFloat(prod.k);
+    row.tax1 = Number.isFinite(tax1) ? tax1 : null;
+    row.tax2 = Number.isFinite(tax2) ? tax2 : null;
+   });
+   items = rows;
+  } catch (e) {
+   console.warn('refreshItemsWithTax failed', e);
+  }
+  return items;
+ }
+
  function updateItemQuantity(itemId, newQuantity) {
   const itemElement = document.getElementById(`invoiceItem-${itemId}`);
   if (!itemElement) return;
@@ -4118,6 +4409,7 @@ ${stockIndicator}
   if (priceElement) {
    priceElement.textContent = newPrice.toFixed(2);
   }
+  updateItemCardTax(itemElement, newPrice);
 
   // Update bill summary
   updateBillSummary();
@@ -4149,15 +4441,16 @@ ${stockIndicator}
   if (priceElement) {
    priceElement.textContent = newPrice.toFixed(2);
   }
+  updateItemCardTax(itemElement, newPrice);
 
   // Update bill summary
   updateBillSummary();
  }
 
  // Remove Item Function
- function removeItemFromInvoice(itemId) {
+ async function removeItemFromInvoice(itemId) {
   const itemElement = document.getElementById(`invoiceItem-${itemId}`);
-  if (itemElement && confirm('Are you sure you want to remove this item?')) {
+  if (itemElement && await window.showConfirmModal('Are you sure you want to remove this item?')) {
    itemElement.remove();
    updateBillSummary();
 
@@ -4183,9 +4476,10 @@ ${stockIndicator}
     const qty = parseInt(qtyInput.value) || 0;
     const rate = parseFloat(rateInput.value) || 0;
     const price = parseFloat(priceElement.textContent) || 0;
+    const taxAmount = parseFloat(item.getAttribute('data-item-tax-amount')) || 0;
 
     totalQuantity += qty;
-    totalPrice += price;
+    totalPrice += price + taxAmount;
    }
   });
 
@@ -4221,9 +4515,10 @@ ${stockIndicator}
     const qty = parseInt(qtyInput.value) || 0;
     const rate = parseFloat(rateInput.value) || 0;
     const price = parseFloat(priceElement.textContent) || 0;
+    const taxAmount = parseFloat(item.getAttribute('data-item-tax-amount')) || 0;
 
     totalQuantity += qty;
-    totalPrice += price;
+    totalPrice += price + taxAmount;
    }
   });
 
@@ -4806,7 +5101,7 @@ ${actionsHtml}
      g: payment.g || '' // Cashier c.a
     };
    });
-
+   await clearPayload0();
    payload0.vw = 1;
    payload0.fn = 103;
    payload0.r = paymentArray;
@@ -5063,6 +5358,7 @@ ${actionsHtml}
    return;
   }
   try {
+   await clearPayload0();
    payload0.vw = 1;
    payload0.fn = 105;
    payload0.x1 = id;
@@ -5108,7 +5404,7 @@ ${actionsHtml}
   if (isDesktopView()) return formatLongDisplay(dateTimeString);
   const date = new Date(dateTimeString);
   const day = String(date.getDate()).padStart(2, '0');
-  const month = MONTH_SHORT[date.getMonth()];
+  const month = (window.MONTH_SHORT || [])[date.getMonth()];
   const hasTime = String(dateTimeString).includes(':');
   return `${day}/${month} ${date.getFullYear()}` + (hasTime ? `, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : '');
  }
@@ -5725,6 +6021,11 @@ margin-top: 70px;
          item.gn = matchingProd.e;
          item.gu = matchingProd.g;
          item.hu = matchingProd.h;
+         // Tax 1 / Tax 2 rates live on the product row (p.j / p.k)
+         const prodTax1 = parseFloat(matchingProd.j);
+         const prodTax2 = parseFloat(matchingProd.k);
+         item.tax1 = Number.isFinite(prodTax1) ? prodTax1 : null;
+         item.tax2 = Number.isFinite(prodTax2) ? prodTax2 : null;
         } else {
          item.gn = "no name";
          item.gu = "https://cdn-icons-png.freepik.com/512/13543/13543330.png";
@@ -5769,9 +6070,9 @@ margin-top: 70px;
        // Find all stored_bill_items with matching e
        const matchingItems = stored_bill_items.filter(item => item.e == uniqueItem.e);
 
-       // Calculate total of stored_bill_items.g
+       // Calculate total of stored_bill_items.g + tax (t)
        const i_tot = matchingItems.reduce((sum, item) => {
-        return sum + (parseFloat(item.g) || 0);
+        return sum + (parseFloat(item.g) || 0) + billItemTaxBreakdown(item).total;
        }, 0);
 
        // Find stored_bill with matching a
@@ -5882,7 +6183,7 @@ margin-top: 70px;
       }
      }
      if (response.fp == null || response.f == null)
-      window.showsuccessmodal("stored successfully");
+      showToast("stored successfully");
 
      if (reload == 1) {
       //location.reload();
@@ -5923,6 +6224,7 @@ margin-top: 70px;
    }
   })();
  }
+
  async function update_qty_sold(resp3206onse) {
   setTimeout(async () => {
    // Calculate total quantity sold for each stock item
@@ -6401,26 +6703,28 @@ This remark will be automatically filled in the bill notes section for new bills
     return true;
    }
 
-   // Create a map of stored items by item ID for easy comparison
+   // Create a map of stored items by item ID, price, and tax for easy comparison
    const storedItemsMap = new Map();
    storedBillItems.forEach(item => {
-    const key = `${item.f}_${item.g}`; // item ID + price
+    const taxAmount = billItemTaxBreakdown(item).total;
+    const key = `${item.f}_${parseFloat(item.g) || 0}_${taxAmount.toFixed(2)}`;
     storedItemsMap.set(key, {
      id: item.f,
      quantity: parseFloat(item.h) || 0,
      price: parseFloat(item.g) || 0,
      description: item.i || '',
+     taxAmount: taxAmount,
      originalItem: item
     });
    });
 
    // Check each current item against stored items
    for (const currentItem of currentItems) {
-    const key = `${currentItem.itemId}_${currentItem.price}`;
+    const key = `${currentItem.itemId}_${parseFloat(currentItem.price) || 0}_${currentItem.taxAmount.toFixed(2)}`;
 
     if (!storedItemsMap.has(key)) {
-     // Item with this ID and price doesn't exist in stored items
-     console.log('New item found or price changed:', currentItem);
+     // Item with this ID, price, and tax doesn't exist in stored items
+     console.log('New item found or price/tax changed:', currentItem);
      return true;
     }
 
@@ -6435,6 +6739,12 @@ This remark will be automatically filled in the bill notes section for new bills
     // Compare description
     if (storedItem.description !== currentItem.description) {
      console.log('Description changed:', storedItem.description, '→', currentItem.description);
+     return true;
+    }
+
+    // Compare tax
+    if (Math.abs(storedItem.taxAmount - currentItem.taxAmount) > 0.01) {
+     console.log('Tax changed:', storedItem.taxAmount, '→', currentItem.taxAmount);
      return true;
     }
 
@@ -6540,13 +6850,15 @@ This remark will be automatically filled in the bill notes section for new bills
     const rate = parseFloat(rateInput.value) || 0;
     const price = parseFloat(priceElement.textContent) || 0;
     const description = descriptionElement?.textContent || '';
+    const taxAmount = parseFloat(item.getAttribute('data-item-tax-amount')) || 0;
 
     currentItems.push({
      itemId: itemId,
      quantity: quantity,
      rate: rate,
      price: price,
-     description: description
+     description: description,
+     taxAmount: taxAmount
     });
    } catch (error) {
     console.error('Error parsing item:', error);
@@ -6959,6 +7271,17 @@ This remark will be automatically filled in the bill notes section for new bills
  window.removeItemFromInvoice = removeItemFromInvoice;
  window.updateItemQuantity = updateItemQuantity;
  window.updateItemRate = updateItemRate;
+
+ // Tax 1 / Tax 2 helpers shared with bn.js, shoRegItm.js and bp.js
+ window.refreshItemsWithTax = refreshItemsWithTax;
+ window.itemTaxSplitEnabled = itemTaxSplitEnabled;
+ window.itemTaxRound = itemTaxRound;
+ window.itemTaxClampPercent = itemTaxClampPercent;
+ window.productTaxRates = productTaxRates;
+ window.billItemTaxBreakdown = billItemTaxBreakdown;
+ window.itemTaxAmounts = itemTaxAmounts;
+ window.itemTaxRatesLabel = itemTaxRatesLabel;
+ window.updateItemCardTax = updateItemCardTax;
  window.updateBillSummary = updateBillSummary;
  window.updateBillSectionsVisibility = updateBillSectionsVisibility;
  window.updateGrandTotals = updateGrandTotals;
