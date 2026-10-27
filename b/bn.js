@@ -1,19 +1,73 @@
 let p_bn_arams = [];
+
+function bnInjectCompactStyles() {
+ if (window.__bnNewItemCssInjected) return;
+ window.__bnNewItemCssInjected = true;
+ const style = document.createElement('style');
+ style.id = 'bnNewItemCompactCss';
+ style.textContent = `
+#modal_for_new_item .modal-dialog{
+max-width: 430px;
+}
+#modal_for_new_item #modal_for_new_item_modal_content_body{
+padding: .4rem;
+}
+#modal_for_new_item .modal-body > .modal-body{
+padding: .15rem 0 .3rem;
+}
+#modal_for_new_item .modal-header{
+padding: .45rem .55rem;
+}
+#modal_for_new_item .modal-footer{
+padding: .45rem 0 0;
+border-top: 1px solid #dee2e6;
+}
+#modal_for_new_item .form-label{
+font-size: .82rem;
+margin-bottom: .15rem;
+}
+#modal_for_new_item .form-text{
+font-size: .7rem;
+}
+#modal_for_new_item #new_item_nm{
+min-height: 48px;
+font-size: .9rem;
+}
+#modal_for_new_item .input-group-text{
+font-size: .72rem;
+padding: .2rem .4rem;
+}
+#modal_for_new_item .modal-footer .btn{
+padding: .35rem .6rem;
+font-size: .82rem;
+}
+`;
+ document.head.appendChild(style);
+}
+
 async function set_add_itm_nw_innerHTML(...params) {
  p_bn_arams = params;
  const modal = create_modal_dynamically('modal_for_new_item');
  const modalContent = modal.contentElement;
  const modalInstance = modal.modalInstance;
+ const modalElement = modal.modalElement;
+
+ const modalDialog = modalElement.querySelector('.modal-dialog');
+ if (modalDialog) {
+     modalDialog.style.marginTop = '80px';
+ }
 
  const maxLength = window[my1uzr.worknOnPg]?.confg?.itmNameMxLength || 16;
+
+ bnInjectCompactStyles();
 
  modalContent.innerHTML = `<div class="modal-header">
 <h5 class="modal-title">Add New Item in our list</h5>
 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
-<div class="modal-body">
+<div class="modal-body p-3">
 <form id="addItemForm">
-<div class="row g-0 mb-3">
+<div class="row g-0 mb-2">
 <label for="bn_c_dtls_lient" class="form-label">Party Details</label>
 <div class="col-12">
 <div class="input-group">
@@ -23,16 +77,16 @@ async function set_add_itm_nw_innerHTML(...params) {
 </div>
 </div>
 </div>
-<div class="mb-3">
+<div class="mb-2">
 <label for="new_item_nm" class="form-label">Item Name</label>
-<textarea class="form-control border border-dark" id="new_item_nm" style="background-color: bisque;" rows="3" placeholder="Enter item name (multiple lines allowed)"
+<textarea class="form-control border border-dark" id="new_item_nm" style="background-color: bisque;" rows="2" placeholder="Enter item name (multiple lines allowed)"
 maxlength="${maxLength}" required>${params[0] || ""}</textarea>
 <div class="form-text text-end">
 <span id="itemNameCounter">${params[0] ? params[0].length : 0}</span> / ${maxLength} characters
 </div>
 </div>
 
-<div class="row mb-3">
+<div class="row mb-2">
 <div class="col-12">
 <div class="form-check">
 <input class="form-check-input" type="checkbox" checked id="exclude_from_stock_chk" value="1"
@@ -44,12 +98,27 @@ Ignore from stock checking
 </div>
 </div>
 
-<div class="row mb-3">
+<div class="row mb-2">
 <div class="col-12">
 <label for="new_item_prc" class="form-label">Price of single unit</label>
 </div>
 <div class="col-12">
 <input type="number" class="form-control border border-dark" id="new_item_prc" placeholder="Enter price" step="0.01" min="0" required>
+</div>
+</div>
+
+<div class="row g-0 mb-2 mt-1">
+<div class="col-6">
+<div class="input-group input-group-sm">
+<span class="input-group-text border border-dark">Tax 1 %</span>
+<input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" id="new_item_tax1" placeholder="0.00" value="" onfocus="this.select();">
+</div>
+</div>
+<div class="col-6">
+<div class="input-group input-group-sm">
+<span class="input-group-text border border-dark">Tax 2 %</span>
+<input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" id="new_item_tax2" placeholder="0.00" value="" onfocus="this.select();">
+</div>
 </div>
 </div>
 
@@ -80,7 +149,66 @@ maxlength="256" required>
  setFocusToPriceInput();
 
  setupItemNameCounter();
+ setupNewItemTaxInputs();
  modalInstance.show();
+}
+
+function bnRoundToTwo(value) {
+ return Math.round((Number(value) || 0) * 100) / 100;
+}
+
+// Tax inputs accept 0-99.99 only: two integer digits, two decimals, digits and
+// a single dot while typing. A comma decimal (locale keypads) is read as a dot.
+function bnSanitizeTaxText(raw) {
+ let value = String(raw == null ? '' : raw).replace(/,/g, '.').replace(/[^0-9.]/g, '');
+ const firstDot = value.indexOf('.');
+ if (firstDot !== -1) {
+  value = value.slice(0, firstDot + 1) + value.slice(firstDot + 1).replace(/\./g, '');
+ }
+ const parts = value.split('.');
+ const intPart = (parts[0] || '').slice(0, 2);
+ const decPart = parts.length > 1 ? parts[1].slice(0, 2) : '';
+ return parts.length > 1 ? intPart + '.' + decPart : intPart;
+}
+
+function bnSanitizeTaxField(input) {
+ if (!input) return;
+ const next = bnSanitizeTaxText(input.value);
+ if (input.value !== next) input.value = next;
+}
+
+function bnNormalizeTaxField(input) {
+ if (!input) return;
+ const number = parseFloat(input.value);
+ const safe = Number.isFinite(number) ? Math.min(99.99, Math.max(0, number)) : 0;
+ input.value = bnRoundToTwo(safe).toFixed(2);
+}
+
+function bnReadTaxPercent(input) {
+ if (!input) return 0;
+ const number = parseFloat(input.value);
+ if (!Number.isFinite(number) || number < 0) return 0;
+ return bnRoundToTwo(Math.min(99.99, number));
+}
+
+function bnGetTaxValues() {
+ return {
+  tax1: bnReadTaxPercent(document.getElementById('new_item_tax1')),
+  tax2: bnReadTaxPercent(document.getElementById('new_item_tax2'))
+ };
+}
+
+function setupNewItemTaxInputs() {
+ ['new_item_tax1', 'new_item_tax2'].forEach(function (id) {
+  const input = document.getElementById(id);
+  if (!input) return;
+  input.addEventListener('input', function () {
+   bnSanitizeTaxField(input);
+  });
+  input.addEventListener('blur', function () {
+   bnNormalizeTaxField(input);
+  });
+ });
 }
 
 function addItemsWithStock() {
@@ -161,24 +289,29 @@ async function addItemToAPI() {
 
  // Validate item name length
  if (itemName.length > maxLength) {
-  alert(`Item name must be ${maxLength} characters or less. Current: ${itemName.length} characters`);
+  window.showelsemodal(`Item name must be ${maxLength} characters or less. Current: ${itemName.length} characters`);
   document.getElementById('new_item_nm').focus();
   return;
  }
 
  // Validate price is greater than -1
  if (itemPrice < 0 || isNaN(itemPrice)) {
-  alert('Price must be 0 or greater');
+  window.showelsemodal('Price must be 0 or greater');
   document.getElementById('new_item_prc').focus();
   return;
  }
 
- var p = { e: itemName, g: itemUrl };
+ bnNormalizeTaxField(document.getElementById('new_item_tax1'));
+ bnNormalizeTaxField(document.getElementById('new_item_tax2'));
+ const bnTax = bnGetTaxValues();
+
+ var p = { e: itemName, g: itemUrl, j: bnTax.tax1, k: bnTax.tax2 };
  var s = {
   d: document.getElementById('exclude_from_stock_chk').checked ? 111 : 0,
   e: document.getElementById('bn_partyId').value || 0,
   k: itemPrice,
  };
+ await clearPayload0();
  payload0.p = p;
  payload0.s = s;
  var laTables = [{ "tb": 'c', "col": 'b', "cl": "b" }, { "tb": 'b', "col": 'b', "cl": "b" }, { "tb": 'i', "col": 'b', "cl": "b" }, { "tb": 'r', "col": 'b', "cl": "b" }, { "tb": 'ba', "col": 'b', "cl": "b" }, { "tb": 'p', "col": 'b', "cl": "b" }, { "tb": 's', "col": 'b', "cl": "b" }];
@@ -205,7 +338,7 @@ async function addItemToAPI() {
    }
   }
  } else {
-  alert(response.ms);
+  window.showelsemodal(response.ms);
  }
 }
 function commonFnToRunAfter_bn_PartyCall(obj, swtch) {

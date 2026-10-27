@@ -89,6 +89,8 @@ pointer-events: none;
 }
 
 .print-content-area {
+width: auto;
+height: auto;
 position: absolute;
 background: white;
 border: 2px solid #0d6efd;
@@ -241,6 +243,7 @@ margin-top: 10px;
 <div class="controls-left">
 <h5 class="mb-0">Invoice Preview & Export</h5>
 </div>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" title="Close"></button>
 </div>
 <div class="preview-controls">
 <div class="controls-right">
@@ -284,17 +287,6 @@ Toggle off to hide remarks from print
 </div>
 </div>
 
-<div class="preview-controls border-top">
-<div class="container-fluid">
-<div class="row">
-<div class="col-12 text-center">
-<button type="button" class="btn btn-secondary btn-lg" data-bs-dismiss="modal">
-<i class="fas fa-times"></i> Close
-</button>
-</div>
-</div>
-</div>
-</div>
 </div>
 `;
 
@@ -2408,7 +2400,7 @@ box-sizing: border-box;
     // Check if sharing is supported
     if (navigator.canShare && navigator.canShare(shareData)) {
      // Give user option to share or download
-     const userChoice = confirm('Share invoice image via mobile apps or Download? Click OK to Share, Cancel to Download.');
+     const userChoice = await window.showConfirmModal('Share invoice image? Confirm to Share, Cancel to Download.');
 
      if (userChoice) {
       await navigator.share(shareData);
@@ -2615,4 +2607,3 @@ ${message}
   }
  };
 }
-

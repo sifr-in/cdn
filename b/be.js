@@ -1633,7 +1633,12 @@ function setEyeMeasurement(eyeMsrments) {
   if (element) {
    if (element.tagName === 'INPUT') {
      const numValue = parseFloat(value);
-     element.value = (!isNaN(numValue) && numValue > 0) ? '+' + value : value;
+     if (element.type === 'number') {
+      // input[type=number] rejects a leading '+', so write the plain number
+      element.value = isNaN(numValue) ? '' : String(numValue);
+     } else {
+      element.value = (!isNaN(numValue) && numValue > 0) ? '+' + value : value;
+     }
     } else {
     const numValue = parseFloat(value);
 

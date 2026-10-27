@@ -39,8 +39,13 @@ function resolveLogoUrl(value) {
   printTxAmtTtl: "Total:",
   printAdvAmtTtl: "Received:",
   printForTtl: "For<br><br>sifr Optician",
+  printFooterLeft: "Received Signature",
+  printFooterCertification: "Certified that the particulars given above are true and correct.",
+  printFooterAuthorised: "Authorised Signatory",
   printRefByTtl: "Referred by: ",
   print_logo: "https://i.postimg.cc/gJ62yjJf/my1.jpg",
+  "logo-0_FullHead-1": 0,
+  "logo-0_HideInfo-1": 0,
   tbl_disp: 2,
   show_all_receipts: 1
  };
@@ -104,9 +109,43 @@ function resolveLogoUrl(value) {
    ]
   },
   {
+   title: '🧾 Footer',
+   icon: 'fa-file-signature',
+   fields: [
+    { key: 'printFooterLeft', label: 'Left Footer Text', type: 'text', maxlength: 80 },
+    { key: 'printFooterCertification', label: 'Certification Text', type: 'textarea', rows: 2, maxlength: 200 },
+    { key: 'printFooterAuthorised', label: 'Authorised Signatory Text', type: 'text', maxlength: 80 }
+   ]
+  },
+  {
    title: '⚙️ Display Options',
    icon: 'fa-cog',
    fields: [
+    {
+     key: 'logo-0_FullHead-1', label: 'Logo Style', type: 'select', options: [
+      { value: 0, label: 'Normal (small logo)' },
+      { value: 1, label: 'Full head (full-width logo)' }
+     ]
+    },
+    {
+     key: 'logo-0_HideInfo-1', label: 'Hide Business Info (full-head)', type: 'select', options: [
+      { value: 0, label: 'No - show business info' },
+      { value: 1, label: 'Yes - hide business info' }
+     ]
+    },
+    {
+     key: 'bePrModule', label: 'Print Module', type: 'select', nested: 'cust_da_const', default: 3, options: [
+      { value: 1, label: 'bePr.js (classic)' },
+      { value: 2, label: 'bePr2.js' },
+      { value: 3, label: 'bePr3.js (default)' }
+     ]
+    },
+    {
+     key: 'showEyeMesuremetsTableInBill', label: 'Eye Measurements Table', type: 'select', nested: 'cust_da_const', default: 0, options: [
+      { value: 0, label: 'No - hide eye measurements table' },
+      { value: 1, label: 'Yes - show eye measurements table' }
+     ]
+    },
     {
      key: 'tbl_disp', label: 'Table Display Style', type: 'select', options: [
       { value: 1, label: 'Style 1 - Simple' },
@@ -123,6 +162,10 @@ function resolveLogoUrl(value) {
   }
  ];
 
+ // Last settings loaded from b.da, so saves keep keys that are not in the form
+ // (e.g. cust_da_const.billingModule).
+ let loadedSettings = null;
+
  // Load settings from b.da
  async function loadSettings() {
   try {
@@ -130,12 +173,14 @@ function resolveLogoUrl(value) {
    if (response.ok) {
     const data = await response.json();
     console.log('Loaded settings from b.da:', data);
-    return { ...defaultSettings, ...data };
+    loadedSettings = { ...defaultSettings, ...data };
+    return loadedSettings;
    }
   } catch (e) {
    console.warn('Could not load b.da, using defaults:', e);
   }
-  return { ...defaultSettings };
+  loadedSettings = { ...defaultSettings };
+  return loadedSettings;
  }
 
  window.afterimagesetcallrun = function (objjjj) {
@@ -224,7 +269,11 @@ function resolveLogoUrl(value) {
                 <small class="text-muted">${field.maxlength ? `Max ${field.maxlength} characters` : ''}</small>
             </div>`;
     } else if (field.type === 'select') {
-     const value = settings[field.key] !== undefined ? settings[field.key] : '';
+     const value = field.nested
+      ? ((settings[field.nested] && settings[field.nested][field.key]) !== undefined
+       ? settings[field.nested][field.key]
+       : (field.default !== undefined ? field.default : ''))
+      : (settings[field.key] !== undefined ? settings[field.key] : '');
      const fieldId = `prtStng_${field.key}`;
      let inputHTML = `<select class="form-select border border-dark" id="${fieldId}" name="${field.key}" ${field.required ? 'required' : ''}>`;
      (field.options || []).forEach(opt => {
@@ -366,7 +415,14 @@ function resolveLogoUrl(value) {
 
  // Save settings
  async function saveSettings(formData) {
-  const settings = { ...defaultSettings };
+  // Start from the settings loaded from b.da so keys without a form field
+  // (like cust_da_const.billingModule) survive the save.
+  const baseSettings = loadedSettings || defaultSettings;
+  const settings = {
+   ...defaultSettings,
+   ...baseSettings,
+   cust_da_const: { ...((baseSettings.cust_da_const && typeof baseSettings.cust_da_const === 'object') ? baseSettings.cust_da_const : {}) }
+  };
 
   // Track multi-line fields to combine
   const multiLineGroups = {};
@@ -400,7 +456,11 @@ function resolveLogoUrl(value) {
       value = String(value).trim();
       if (field.type === 'select') {
        const numVal = Number(value);
-       settings[field.key] = isNaN(numVal) ? value : numVal;
+       value = isNaN(numVal) ? value : numVal;
+      }
+      if (field.nested) {
+       settings[field.nested] = settings[field.nested] || {};
+       settings[field.nested][field.key] = value;
       } else {
        settings[field.key] = value;
       }
@@ -411,6 +471,7 @@ function resolveLogoUrl(value) {
   console.log('Saving settings:', settings);
   // Prepare payload
   if (typeof payload0 !== 'undefined') {
+    await clearPayload0();
    payload0.vw = 1;
    payload0.fn = 104; // Function number for print settings
    payload0.drml = "sambodhisarang.in";

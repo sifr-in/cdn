@@ -19,6 +19,58 @@ let bpPickedImg1 = '';
 let bpPickedImg2 = '';
 let bpImageRemoved = false;
 
+// ==================== Tax 1 % / Tax 2 % helpers ====================
+// Product rows keep the rates on p.j / p.k; stock rows carry the same values
+// as tax1 / tax2 aliases. Legacy rows only have the tax amount in s.t.
+function bpTaxRates(item) {
+ if (typeof window.productTaxRates === 'function') return window.productTaxRates(item);
+ const tax1 = parseFloat(item && item.tax1);
+ const tax2 = parseFloat(item && item.tax2);
+ if (Number.isFinite(tax1) || Number.isFinite(tax2)) {
+  return { tax1: Number.isFinite(tax1) ? tax1 : 0, tax2: Number.isFinite(tax2) ? tax2 : 0 };
+ }
+ return { tax1: 0, tax2: 0 };
+}
+
+function bpTaxLabel(rates) {
+ const tax1 = Math.max(0, parseFloat(rates && rates.tax1) || 0);
+ const tax2 = Math.max(0, parseFloat(rates && rates.tax2) || 0);
+ if (tax1 > 0 && tax2 > 0) return tax1.toFixed(2) + '% + ' + tax2.toFixed(2) + '%';
+ return (tax1 + tax2).toFixed(2) + '%';
+}
+
+function bpSanitizeTaxText(raw) {
+ let value = String(raw == null ? '' : raw).replace(/,/g, '.').replace(/[^0-9.]/g, '');
+ const firstDot = value.indexOf('.');
+ if (firstDot !== -1) {
+  value = value.slice(0, firstDot + 1) + value.slice(firstDot + 1).replace(/\./g, '');
+ }
+ const parts = value.split('.');
+ const intPart = (parts[0] || '').slice(0, 2);
+ const decPart = parts.length > 1 ? parts[1].slice(0, 2) : '';
+ return parts.length > 1 ? intPart + '.' + decPart : intPart;
+}
+
+function bpSanitizeTaxField(input) {
+ if (!input) return;
+ const next = bpSanitizeTaxText(input.value);
+ if (input.value !== next) input.value = next;
+}
+
+function bpNormalizeTaxField(input) {
+ if (!input) return;
+ const number = parseFloat(input.value);
+ const safe = Number.isFinite(number) ? Math.min(99.99, Math.max(0, number)) : 0;
+ input.value = (Math.round(safe * 100) / 100).toFixed(2);
+}
+
+function bpReadTaxPercent(input) {
+ if (!input) return 0;
+ const number = parseFloat(input.value);
+ if (!Number.isFinite(number) || number < 0) return 0;
+ return Math.round(Math.min(99.99, number) * 100) / 100;
+}
+
 function bpImageValue() {
  return [bpPickedImg1, bpPickedImg2].filter(Boolean).join(' ');
 }
@@ -85,6 +137,7 @@ async function set_deup_prod_innerHTML(...params) {
   return `
             <div class="row g-3" id="productsGrid">
                 ${currentItems.map((item, index) => {
+   const taxRates = bpTaxRates(item);
    const actualIndex = startIndex + index;
    return `
                     <div class="col-12 product-card" data-prod-name="${item.gn.toLowerCase()}">
@@ -112,6 +165,9 @@ async function set_deup_prod_innerHTML(...params) {
                                                         <div class="mb-1 d-flex justify-content-between">
                                                             <span><strong>Stok ID:</strong> ${item.a}</span>
                                                             <span><strong>Qty:</strong> ${item.i}</span>
+                                                        </div>
+                                                        <div class="mb-1 d-flex justify-content-between">
+                                                            <span><strong>Tax:</strong> ${bpTaxLabel(taxRates)}</span>
                                                         </div>
                                                         <!-- Second row: Purchase Price, Sales Price, and Dropdown in one line -->
                                                         <div class="mb-1 d-flex justify-content-between align-items-center">
@@ -350,6 +406,9 @@ async function set_deup_prod_innerHTML(...params) {
 
  function updateProduct(index) {
   const item = items[index];
+  const productTax = bpTaxRates(item);
+  const tax1 = Math.max(0, parseFloat(productTax.tax1) || 0);
+  const tax2 = Math.max(0, parseFloat(productTax.tax2) || 0);
   const { contentElement: updateModalContent, modalInstance: updateModalInstance } = create_modal_dynamically('updateProductModal');
 
   // Clear any previous pick so the picker starts fresh for this product
@@ -407,6 +466,19 @@ async function set_deup_prod_innerHTML(...params) {
                         </div>
                     </div>
                     
+                    <div class="col-12">
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label for="productTax1" class="form-label fw-bold">Tax 1 % (j)</label>
+                                <input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" id="productTax1" value="${tax1.toFixed(2)}">
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label for="productTax2" class="form-label fw-bold">Tax 2 % (k)</label>
+                                <input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" id="productTax2" value="${tax2.toFixed(2)}">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- ADD THIS NEW CHECKBOX SECTION -->
                     <div class="col-12">
                         <div class="form-check form-switch">
@@ -430,6 +502,13 @@ async function set_deup_prod_innerHTML(...params) {
         </div>
     `;
 
+  ['productTax1', 'productTax2'].forEach(function (id) {
+   const input = updateModalContent.querySelector('#' + id);
+   if (!input) return;
+   input.addEventListener('input', function () { bpSanitizeTaxField(input); });
+   input.addEventListener('blur', function () { bpNormalizeTaxField(input); });
+  });
+
   if (updateModalInstance) {
    updateModalInstance.show();
   } else {
@@ -445,12 +524,18 @@ async function set_deup_prod_innerHTML(...params) {
    const nameInput = updateModalContent.querySelector('#productName');
    const stockInput = updateModalContent.querySelector('#productStock');
    const priceInput = updateModalContent.querySelector('#productPrice');
+   const tax1Input = updateModalContent.querySelector('#productTax1');
+   const tax2Input = updateModalContent.querySelector('#productTax2');
    const allowSaleCheckbox = updateModalContent.querySelector('#allowSaleWithoutStock');
 
    if (nameInput && stockInput && priceInput) {
+    bpNormalizeTaxField(tax1Input);
+    bpNormalizeTaxField(tax2Input);
     const itemName = nameInput.value.trim();
     const itemStock = parseInt(stockInput.value.trim());
     const itemPrice = parseFloat(priceInput.value.trim());
+    const itemTax1 = bpReadTaxPercent(tax1Input);
+    const itemTax2 = bpReadTaxPercent(tax2Input);
     // Image comes from the my1img picker: `gu` = "displayId thumbnailId".
     // If nothing was picked, keep the existing value; if Remove was pressed, clear it.
     const pickedImage = bpImageValue();
@@ -459,20 +544,22 @@ async function set_deup_prod_innerHTML(...params) {
 
     // Validation
     if (!itemName || isNaN(itemPrice) || itemPrice <= -1 || isNaN(itemStock)) {
-     alert("Please enter valid product details.");
+     window.showelsemodal("Please enter valid product details.");
      return;
     }
     // Validation
     if (itemName.length > 32) {
-     alert("Name cannot be more than 32 chars.");
+     window.showelsemodal("Name cannot be more than 32 chars.");
      return;
     }
 
     try {
      // Create payload as per your structure (gu = combined image ids, hu left empty)
-     var p = { e: itemName, g: itemUrl, h: '' };
+     // Tax 1 / Tax 2 rates are stored on the product row (p.j / p.k).
+     var p = { e: itemName, g: itemUrl, h: '', j: itemTax1, k: itemTax2 };
      var s = { k: itemPrice, i: itemStock };
      if (allowSaleWithoutStock) { s.d = 111; }
+     await clearPayload0();
      payload0.p = p;
      payload0.s = s;
      payload0.x1 = item.a; // stock id
@@ -485,16 +572,26 @@ async function set_deup_prod_innerHTML(...params) {
      if (response.su == 1) {
       handl_op_rspons(response, 0);
       setTimeout(async () => {
-       items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
+       // Reload the stock rows and refresh their Tax 1 / Tax 2 aliases
+       if (typeof window.refreshItemsWithTax === 'function') {
+        try {
+         await window.refreshItemsWithTax();
+        } catch (e) {
+         console.warn('refreshItemsWithTax failed', e);
+         items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
+        }
+       } else {
+        items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
+       }
        // Refresh the main modal
        const modalBody = contentElement.querySelector('.modal-body');
-       modalBody.innerHTML = renderProducts();
+       if (modalBody) modalBody.innerHTML = renderProducts();
       }, 1000);
 
       // Close the update modal
       bootstrap.Modal.getInstance(document.getElementById('updateProductModal')).hide();
      } else {
-      alert(response.ms);
+      window.showelsemodal(response.ms);
      }
     } catch (error) {
      console.error("Update failed:", error);

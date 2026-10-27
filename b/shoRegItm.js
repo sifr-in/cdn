@@ -9,6 +9,16 @@ let continuousQRMode = false;
 let qrScannerActive = false;
 let editingCardId = null; // uniqueItemId of card being edited (update mode)
 
+const SERVICE_MODE_STORAGE_KEY = 'addItemServiceMode';
+
+function isServiceModeEnabled() {
+  try {
+    return localStorage.getItem(SERVICE_MODE_STORAGE_KEY) === 'true';
+  } catch (e) {
+    return false;
+  }
+}
+
 // ========== Self-contained styles (same card design as b.js addDropdownStyles) ==========
 function shoRegItmInjectStyles() {
   if (window.__shoRegItmCssInjected) return;
@@ -66,6 +76,37 @@ font-weight: 700;
 color: #28a745;
 }
 
+#addItemModal .modal-dialog{
+max-width: 480px;
+}
+
+#addItemModal .modal-body{
+padding: .6rem;
+}
+
+#addItemModal .modal-header,
+#addItemModal .modal-footer{
+padding: .5rem .65rem;
+}
+
+#addItemModal .modal-footer .btn{
+padding: .35rem .65rem;
+font-size: .82rem;
+}
+
+#addItemModal #modalItemImageContainer img{
+max-height: 80px !important;
+}
+
+#addItemModal #modalItemDescription{
+min-height: 36px;
+}
+
+#addItemModal .input-group-text{
+font-size: .72rem;
+padding: .2rem .4rem;
+}
+
 @media (max-width: 768px) {
 #addItemModal .modal-dialog,
 #addItemModal2 .modal-dialog {
@@ -108,6 +149,12 @@ style="font-size: 0.8rem;">
 <label class="form-check-label" for="modalContinuousQRMode">Continuous Scan</label>
 </div>
 
+<!-- Service Mode -->
+<div class="form-check mb-2" style="font-size: 0.8rem;">
+<input class="form-check-input" type="checkbox" id="modalServiceMode">
+<label class="form-check-label" for="modalServiceMode">Service</label>
+</div>
+
 <div id="modalItemImageContainer" class="text-center">
 <i class="fas fa-image fa-3x text-muted"></i>
 <div class="mt-2">
@@ -141,10 +188,26 @@ style="font-size: 0.8rem;">
 </div>
 </div>
 
-<!-- Row 3 - Description and Add Button -->
+<!-- Row 3 - Tax 1 and Tax 2 percentages -->
+<div class="row mb-2 g-0">
+<div class="col-6">
+<div class="input-group input-group-sm">
+<span class="input-group-text border border-dark">Tax 1 %</span>
+<input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" placeholder="0.00" id="modalItemTax1" value="" onfocus="this.select();">
+</div>
+</div>
+<div class="col-6">
+<div class="input-group input-group-sm">
+<span class="input-group-text border border-dark">Tax 2 %</span>
+<input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" placeholder="0.00" id="modalItemTax2" value="" onfocus="this.select();">
+</div>
+</div>
+</div>
+
+<!-- Row 4 - Description and Add Button -->
 <div class="row g-0">
 <div class="col-12">
-<textarea class="form-control border border-dark" placeholder="Description" id="modalItemDescription" rows="2"></textarea>
+<textarea class="form-control border border-dark" placeholder="Description" id="modalItemDescription" rows="1"></textarea>
 </div>
 </div>
 </div>
@@ -160,6 +223,12 @@ style="font-size: 0.8rem;">
 `;
 
   modalContent.innerHTML = modalHTML;
+
+  // Restore the last Service mode setting
+  const modalServiceMode = document.getElementById('modalServiceMode');
+  if (modalServiceMode) {
+    modalServiceMode.checked = isServiceModeEnabled();
+  }
 
   // Initialize event listeners for the modal - pass the entire modal object
   initializeModalEventListeners(modal);
@@ -178,6 +247,9 @@ style="font-size: 0.8rem;">
       document.getElementById('modalItemQty').value = prefill.qty || '';
       document.getElementById('modalItemRate').value = prefill.rate || '';
       document.getElementById('modalItemDescription').value = prefill.description || '';
+
+      document.getElementById('modalItemTax1').value = modalTaxClampPercent(prefill.tax1).toFixed(2);
+      document.getElementById('modalItemTax2').value = modalTaxClampPercent(prefill.tax2).toFixed(2);
 
       calculateModalPrice();
 
@@ -211,6 +283,9 @@ function initializeModalEventListeners(modalResult) {
   const modalItemName = document.getElementById('modalItemName');
   const modalItemIdInput = document.getElementById('modalItemIdInput');
   const modalContinuousQRMode = document.getElementById('modalContinuousQRMode');
+  const modalServiceMode = document.getElementById('modalServiceMode');
+  const modalItemTax1 = document.getElementById('modalItemTax1');
+  const modalItemTax2 = document.getElementById('modalItemTax2');
   const modalAddNewItemBtn = document.getElementById('modalAddNewItemBtn');
   const modalAddItemBtn = document.getElementById('modalAddItemBtn');
 
@@ -307,6 +382,27 @@ function initializeModalEventListeners(modalResult) {
     });
   }
 
+  if (modalServiceMode) {
+    modalServiceMode.addEventListener('change', function (e) {
+      try {
+        localStorage.setItem(SERVICE_MODE_STORAGE_KEY, e.target.checked ? 'true' : 'false');
+      } catch (err) {
+        console.warn('Unable to save Service mode:', err);
+      }
+    });
+  }
+
+  [modalItemTax1, modalItemTax2].forEach(function (input) {
+    if (!input) return;
+    input.addEventListener('input', function () {
+      modalSanitizeTaxField(input);
+      updateModalAddButtonState();
+    });
+    input.addEventListener('blur', function () {
+      modalNormalizeTaxField(input);
+    });
+  });
+
   // Enable/disable add button based on form validity
   if (modalItemName && modalAddItemBtn) {
     modalItemName.addEventListener('input', function () {
@@ -324,6 +420,73 @@ function initializeModalEventListeners(modalResult) {
       updateModalAddButtonState(); // Add this line
     });
   }
+}
+
+function modalSanitizeTaxText(raw) {
+  let value = String(raw == null ? '' : raw).replace(/,/g, '.').replace(/[^0-9.]/g, '');
+  const firstDot = value.indexOf('.');
+  if (firstDot !== -1) {
+    value = value.slice(0, firstDot + 1) + value.slice(firstDot + 1).replace(/\./g, '');
+  }
+  const parts = value.split('.');
+  const intPart = (parts[0] || '').slice(0, 2);
+  const decPart = parts.length > 1 ? parts[1].slice(0, 2) : '';
+  return parts.length > 1 ? intPart + '.' + decPart : intPart;
+}
+
+function modalSanitizeTaxField(input) {
+  if (!input) return;
+  const next = modalSanitizeTaxText(input.value);
+  if (input.value !== next) input.value = next;
+}
+
+function modalNormalizeTaxField(input) {
+  if (!input) return;
+  const number = parseFloat(input.value);
+  const safe = Number.isFinite(number) ? Math.min(99.99, Math.max(0, number)) : 0;
+  input.value = roundToTwo(safe).toFixed(2);
+}
+
+function modalTaxClampPercent(value) {
+  const number = parseFloat(value);
+  if (!Number.isFinite(number) || number < 0) return 0;
+  return Math.min(99.99, roundToTwo(number));
+}
+
+function roundToTwo(value) {
+  return Math.round((Number(value) || 0) * 100) / 100;
+}
+
+// Tax 1 / Tax 2 percentages for a stock row (`g` -> product `p.j` / `p.k`)
+// or a product-shaped row (rates stored directly on `j` / `k`).
+function modalRatesFor(item) {
+  if (typeof window.productTaxRates === 'function') {
+    return window.productTaxRates(item);
+  }
+  const hasStockProductId = item && item.g != null && String(item.g).trim() !== '' && Number.isFinite(Number(item.g));
+  const isProductRow = item && !hasStockProductId && Number.isFinite(parseFloat(item.j));
+  return {
+    tax1: modalTaxClampPercent(isProductRow ? item.j : (item && item.tax1)),
+    tax2: modalTaxClampPercent(isProductRow ? item.k : (item && item.tax2))
+  };
+}
+
+function getModalTaxValues() {
+  return {
+    tax1: modalTaxClampPercent(document.getElementById('modalItemTax1')?.value),
+    tax2: modalTaxClampPercent(document.getElementById('modalItemTax2')?.value)
+  };
+}
+
+function getModalTaxAmounts() {
+  const { tax1, tax2 } = getModalTaxValues();
+  const price = parseFloat(document.getElementById('modalItemPrice')?.value) || 0;
+  if (typeof window.itemTaxAmounts === 'function') {
+    return Object.assign({ tax1: tax1, tax2: tax2 }, window.itemTaxAmounts(tax1, tax2, price));
+  }
+  const tax1Amount = roundToTwo((price * tax1) / 100);
+  const tax2Amount = roundToTwo((price * tax2) / 100);
+  return { tax1: tax1, tax2: tax2, tax1Amount: tax1Amount, tax2Amount: tax2Amount, taxAmount: roundToTwo(tax1Amount + tax2Amount) };
 }
 
 function calculateModalPrice() {
@@ -399,7 +562,18 @@ function handleModalItemNameBlur(inputElement) {
     // Exactly one match found
     if (modalAddNewItemBtn) modalAddNewItemBtn.style.display = 'none';
     // Set the item ID attribute
+    const previousId = inputElement.getAttribute('data-item-id');
     inputElement.setAttribute('data-item-id', matchedItems[0].a);
+
+    // Typing a full name (no dropdown click) should still surface that item's
+    // Tax 1 / Tax 2 instead of leaving the previous item's rates behind.
+    if (String(previousId) !== String(matchedItems[0].a)) {
+      const presetRates = modalRatesFor(matchedItems[0]);
+      const tax1Input = document.getElementById('modalItemTax1');
+      const tax2Input = document.getElementById('modalItemTax2');
+      if (tax1Input) tax1Input.value = modalTaxClampPercent(presetRates.tax1).toFixed(2);
+      if (tax2Input) tax2Input.value = modalTaxClampPercent(presetRates.tax2).toFixed(2);
+    }
   }
 
   // Always update button state after name blur
@@ -414,6 +588,8 @@ function clearModalItemForm() {
   document.getElementById('modalItemPrice').value = '';
   document.getElementById('modalItemDescription').value = '';
   document.getElementById('modalItemIdInput').value = '';
+  document.getElementById('modalItemTax1').value = '';
+  document.getElementById('modalItemTax2').value = '';
 
   const imageContainer = document.getElementById('modalItemImageContainer');
   if (imageContainer) {
@@ -479,9 +655,15 @@ function handleModalItemIdInput(event) {
 }
 
 function selectModalItem(item) {
+  const presetRates = modalRatesFor(item);
+
   document.getElementById('modalItemName').value = item.gn;
   document.getElementById('modalItemRate').value = item.k;
   document.getElementById('modalItemQty').value = '';
+  const tax1Input = document.getElementById('modalItemTax1');
+  const tax2Input = document.getElementById('modalItemTax2');
+  if (tax1Input) tax1Input.value = modalTaxClampPercent(presetRates.tax1).toFixed(2);
+  if (tax2Input) tax2Input.value = modalTaxClampPercent(presetRates.tax2).toFixed(2);
 
   // Set the data-item-id attribute
   document.getElementById('modalItemName').setAttribute('data-item-id', item.a);
@@ -545,8 +727,11 @@ function handleNewItmAddedToInventory(nwItmNm) {
       setTimeout(() => {
         // Refresh items array if needed
         if (typeof dbDexieManager !== 'undefined') {
-          dbDexieManager.getAllRecords(dbnm, "s").then(refreshedItems => {
+          dbDexieManager.getAllRecords(dbnm, "s").then(async (refreshedItems) => {
             items = refreshedItems || [];
+            if (typeof window.refreshItemsWithTax === 'function') {
+              try { await window.refreshItemsWithTax(); } catch (e) { console.warn('refreshItemsWithTax failed', e); }
+            }
             const retryItem = findItem();
 
             if (retryItem) {
@@ -578,10 +763,40 @@ function handleNewItmAddedToInventory(nwItmNm) {
 
 // Build the added-item card HTML (same design as b.js addItemToSaleList + pencil button)
 function buildAddedItemCardHTML(opts) {
-  const { uniqueItemId, itemId, name, qty, rate, price, description, imageUrl } = opts;
+  const {
+    uniqueItemId,
+    itemId,
+    name,
+    qty,
+    rate,
+    price,
+    description,
+    imageUrl,
+    tax1 = 0,
+    tax2 = 0,
+    tax1Amount = null,
+    tax2Amount = null,
+    subName = ''
+  } = opts;
+
+  const safeTax1 = modalTaxClampPercent(tax1);
+  const safeTax2 = modalTaxClampPercent(tax2);
+  const safeTax1Amount = tax1Amount == null
+    ? roundToTwo((price * safeTax1) / 100)
+    : Math.max(0, parseFloat(tax1Amount) || 0);
+  const safeTax2Amount = tax2Amount == null
+    ? roundToTwo((price * safeTax2) / 100)
+    : Math.max(0, parseFloat(tax2Amount) || 0);
+  const safeTaxAmount = roundToTwo(safeTax1Amount + safeTax2Amount);
+  const safeTaxPercent = price > 0
+    ? roundToTwo((safeTaxAmount / price) * 100)
+    : roundToTwo(safeTax1 + safeTax2);
+  const taxRatesLabel = (typeof window.itemTaxRatesLabel === 'function')
+    ? window.itemTaxRatesLabel(safeTax1, safeTax2)
+    : (safeTax1 + safeTax2).toFixed(2) + '%';
 
   return `
-<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}">
+<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}" data-item-subname="${String(subName || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" data-item-tax1="${safeTax1.toFixed(2)}" data-item-tax2="${safeTax2.toFixed(2)}" data-item-tax1-amount="${safeTax1Amount.toFixed(2)}" data-item-tax2-amount="${safeTax2Amount.toFixed(2)}" data-item-tax-percent="${safeTaxPercent.toFixed(2)}" data-item-tax-amount="${safeTaxAmount.toFixed(2)}">
 <div class="card-body">
 <div class="row">
 <!-- Left side - Image (fixed 3 columns) -->
@@ -635,6 +850,7 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
 </div>
 <div class="col-4">
 <strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${price.toFixed(2)}</span>
+<span class="item-tax-line" style="display:block;color:#6c757d;font-size:.75rem;">Tax: ₹<span id="itemTax-${uniqueItemId}">${safeTaxAmount.toFixed(2)}</span> (<span id="itemTaxRates-${uniqueItemId}">${taxRatesLabel}</span>)</span>
 </div>
 </div>
 
@@ -661,6 +877,8 @@ function addItemFromModal() {
   const itemId = document.getElementById('modalItemName').getAttribute('data-item-id');
   const imageUrl = document.querySelector('#modalItemImageContainer img')?.src || '';
 
+  const taxValues = getModalTaxAmounts();
+
   // Validation
   if (!name) {
     showToast('Please enter item name');
@@ -680,6 +898,7 @@ function addItemFromModal() {
     // ===== Update mode: replace the edited card in place =====
     const card = document.getElementById('invoiceItem-' + editingCardId);
     if (card) {
+      const preservedSubName = card.getAttribute('data-item-subname') || '';
       card.outerHTML = buildAddedItemCardHTML({
         uniqueItemId: editingCardId,
         itemId: itemId,
@@ -688,7 +907,12 @@ function addItemFromModal() {
         rate: rate,
         price: price,
         description: description,
-        imageUrl: imageUrl
+        imageUrl: imageUrl,
+        tax1: taxValues.tax1,
+        tax2: taxValues.tax2,
+        tax1Amount: taxValues.tax1Amount,
+        tax2Amount: taxValues.tax2Amount,
+        subName: preservedSubName
       });
       showToast(`${name} updated`);
     }
@@ -696,8 +920,11 @@ function addItemFromModal() {
   } else {
     // ===== Add mode =====
 
-    // Check if item already exists in sale list with same rate
-    const existingCard = findExistingItemInSaleList(itemId, rate);
+    // Service mode keeps every item on its own line
+    const serviceMode = document.getElementById('modalServiceMode')?.checked === true;
+
+    // Check if item already exists in sale list with same rate and tax
+    const existingCard = serviceMode ? null : findExistingItemInSaleList(itemId, rate, taxValues);
 
     if (existingCard) {
       // Item exists with same rate - increment quantity
@@ -714,7 +941,11 @@ function addItemFromModal() {
         rate: rate,
         price: price,
         description: description,
-        imageUrl: imageUrl
+        imageUrl: imageUrl,
+        tax1: taxValues.tax1,
+        tax2: taxValues.tax2,
+        tax1Amount: taxValues.tax1Amount,
+        tax2Amount: taxValues.tax2Amount
       }));
     }
   }
@@ -751,21 +982,34 @@ function editItemInModal(uniqueItemId) {
     qty: numberInputs[0] ? numberInputs[0].value : '',
     rate: numberInputs[1] ? numberInputs[1].value : '',
     description: descriptionEl ? descriptionEl.textContent : '',
-    imageUrl: imgEl ? imgEl.src : ''
+    imageUrl: imgEl ? imgEl.src : '',
+    tax1: modalTaxClampPercent(card.getAttribute('data-item-tax1')),
+    tax2: modalTaxClampPercent(card.getAttribute('data-item-tax2'))
   });
 }
 
 // Helper functions used by addItemFromModal
 
-// Find an already-added card with same item ID and rate
-function findExistingItemInSaleList(itemId, rate) {
+// Find an already-added card with same item ID, rate, and tax
+function findExistingItemInSaleList(itemId, rate, taxValues) {
   if (!itemId) return null;
+
+  const tax1 = modalTaxClampPercent(taxValues && taxValues.tax1);
+  const tax2 = modalTaxClampPercent(taxValues && taxValues.tax2);
 
   const addedCards = document.querySelectorAll('#addedItemsContainer .added-item-card');
   for (const card of addedCards) {
     const cardItemId = card.getAttribute('data-item-id');
     const cardRate = parseFloat(card.getAttribute('data-item-rate')) || 0;
-    if (cardItemId === itemId.toString() && Math.abs(cardRate - rate) < 0.001) {
+    const cardTax1 = modalTaxClampPercent(card.getAttribute('data-item-tax1'));
+    const cardTax2 = modalTaxClampPercent(card.getAttribute('data-item-tax2'));
+
+    if (
+      cardItemId === itemId.toString() &&
+      Math.abs(cardRate - rate) < 0.001 &&
+      Math.abs(cardTax1 - tax1) < 0.001 &&
+      Math.abs(cardTax2 - tax2) < 0.001
+    ) {
       return card;
     }
   }
@@ -784,9 +1028,35 @@ function incrementItemQuantity(card, qtyToAdd) {
   qtyInput.value = newQty;
 
   const rate = parseFloat(rateInput ? rateInput.value : 0) || 0;
+  const newPrice = newQty * rate;
   const priceSpan = card.querySelector('span[id^="itemPrice-"]');
   if (priceSpan) {
-    priceSpan.textContent = (newQty * rate).toFixed(2);
+    priceSpan.textContent = newPrice.toFixed(2);
+  }
+
+  let tax1 = modalTaxClampPercent(card.getAttribute('data-item-tax1'));
+  let tax2 = modalTaxClampPercent(card.getAttribute('data-item-tax2'));
+  if (!card.hasAttribute('data-item-tax1') && !card.hasAttribute('data-item-tax2')) {
+    tax1 = modalTaxClampPercent(card.getAttribute('data-item-tax-percent'));
+    tax2 = 0;
+  }
+
+  const tax1Amount = roundToTwo((newPrice * tax1) / 100);
+  const tax2Amount = roundToTwo((newPrice * tax2) / 100);
+  const taxAmount = roundToTwo(tax1Amount + tax2Amount);
+  card.setAttribute('data-item-tax1-amount', tax1Amount.toFixed(2));
+  card.setAttribute('data-item-tax2-amount', tax2Amount.toFixed(2));
+  card.setAttribute('data-item-tax-amount', taxAmount.toFixed(2));
+  card.setAttribute('data-item-tax-percent', (newPrice > 0 ? roundToTwo((taxAmount / newPrice) * 100) : roundToTwo(tax1 + tax2)).toFixed(2));
+
+  const uniqueItemId = card.id.replace('invoiceItem-', '');
+  const taxAmountEl = document.getElementById(`itemTax-${uniqueItemId}`);
+  const taxRatesEl = document.getElementById(`itemTaxRates-${uniqueItemId}`);
+  if (taxAmountEl) taxAmountEl.textContent = taxAmount.toFixed(2);
+  if (taxRatesEl) {
+    taxRatesEl.textContent = (typeof window.itemTaxRatesLabel === 'function')
+      ? window.itemTaxRatesLabel(tax1, tax2)
+      : (tax1 + tax2).toFixed(2) + '%';
   }
 }
 
@@ -820,6 +1090,7 @@ async function openQRScannerModal() {
 // ========== Public API (ei.js pattern) ==========
 window.showAddNormalItemModal = showAddNormalItemModal;
 window.addItemFromModal = addItemFromModal;
+window.selectModalItem = selectModalItem;
 window.handleAddNewItemInModal = handleAddNewItemInModal;
 window.handleNewItmAddedToInventory = handleNewItmAddedToInventory;
 window.editItemInModal = editItemInModal;
