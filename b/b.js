@@ -262,8 +262,8 @@ function formatShortDisplay(val) {
   { "a": 8, "u": "https://code.jquery.com/jquery-3.6.0.min.js" },
   { "a": 9, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@asdf2e1/b/b.min.js", "c": "set_bill_innerHTML", "r": "set_bill_innerHTML" },
   { "a": 10, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@14002e4/b/ba.min.js", "c": "open_bil_inward", "r": "open_bil_inward" },
-  { "a": 11, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/bn.js", "c": "set_add_itm_nw_innerHTML", "r": "set_add_itm_nw_innerHTML" },
-  { "a": 12, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/bp.js", "c": "set_deup_prod_innerHTML", "r": "set_deup_prod_innerHTML" },
+  { "a": 11, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/bn.js", "c": "set_add_itm_nw_innerHTML", "r": "set_add_itm_nw_innerHTML" },
+  { "a": 12, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/bp.js", "c": "set_deup_prod_innerHTML", "r": "set_deup_prod_innerHTML" },
   { "a": 13, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@a30ac23/b/bPrOp.min.css" },
   { "a": 14, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/ei.min.js", "c": "open_entind_crud", "r": "open_entind_crud" },
   { "a": 15, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1lp.min.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
@@ -274,7 +274,7 @@ function formatShortDisplay(val) {
   { "a": 20, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fc84f58/cmn/my1dra.min.js", "c": "upldAnyFile2drv", "r": "upldAnyFile2drv" },
   { "a": 21, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/be.js", "c": "set_be_innerHTML", "r": "set_be_innerHTML" },
   { "a": 22 },
-  { "a": 23, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/be_da.js", "c": "showPrintSettings", "r": "showPrintSettings" },
+  { "a": 23, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/be_da.js", "c": "showPrintSettings", "r": "showPrintSettings" },
   { "a": 24, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1img.min.js", "c": "open_addimage", "r": "open_addimage" },
   { "a": 25, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1236a32/cmn/clrChe.js", "c": "showClearCacheModal", "r": "showClearCacheModal" },
   { "a": 26, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/b/bi.js", "c": "set_bill_Inverd_innerHTML", "r": "set_bill_Inverd_innerHTML" },
@@ -291,7 +291,7 @@ function formatShortDisplay(val) {
  // billingModule 0 = normal items, 1 = garage / services.
  // Any missing / unknown value (including 2 = laundry, until its module is supplied) falls back to 0.
  const addItemModules = {
-  0: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/shoRegItm.js", c: "showAddNormalItemModal" },
+  0: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/shoRegItm.js", c: "showAddNormalItemModal" },
   1: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/shoCarwork.js", c: "showAddCarWorkModal" },
   2: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/shoLodryItm.js", c: "showAddLondryItemModal" }
  };
@@ -308,11 +308,11 @@ function formatShortDisplay(val) {
  // bePrModule 1 = bePr.js, 2 = bePr2.js, 3 = bePr3.js.
  // Any missing / unknown value falls back to 3 (bePr3.js).
  const bePrModules = {
-  1: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/bePr.js" },
-  2: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/bePr2.js" },
-  3: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/bePr3.js" }
+  1: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/bePr.js" },
+  2: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/bePr2.js" },
+  3: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/bePr3.js" }
  };
- const bePrModuleSelected = bePrModules[bePrModule] || bePrModules[1];
+ const bePrModuleSelected = bePrModules[bePrModule] || bePrModules[3];
  const bePrItem = csh1.find(x => x.a === 22);
  if (bePrItem) {
   Object.assign(bePrItem, {
@@ -466,6 +466,9 @@ function formatShortDisplay(val) {
   var link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href = href;
+  // Above-the-fold CSS: fetch it as early as possible and reuse the preconnected connection.
+  link.fetchPriority = 'high';
+  link.crossOrigin = 'anonymous';
   document.head.appendChild(link);
  });
 
@@ -2884,7 +2887,7 @@ ${renderExistingPayments(c594ashInfo)}
   const rateToShow = savedRate > 0 ? savedRate : (parseFloat(itemDetails.k || 0) || 0);
 
   const itemHTML = `
-<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${item.f}" data-item-rate="${rateToShow}" data-item-subname="${String(taxInfo.subName || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" data-item-tax1="${tax1.toFixed(2)}" data-item-tax2="${tax2.toFixed(2)}" data-item-tax1-amount="${taxInfo.tax1.toFixed(2)}" data-item-tax2-amount="${taxInfo.tax2.toFixed(2)}" data-item-tax-percent="${taxPercent.toFixed(2)}" data-item-tax-amount="${taxAmount.toFixed(2)}">
+<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${item.f}" data-item-rate="${rateToShow}" data-item-description="${String(item.i || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" data-item-subname="${String(taxInfo.subName || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" data-item-tax1="${tax1.toFixed(2)}" data-item-tax2="${tax2.toFixed(2)}" data-item-tax1-amount="${taxInfo.tax1.toFixed(2)}" data-item-tax2-amount="${taxInfo.tax2.toFixed(2)}" data-item-tax-percent="${taxPercent.toFixed(2)}" data-item-tax-amount="${taxAmount.toFixed(2)}">
 <div class="card-body">
 <div class="row">
 <!-- Left side - Image -->
@@ -3298,6 +3301,7 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
    showToast('Error saving bill: ' + error.message);
   }
  }
+
  function extractMessages(data) {
   if (!data.fn3 || !data.fn3.r || !Array.isArray(data.fn3.r)) {
    return "";
@@ -4248,6 +4252,16 @@ ${stockIndicator}
   }
  }
 
+ // hideTax = 1 -> keep all amounts/tax math, only stop showing Tax 1 / Tax 2.
+ function taxDisplayHidden() {
+  try {
+   const cc = (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].clientConfig) || {};
+   return Number(cc.hideTax) === 1;
+  } catch (e) {
+   return false;
+  }
+ }
+
  function itemTaxRound(value) {
   return Math.round((Number(value) || 0) * 100) / 100;
  }
@@ -4334,6 +4348,7 @@ ${stockIndicator}
  }
 
  function itemTaxLineHTML(uniqueItemId, tax1, tax2, amount) {
+  if (taxDisplayHidden()) return '';
   return '<span class="item-tax-line" style="display:block;color:#6c757d;font-size:.75rem;">Tax: ₹<span id="itemTax-' + uniqueItemId + '">' + itemTaxRound(amount).toFixed(2) + '</span> (<span id="itemTaxRates-' + uniqueItemId + '">' + itemTaxRatesLabel(tax1, tax2) + '</span>)</span>';
  }
 
@@ -7275,6 +7290,7 @@ This remark will be automatically filled in the bill notes section for new bills
  // Tax 1 / Tax 2 helpers shared with bn.js, shoRegItm.js and bp.js
  window.refreshItemsWithTax = refreshItemsWithTax;
  window.itemTaxSplitEnabled = itemTaxSplitEnabled;
+ window.taxDisplayHidden = taxDisplayHidden;
  window.itemTaxRound = itemTaxRound;
  window.itemTaxClampPercent = itemTaxClampPercent;
  window.productTaxRates = productTaxRates;
