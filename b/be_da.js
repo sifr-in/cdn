@@ -59,8 +59,7 @@ function resolveLogoUrl(value) {
     { key: 'printInvoice', label: 'Invoice Title', type: 'text', maxlength: 50, required: true },
     { key: 'printCompNm', label: 'Company Name', type: 'text', maxlength: 60, required: true },
     { key: 'printAdrs', label: 'Address', type: 'textarea', rows: 2, maxlength: 150 },
-    { key: 'printSubjectTo', label: 'Subject To / Footer', type: 'textarea', rows: 2, maxlength: 100 },
-    { key: 'print_logo', label: 'Logo URL', type: 'url', maxlength: 500, placeholder: 'https://...' }
+    { key: 'printSubjectTo', label: 'Subject To / Footer', type: 'textarea', rows: 2, maxlength: 100 }
    ]
   },
   {

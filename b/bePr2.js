@@ -165,19 +165,34 @@
   return total;
  }
 
- // Tax stored on a bill row (`i`).
- // Split layout (billItemTaxSplit=1): j/tax1 amount, k/tax2 amount, t/sub-name.
- // Legacy layout: j/sub-name, t/tax amount.
- function billItemTaxTotal(billItem, cfg) {
-  const c = cfg || (typeof clientConfig !== 'undefined' && clientConfig) || {};
-  const splitOn = Number(c.billItemTaxSplit) === 1;
-  const kPresent = billItem && billItem.k !== undefined && billItem.k !== null && String(billItem.k).trim() !== '';
-  const jNumeric = Number.isFinite(parseFloat(billItem && billItem.j));
-  const tNumeric = Number.isFinite(parseFloat(billItem && billItem.t));
-  if (splitOn && (kPresent || (jNumeric && !tNumeric))) {
+ // Rounds a money value to 2 decimals.
+ function billRound2(value) {
+  return Math.round((Number(value) || 0) * 100) / 100;
+ }
+
+ // Detects how tax was stored on this bill's rows (`i`): any row carrying `k`
+ // means the split layout (j/tax1 amount, k/tax2 amount, t/sub-name); otherwise
+ // the legacy layout keeps the sub-name on `j` and the tax amount on `t`.
+ // Sniffing the rows (instead of only reading billItemTaxSplit) keeps old bills
+ // correct when the flag is changed after they were saved.
+ function billTaxLayout(items) {
+  items = items || [];
+  const hasK = items.some(function (item) {
+   return item && item.k !== undefined && item.k !== null && String(item.k).trim() !== '';
+  });
+  if (hasK) return 'split';
+  const splitish = items.some(function (item) {
+   return item && Number.isFinite(parseFloat(item.j)) && !Number.isFinite(parseFloat(item.t));
+  });
+  return splitish ? 'split' : 'legacy';
+ }
+
+ function billItemTaxAmount(billItem, layout) {
+  if (!billItem) return 0;
+  if (layout === 'split') {
    return (parseFloat(billItem.j) || 0) + (parseFloat(billItem.k) || 0);
   }
-  return parseFloat(billItem && billItem.t) || 0;
+  return parseFloat(billItem.t) || 0;
  }
 
  function price_in_words(price) {
@@ -385,17 +400,20 @@
   let quanTotal = 0;
   let subtotal = 0;
   let taxTotal = 0;
+  const taxLayout = billTaxLayout(sCurrItems);
   sCurrItems.forEach(item => {
    quanTotal += parseInt(item.h) || 0;
    subtotal += parseFloat(item.g) || 0;
-   taxTotal += billItemTaxTotal(item);
+   taxTotal += billItemTaxAmount(item, taxLayout);
   });
-  taxTotal = Math.round(taxTotal * 100) / 100;
-  const t_itms_otal = Math.round((subtotal + taxTotal) * 100) / 100;
+  subtotal = billRound2(subtotal);
+  taxTotal = billRound2(taxTotal);
+  const t_itms_otal = billRound2(subtotal + taxTotal);
 
-  const discountAmt = (bill.k && parseFloat(bill.k)) ? parseFloat(bill.k) : 0;
-  const advanceAmt = getTotalAmtRcvd(sCurrCashInfo);
-  const dueAmt = (t_itms_otal - discountAmt - advanceAmt).toFixed(2);
+  const discountAmt = billRound2(parseFloat(bill.k) || 0);
+  const advanceAmt = billRound2(getTotalAmtRcvd(sCurrCashInfo));
+  const dueValue = billRound2(t_itms_otal - discountAmt - advanceAmt);
+  const dueAmt = (dueValue === 0 ? 0 : dueValue).toFixed(2);
 
   // Remarks / delivery date (same tolerant parsing as the old module)
   let t1682 = null;
@@ -518,6 +536,8 @@
   if (!d.sCurrItems.length) {
    return '<tr><td colspan="5" class="bepr-c bepr-empty">No items</td></tr>';
   }
+  const hideTax = Number((d.clientConfig || {}).hideTax) === 1;
+  const layout = billTaxLayout(d.sCurrItems);
   return d.sCurrItems.map((item, index) => {
    const foundITM = d.items.find(c => c.a == item.f);
    let itemName = '';
@@ -527,7 +547,10 @@
     itemName = itemName ? itemName + '<br>' + additionalText : additionalText;
    }
    const qty = parseFloat(item.h) || 0;
-   const amount = parseFloat(item.g) || 0;
+   const netAmount = parseFloat(item.g) || 0;
+   // hideTax: keep the same Total/Due, show tax-inclusive line amounts so the
+   // printed sheet still adds up without a tax row.
+   const amount = hideTax ? billRound2(netAmount + billItemTaxAmount(item, layout)) : netAmount;
    const price = qty ? amount / qty : 0;
    return '<tr>' +
     '<td class="bepr-c">' + (index + 1) + '</td>' +
@@ -556,6 +579,7 @@
   opts = opts || {};
   const c = d.clientConfig || {};
   const showAllReceipts = c.show_all_receipts == 1;
+  const hideTax = Number(c.hideTax) === 1;
   const hasReceipts = showAllReceipts && d.sCurrCashInfo.length > 0;
   const verticalEyes = c.tbl_disp == 2;
   const amountInWords = price_in_words(d.t_itms_otal.toFixed(0));
@@ -615,7 +639,7 @@
    ? ''
    : '<tr><td class="bepr-lbl">' + ensureUTF(c.printAdvAmtTtl) + '</td><td class="bepr-val bepr-received-amount">' + d.advanceAmt.toFixed(2) + '</td></tr>';
 
-  const taxRow = d.taxTotal > 0
+  const taxRow = (!hideTax && d.taxTotal > 0)
    ? '<tr><td class="bepr-lbl">Tax</td><td class="bepr-val bepr-tax-amount">' + d.taxTotal.toFixed(2) + '</td></tr>'
    : '';
 

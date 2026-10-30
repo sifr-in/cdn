@@ -107,7 +107,7 @@ Ignore from stock checking
 </div>
 </div>
 
-<div class="row g-0 mb-2 mt-1">
+<div class="row g-0 mb-2 mt-1" id="bnTaxRow">
 <div class="col-6">
 <div class="input-group input-group-sm">
 <span class="input-group-text border border-dark">Tax 1 %</span>
@@ -144,6 +144,12 @@ maxlength="256" required>
 </div>
 </div>
 `;
+
+ // hideTax = 1 -> keep the tax values/math, just don't show the two inputs.
+ if (typeof window.taxDisplayHidden === 'function' && window.taxDisplayHidden()) {
+  const taxRow = document.getElementById('bnTaxRow');
+  if (taxRow) taxRow.style.display = 'none';
+ }
 
  setupKeyboardNavigation();
  setFocusToPriceInput();

@@ -466,7 +466,7 @@ async function set_deup_prod_innerHTML(...params) {
                         </div>
                     </div>
                     
-                    <div class="col-12">
+                    <div class="col-12" id="bpTaxRow">
                         <div class="row">
                             <div class="col-6 mb-3">
                                 <label for="productTax1" class="form-label fw-bold">Tax 1 % (j)</label>
@@ -501,6 +501,12 @@ async function set_deup_prod_innerHTML(...params) {
             <button type="button" class="btn btn-primary" id="saveUpdateBtn">Save Changes</button>
         </div>
     `;
+
+  // hideTax = 1 -> keep the tax values/math, just don't show the two inputs.
+  if (typeof window.taxDisplayHidden === 'function' && window.taxDisplayHidden()) {
+   const bpTaxRow = updateModalContent.querySelector('#bpTaxRow');
+   if (bpTaxRow) bpTaxRow.style.display = 'none';
+  }
 
   ['productTax1', 'productTax2'].forEach(function (id) {
    const input = updateModalContent.querySelector('#' + id);

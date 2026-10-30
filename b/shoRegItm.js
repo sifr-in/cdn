@@ -9,16 +9,6 @@ let continuousQRMode = false;
 let qrScannerActive = false;
 let editingCardId = null; // uniqueItemId of card being edited (update mode)
 
-const SERVICE_MODE_STORAGE_KEY = 'addItemServiceMode';
-
-function isServiceModeEnabled() {
-  try {
-    return localStorage.getItem(SERVICE_MODE_STORAGE_KEY) === 'true';
-  } catch (e) {
-    return false;
-  }
-}
-
 // ========== Self-contained styles (same card design as b.js addDropdownStyles) ==========
 function shoRegItmInjectStyles() {
   if (window.__shoRegItmCssInjected) return;
@@ -149,12 +139,6 @@ style="font-size: 0.8rem;">
 <label class="form-check-label" for="modalContinuousQRMode">Continuous Scan</label>
 </div>
 
-<!-- Service Mode -->
-<div class="form-check mb-2" style="font-size: 0.8rem;">
-<input class="form-check-input" type="checkbox" id="modalServiceMode">
-<label class="form-check-label" for="modalServiceMode">Service</label>
-</div>
-
 <div id="modalItemImageContainer" class="text-center">
 <i class="fas fa-image fa-3x text-muted"></i>
 <div class="mt-2">
@@ -189,7 +173,7 @@ style="font-size: 0.8rem;">
 </div>
 
 <!-- Row 3 - Tax 1 and Tax 2 percentages -->
-<div class="row mb-2 g-0">
+<div class="row mb-2 g-0" id="modalTaxRow">
 <div class="col-6">
 <div class="input-group input-group-sm">
 <span class="input-group-text border border-dark">Tax 1 %</span>
@@ -224,10 +208,10 @@ style="font-size: 0.8rem;">
 
   modalContent.innerHTML = modalHTML;
 
-  // Restore the last Service mode setting
-  const modalServiceMode = document.getElementById('modalServiceMode');
-  if (modalServiceMode) {
-    modalServiceMode.checked = isServiceModeEnabled();
+  // hideTax = 1 -> keep the tax values/math, just don't show the two inputs.
+  if (typeof window.taxDisplayHidden === 'function' && window.taxDisplayHidden()) {
+    const modalTaxRow = document.getElementById('modalTaxRow');
+    if (modalTaxRow) modalTaxRow.style.display = 'none';
   }
 
   // Initialize event listeners for the modal - pass the entire modal object
@@ -283,7 +267,6 @@ function initializeModalEventListeners(modalResult) {
   const modalItemName = document.getElementById('modalItemName');
   const modalItemIdInput = document.getElementById('modalItemIdInput');
   const modalContinuousQRMode = document.getElementById('modalContinuousQRMode');
-  const modalServiceMode = document.getElementById('modalServiceMode');
   const modalItemTax1 = document.getElementById('modalItemTax1');
   const modalItemTax2 = document.getElementById('modalItemTax2');
   const modalAddNewItemBtn = document.getElementById('modalAddNewItemBtn');
@@ -378,16 +361,6 @@ function initializeModalEventListeners(modalResult) {
 
       if (continuousQRMode) {
         showToast('Continuous scan mode enabled');
-      }
-    });
-  }
-
-  if (modalServiceMode) {
-    modalServiceMode.addEventListener('change', function (e) {
-      try {
-        localStorage.setItem(SERVICE_MODE_STORAGE_KEY, e.target.checked ? 'true' : 'false');
-      } catch (err) {
-        console.warn('Unable to save Service mode:', err);
       }
     });
   }
@@ -796,7 +769,7 @@ function buildAddedItemCardHTML(opts) {
     : (safeTax1 + safeTax2).toFixed(2) + '%';
 
   return `
-<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}" data-item-subname="${String(subName || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" data-item-tax1="${safeTax1.toFixed(2)}" data-item-tax2="${safeTax2.toFixed(2)}" data-item-tax1-amount="${safeTax1Amount.toFixed(2)}" data-item-tax2-amount="${safeTax2Amount.toFixed(2)}" data-item-tax-percent="${safeTaxPercent.toFixed(2)}" data-item-tax-amount="${safeTaxAmount.toFixed(2)}">
+<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}" data-item-description="${String(description || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" data-item-subname="${String(subName || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" data-item-tax1="${safeTax1.toFixed(2)}" data-item-tax2="${safeTax2.toFixed(2)}" data-item-tax1-amount="${safeTax1Amount.toFixed(2)}" data-item-tax2-amount="${safeTax2Amount.toFixed(2)}" data-item-tax-percent="${safeTaxPercent.toFixed(2)}" data-item-tax-amount="${safeTaxAmount.toFixed(2)}">
 <div class="card-body">
 <div class="row">
 <!-- Left side - Image (fixed 3 columns) -->
@@ -850,7 +823,7 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
 </div>
 <div class="col-4">
 <strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${price.toFixed(2)}</span>
-<span class="item-tax-line" style="display:block;color:#6c757d;font-size:.75rem;">Tax: ₹<span id="itemTax-${uniqueItemId}">${safeTaxAmount.toFixed(2)}</span> (<span id="itemTaxRates-${uniqueItemId}">${taxRatesLabel}</span>)</span>
+${(typeof window.taxDisplayHidden === 'function' && window.taxDisplayHidden()) ? '' : `<span class="item-tax-line" style="display:block;color:#6c757d;font-size:.75rem;">Tax: ₹<span id="itemTax-${uniqueItemId}">${safeTaxAmount.toFixed(2)}</span> (<span id="itemTaxRates-${uniqueItemId}">${taxRatesLabel}</span>)</span>`}
 </div>
 </div>
 
@@ -920,11 +893,9 @@ function addItemFromModal() {
   } else {
     // ===== Add mode =====
 
-    // Service mode keeps every item on its own line
-    const serviceMode = document.getElementById('modalServiceMode')?.checked === true;
-
-    // Check if item already exists in sale list with same rate and tax
-    const existingCard = serviceMode ? null : findExistingItemInSaleList(itemId, rate, taxValues);
+    // Same item + same rate + same tax + same description -> increase quantity.
+    // A different description keeps the item on its own line.
+    const existingCard = findExistingItemInSaleList(itemId, rate, taxValues, description);
 
     if (existingCard) {
       // Item exists with same rate - increment quantity
@@ -990,12 +961,21 @@ function editItemInModal(uniqueItemId) {
 
 // Helper functions used by addItemFromModal
 
-// Find an already-added card with same item ID, rate, and tax
-function findExistingItemInSaleList(itemId, rate, taxValues) {
+// Normalize a description before comparing (ignore case and extra spacing)
+function normalizeItemDescription(value) {
+  return String(value == null ? '' : value)
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+// Find an already-added card with same item ID, rate, tax AND description
+function findExistingItemInSaleList(itemId, rate, taxValues, description) {
   if (!itemId) return null;
 
   const tax1 = modalTaxClampPercent(taxValues && taxValues.tax1);
   const tax2 = modalTaxClampPercent(taxValues && taxValues.tax2);
+  const wantedDescription = normalizeItemDescription(description);
 
   const addedCards = document.querySelectorAll('#addedItemsContainer .added-item-card');
   for (const card of addedCards) {
@@ -1003,12 +983,19 @@ function findExistingItemInSaleList(itemId, rate, taxValues) {
     const cardRate = parseFloat(card.getAttribute('data-item-rate')) || 0;
     const cardTax1 = modalTaxClampPercent(card.getAttribute('data-item-tax1'));
     const cardTax2 = modalTaxClampPercent(card.getAttribute('data-item-tax2'));
+    const descEl = card.querySelector('small.text-muted');
+    const cardDescription = normalizeItemDescription(
+      card.hasAttribute('data-item-description')
+        ? card.getAttribute('data-item-description')
+        : (descEl ? descEl.textContent : '')
+    );
 
     if (
       cardItemId === itemId.toString() &&
       Math.abs(cardRate - rate) < 0.001 &&
       Math.abs(cardTax1 - tax1) < 0.001 &&
-      Math.abs(cardTax2 - tax2) < 0.001
+      Math.abs(cardTax2 - tax2) < 0.001 &&
+      cardDescription === wantedDescription
     ) {
       return card;
     }

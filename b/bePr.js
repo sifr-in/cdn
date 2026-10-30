@@ -345,22 +345,20 @@ async function loadInvoiceData(billId, modalElement) {
    name_referrer = objReferrer ? ensureUTF(objReferrer.h + " " + objReferrer.i) : "";
   }
 
-  // Calculate totals
+  // Calculate totals: net line prices + stored tax, discount and receipts.
+  // Keeping one source of truth here stops the printed Due from drifting away
+  // from the Total due shown on the bill form.
   let quanTotal = 0;
-  let t_itms_otal = 0;
-  const advanceAmt = getTotalAmtRcvd(sCurrCashInfo);
-
   sCurrItems.forEach(item => {
-   quanTotal += parseInt(item.h);
-   t_itms_otal += parseFloat(item.g);
+   quanTotal += parseInt(item.h) || 0;
   });
 
-  // Handle discount
-  let discountAmt = 0.0;
-  if (curr_bill_info.k && parseFloat(curr_bill_info.k)) {
-   discountAmt = parseFloat(curr_bill_info.k);
-  }
-  const dueAmt = (t_itms_otal - discountAmt - advanceAmt).toFixed(2);
+  const billTotals = computeBillTotals(sCurrItems, curr_bill_info, sCurrCashInfo);
+  const t_itms_otal = billTotals.total;
+  const taxTotal = billTotals.taxTotal;
+  const discountAmt = billTotals.discount;
+  const advanceAmt = billTotals.received;
+  const dueAmt = billTotals.dueText;
 
   // Handle remarks and delivery date
   let t1682 = null;
@@ -442,6 +440,8 @@ whatsAppLnkTxt += `*Total Received: \`${advanceAmt.toFixed(2)}\`*\n`;
    sCurrCashInfo, // Add this line to store for detailed display
    quanTotal,
    t_itms_otal,
+   subtotal: billTotals.subtotal,
+   taxTotal,
    advanceAmt,
    discountAmt,
    dueAmt,
@@ -477,7 +477,12 @@ function generateInvoiceHTML(modalElement) {
 
 // Create invoice HTML structure with INLINE CSS
 function createInvoiceHTML(data) {
- const { clientConfig, curr_bill_info, name_client, mob_client, addr_client, name_referrer, items, sCurrItems, sCurrCashInfo, quanTotal, t_itms_otal, advanceAmt, discountAmt, dueAmt, t1682, deliveryDate, eye_selected_msrmnt, billDate } = data;
+ const { clientConfig, curr_bill_info, name_client, mob_client, addr_client, name_referrer, items, sCurrItems, sCurrCashInfo, quanTotal, t_itms_otal, taxTotal = 0, advanceAmt, discountAmt, dueAmt, t1682, deliveryDate, eye_selected_msrmnt, billDate } = data;
+
+ // hideTax = 1 -> keep totals exactly as they are, only stop showing tax.
+ // Item Amount/Rate are shown tax-inclusive so the sheet still adds up.
+ const hideTax = billTaxHidden(clientConfig);
+ const taxLayout = billTaxLayout(sCurrItems);
 
  // Calculate amount in words
  const amountInWords = price_in_words(t_itms_otal.toFixed(0));
@@ -507,15 +512,18 @@ function createInvoiceHTML(data) {
    itemName = itemName ? itemName + "<br>" + additionalText : additionalText;
   }
 
-  const price = item.g / item.h;
+  const netAmount = parseFloat(item.g) || 0;
+  const lineAmount = hideTax ? billRound2(netAmount + billItemTaxAmount(item, taxLayout)) : netAmount;
+  const lineQty = parseFloat(item.h) || 0;
+  const price = lineQty ? lineAmount / lineQty : 0;
 
   itemsHTML += `
 <tr>
 <td style="text-align: center; padding: 4px; border: 1px solid #000;">${serial++}</td>
 <td style="padding: 4px; border: 1px solid #000; text-align: left; font-family: Arial, sans-serif;">${itemName}</td>
 <td style="text-align: right; padding: 4px; border: 1px solid #000;">${item.h}</td>
-<td style="text-align: right; padding: 4px; border: 1px solid #000;">${parseFloat(price).toFixed(2)}</td>
-<td style="text-align: right; padding: 4px; border: 1px solid #000;">${parseFloat(item.g).toFixed(2)}</td>
+<td style="text-align: right; padding: 4px; border: 1px solid #000;">${price.toFixed(2)}</td>
+<td style="text-align: right; padding: 4px; border: 1px solid #000;">${lineAmount.toFixed(2)}</td>
 </tr>
 `;
  });
@@ -847,6 +855,13 @@ ${name_referrer ? `<p style="font-size: 75%; margin: 10px 0;"><b>${ensureUTF(cli
 ${itemsHTML}
 </tbody>
 <tfoot>
+${(!hideTax && taxTotal > 0) ? `
+<tr>
+<td colspan="3" style="padding: 8px; border: none;"></td>
+<td style="padding: 8px; border: none; text-align: right;"><b>Tax</b></td>
+<td style="padding: 8px; border: 2px solid #000; text-align: right;">${taxTotal.toFixed(2)}</td>
+</tr>
+` : ''}
 <tr>
 <td colspan="3" style="padding: 8px; border: none; text-align: left; vertical-align: top;">
 <span style="font-size: 75%;">${amountInWords}</span>
@@ -2480,6 +2495,67 @@ function getTotalAmtRcvd(sCurrCashInfo, showAllReceipts = false) {
   tot442 += parseFloat(sCurrCashInfo[k].j);
  }
  return tot442;
+}
+
+// ---- Bill totals (tax aware) -------------------------------------------
+// Rounds a money value to 2 decimals.
+function billRound2(value) {
+ return Math.round((Number(value) || 0) * 100) / 100;
+}
+
+// Detects how tax was stored on this bill's item rows (`i` table).
+// Split layout (billItemTaxSplit=1): j/tax1 amount, k/tax2 amount, t/sub-name.
+// Legacy layout: j/sub-name, t/tax amount.
+function billTaxLayout(items) {
+ items = items || [];
+ const hasK = items.some(function (item) {
+  return item && item.k !== undefined && item.k !== null && String(item.k).trim() !== '';
+ });
+ if (hasK) return 'split';
+ const splitish = items.some(function (item) {
+  return item && Number.isFinite(parseFloat(item.j)) && !Number.isFinite(parseFloat(item.t));
+ });
+ return splitish ? 'split' : 'legacy';
+}
+
+function billItemTaxAmount(billItem, layout) {
+ if (!billItem) return 0;
+ if (layout === 'split') {
+  return (parseFloat(billItem.j) || 0) + (parseFloat(billItem.k) || 0);
+ }
+ return parseFloat(billItem.t) || 0;
+}
+
+// subtotal + tax = total; due = total - discount - received.
+// Rounding each step keeps the printed rows and the Due value in agreement.
+function computeBillTotals(items, bill, cashInfo) {
+ const layout = billTaxLayout(items);
+ let subtotal = 0;
+ let taxTotal = 0;
+ (items || []).forEach(function (item) {
+  subtotal += parseFloat(item && item.g) || 0;
+  taxTotal += billItemTaxAmount(item, layout);
+ });
+ subtotal = billRound2(subtotal);
+ taxTotal = billRound2(taxTotal);
+ const total = billRound2(subtotal + taxTotal);
+ const discount = billRound2(parseFloat(bill && bill.k) || 0);
+ const received = billRound2(getTotalAmtRcvd(cashInfo || []));
+ const due = billRound2(total - discount - received);
+ return {
+  layout: layout,
+  subtotal: subtotal,
+  taxTotal: taxTotal,
+  total: total,
+  discount: discount,
+  received: received,
+  due: due,
+  dueText: (due === 0 ? 0 : due).toFixed(2)
+ };
+}
+
+function billTaxHidden(cfg) {
+ return Number(cfg && cfg.hideTax) === 1;
 }
 
 function price_in_words(price) {
