@@ -2,9 +2,9 @@ window.appcss = null;
 let xtraj_payload = null;
 async function set_owner() {
  const pathParts = window.location.pathname.split('/').filter(p => p);
-  const eo = window.ownr_eo = window.ownr_eo || pathParts[0];
-  const ec = window.ownr_ec = window.ownr_ec || pathParts[1];
-  const pj = window.ownr_pj = window.ownr_pj || pathParts[2];
+ const eo = window.ownr_eo = window.ownr_eo || pathParts[0];
+ const ec = window.ownr_ec = window.ownr_ec || pathParts[1];
+ const pj = window.ownr_pj = window.ownr_pj || pathParts[2];
  window.appOwner = {
   tn: `${eo}_${ec}`.replace(/\./g, "_"),
   eo: eo,
@@ -1496,23 +1496,6 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
       if (xhr.status >= 200 && xhr.status < 300) {
        const response = JSON.parse(xhr.responseText);
        if (response) {
-        // if (response.ms && response.ms.includes("not registered") && registerAtOwnerIfNotRegistered == 1) {
-        //  const registrationUrl = "https://my1.in/2/0.php";
-        //  let registrationPayload = JSON.parse(JSON.stringify(jsonPayload));
-        //  registrationPayload.tn = appOwner.tn;
-        //  registrationPayload.fn = 37;
-
-        //  return fnj3(registrationUrl, registrationPayload, loginRequired_0_1, async_1, loaderId, timeout, maxRetries, shoLoginByOas2orByPas1, registerAtOwnerIfNotRegistered, showLoader)
-        //   .then(registrationResponse => {
-        //    if (registrationResponse && registrationResponse.su == 1) {
-        //     return fnj3(url, jsonPayload, loginRequired_0_1, async_1, loaderId, timeout, maxRetries, shoLoginByOas2orByPas1, registerAtOwnerIfNotRegistered, showLoader);
-        //    } else {
-        //     throw new Error(`Registration failed. contact admin`);
-        //    }
-        //   })
-        //   .then(resolve)
-        //   .catch(reject);
-        // }
         resolve(response);
        } else {
         reject(new Error(response.ms || "API call was not successful"));
@@ -1563,6 +1546,194 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
   // Helper function to cleanup loader
   const cleanupLoader = () => {
    if (showLoader == 1) {
+    if (dynamicLoaderId) {
+     const loaderElement = document.getElementById(dynamicLoaderId);
+     if (loaderElement) {
+      loaderElement.remove();
+     }
+     dynamicLoaderId = null;
+    } else if (loaderId) {
+     document.getElementById(loaderId).style.display = "none";
+    }
+   }
+  };
+
+  const cancel = () => {
+   isAborted = true;
+   if (xhr) {
+    xhr.abort();
+   }
+   cleanupLoader();
+  };
+
+  const requestPromise = executeRequest();
+  requestPromise.cancel = cancel;
+  return requestPromise;
+ } catch (error) {
+  return Promise.reject(error);
+ }
+}
+async function fnj4(url, jsonPayload, loginRequired_0_1, async_1 = 1, loaderId = null, timeout = 20000, shoLoginByOas2orByPas1 = 0, loaderSho1Hide0 = 1) {
+ try {
+  if(!jsonPayload || !jsonPayload.ul || !jsonPayload.gt){
+   return Promise.reject(new Error("Payload and .ul & .gt must requred for fnj4"));
+  }
+  if (!url || (typeof url === 'string' && url.trim() === '')) {
+  // 1) Determine "current path" (directory, always ending with "/")
+  let path = location.pathname;
+  const last = path.split('/').pop();
+  // If the last segment looks like a file (has an extension), drop it.
+  if (last && /\.[a-z0-9]+$/i.test(last)) {
+    path = path.slice(0, path.length - last.length); // keeps trailing '/'
+  } else if (!path.endsWith('/')) {
+    path = path + '/';
+  }
+
+  // 2) Detect local server vs live
+  const host = location.hostname;
+  const isLocal =
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host === '0.0.0.0' ||
+    host === '::1' ||
+    host.endsWith('.local') ||
+    /^192\.168\./.test(host) ||
+    /^10\./.test(host) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(host);
+
+  // 3) Build the URL
+  if (isLocal) {
+    url = 'https://my1.in' + path + '0.php';
+  }else
+   url = location.origin + path + '0.php';
+  }
+
+  // Check internet connection first
+  if (!navigator.onLine) {
+   return Promise.reject(new Error("Connect to network"));
+  }
+  // Optional: More robust check
+  const isConnected = await checkInternetConnection();
+  if (!isConnected) {
+   return Promise.reject(new Error("No stable internet connection"));
+  }
+  // if (typeof publicFunctions === "string" && publicFunctions && !publicFunctions.includes(`,${jsonPayload.fn},`)) {
+  //     return Promise.reject(new Error("Not allowed to use this Funtion!"));
+  // }
+  if (loginRequired_0_1 == 1) {
+   const t343mp = await chkIfLoggedIn();
+   if (t343mp.su == 2) {
+    return Promise.reject(new Error("first accept login"));
+   } else if (t343mp.su == 0) {
+    xtraj_payload = { ...jsonPayload };
+    xtraj_payload.endP = url;
+    if (shoLoginByOas2orByPas1 > 0) {
+     if (shoLoginByOas2orByPas1 == 2) {
+      const t1170 = getCacheId("my1lo.js");
+      if (t1170)
+       await loadExe2Fn(t1170, [], [1]);
+      else
+       await loadExecFn('open_shoLgnO', 'open_shoLgnO', ['dv_to_set_open_shoLgnO_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/cmn/my1lo.js', []);
+     } else {
+      const t1176 = getCacheId("my1lp.js");
+      if (t1176)
+       await loadExe2Fn(t1176, [], [1]);
+      else
+       await loadExecFn('open_shoLgnP', 'open_shoLgnP', ['dv_to_set_open_shoLgnP_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@fbf62ad/cmn/my1lp.js', []);
+     }
+     window.suppressModals = true;
+     return;
+    } else {
+     return Promise.reject(new Error(JSON.stringify(t343mp)));
+    }
+   }
+  }
+  let xhr = null;
+  let isAborted = false;
+  let dynamicLoaderId = null;
+
+  const executeRequest = () => {
+   return new Promise((resolve, reject) => {
+    // Create loader if loaderId is null AND loaderSho1Hide0 is 1
+    if (loaderSho1Hide0 == 1) {
+     if (loaderId === null) {
+      dynamicLoaderId = 'loader-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+      const loaderHtml = `
+<div id="${dynamicLoaderId}" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(43,22,14,0.5); backdrop-filter: blur(4px); z-index: 2147483647;">
+<div class="spinner-border text-light" role="status">
+<span class="visually-hidden">Loading...</span>
+</div>
+</div>
+`;
+      document.body.insertAdjacentHTML('beforeend', loaderHtml);
+     } else if (loaderId) {
+      document.getElementById(loaderId).style.display = "flex";
+     }
+    }
+
+    xhr = new XMLHttpRequest();
+    xhr.open('POST', url, async_1 == 1);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.timeout = timeout;
+
+    xhr.onload = function () {
+     if (isAborted) return;
+     cleanupLoader();
+
+     try {
+      if (xhr.status >= 200 && xhr.status < 300) {
+       const response = JSON.parse(xhr.responseText);
+       if (response) {
+        resolve(response);
+       } else {
+        reject(new Error(response.ms || "API call was not successful"));
+       }
+      } else {
+       let errorMsg = `HTTP error ${xhr.status}`;
+       try {
+        const errorResponse = JSON.parse(xhr.responseText);
+        if (errorResponse.message) {
+         errorMsg += `: ${errorResponse.message}`;
+        }
+       } catch (e) {
+        errorMsg += `: ${xhr.statusText}`;
+       }
+       reject(new Error(errorMsg));
+      }
+     } catch (e) {
+      reject(new Error(`Failed to parse response: ${e.message}`));
+     }
+    };
+
+    xhr.onerror = function () {
+     if (isAborted) return;
+     cleanupLoader();
+     reject(new Error("Network error - request failed to complete"));
+    };
+
+    xhr.ontimeout = function () {
+     if (isAborted) return;
+     cleanupLoader();
+     reject(new Error("Request timed out"));
+    };
+
+    xhr.onabort = function () {
+     cleanupLoader();
+     reject(new Error("Request was aborted"));
+    };
+
+    try {
+     xhr.send(JSON.stringify(jsonPayload));
+    } catch (e) {
+     cleanupLoader();
+     reject(new Error(`Failed to send request: ${e.message}`));
+    }
+   });
+  };
+
+  // Helper function to cleanup loader
+  const cleanupLoader = () => {
+   if (loaderSho1Hide0 == 1) {
     if (dynamicLoaderId) {
      const loaderElement = document.getElementById(dynamicLoaderId);
      if (loaderElement) {
@@ -2056,7 +2227,7 @@ function preloadWajiwSounds(list) {
  ].join("");
  /* currentRaw = the raw (config "e") that `last` was started with, so a USER pause
  * can be reported with the exact key isAudioAutoOff() checks in regis.js. */
-let btn = null, armed = "", last = null, currentRaw = "";
+ let btn = null, armed = "", last = null, currentRaw = "";
 
  /* ---- global pause counter --------------------------------------------------------
   * Every sound (welcome, plans, filter, profile modal, registration...) is counted
@@ -3025,7 +3196,7 @@ window.initDateTimePicker = async function (inputId, options) {
   return full;
  }
 
-  const autoNow = options.autoNow !== false;
+ const autoNow = options.autoNow !== false;
  let committed = options.initialValue || el.value || (autoNow ? nowForMode() : '');
  el.type = 'text'; // Tempus Dominus owns the UI
  // options.readonly: pick-only input (user cannot type, must use the calendar)
@@ -3291,7 +3462,53 @@ window.preloadWajiwSounds = preloadWajiwSounds;
 
  const appPath = vMatch[1].replace(/\.js$/, '.min.js');
  const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + hash + '/' + appPath;
- //const url = 'git/mr.js';
+ //const url = 'b.js';
  set_owner();
  loadPromiseScript(url);
+})();
+
+// === Invalid-input red glow helpers (shared across all modules) ===
+(function () {
+  function injectCss() {
+    if (document.getElementById('invalid-glow-css')) return;
+    const st = document.createElement('style');
+    st.id = 'invalid-glow-css';
+    st.innerHTML = `
+      .is-invalid-glow, .exp-invalid {
+        border: 2px solid #dc3545 !important;
+        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.4) !important;
+        animation: invalidGlow 1.1s ease-in-out infinite alternate;
+      }
+      @keyframes invalidGlow {
+        from { box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25); }
+        to   { box-shadow: 0 0 0 0.45rem rgba(220, 53, 69, 0.5); }
+      }
+    `;
+    (document.head || document.documentElement).appendChild(st);
+  }
+
+  window.markInvalid = function (el) {
+    if (!el) return;
+    injectCss();
+    el.classList.add('is-invalid-glow');
+    try { el.focus(); } catch (e) {}
+  };
+
+  window.clearInvalid = function (el) {
+    if (!el) return;
+    el.classList.remove('is-invalid-glow');
+  };
+
+  // Auto-clear the red glow as soon as the user edits the field.
+  if (!window.__invalidGlowBound) {
+    window.__invalidGlowBound = true;
+    const clear = function (e) {
+      const t = e && e.target;
+      if (t && t.classList && t.classList.contains('is-invalid-glow')) {
+        t.classList.remove('is-invalid-glow');
+      }
+    };
+    document.addEventListener('input', clear, true);
+    document.addEventListener('change', clear, true);
+  }
 })();

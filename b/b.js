@@ -1,5 +1,6 @@
-const tblsRequired = ["c", "f", "fp", "s", "s2", "p", "b", "be", "ba", "i", "r", "mr", "mp"];
-const inTbls = ["dontCret:", "public:", "2/b-2~p,s", "2/b-3~c,b,i,r,ba,p,s,be", "2/b-4~c,b,i,r,ba,p,s,be", "2/b-7~c,b,i,r,ba,p,s,be", "2/1-9~b,be,r,i", "2/b-23~r", "2/b-25~p,s", "2/b-47~r,ba,p,s", "2/o-102~be", "2/p-103~r", "2/t-104~", "2/p-105~r"];//104 for .da
+const tblsRequired = ["c", "f", "fp", "s", "p", "b", "be", "ba", "i", "r", "x"];
+const inTbls = ["dontCret:", "public:", "2/b-2~p,s", "2/b-3~c,b,i,r,ba,p,s,be", "2/b-4~c,b,i,r,ba,p,s,be", "2/b-7~c,b,i,r,ba,p,s,be", "2/1-9~b,be,r,i", "2/b-23~r", "2/b-25~p,s", "2/b-47~r,ba,p,s","2/j-80~c","2/j-79~c", "2/o-102~be", "2/p-103~r", "2/t-104~", "2/p-105~r", "2/00-122~ba,p,s" , "2/00-123~x,r"];
+//104 for .da
 const moduLst = [
  { "a": ",2,3,4,7,9,25,104,", "b": "Dashboard", "c": "fa-plus-circle", "d": "mn_prods", "e": "#198754" }
 ];
@@ -262,8 +263,8 @@ function formatShortDisplay(val) {
   { "a": 8, "u": "https://code.jquery.com/jquery-3.6.0.min.js" },
   { "a": 9, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@asdf2e1/b/b.min.js", "c": "set_bill_innerHTML", "r": "set_bill_innerHTML" },
   { "a": 10, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@14002e4/b/ba.min.js", "c": "open_bil_inward", "r": "open_bil_inward" },
-  { "a": 11, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/bn.js", "c": "set_add_itm_nw_innerHTML", "r": "set_add_itm_nw_innerHTML" },
-  { "a": 12, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/bp.js", "c": "set_deup_prod_innerHTML", "r": "set_deup_prod_innerHTML" },
+  { "a": 11, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/bn.js", "c": "set_add_itm_nw_innerHTML", "r": "set_add_itm_nw_innerHTML" },
+  { "a": 12, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/bp.js", "c": "set_deup_prod_innerHTML", "r": "set_deup_prod_innerHTML" },
   { "a": 13, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@a30ac23/b/bPrOp.min.css" },
   { "a": 14, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/ei.min.js", "c": "open_entind_crud", "r": "open_entind_crud" },
   { "a": 15, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1lp.min.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
@@ -277,12 +278,14 @@ function formatShortDisplay(val) {
   { "a": 23, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/be_da.js", "c": "showPrintSettings", "r": "showPrintSettings" },
   { "a": 24, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1img.min.js", "c": "open_addimage", "r": "open_addimage" },
   { "a": 25, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1236a32/cmn/clrChe.js", "c": "showClearCacheModal", "r": "showClearCacheModal" },
-  { "a": 26, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/b/bi.js", "c": "set_bill_Inverd_innerHTML", "r": "set_bill_Inverd_innerHTML" },
-  { "a": 27, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/b/get_data.js", "c": "set_get_data_innerHTML", "r": "set_get_data_innerHTML" },
+  { "a": 26, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/bi.js", "c": "set_bill_Inverd_innerHTML", "r": "set_bill_Inverd_innerHTML" },
+  { "a": 27, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/bgtiv.js", "c": "set_get_data_innerHTML", "r": "set_get_data_innerHTML" },
   { "a": 28, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/b/rep_coll.js", "c": "set_rep_coll_innerHTML", "r": "set_rep_coll_innerHTML" },
   { "a": 29 },
   { "a": 30, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
- ];
+   { "a": 31, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/brcd.js", "c": "set_barcodes_innerHTML", "r": "set_barcodes_innerHTML" },
+   { "a": 32, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/bexps.js", "c": "set_expenditures_innerHTML", "r": "set_expenditures_innerHTML" },
+  ];
 
  // b.da must be ready before the add-item module is chosen or anything renders.
  applyBDaConfig(await bDaConfig());
@@ -291,7 +294,7 @@ function formatShortDisplay(val) {
  // billingModule 0 = normal items, 1 = garage / services.
  // Any missing / unknown value (including 2 = laundry, until its module is supplied) falls back to 0.
  const addItemModules = {
-  0: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/shoRegItm.js", c: "showAddNormalItemModal" },
+  0: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/shoRegItm.js", c: "showAddNormalItemModal" },
   1: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/shoCarwork.js", c: "showAddCarWorkModal" },
   2: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/shoLodryItm.js", c: "showAddLondryItemModal" }
  };
@@ -310,7 +313,7 @@ function formatShortDisplay(val) {
  const bePrModules = {
   1: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/bePr.js" },
   2: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/bePr2.js" },
-  3: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/bePr3.js" }
+  3: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/bePr3.js" }
  };
  const bePrModuleSelected = bePrModules[bePrModule] || bePrModules[3];
  const bePrItem = csh1.find(x => x.a === 22);
@@ -456,8 +459,6 @@ function formatShortDisplay(val) {
  }
  window.getGoogleDriveImageUrl = getGoogleDriveImageUrl;
 
- async function billingRequisit_be() { await loadExe2Fn(21, ['blankDivSection1'], [1]); }
-
  var cssLinks = [
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
@@ -471,6 +472,10 @@ function formatShortDisplay(val) {
   link.crossOrigin = 'anonymous';
   document.head.appendChild(link);
  });
+
+
+ async function billingRequisit_be() { await loadExe2Fn(21, ['blankDivSection1'], [1]); }
+
 
  var styleEl = document.createElement('style');
  styleEl.innerHTML = appcss;
@@ -499,7 +504,7 @@ function formatShortDisplay(val) {
 
             <div class="menu-item" id="sync_all_info">
                 <i class="fas fa-sync"></i>
-                <span>Update Data</span>
+                <span>Sync Data</span>
             </div>
 
             <div class="menu-item" onclick="(async()=>{await loadExe2Fn(12,[],[1]);})()">
@@ -507,11 +512,7 @@ function formatShortDisplay(val) {
                 <span>Manage Products</span>
             </div>
 
-            <!-- <div class="menu-item" onclick="(async()=>{await loadExe2Fn(26,[],[1]);})()">
-                <i class="fas fa-square-plus"></i>
-                <span>Bill Inward</span>
-            </div> -->
-            <div class="menu-item" onclick="window.showelsemodal('This service is currently under development.');">
+            <div class="menu-item" onclick="(async()=>{await loadExe2Fn(26,[],[1]);})()">
                 <i class="fas fa-square-plus"></i>
                 <span>Bill Inward</span>
             </div>
@@ -520,6 +521,16 @@ function formatShortDisplay(val) {
                 <i class="fas fa-chart-bar"></i>
                 <span>Reports</span>
             </div>
+            <div class="menu-item" onclick="(async()=>{await loadExe2Fn(31,[],[1]);})()">
+                <i class="fas fa-barcode"></i>
+                <span>Barcodes</span>
+            </div>
+
+            <div class="menu-item" onclick="(async()=>{await loadExe2Fn(32,[],[1]);})()">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>Expenditures</span>
+            </div>
+
 
             <div class="menu-item menu-sub-toggle" id="settings_toggle" onclick="toggleNavSubMenu()">
                 <i class="fas fa-cog"></i>
@@ -603,6 +614,18 @@ function formatShortDisplay(val) {
     }
    });
   }
+
+  // Close the menu popup when clicking anywhere outside of it (modal-like
+  // behaviour) instead of requiring a second click on the hamburger.
+  document.addEventListener('click', function (e) {
+   const el = document.getElementById('navbarNav');
+   if (!el || !el.classList.contains('show')) return;
+   if (el.contains(e.target)) return;
+   // The hamburger toggles the menu itself; ignore its click so it is not
+   // closed here right after toggleNavMenu() just opened it.
+   if (e.target.closest && e.target.closest('.navbar-toggler')) return;
+   hideNavMenu();
+  });
 
   if (result1.success) {
 
@@ -1649,14 +1672,14 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
 </div>
 <div class="col-4">
 <strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${price.toFixed(2)}</span>
-${itemTaxLineHTML(uniqueItemId, rates.tax1, rates.tax2, taxAmounts.taxAmount)}
 </div>
 </div>
 
-<!-- Row 3 - Description -->
+<!-- Row 3 - Description & Tax -->
 <div class="row g-0">
-<div class="col-12">
-<small class="text-muted">${description || ''}</small>
+<div class="col-12 d-flex align-items-baseline flex-wrap">
+<small class="text-muted text-start" style="flex: 1 1 0; min-width: 0; margin-right: 6px; font-size: 1rem; overflow-wrap: anywhere;">${description || ''}</small>
+${itemTaxLineHTML(uniqueItemId, rates.tax1, rates.tax2, taxAmounts.taxAmount)}
 </div>
 </div>
 </div>
@@ -2938,14 +2961,14 @@ class="form-control form-control-sm d-inline-block w-auto"
 </div>
 <div class="col-4">
 <strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${linePrice.toFixed(2)}</span>
-${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
 </div>
 </div>
 
-<!-- Row 3 - Description -->
+<!-- Row 3 - Description & Tax -->
 <div class="row g-0">
-<div class="col-12">
-<small class="text-muted">${item.i || ''}</small>
+<div class="col-12 d-flex align-items-baseline flex-wrap">
+<small class="text-muted text-start" style="flex: 1 1 0; min-width: 0; margin-right: 6px; font-size: 1rem; overflow-wrap: anywhere;">${item.i || ''}</small>
+${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
 </div>
 </div>
 </div>
@@ -2969,7 +2992,7 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
    }
 
    if (client) {
-    const clientName = `${client.i || ''} ${client.h || ''}`.trim();
+    const clientName = `${client.h || ''}`.trim();
     const clientMobile = client.e || '';
     document.getElementById('c_dtls_lient').value = clientName || clientMobile || 'Unknown Client';
    } else {
@@ -3040,15 +3063,8 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
    // Focus on the field
    field.focus();
 
-   // Highlight the field with red border
-   field.style.borderColor = '#dc3545';
-   field.style.boxShadow = '0 0 0 0.2rem rgba(220, 53, 69, 0.25)';
-
-   // Remove highlight after 3 seconds
-   setTimeout(() => {
-    field.style.borderColor = '';
-    field.style.boxShadow = '';
-   }, 3000);
+   // Highlight the field with a red glowing border (auto-clears on edit)
+   markInvalid(field);
   }
 
   if (message) {
@@ -3111,6 +3127,7 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
  async function crUpBill(fnNumber) {
   try {
    // Validate required fields
+   ['invoiceNumber','receiptDate','c_dtls_lient'].forEach(function (id) { clearInvalid(document.getElementById(id)); });
    const invoiceNumber = document.getElementById('invoiceNumber').value.trim();
    const receiptDateValue = document.getElementById('receiptDate').value;
    const deliveryDateValue = document.getElementById('deliveryDate').value;
@@ -4074,14 +4091,14 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
 </div>
 <div class="col-4">
 <strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${price.toFixed(2)}</span>
-${itemTaxLineHTML(uniqueItemId, rates.tax1, rates.tax2, taxAmounts.taxAmount)}
 </div>
 </div>
 
-<!-- Row 3 - Description -->
+<!-- Row 3 - Description & Tax -->
 <div class="row g-0">
-<div class="col-12">
-<small class="text-muted">${description || ''}</small>
+<div class="col-12 d-flex align-items-baseline flex-wrap">
+<small class="text-muted text-start" style="flex: 1 1 0; min-width: 0; margin-right: 6px; font-size: 1rem; overflow-wrap: anywhere;">${description || ''}</small>
+${itemTaxLineHTML(uniqueItemId, rates.tax1, rates.tax2, taxAmounts.taxAmount)}
 </div>
 </div>
 </div>
@@ -4347,10 +4364,13 @@ ${stockIndicator}
   return (a + b).toFixed(2) + '%';
  }
 
- function itemTaxLineHTML(uniqueItemId, tax1, tax2, amount) {
+function itemTaxLineHTML(uniqueItemId, tax1, tax2, amount) {
   if (taxDisplayHidden()) return '';
-  return '<span class="item-tax-line" style="display:block;color:#6c757d;font-size:.75rem;">Tax: ₹<span id="itemTax-' + uniqueItemId + '">' + itemTaxRound(amount).toFixed(2) + '</span> (<span id="itemTaxRates-' + uniqueItemId + '">' + itemTaxRatesLabel(tax1, tax2) + '</span>)</span>';
- }
+  return '<span class="item-tax-line text-nowrap" style="display:inline-block; flex:0 0 auto; color:#6c757d; font-size:.875rem; margin-left:auto;">' + 
+            'Tax: ₹<span id="itemTax-' + uniqueItemId + '">' + itemTaxRound(amount).toFixed(2) + '</span> ' +
+            '(<span id="itemTaxRates-' + uniqueItemId + '">' + itemTaxRatesLabel(tax1, tax2) + '</span>)' + 
+         '</span>';
+}
 
  // Recomputes tax for a card from its two stored rates (or the combined rate).
  function updateItemCardTax(itemElement, price) {
@@ -5368,8 +5388,8 @@ ${actionsHtml}
   }
   if (!billSelectedToUpdate) {
    receivedAmounts = receivedAmounts.filter(p => p.id !== id);
-   updateNewPaymentsUI();
-   updateGrandTotalsForUpdate();
+   updateReceivedAmountsUI();
+   refreshGrandTotals();
    return;
   }
   try {
@@ -5381,8 +5401,8 @@ ${actionsHtml}
    if (response.su == 1) {
     await dbDexieManager.deleteRecords(dbnm, 'r', id);
     receivedAmounts = receivedAmounts.filter(payment => payment.id !== id);
-    updateNewPaymentsUI();
-    updateGrandTotalsForUpdate();
+     updateNewPaymentsUI();
+     updateGrandTotalsForUpdate();
    } else {
     window.showelsemodal(response.ms);
    }
@@ -6051,7 +6071,7 @@ margin-top: 70px;
          item.ba_f = m_ba_atching.f;
          item.ba_g = m_ba_atching.g;
         } else {
-         item.ba_f = "0000-00-00 00:00:00";
+         item.ba_f = "-";
          item.ba_g = "0";
         }
         return item;
@@ -6470,7 +6490,7 @@ ${bill.i ? `
 
    // Add client header to the HTML
    if (clientBills.length > 0) {
-    const clientName = client.i + "<br>" + client.h || "";
+    const clientName = client.h || "";
     allBillsHTML += `
 <div class="mb-4" style="background-color:brown">
 <!-- Client header -->
@@ -6533,7 +6553,7 @@ ${allClientsBills.reduce((sum, cb) => sum + cb.billsCount, 0)} total bills
 <div class="mb-3">
 <div class="row row-cols-1 row-cols-md-2 g-2" style="background-color:aquamarine">
 ${allClientsBills.map(clientData => {
-   const clientName = clientData.client.i + "<br>" + clientData.client.h || "";
+   const clientName = clientData.client.h || "";
    const statusClass = clientData.hasDueBills ? 'bg-danger' : 'bg-success';
    const statusText = clientData.hasDueBills ? 'Has Due' : 'All Paid';
 
@@ -6883,8 +6903,8 @@ This remark will be automatically filled in the bill notes section for new bills
   return currentItems;
  }
 
- function formatNameMobile(i, h, e) {
-  const name = `${i || ''} ${h || ''}`.trim();
+ function formatNameMobile(h, e) {
+  const name = `${h || ''}`.trim();
   const mobile = e || '';
   return name ? (mobile ? `${name} ${mobile}` : name) : mobile;
  }
@@ -6892,12 +6912,12 @@ This remark will be automatically filled in the bill notes section for new bills
  function commonFnToRunAfter_op_ViewCall(obj, swtch) {
   if (swtch === 1) {
    // Set values to client
-   document.getElementById('c_dtls_lient').value = formatNameMobile(obj.i, obj.h, obj.e);
+   document.getElementById('c_dtls_lient').value = formatNameMobile(obj.h, obj.e);
    document.getElementById('clientId').value = obj.a;
    document.getElementById('dv_for_add_itm_btn').style.display = "block";
   } else if (swtch === 2) {
    // Set values to referrer
-   document.getElementById('r_dtls_eferrer').value = formatNameMobile(obj.i, obj.h, obj.e);
+   document.getElementById('r_dtls_eferrer').value = formatNameMobile(obj.h, obj.e);
    document.getElementById('referrerId').value = obj.a;
   }
  }
