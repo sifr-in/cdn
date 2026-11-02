@@ -107,19 +107,20 @@ Ignore from stock checking
 </div>
 </div>
 
-<div class="row g-0 mb-2 mt-1" id="bnTaxRow">
-<div class="col-6">
-<div class="input-group input-group-sm">
-<span class="input-group-text border border-dark">Tax 1 %</span>
-<input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" id="new_item_tax1" placeholder="0.00" value="" onfocus="this.select();">
-</div>
-</div>
-<div class="col-6">
-<div class="input-group input-group-sm">
-<span class="input-group-text border border-dark">Tax 2 %</span>
-<input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" id="new_item_tax2" placeholder="0.00" value="" onfocus="this.select();">
-</div>
-</div>
+<!-- Row 3 - Tax 1 and Tax 2 percentages -->
+<div class="row g-0 mb-2 mt-1${window[my1uzr.worknOnPg].clientConfig?.hideTax == 1 ? ' d-none' : ''}" id="bnTaxRow">
+    <div class="col-6">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text border border-dark">Tax 1 %</span>
+            <input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" id="new_item_tax1" placeholder="0.00" value="" onfocus="this.select();">
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text border border-dark">Tax 2 %</span>
+            <input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" id="new_item_tax2" placeholder="0.00" value="" onfocus="this.select();">
+        </div>
+    </div>
 </div>
 
 <div class="row mb-3" style="display:none;">
@@ -157,6 +158,15 @@ maxlength="256" required>
  setupItemNameCounter();
  setupNewItemTaxInputs();
  modalInstance.show();
+
+  // Auto-focus the item name when it was pre-filled from a search.
+  setTimeout(() => {
+   const nm = document.getElementById('new_item_nm');
+   if (nm && nm.value.trim()) {
+    nm.focus();
+    nm.setSelectionRange(nm.value.length, nm.value.length);
+   }
+  }, 150);
 }
 
 function bnRoundToTwo(value) {

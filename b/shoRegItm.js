@@ -8,6 +8,7 @@ let dropdownClicked = false;
 let continuousQRMode = false;
 let qrScannerActive = false;
 let editingCardId = null; // uniqueItemId of card being edited (update mode)
+let addItemModalTarget = null; // { onAdd, onInventory } when opened as a picker (e.g. bill inward)
 
 // ========== Self-contained styles (same card design as b.js addDropdownStyles) ==========
 function shoRegItmInjectStyles() {
@@ -108,7 +109,8 @@ margin-top: 70px;
 }
 
 // ========== Open modal (loader entry point) ==========
-function showAddNormalItemModal(prefill = null) {
+function showAddNormalItemModal(prefill = null, options = null) {
+  addItemModalTarget = (options && typeof options.onAdd === 'function') ? options : null;
   shoRegItmInjectStyles();
 
   // Create a modal
@@ -135,8 +137,8 @@ style="font-size: 0.8rem;">
 
 <!-- Continuous QR Mode Switch -->
 <div class="form-check form-switch mt-2 mb-2" style="font-size: 0.8rem;">
-<input class="form-check-input" type="checkbox" id="modalContinuousQRMode">
-<label class="form-check-label" for="modalContinuousQRMode">Continuous Scan</label>
+<input class="form-check-input border border-dark" type="checkbox" id="modalContinuousQRMode">
+<label class="form-check-label" for="modalContinuousQRMode"></label>
 </div>
 
 <div id="modalItemImageContainer" class="text-center">
@@ -173,19 +175,19 @@ style="font-size: 0.8rem;">
 </div>
 
 <!-- Row 3 - Tax 1 and Tax 2 percentages -->
-<div class="row mb-2 g-0" id="modalTaxRow">
-<div class="col-6">
-<div class="input-group input-group-sm">
-<span class="input-group-text border border-dark">Tax 1 %</span>
-<input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" placeholder="0.00" id="modalItemTax1" value="" onfocus="this.select();">
-</div>
-</div>
-<div class="col-6">
-<div class="input-group input-group-sm">
-<span class="input-group-text border border-dark">Tax 2 %</span>
-<input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" placeholder="0.00" id="modalItemTax2" value="" onfocus="this.select();">
-</div>
-</div>
+<div class="row mb-2 g-0${window[my1uzr.worknOnPg].clientConfig?.hideTax == 1 ? ' d-none' : ''}" id="modalTaxRow">
+    <div class="col-6">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text border border-dark">Tax 1 %</span>
+            <input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" placeholder="0.00" id="modalItemTax1" value="" onfocus="this.select();">
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text border border-dark">Tax 2 %</span>
+            <input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" placeholder="0.00" id="modalItemTax2" value="" onfocus="this.select();">
+        </div>
+    </div>
 </div>
 
 <!-- Row 4 - Description and Add Button -->
@@ -198,7 +200,7 @@ style="font-size: 0.8rem;">
 </div>
 </div>
 <div class="modal-footer">
-<button id="modalAddNewItemBtn" class="btn btn-warning w-100" onclick="handleAddNewItemInModal()" style="display: none;"><i class="fas fa-plus"></i> in inventory</button>
+<button id="modalAddNewItemBtn" class="btn btn-warning w-100" onclick="handleAddNewItemInModal((document.getElementById('modalItemName')||{}).value||'')" style="display: none;"><i class="fas fa-plus"></i> in inventory</button>
 &emsp;&emsp;
 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
 &emsp;
@@ -287,6 +289,7 @@ function initializeModalEventListeners(modalResult) {
       }
       // Reset edit mode when modal is dismissed without saving
       editingCardId = null;
+      addItemModalTarget = null;
     });
   }
 
@@ -668,9 +671,16 @@ onerror="this.style.display='none'; document.getElementById('modalItemImageConta
 }
 
 async function handleAddNewItemInModal(nwProdNm = '') {
+  nwProdNm = String(nwProdNm || '').trim();
+  // In bill-inward (picker) mode, the "in inventory" button opens the item list (27).
+  if (addItemModalTarget && typeof addItemModalTarget.onInventory === 'function') {
+    addItemModalTarget.onInventory(nwProdNm);
+    return;
+  }
   // Get the value from modal if not provided
   if (!nwProdNm) {
-    nwProdNm = document.getElementById('modalItemName').value.trim();
+    const el = document.getElementById('modalItemName');
+    nwProdNm = el ? el.value.trim() : '';
   }
 
   // Close the dropdown in modal
@@ -823,14 +833,14 @@ onblur="updateItemRate(${uniqueItemId}, this.value)">
 </div>
 <div class="col-4">
 <strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${price.toFixed(2)}</span>
-${(typeof window.taxDisplayHidden === 'function' && window.taxDisplayHidden()) ? '' : `<span class="item-tax-line" style="display:block;color:#6c757d;font-size:.75rem;">Tax: ₹<span id="itemTax-${uniqueItemId}">${safeTaxAmount.toFixed(2)}</span> (<span id="itemTaxRates-${uniqueItemId}">${taxRatesLabel}</span>)</span>`}
 </div>
 </div>
 
-<!-- Row 3 - Description -->
+<!-- Row 3 - Description & Tax -->
 <div class="row g-0">
-<div class="col-12">
-<small class="text-muted">${description || ''}</small>
+<div class="col-12 d-flex align-items-baseline flex-wrap">
+<small class="text-muted text-start" style="flex: 1 1 0; min-width: 0; margin-right: 6px; font-size: 1rem; overflow-wrap: anywhere;">${description || ''}</small>
+${(typeof window.taxDisplayHidden === 'function' && window.taxDisplayHidden()) ? '' : `<span class="item-tax-line text-nowrap" style="flex: 0 0 auto; margin-left: auto; color:#6c757d; font-size:.875rem;">Tax: ₹<span id="itemTax-${uniqueItemId}">${safeTaxAmount.toFixed(2)}</span> (<span id="itemTaxRates-${uniqueItemId}">${taxRatesLabel}</span>)</span>`}
 </div>
 </div>
 </div>
@@ -841,6 +851,8 @@ ${(typeof window.taxDisplayHidden === 'function' && window.taxDisplayHidden()) ?
 }
 
 function addItemFromModal() {
+  clearInvalid(document.getElementById('modalItemName'));
+  clearInvalid(document.getElementById('modalItemRate'));
   // Get values from modal
   const name = document.getElementById('modalItemName').value.trim();
   const qty = parseInt(document.getElementById('modalItemQty').value) || 1;
@@ -854,14 +866,40 @@ function addItemFromModal() {
 
   // Validation
   if (!name) {
+    markInvalid(document.getElementById('modalItemName'));
     showToast('Please enter item name');
     document.getElementById('modalItemName').focus();
     return;
   }
 
   if (!price || parseFloat(price) <= 0) {
+    markInvalid(document.getElementById('modalItemRate'));
     showToast('Please enter a valid price');
     document.getElementById('modalItemRate').focus();
+    return;
+  }
+
+  // Bill-inward / picker mode: hand the chosen item to the caller instead of
+  // inserting a card into the main bill.
+  if (addItemModalTarget && typeof addItemModalTarget.onAdd === 'function') {
+    const onAdd = addItemModalTarget.onAdd;
+    addItemModalTarget = null;
+    onAdd({
+      itemId: itemId,
+      name: name,
+      qty: qty,
+      rate: rate,
+      price: price,
+      description: description,
+      imageUrl: imageUrl,
+      tax1: taxValues.tax1,
+      tax2: taxValues.tax2,
+      tax1Amount: taxValues.tax1Amount,
+      tax2Amount: taxValues.tax2Amount
+    });
+    const modalEl = document.getElementById('addItemModal');
+    const inst = modalEl ? bootstrap.Modal.getInstance(modalEl) : null;
+    if (inst) inst.hide();
     return;
   }
 
