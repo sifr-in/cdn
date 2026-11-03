@@ -133,19 +133,6 @@ function resolveLogoUrl(value) {
      ]
     },
     {
-     key: 'bePrModule', label: 'Print Module', type: 'select', nested: 'cust_da_const', default: 3, options: [
-      { value: 1, label: 'bePr.js (classic)' },
-      { value: 2, label: 'bePr2.js' },
-      { value: 3, label: 'bePr3.js (default)' }
-     ]
-    },
-    {
-     key: 'showEyeMesuremetsTableInBill', label: 'Eye Measurements Table', type: 'select', nested: 'cust_da_const', default: 0, options: [
-      { value: 0, label: 'No - hide eye measurements table' },
-      { value: 1, label: 'Yes - show eye measurements table' }
-     ]
-    },
-    {
      key: 'tbl_disp', label: 'Table Display Style', type: 'select', options: [
       { value: 1, label: 'Style 1 - Simple' },
       { value: 2, label: 'Style 2 - Detailed' }
@@ -627,10 +614,7 @@ function resolveLogoUrl(value) {
 
   attachPrintSettingsHandlers(contentElement, modalInstance, modalElement);
  }
-
  // Expose globally
  window.showPrintSettings = showPrintSettings;
-
  console.log('prt_stng.js loaded successfully');
-
 })();

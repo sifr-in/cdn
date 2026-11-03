@@ -126,13 +126,17 @@ async function set_deup_prod_innerHTML(...params) {
  // Pagination variables
  let currentPage = 1;
  const itemsPerPage = 10;
+ let productSearchTerm = '';
 
  // Function to render products for current page
  function renderProducts() {
+  const filteredItems = productSearchTerm
+   ? items.filter(function (it) { return (it.gn || '').toLowerCase().includes(productSearchTerm); })
+   : items;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentItems = items.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(items.length / itemsPerPage);
+  const currentItems = filteredItems.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
   return `
             <div class="row g-3" id="productsGrid">
@@ -172,7 +176,7 @@ async function set_deup_prod_innerHTML(...params) {
                                                         <!-- Second row: Purchase Price, Sales Price, and Dropdown in one line -->
                                                         <div class="mb-1 d-flex justify-content-between align-items-center">
                                                             <span><strong>p.pr:</strong> ₹${item.h}</span>
-                                                            <span><strong>s.pr:</strong> ₹${item.k}</span>
+                                                            <span><strong>s.pr:</strong> ₹${(typeof window.getSellingPriceFromStock === 'function' ? window.getSellingPriceFromStock(item) : (item.k || 0))}</span>
                                                             <!-- Vertical ellipsis dropdown -->
                                                             <div class="dropdown">
                                                                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
@@ -181,10 +185,14 @@ async function set_deup_prod_innerHTML(...params) {
                                                                         aria-expanded="false">
                                                                     <i class="fas fa-ellipsis-v"></i>
                                                                 </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                                <ul class="dropdown-menu dropdown-menu-end border border-dark">
+                                                                    <li>
+                                                                        <button class="dropdown-item add-stock-btn" data-index="${actualIndex}">
+                                                                            <i class="fas fa-boxes-stacked me-2"></i>Add stock
+                                                                    </li>
                                                                     <li>
                                                                         <button class="dropdown-item update-btn" data-index="${actualIndex}">
-                                                                            <i class="fas fa-edit me-2"></i>Update
+                                                                            <i class="fas fa-edit me-2"></i>Update Product
                                                                         </button>
                                                                     </li>
                                                                     <li>
@@ -212,7 +220,7 @@ async function set_deup_prod_innerHTML(...params) {
             ${totalPages > 1 ? `
             <div class="d-flex justify-content-between align-items-center mt-4">
                 <div class="text-muted small">
-                    Showing ${startIndex + 1}-${Math.min(endIndex, items.length)} of ${items.length} products
+                    Showing ${startIndex + 1}-${Math.min(endIndex, filteredItems.length)} of ${filteredItems.length} products
                 </div>
                 <nav aria-label="Products pagination">
                     <ul class="pagination pagination-sm mb-0">
@@ -264,32 +272,24 @@ async function set_deup_prod_innerHTML(...params) {
  // Use event delegation for all interactions
  contentElement.addEventListener('input', function (e) {
   if (e.target && e.target.id === 'productSearch') {
-   const searchTerm = e.target.value.toLowerCase().trim();
-   const productCards = contentElement.querySelectorAll('.product-card');
-
-   productCards.forEach(card => {
-    const productName = card.getAttribute('data-prod-name');
-    if (productName.includes(searchTerm)) {
-     card.style.display = 'block';
-    } else {
-     card.style.display = 'none';
-    }
-   });
+   productSearchTerm = e.target.value.toLowerCase().trim();
+   currentPage = 1;
+   const modalBody = contentElement.querySelector('.modal-body');
+   if (modalBody) modalBody.innerHTML = renderProducts();
+   const inp = contentElement.querySelector('#productSearch');
+   if (inp) { inp.focus(); try { inp.setSelectionRange(inp.value.length, inp.value.length); } catch (err) {} }
   }
  });
 
  contentElement.addEventListener('click', function (e) {
   if (e.target && e.target.id === 'clearSearch') {
+   productSearchTerm = '';
+   currentPage = 1;
    const searchInput = contentElement.querySelector('#productSearch');
-   const productCards = contentElement.querySelectorAll('.product-card');
-
-   if (searchInput) {
-    searchInput.value = '';
-    productCards.forEach(card => {
-     card.style.display = 'block';
-    });
-    searchInput.focus();
-   }
+   if (searchInput) searchInput.value = '';
+   const modalBody = contentElement.querySelector('.modal-body');
+   if (modalBody) modalBody.innerHTML = renderProducts();
+   if (searchInput) searchInput.focus();
   }
 
   // Handle pagination clicks
@@ -309,6 +309,13 @@ async function set_deup_prod_innerHTML(...params) {
      firstCard.focus();
     }
    }
+  }
+
+  // Handle add-stock button clicks using event delegation
+  if (e.target && (e.target.classList.contains('add-stock-btn') || e.target.closest('.add-stock-btn'))) {
+   const btn = e.target.classList.contains('add-stock-btn') ? e.target : e.target.closest('.add-stock-btn');
+   const index = btn.getAttribute('data-index');
+   bpAddStock(index);
   }
 
   // Handle update button clicks using event delegation
@@ -448,18 +455,14 @@ async function set_deup_prod_innerHTML(...params) {
                     <div class="col-12">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="productName" class="form-label fw-bold">Prod Nm (gn) ID ${item.g}</label>
+                                <label for="productName" class="form-label fw-bold">Prod Name ID: ${item.g}</label>
                                 <input type="text" class="form-control border border-dark" id="productName" value="${item.gn}" required>
                             </div>
                             <div class="col-md-6">
                                 <div class="row">
-                                    <div class="col-6 mb-3">
-                                        <label for="productStock" class="form-label fw-bold">Stock Q (i)</label>
-                                        <input type="number" class="form-control border border-dark" id="productStock" value="${item.i}" required>
-                                    </div>
-                                    <div class="col-6 mb-3">
-                                        <label for="productPrice" class="form-label fw-bold">Price (k)</label>
-                                        <input type="number" class="form-control border border-dark" id="productPrice" value="${item.k}" step="0.01" required>
+                                    <div class="col-12 mb-3">
+                                        <label for="productHsn" class="form-label fw-bold">HSN Code</label>
+                                        <input type="text" class="form-control border border-dark" id="productHsn" value="${item.hsn || ''}" placeholder="HSN code">
                                     </div>
                                 </div>
                             </div>
@@ -528,18 +531,16 @@ async function set_deup_prod_innerHTML(...params) {
 
   async function saveProductChanges() {
    const nameInput = updateModalContent.querySelector('#productName');
-   const stockInput = updateModalContent.querySelector('#productStock');
-   const priceInput = updateModalContent.querySelector('#productPrice');
+   const hsnInput = updateModalContent.querySelector('#productHsn');
    const tax1Input = updateModalContent.querySelector('#productTax1');
    const tax2Input = updateModalContent.querySelector('#productTax2');
    const allowSaleCheckbox = updateModalContent.querySelector('#allowSaleWithoutStock');
 
-   if (nameInput && stockInput && priceInput) {
+   if (nameInput) {
     bpNormalizeTaxField(tax1Input);
     bpNormalizeTaxField(tax2Input);
     const itemName = nameInput.value.trim();
-    const itemStock = parseInt(stockInput.value.trim());
-    const itemPrice = parseFloat(priceInput.value.trim());
+    const itemHsn = hsnInput ? hsnInput.value.trim() : '';
     const itemTax1 = bpReadTaxPercent(tax1Input);
     const itemTax2 = bpReadTaxPercent(tax2Input);
     // Image comes from the my1img picker: `gu` = "displayId thumbnailId".
@@ -549,7 +550,7 @@ async function set_deup_prod_innerHTML(...params) {
     const allowSaleWithoutStock = allowSaleCheckbox ? allowSaleCheckbox.checked : false;
 
     // Validation
-    if (!itemName || isNaN(itemPrice) || itemPrice <= -1 || isNaN(itemStock)) {
+    if (!itemName) {
      window.showelsemodal("Please enter valid product details.");
      return;
     }
@@ -560,14 +561,11 @@ async function set_deup_prod_innerHTML(...params) {
     }
 
     try {
-     // Create payload as per your structure (gu = combined image ids, hu left empty)
-     // Tax 1 / Tax 2 rates are stored on the product row (p.j / p.k).
-     var p = { e: itemName, g: itemUrl, h: '', j: itemTax1, k: itemTax2 };
-     var s = { k: itemPrice, i: itemStock };
-     if (allowSaleWithoutStock) { s.d = 111; }
+     // Product-only update (no stock/price sent).
+     var p = { e: itemName, g: itemUrl, h: '', i: itemHsn, j: itemTax1, k: itemTax2 };
+     if (allowSaleWithoutStock) { p.d = 111; }
      await clearPayload0();
      payload0.p = p;
-     payload0.s = s;
      payload0.x1 = item.a; // stock id
      payload0.x2 = item.g; // product id
      payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'c' }, { "tb": 'b' }, { "tb": 'i' }, { "tb": 'r' }, { "tb": 'be', "col": 'eb', "cl": "eb" }, { "tb": 'ba' }, { "tb": 'p' }, { "tb": 's' }]);
@@ -578,23 +576,12 @@ async function set_deup_prod_innerHTML(...params) {
      if (response.su == 1) {
       handl_op_rspons(response, 0);
       setTimeout(async () => {
-       // Reload the stock rows and refresh their Tax 1 / Tax 2 aliases
        if (typeof window.refreshItemsWithTax === 'function') {
-        try {
-         await window.refreshItemsWithTax();
-        } catch (e) {
-         console.warn('refreshItemsWithTax failed', e);
-         items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
-        }
-       } else {
-        items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
-       }
-       // Refresh the main modal
+        try { await window.refreshItemsWithTax(); } catch (e) { console.warn('refreshItemsWithTax failed', e); items = await dbDexieManager.getAllRecords(dbnm, "s") || []; }
+       } else { items = await dbDexieManager.getAllRecords(dbnm, "s") || []; }
        const modalBody = contentElement.querySelector('.modal-body');
        if (modalBody) modalBody.innerHTML = renderProducts();
       }, 1000);
-
-      // Close the update modal
       bootstrap.Modal.getInstance(document.getElementById('updateProductModal')).hide();
      } else {
       window.showelsemodal(response.ms);
@@ -683,4 +670,81 @@ async function set_deup_prod_innerHTML(...params) {
    bsModal.show();
   }
  }
-}
+}// ==================== Add Stock via bgtiv ====================
+window.bpAddStock = function (index) {
+ const item = items[index];
+ if (!item) return;
+ const productTax = bpTaxRates(item);
+ const tax1 = Math.max(0, parseFloat(productTax.tax1) || 0);
+ const tax2 = Math.max(0, parseFloat(productTax.tax2) || 0);
+
+ window.bpAddStockContext = { stockId: item.a, productId: item.g };
+
+ const prefill = {
+  p: {
+   e: item.gn || '',
+   i: (item.hsn || ''),
+   j: tax1,
+   k: tax2,
+   g: item.g || ''
+  },
+  s: {
+   h: item.h || '',
+   i: item.i || '',
+   j: item.measuredIn || item.measured_in || '',
+   k: item.k || '',
+   l: item.gu ? [item.gu] : [],
+   o: 0
+  },
+  mode: 'addStock',
+  stockId: item.a,
+  productId: item.g
+ };
+
+ if (typeof loadExe2Fn !== 'function') {
+  if (typeof showToast === 'function') showToast('Add stock unavailable', { type: 'error', duration: 2000 });
+  return;
+ }
+ try {
+  loadExe2Fn(27, [[1, 1], window.bpAddStockCallback, prefill], [1]);
+ } catch (e) {
+  console.error('bpAddStock: failed to open bgtiv', e);
+  if (typeof showToast === 'function') showToast('Add stock unavailable', { type: 'error', duration: 2000 });
+ }
+};
+
+window.bpAddStockCallback = async function (ob) {
+ const payload = Array.isArray(ob) ? ob[0] : ob;
+ if (!payload) return;
+ const p = payload.p || {};
+ const s = payload.s || {};
+ const ctx = window.bpAddStockContext || {};
+ if (ctx.stockId != null) s.a = ctx.stockId;
+
+ try {
+  await clearPayload0();
+  payload0.p = p;
+  payload0.s = s;
+  payload0.x1 = ctx.stockId;
+  payload0.x2 = ctx.productId;
+  payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'c' }, { "tb": 'b' }, { "tb": 'i' }, { "tb": 'r' }, { "tb": 'be', "col": 'eb', "cl": "eb" }, { "tb": 'ba' }, { "tb": 'p' }, { "tb": 's' }]);
+  payload0.vw = 1;
+  payload0.fn = 25;
+  const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
+  if (response && response.su == 1) {
+   if (typeof showToast === 'function') showToast('Stock added successfully', { type: 'success', duration: 2000 });
+   if (typeof window.refreshItemsWithTax === 'function') {
+    try { await window.refreshItemsWithTax(); } catch (e) { console.warn(e); items = await dbDexieManager.getAllRecords(dbnm, "s") || []; }
+   } else {
+    items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
+   }
+   const modalBody = document.querySelector('#productsModal .modal-body');
+   if (modalBody) modalBody.innerHTML = renderProducts();
+  } else {
+   if (typeof window.showelsemodal === 'function') window.showelsemodal(response?.ms || 'Failed', true);
+  }
+ } catch (error) {
+  console.error('Add stock failed', error);
+  if (typeof showToast === 'function') showToast('Add stock error - please try again', { type: 'error', duration: 2000 });
+ }
+};

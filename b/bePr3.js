@@ -380,6 +380,14 @@
   const name_client=info?ensureUTF(info.h):null;
   const mob_client=info?info.e:null;
   const addr_client=info?ensureUTF(info.m):null;
+  let state_client='', gstin_client='';
+  if (info) {
+   let c1 = info.c1;
+   if (typeof c1 === 'string') { try { c1 = JSON.parse(c1); } catch (e) { c1 = {}; } }
+   c1 = c1 || {};
+   state_client = c1.g || info.g || '';
+   gstin_client = c1.j || info.j || '';
+  }
   const items=await dbDexieManager.getAllRecords(dbnm,'s')||[];
   const eyeRows=await dbDexieManager.getAllRecords(dbnm,'be')||[];
   const eye=eyeRows.find(x=>x.ea==billId);
@@ -423,7 +431,7 @@
   }
   const data={
    clientConfig:(typeof clientConfig!=='undefined'&&clientConfig)?clientConfig:{},
-   curr_bill_info:bill, name_client, mob_client, addr_client, name_referrer,
+   curr_bill_info:bill, name_client, mob_client, addr_client, name_referrer, state_client, gstin_client,
    items, sCurrItems, sCurrCashInfo, quanTotal, subtotal, taxTotal, t_itms_otal,
    advanceAmt, discountAmt, dueAmt, t1682, remark, deliveryDate,
    eye_selected_msrmnt:eye,
@@ -606,9 +614,9 @@
      (d.mob_client?'<div class="inv-field"><label>Mobile :</label><span class="inv-value">'+mobileHTML+'</span></div>':'')+
      '<div class="inv-field inv-address-fields"><label>Address :</label><span class="inv-value">'+(d.addr_client||'')+'</span></div>'+
      (d.name_referrer?'<div class="inv-field"><label>Referred by :</label><span class="inv-value">'+d.name_referrer+'</span></div>':'')+
-     '<div class="inv-field inv-field-inline"><label>State :</label><span class="inv-value inv-state-value">'+state+'</span>'+
+     '<div class="inv-field inv-field-inline"><label>State :</label><span class="inv-value inv-state-value">'+(d.state_client||state)+'</span>'+
       '<span class="inv-code-block"><label>code no.:</label><span class="inv-value inv-code-value">'+codeNo+'</span></span></div>'+
-     '<div class="inv-field inv-gstin-row"><label>GSTIN No. :</label><span class="inv-value">'+gstin+'</span></div>'+
+     '<div class="inv-field inv-gstin-row"><label>GSTIN No. :</label><span class="inv-value">'+(d.gstin_client||gstin)+'</span></div>'+
     '</div>'+
     '<div class="inv-details">'+
      '<div class="inv-details-row inv-serial-row"><label>Invoice Serial Number :</label>'+

@@ -545,9 +545,11 @@ var hCC = isFieldHidden("cc"),
     hPN = isFieldHidden("pn"),
     hRS = isFieldHidden("rs"),
     hNE = isFieldHidden("ne"),
-    hBD = window[my1uzr.worknOnPg]?.shodateofberthForEi == 1 ||
-          window[my1uzr.worknOnPg]?.confg?.shodateofberthForEi == 1 ||
-          window[my1uzr.worknOnPg]?.clientConfig?.shodateofberthForEi == 1,
+    hBD = !(
+      window[my1uzr.worknOnPg]?.shodateofberthForEi == 1 ||
+      window[my1uzr.worknOnPg]?.confg?.shodateofberthForEi == 1 ||
+      window[my1uzr.worknOnPg]?.clientConfig?.shodateofberthForEi == 1
+    ),
     hAD = isFieldHidden("ad");
 
   container.innerHTML = `
@@ -555,7 +557,7 @@ var hCC = isFieldHidden("cc"),
 <div class="modal-header bg-navy-gradient text-gold" style="padding:14px 20px;border-bottom:3px solid ${p.goldDark};flex-shrink:0;position:relative;background:linear-gradient(135deg,${eiMix(p.brand, "#ffffff", 0.12)},${eiMix(p.brandDark, "#ffffff", 0.08)});">
   <div class="d-flex align-items-center gap-3 w-100 flex-wrap" style="padding-right:34px;">
     <h5 class="modal-title fw-bold text-white" style="color:#fff;font-size:17px;white-space:nowrap;">
-      <i class="fas fa-users me-2" style="color:${p.secondary};"></i>Members
+      <i class="fas fa-users me-2" style="color:${p.secondary};"></i>Members: Select/Add New
     </h5>
     <div class="d-flex gap-2" style="flex:1 1 300px;min-width:100%;max-width:100%;">
       <button type="button" id="bt_sho_ad_ei" class="btn-premium btn-premium-primary btn-premium-sm bg-opacity-50" style="flex-shrink:0;${bGold}${bSm}" title="Add New Member">
@@ -582,19 +584,19 @@ var hCC = isFieldHidden("cc"),
       </div>
 
       <!-- Mobile Number -->
-      <div class="mb-2 d-flex align-items-center gap-2 flex-wrap" style="${hCC && hPN ? "display:none;" : ""}padding:8px 10px;border-radius:.5rem;background:${p.goldBg};border:2px solid #6c757d;">
-        <label class="form-label m-0 fw-bold" style="flex-shrink:0;width:120px;color:#343a40;font-size:13px;">
-          <i class="fas fa-phone me-1" style="color:${p.brand};"></i> Mobile Number
+      <div class="mb-2" style="${hCC && hPN ? "display:none;" : ""}padding:8px 10px;border-radius:.5rem;background:${p.goldBg};border:2px solid #6c757d;">
+        <label class="form-label m-0 fw-bold mb-2" style="color:#343a40;font-size:13px;">
+          <i class="fas fa-phone me-1" style="color:${p.brand};"></i> Mobile Number <span style="color:#dc3545;">*</span>
         </label>
-        <div class="d-flex gap-2 align-items-center" style="flex:1;min-width:220px;">
-          <div style="${hCC ? "display:none;" : ""}flex-shrink:0;width:100px;">
+        <div class="d-flex gap-2 align-items-center">
+          <div style="${hCC ? "display:none;" : ""}flex-shrink:0;width:90px;">
             <select class="form-select-premium" id="quickCountryCode" data-bc="${p.secondary}" style="${inp}font-size:13px;padding:8px 6px;">
               <option value="91" selected>🇮🇳 +91</option>
               <option value="1">🇺🇸 +1</option>
               <option value="44">🇬🇧 +44</option>
             </select>
           </div>
-          <div style="${hPN ? "display:none;" : ""}flex:1;min-width:140px;">
+          <div style="${hPN ? "display:none;" : ""}flex:1;min-width:120px;">
             <input type="text" class="form-control-premium" id="quickMobile" placeholder="Enter Mobile Number" required maxlength="10" data-bc="${p.secondary}" style="font-size:14px;${inp}" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
             <span class="error-text" id="mobileError" style="font-size:11px;color:#dc3545;display:none;margin-top:2px;">Must be 10 digits</span>
           </div>
@@ -604,7 +606,7 @@ var hCC = isFieldHidden("cc"),
       <!-- Name English + Relation -->
       <div class="mb-2" style="${hNE ? "display:none;" : ""}padding:8px 10px;border-radius:.5rem;background:${p.goldBg};border:2px solid #6c757d;">
         <label class="form-label m-0 fw-bold mb-2" style="color:#343a40;font-size:13px;">
-          <i class="fas fa-user me-1" style="color:${p.brand};"></i> Name
+          <i class="fas fa-user me-1" style="color:${p.brand};"></i> Name <span style="color:#dc3545;">*</span>
         </label>
         <div class="d-flex align-items-center gap-2">
         <div style="flex:1;min-width:0;">

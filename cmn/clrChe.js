@@ -5,6 +5,16 @@
  async function clearAllCache() {
   var errors = [];
 
+  // 0. Clear cookies for this site
+  try {
+   document.cookie.split(';').forEach(function (cookie) {
+    var name = cookie.split('=')[0].trim();
+    if (!name) return;
+    document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+    document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=' + window.location.hostname;
+   });
+  } catch (e) { errors.push('Cookies: ' + e.message); }
+
   // 1. Clear Cache API
   if ('caches' in window) {
    try {
@@ -21,7 +31,14 @@
    } catch (e) { errors.push('Service Worker: ' + e.message); }
   }
 
-  // 3. Clear IndexedDB
+  // 3. Clear legacy Application Cache
+  try {
+   if (window.applicationCache && typeof window.applicationCache.update === 'function') {
+    window.applicationCache.update();
+   }
+  } catch (e) { errors.push('Application Cache: ' + e.message); }
+
+  // 4. Clear IndexedDB
   if ('indexedDB' in window) {
    try {
     var dbs = await indexedDB.databases();
@@ -36,7 +53,7 @@
    } catch (e) { errors.push('IndexedDB: ' + e.message); }
   }
 
-  // 4. Clear localStorage and sessionStorage
+  // 5. Clear localStorage and sessionStorage
   try { localStorage.clear(); } catch (e) { errors.push('localStorage: ' + e.message); }
   try { sessionStorage.clear(); } catch (e) { errors.push('sessionStorage: ' + e.message); }
 
@@ -58,6 +75,14 @@
 
   var contentElement = modalResult.contentElement;
   var modalInstance = modalResult.modalInstance;
+  var modalElement = modalResult.modalElement;
+
+  var md = modalElement ? modalElement.querySelector('.modal-dialog') : null;
+  if (md) {
+   md.classList.remove('modal-dialog-centered');
+   md.style.marginTop = '16.5vh';
+   md.style.maxWidth = '420px';
+  }
 
   contentElement.innerHTML =
    '<div class="p-4 text-center">' +
@@ -88,7 +113,17 @@
     if (typeof showToast === 'function') showToast('All cache cleared successfully!', { type: 'success', duration: 2000 });
    }
 
-   setTimeout(function () { location.reload(); }, 1000);
+   // Force a fresh, cache-bypassing reload so the app opens like a new device.
+   setTimeout(function () {
+    try {
+     var url = window.location.pathname + window.location.search;
+     url += (window.location.search ? '&' : '?') + '_cb=' + Date.now();
+     url += window.location.hash;
+     window.location.replace(url);
+    } catch (e) {
+     window.location.reload(true);
+    }
+   }, 1000);
   });
 
   modalInstance.show();

@@ -9,6 +9,41 @@ let continuousQRMode = false;
 let qrScannerActive = false;
 let editingCardId = null; // uniqueItemId of card being edited (update mode)
 let addItemModalTarget = null; // { onAdd, onInventory } when opened as a picker (e.g. bill inward)
+let modalTax1Percent = 0;
+let modalTax2Percent = 0;
+
+// ========== Self-contained invalid-glow helpers ==========
+// Reuse my1e3.js's implementations when present; otherwise provide fallbacks so
+// the bare `clearInvalid`/`markInvalid` identifiers used below never throw
+// "ReferenceError: ... is not defined".
+(function ensureInvalidGlowHelpers() {
+  if (typeof window.clearInvalid === 'function' && typeof window.markInvalid === 'function') {
+    return;
+  }
+  function injectCss() {
+    if (document.getElementById('shoRegItm-invalid-glow-css')) return;
+    const st = document.createElement('style');
+    st.id = 'shoRegItm-invalid-glow-css';
+    st.textContent = '.is-invalid-glow{border:2px solid #dc3545 !important;box-shadow:0 0 0 0.25rem rgba(220,53,69,0.4) !important;animation:shoRegItmInvalidGlow 1.1s ease-in-out infinite alternate;}@keyframes shoRegItmInvalidGlow{from{box-shadow:0 0 0 0.2rem rgba(220,53,69,0.25);}to{box-shadow:0 0 0 0.45rem rgba(220,53,69,0.5);}}';
+    (document.head || document.documentElement).appendChild(st);
+  }
+  if (typeof window.clearInvalid !== 'function') {
+    window.clearInvalid = function (el) {
+      if (!el) return;
+      try { el.classList.remove('is-invalid-glow'); } catch (e) {}
+    };
+  }
+  if (typeof window.markInvalid !== 'function') {
+    window.markInvalid = function (el) {
+      if (!el) return;
+      injectCss();
+      try { el.classList.add('is-invalid-glow'); } catch (e) {}
+      try { el.focus(); } catch (e) {}
+    };
+  }
+})();
+var clearInvalid = (typeof window.clearInvalid === 'function') ? window.clearInvalid : function () {};
+var markInvalid = (typeof window.markInvalid === 'function') ? window.markInvalid : function () {};
 
 // ========== Self-contained styles (same card design as b.js addDropdownStyles) ==========
 function shoRegItmInjectStyles() {
@@ -174,17 +209,17 @@ style="font-size: 0.8rem;">
 </div>
 </div>
 
-<!-- Row 3 - Tax 1 and Tax 2 percentages -->
+<!-- Row 3 - Tax 1 and Tax 2 amounts -->
 <div class="row mb-2 g-0${window[my1uzr.worknOnPg].clientConfig?.hideTax == 1 ? ' d-none' : ''}" id="modalTaxRow">
     <div class="col-6">
         <div class="input-group input-group-sm">
-            <span class="input-group-text border border-dark">Tax 1 %</span>
+            <span class="input-group-text border border-dark">T1 Amt:</span>
             <input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" placeholder="0.00" id="modalItemTax1" value="" onfocus="this.select();">
         </div>
     </div>
     <div class="col-6">
         <div class="input-group input-group-sm">
-            <span class="input-group-text border border-dark">Tax 2 %</span>
+            <span class="input-group-text border border-dark">T1 Amt:</span>
             <input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" placeholder="0.00" id="modalItemTax2" value="" onfocus="this.select();">
         </div>
     </div>
@@ -234,8 +269,8 @@ style="font-size: 0.8rem;">
       document.getElementById('modalItemRate').value = prefill.rate || '';
       document.getElementById('modalItemDescription').value = prefill.description || '';
 
-      document.getElementById('modalItemTax1').value = modalTaxClampPercent(prefill.tax1).toFixed(2);
-      document.getElementById('modalItemTax2').value = modalTaxClampPercent(prefill.tax2).toFixed(2);
+      modalTax1Percent = modalTaxClampPercent(prefill.tax1);
+      modalTax2Percent = modalTaxClampPercent(prefill.tax2);
 
       calculateModalPrice();
 
@@ -372,10 +407,24 @@ function initializeModalEventListeners(modalResult) {
     if (!input) return;
     input.addEventListener('input', function () {
       modalSanitizeTaxField(input);
+      const price = parseFloat(document.getElementById('modalItemPrice')?.value) || 0;
+      const amt = parseFloat(input.value) || 0;
+      if (price > 0) {
+        const pct = (amt / price) * 100;
+        if (input === modalItemTax1) modalTax1Percent = modalTaxClampPercent(pct);
+        else modalTax2Percent = modalTaxClampPercent(pct);
+      }
       updateModalAddButtonState();
     });
     input.addEventListener('blur', function () {
       modalNormalizeTaxField(input);
+      const price = parseFloat(document.getElementById('modalItemPrice')?.value) || 0;
+      const amt = parseFloat(input.value) || 0;
+      if (price > 0) {
+        const pct = (amt / price) * 100;
+        if (input === modalItemTax1) modalTax1Percent = modalTaxClampPercent(pct);
+        else modalTax2Percent = modalTaxClampPercent(pct);
+      }
     });
   });
 
@@ -405,7 +454,7 @@ function modalSanitizeTaxText(raw) {
     value = value.slice(0, firstDot + 1) + value.slice(firstDot + 1).replace(/\./g, '');
   }
   const parts = value.split('.');
-  const intPart = (parts[0] || '').slice(0, 2);
+  const intPart = (parts[0] || '').slice(0, 12);
   const decPart = parts.length > 1 ? parts[1].slice(0, 2) : '';
   return parts.length > 1 ? intPart + '.' + decPart : intPart;
 }
@@ -419,7 +468,7 @@ function modalSanitizeTaxField(input) {
 function modalNormalizeTaxField(input) {
   if (!input) return;
   const number = parseFloat(input.value);
-  const safe = Number.isFinite(number) ? Math.min(99.99, Math.max(0, number)) : 0;
+  const safe = Number.isFinite(number) ? Math.max(0, number) : 0;
   input.value = roundToTwo(safe).toFixed(2);
 }
 
@@ -427,6 +476,12 @@ function modalTaxClampPercent(value) {
   const number = parseFloat(value);
   if (!Number.isFinite(number) || number < 0) return 0;
   return Math.min(99.99, roundToTwo(number));
+}
+
+function modalTaxClampAmount(value) {
+  const number = parseFloat(value);
+  if (!Number.isFinite(number) || number < 0) return 0;
+  return roundToTwo(number);
 }
 
 function roundToTwo(value) {
@@ -448,21 +503,37 @@ function modalRatesFor(item) {
 }
 
 function getModalTaxValues() {
+  const price = parseFloat(document.getElementById('modalItemPrice')?.value) || 0;
+  const amount1 = modalTaxClampAmount(document.getElementById('modalItemTax1')?.value);
+  const amount2 = modalTaxClampAmount(document.getElementById('modalItemTax2')?.value);
+
+  let tax1 = modalTax1Percent;
+  let tax2 = modalTax2Percent;
+  if (price > 0) {
+    if (amount1 > 0) tax1 = modalTaxClampPercent((amount1 / price) * 100);
+    else tax1 = 0;
+    if (amount2 > 0) tax2 = modalTaxClampPercent((amount2 / price) * 100);
+    else tax2 = 0;
+  }
+
   return {
-    tax1: modalTaxClampPercent(document.getElementById('modalItemTax1')?.value),
-    tax2: modalTaxClampPercent(document.getElementById('modalItemTax2')?.value)
+    tax1: tax1,
+    tax2: tax2,
+    tax1Amount: amount1,
+    tax2Amount: amount2,
+    taxAmount: roundToTwo(amount1 + amount2)
   };
 }
 
 function getModalTaxAmounts() {
-  const { tax1, tax2 } = getModalTaxValues();
+  const values = getModalTaxValues();
   const price = parseFloat(document.getElementById('modalItemPrice')?.value) || 0;
   if (typeof window.itemTaxAmounts === 'function') {
-    return Object.assign({ tax1: tax1, tax2: tax2 }, window.itemTaxAmounts(tax1, tax2, price));
+    return Object.assign({ tax1: values.tax1, tax2: values.tax2 }, window.itemTaxAmounts(values.tax1, values.tax2, price));
   }
-  const tax1Amount = roundToTwo((price * tax1) / 100);
-  const tax2Amount = roundToTwo((price * tax2) / 100);
-  return { tax1: tax1, tax2: tax2, tax1Amount: tax1Amount, tax2Amount: tax2Amount, taxAmount: roundToTwo(tax1Amount + tax2Amount) };
+  const tax1Amount = values.tax1Amount;
+  const tax2Amount = values.tax2Amount;
+  return { tax1: values.tax1, tax2: values.tax2, tax1Amount: tax1Amount, tax2Amount: tax2Amount, taxAmount: roundToTwo(tax1Amount + tax2Amount) };
 }
 
 function calculateModalPrice() {
@@ -470,6 +541,14 @@ function calculateModalPrice() {
   const rate = parseFloat(document.getElementById('modalItemRate').value) || 0;
   const price = qty * rate;
   document.getElementById('modalItemPrice').value = price.toFixed(2);
+
+  // Keep tax amount inputs in sync with the (percentage-based) tax rates.
+  const tax1Input = document.getElementById('modalItemTax1');
+  const tax2Input = document.getElementById('modalItemTax2');
+  if (price > 0) {
+    if (modalTax1Percent > 0 && tax1Input) tax1Input.value = roundToTwo(price * modalTax1Percent / 100).toFixed(2);
+    if (modalTax2Percent > 0 && tax2Input) tax2Input.value = roundToTwo(price * modalTax2Percent / 100).toFixed(2);
+  }
 
   // Update add button state
   updateModalAddButtonState();
@@ -545,10 +624,13 @@ function handleModalItemNameBlur(inputElement) {
     // Tax 1 / Tax 2 instead of leaving the previous item's rates behind.
     if (String(previousId) !== String(matchedItems[0].a)) {
       const presetRates = modalRatesFor(matchedItems[0]);
+      modalTax1Percent = modalTaxClampPercent(presetRates.tax1);
+      modalTax2Percent = modalTaxClampPercent(presetRates.tax2);
       const tax1Input = document.getElementById('modalItemTax1');
       const tax2Input = document.getElementById('modalItemTax2');
-      if (tax1Input) tax1Input.value = modalTaxClampPercent(presetRates.tax1).toFixed(2);
-      if (tax2Input) tax2Input.value = modalTaxClampPercent(presetRates.tax2).toFixed(2);
+      if (tax1Input) tax1Input.value = '';
+      if (tax2Input) tax2Input.value = '';
+      calculateModalPrice();
     }
   }
 
@@ -566,6 +648,8 @@ function clearModalItemForm() {
   document.getElementById('modalItemIdInput').value = '';
   document.getElementById('modalItemTax1').value = '';
   document.getElementById('modalItemTax2').value = '';
+  modalTax1Percent = 0;
+  modalTax2Percent = 0;
 
   const imageContainer = document.getElementById('modalItemImageContainer');
   if (imageContainer) {
@@ -633,13 +717,16 @@ function handleModalItemIdInput(event) {
 function selectModalItem(item) {
   const presetRates = modalRatesFor(item);
 
+  modalTax1Percent = modalTaxClampPercent(presetRates.tax1);
+  modalTax2Percent = modalTaxClampPercent(presetRates.tax2);
+
   document.getElementById('modalItemName').value = item.gn;
   document.getElementById('modalItemRate').value = item.k;
   document.getElementById('modalItemQty').value = '';
   const tax1Input = document.getElementById('modalItemTax1');
   const tax2Input = document.getElementById('modalItemTax2');
-  if (tax1Input) tax1Input.value = modalTaxClampPercent(presetRates.tax1).toFixed(2);
-  if (tax2Input) tax2Input.value = modalTaxClampPercent(presetRates.tax2).toFixed(2);
+  if (tax1Input) tax1Input.value = '';
+  if (tax2Input) tax2Input.value = '';
 
   // Set the data-item-id attribute
   document.getElementById('modalItemName').setAttribute('data-item-id', item.a);
@@ -995,6 +1082,9 @@ function editItemInModal(uniqueItemId) {
     tax1: modalTaxClampPercent(card.getAttribute('data-item-tax1')),
     tax2: modalTaxClampPercent(card.getAttribute('data-item-tax2'))
   });
+  // store percent for amount recalculation
+  modalTax1Percent = modalTaxClampPercent(card.getAttribute('data-item-tax1'));
+  modalTax2Percent = modalTaxClampPercent(card.getAttribute('data-item-tax2'));
 }
 
 // Helper functions used by addItemFromModal
@@ -1011,16 +1101,16 @@ function normalizeItemDescription(value) {
 function findExistingItemInSaleList(itemId, rate, taxValues, description) {
   if (!itemId) return null;
 
-  const tax1 = modalTaxClampPercent(taxValues && taxValues.tax1);
-  const tax2 = modalTaxClampPercent(taxValues && taxValues.tax2);
+  const tax1Amount = modalTaxClampAmount(taxValues && taxValues.tax1Amount);
+  const tax2Amount = modalTaxClampAmount(taxValues && taxValues.tax2Amount);
   const wantedDescription = normalizeItemDescription(description);
 
   const addedCards = document.querySelectorAll('#addedItemsContainer .added-item-card');
   for (const card of addedCards) {
     const cardItemId = card.getAttribute('data-item-id');
     const cardRate = parseFloat(card.getAttribute('data-item-rate')) || 0;
-    const cardTax1 = modalTaxClampPercent(card.getAttribute('data-item-tax1'));
-    const cardTax2 = modalTaxClampPercent(card.getAttribute('data-item-tax2'));
+    const cardTax1Amount = modalTaxClampAmount(card.getAttribute('data-item-tax1-amount'));
+    const cardTax2Amount = modalTaxClampAmount(card.getAttribute('data-item-tax2-amount'));
     const descEl = card.querySelector('small.text-muted');
     const cardDescription = normalizeItemDescription(
       card.hasAttribute('data-item-description')
@@ -1031,8 +1121,8 @@ function findExistingItemInSaleList(itemId, rate, taxValues, description) {
     if (
       cardItemId === itemId.toString() &&
       Math.abs(cardRate - rate) < 0.001 &&
-      Math.abs(cardTax1 - tax1) < 0.001 &&
-      Math.abs(cardTax2 - tax2) < 0.001 &&
+      Math.abs(cardTax1Amount - tax1Amount) < 0.001 &&
+      Math.abs(cardTax2Amount - tax2Amount) < 0.001 &&
       cardDescription === wantedDescription
     ) {
       return card;

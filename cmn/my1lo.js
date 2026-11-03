@@ -744,7 +744,6 @@ async function verifyOTP_LO(otp) {
  if (mobileNumber.length !== requiredLength) { showAlertModalLO(`Please enter a valid ${requiredLength}-digit mobile number`); return; }
  const l_oginName = document.getElementById("loginName") ? document.getElementById("loginName").value.trim() : "";
  const l_oginLocalName = document.getElementById("localName") ? document.getElementById("localName").value.trim() : "";
- // const data = {yo: mobileNumber,yc: countryCode,mp: otp,mn: l_oginName,mu: l_oginLocalName,eo: appOwner.eo,ec: appOwner.ec,xtra: typeof xtraj_payload !== "undefined" ? xtraj_payload : null};
  const data = { yo: mobileNumber, yc: countryCode, mp: otp, mn: l_oginName, mu: l_oginLocalName, eo: appOwner.eo, ec: appOwner.ec, xtra: typeof xtraj_payload !== "undefined" ? xtraj_payload : null };
  if (!my1loXtraValidate()) return;
  var xtraVals = my1loXtraCollect();
@@ -965,6 +964,8 @@ function blockAutofillOnDigitsLO(input, index) {
  input.addEventListener("mousedown", unlock);
  input.addEventListener("touchstart", unlock);
  input.addEventListener("keydown", unlock);
+ input.addEventListener("focus", unlock);
+ input.addEventListener("paste", unlock);
 }
 
 function createMobileDigitInputsLO(requiredLength) {
@@ -1405,16 +1406,38 @@ function clearOtpDigitErrorLO(e) {
 function handleMobileDigitInputLO(e) {
  const input = e.target;
  const index = parseInt(input.dataset.index);
- let value = input.value;
- value = value.replace(/\D/g, "");
- if (value.length > 1) { value = value.charAt(0); }
- input.value = value;
- input.classList.remove("is-invalid");
- if (value.length === 1) {
-  const container = input.closest('[id$="DigitsContainer"]');
-  const inputs = container ? container.querySelectorAll('input') : [];
-  if (index < inputs.length - 1) { setTimeout(() => { inputs[index + 1].focus(); }, 10); }
+ const container = input.closest('[id$="DigitsContainer"]');
+ if (!container) return;
+ const inputs = container.querySelectorAll('input');
+
+ let value = String(input.value || '').replace(/\D/g, '');
+
+ if (value.length > 1) {
+  let pos = index;
+  for (let i = 0; i < value.length && pos < inputs.length; i++) {
+   inputs[pos].value = value.charAt(i);
+   inputs[pos].classList.remove('is-invalid');
+   pos++;
+  }
  }
+
+ if (input.value.length > 1) {
+  input.value = input.value.charAt(0);
+ }
+ if (input.value && !/^\d$/.test(input.value)) {
+  input.value = '';
+ }
+ input.classList.remove('is-invalid');
+
+ setTimeout(() => {
+  let target = null;
+  const startIndex = Math.min(index + 1, inputs.length - 1);
+  for (let i = startIndex; i < inputs.length; i++) {
+   if (inputs[i].value === '') { target = inputs[i]; break; }
+  }
+  if (!target && index < inputs.length - 1) target = inputs[index + 1];
+  if (target) target.focus();
+ }, 0);
 }
 
 function handleOtpDigitInputLO(e) {

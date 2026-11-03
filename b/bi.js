@@ -29,18 +29,6 @@ async function set_bill_Inverd_innerHTML(...params) {
 
    const { contentElement, modalInstance, modalElement } = modalResult;
 
-   // Preload shoRegItm.js so 'Add Item to Bill' uses the normal item picker
-   // on the very first click (otherwise it falls back to 'Add New Item').
-   if (typeof window.showAddNormalItemModal !== 'function') {
-    await new Promise((resolve) => {
-     const s = document.createElement('script');
-     s.src = 'shoRegItm.js';
-     s.onload = resolve;
-     s.onerror = resolve;
-     document.head.appendChild(s);
-    });
-   }
-
    setTimeout(() => {
     const md = modalElement.querySelector('.modal-dialog');
     if (md) {
@@ -63,6 +51,14 @@ async function set_bill_Inverd_innerHTML(...params) {
                 </div>
                 <div class="modal-body bm-scope" style="padding:0.25rem 0.5rem;">
                     <div class="row g-0">
+
+<div class="row g-0 mb-3 mt-2">
+<div class="col-12">
+<input id="p_dtls_lient1" type="text" class="form-control border border-dark" readonly onclick="(async () => { await loadExe2Fn(14, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall2', 1], [1]); })()" placeholder="Party Details">
+<input type="hidden" id="partyId1">
+</div>
+</div>
+
 <div class="col-2 d-flex align-items-center">
 <button class="btn btn-outline-secondary" onclick="window.biShowInwardBilledList()" style="margin:0px;">
 <i class="fas fa-eye"></i>
@@ -70,19 +66,12 @@ async function set_bill_Inverd_innerHTML(...params) {
 </div>
 <div class="col-4">
 <div class="input-group border border-dark rounded-2">
-${window[my1uzr.worknOnPg].reqyTableInBills === 1 ? `<input type="text" class="form-control" style="padding-left:6.5px;" placeholder="Bill Number" id="billNumber2" required>
-    ` : '<input type="text" class="form-control" style="padding-left:6.5px;" placeholder="Bill Number" id="billNumber2">'}
+<input type="text" class="form-control" style="padding-left:6.5px;" placeholder="Bill Number" id="billNumber2"${window[my1uzr.worknOnPg].reqyTableInBills === 1 ? ' required' : ''}>
 </div>
+<span class="text-danger small mt-1 px-1" id="billNumber2Error" style="display:none;">Bill number already exists</span>
 </div>
 <div class="col-6">
 <input type="text" class="form-control border border-dark" id="receiptDate2" placeholder="Select Date & Time">
-</div>
-</div>
-
-<div class="row g-0 mb-3 mt-2">
-<div class="col-12">
-<input id="p_dtls_lient1" type="text" class="form-control border border-dark" readonly onclick="(async () => { await loadExe2Fn(14, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall2', 1], [1]); })()" placeholder="Party Details">
-<input type="hidden" id="partyId1">
 </div>
 </div>
 
@@ -145,6 +134,43 @@ ${window[my1uzr.worknOnPg].reqyTableInBills === 1 ? `<input type="text" class="f
             `;
 
    initializeBillDatePicker2();
+
+   // Duplicate bill number validation
+   (async function setupBillNumberValidation() {
+    const input = contentElement.querySelector('#billNumber2');
+    const errEl = contentElement.querySelector('#billNumber2Error');
+    const saveBtn = contentElement.querySelector('#saveBtn2');
+    if (!input) return;
+
+    let existing = new Set();
+    try {
+     const ba = await dbDexieManager.getAllRecords(dbnm, 'ba') || [];
+     ba.forEach(function (b) {
+      const v = String(b && b.g != null ? b.g : '').trim().toLowerCase();
+      if (v) existing.add(v);
+     });
+    } catch (e) { console.warn('bi: could not load existing bill numbers', e); }
+
+    function normalize(v) { return String(v == null ? '' : v).trim().toLowerCase(); }
+
+    function validate() {
+     const val = normalize(input.value);
+     const required = window[my1uzr.worknOnPg]?.reqyTableInBills === 1;
+     const duplicate = !!val && existing.has(val);
+     if (errEl) errEl.style.display = duplicate ? 'block' : 'none';
+     input.classList.toggle('is-invalid', duplicate);
+     if (saveBtn) saveBtn.disabled = duplicate;
+     return !duplicate;
+    }
+
+    input.addEventListener('input', validate);
+    // initial
+    validate();
+
+    // expose for save
+    window.__biExistingBillNumbers = existing;
+    window.__biValidateBillNumber = validate;
+   })();
 
    // Submit button
    const submitBtn = contentElement.querySelector('#' + modalId + '_submit');
@@ -230,27 +256,30 @@ window.getItemListData = function (...objjj) {
  renderBillItemsList2(biBillItems);
 };
 
-window.biOpenAddItemToBill = function () {
- if (typeof window.showAddNormalItemModal === 'function') {
-  window.showAddNormalItemModal(null, {
-   onAdd: window.biAppendItemFromModal,
-   onInventory: function (searchedName) {
-    const inst = bootstrap.Modal.getInstance(document.getElementById('addItemModal'));
-    if (inst) inst.hide();
-    // Pass the searched product name through so the "Add New Item" modal
-    // opens with "Enter product name" already filled in.
-    let name = String(searchedName || '').trim();
-    if (!name) {
-     const nameEl = document.getElementById('modalItemName');
-     name = nameEl ? String(nameEl.value || '').trim() : '';
-    }
-    const editData = name ? { p: { e: name }, s: {}, prefillOnly: true } : null;
-    loadExe2Fn(27, [BillItemsFormcolsToHise, window.getItemListData, editData], [1]);
+window.biOpenAddItemToBill = async function () {
+ const options = {
+  onAdd: window.biAppendItemFromModal,
+  onInventory: function (searchedName) {
+   const inst = bootstrap.Modal.getInstance(document.getElementById('addItemModal'));
+   if (inst) inst.hide();
+   // Pass the searched product name through so the "Add New Item" modal
+   // opens with "Enter product name" already filled in.
+   let name = String(searchedName || '').trim();
+   if (!name) {
+    const nameEl = document.getElementById('modalItemName');
+    name = nameEl ? String(nameEl.value || '').trim() : '';
    }
-  });
+   const editData = name ? { p: { e: name }, s: {}, prefillOnly: true } : null;
+   loadExe2Fn(27, [BillItemsFormcolsToHise, window.getItemListData, editData], [1]);
+  }
+ };
+ if (typeof window.showAddNormalItemModal === 'function') {
+  window.showAddNormalItemModal(null, options);
   return;
  }
- loadExe2Fn(27, [BillItemsFormcolsToHise, window.getItemListData], [1]);
+ // Load shoRegItm.js via csh id 29 (CDN URL) and invoke the picker with the
+ // same options, avoiding the relative-path 404.
+ await loadExe2Fn(29, [null, options], [1]);
 };
 
 window.biAppendItemFromModal = function (item) {
@@ -287,7 +316,8 @@ function renderBillItemsList2(items) {
   const unit = unitList.find(function (u) { return String(u.a) === unitId; });
   const unitLabel = unit ? unit.e : unitId;
   const soldIn = Array.isArray(s.l) ? s.l : [];
-  const rate = s.k || '';
+  const _sp = (typeof window.getSellingPriceFromStock === 'function' ? window.getSellingPriceFromStock(s) : parseFloat(s.k || 0));
+  const rate = _sp > 0 ? _sp : (s.k || '');
   const image = soldInFirstImage(soldIn);
   const price = formatPrice2(s.h);
 
@@ -381,6 +411,15 @@ window.biSaveBillInward = async function () {
 
   if (billNoRequired && !billNo) {
    return biValidateAndToast('billNumber2', 'Please enter Bill Number.');
+  }
+
+  // Prevent duplicate bill numbers
+  if (billNo) {
+   const normalized = billNo.trim().toLowerCase();
+   const existing = (window.__biExistingBillNumbers instanceof Set) ? window.__biExistingBillNumbers : new Set();
+   if (existing.has(normalized)) {
+    return biValidateAndToast('billNumber2', 'Bill number already exists.');
+   }
   }
   if (!partyId) {
    return biValidateAndToast('p_dtls_lient1', 'Please select Party.');

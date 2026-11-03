@@ -3,6 +3,7 @@ if (typeof nameOfLoggedInPage === "undefined") { var nameOfLoggedInPage = ""; }
 if (typeof originalBodyStyles === "undefined") { var originalBodyStyles = ""; }
 let id_of_dv_shoLgnP_to_set_processed_dom_object;
 let switch_shoLgnP_create_nw_modal;
+let isReRegisterMode = false;
 let swtch_0nothing_1flex_2block_shoLgnP;
 if (typeof swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn === "undefined") { var swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn = 0; }
 if (typeof isOtpSuppressed === "undefined") { var isOtpSuppressed = false; }
@@ -40,51 +41,6 @@ function showAlertModal(message, type = 'error') {
    `;
  modalInstance.show();
 }
-
-// function showUserInfoModal() {
-//  if (!my1uzr) return;
-
-//  const { contentElement, modalInstance } = create_modal_dynamically('user_info');
-
-//  contentElement.innerHTML = `
-// <div class="modal-header">
-// <h5 class="modal-title">User <span style="color: red; cursor: pointer; margin-left: 5px;" onclick="logPout()">_</span> Information</h5>
-// <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-// </div>
-// <div class="modal-body">
-// <div class="text-center mb-4">
-// <div class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-// ${my1uzr.ml ?
-//    `<img src="${my1uzr.ml}" alt="Profile Picture" class="rounded-circle w-100 h-100" style="object-fit: cover;">` :
-//    '<i class="fas fa-user text-white" style="font-size: 2rem;"></i>'
-//   }
-// </div>
-// <h6 class="mb-1">${my1uzr.mn || "No Name"}</h6>
-// ${my1uzr.mu ? `<p class="text-muted small mb-2">${my1uzr.mu}</p>` : ''}
-// </div>
-
-// <div class="border-top pt-3">
-// <div class="row mb-2">
-// <div class="col-4 text-muted">Mobile Number</div>
-// <div class="col-8">${my1uzr.mo || "Not available"}</div>
-// </div>
-// <div class="row mb-2">
-// <div class="col-4 text-muted">Constraint</div>
-// <div class="col-8">${my1uzr.mc || "Not available"}</div>
-// </div>
-// <div class="row mb-2">
-// <div class="col-4 text-muted">Relation ID</div>
-// <div class="col-8">${my1uzr.mr || "Not available"}</div>
-// </div>
-// </div>
-// </div>
-// <div class="modal-footer">
-// <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-// </div>
-// `;
-
-//  modalInstance.show();
-// }
 
 // Show logout option modal
 function showLogoutOptionLP() {
@@ -251,7 +207,7 @@ function set_innerHTML_of_register() {
 <div class="container p-0">
 <div class="card">
 <div class="card-header text-center d-flex justify-content-between align-items-center">
-<h5 class="card-title mb-0">Register <span id="lp-otpTextToggle" style="cursor: pointer; padding: 2px 5px; border-radius: 3px; transition: all 0.3s;">New</span> Account</h5>
+<h5 class="card-title mb-0">${isReRegisterMode ? 'Re-register <span id="lp-otpTextToggle" style="cursor: pointer; padding: 2px 5px; border-radius: 3px; transition: all 0.3s;">My</span> Account' : 'Register <span id="lp-otpTextToggle" style="cursor: pointer; padding: 2px 5px; border-radius: 3px; transition: all 0.3s;">New</span> Account'}</h5>
 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="card-body" style="background-color: #99FFFF; max-height: 70vh; overflow-y: auto;">
@@ -806,9 +762,7 @@ async function open_shoLgnP(...args) {
  swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn = args[3] || 0;
 
  if (isLoggedInLP()) {
-  if (swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn === 2) {
-   showUserInfoModal();
-  }
+  if (swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn === 2) {}
   return;
  }
 
@@ -840,7 +794,7 @@ async function open_shoLgnP(...args) {
  initializeLoginForm(contentElement);
 
  // Setup event listeners for switching between login and register
- setupFormSwitching(contentElement, modalInstance);
+ setupFormSwitching(contentElement);
 }
 
 function initializeLoginForm(container) {
@@ -873,15 +827,16 @@ function initializeRegisterForm(container) {
  my1lpXtraRender();
 }
 
-function setupFormSwitching(container, modalInstance) {
+function setupFormSwitching(container) {
  const switchToRegister = container.querySelector('#switchToRegister');
  const switchToLogin = container.querySelector('#switchToLogin');
 
  if (switchToRegister) {
   switchToRegister.addEventListener('click', () => {
+   isReRegisterMode = false;
    container.innerHTML = set_innerHTML_of_register();
    initializeRegisterForm(container);
-   setupFormSwitching(container, modalInstance);
+   setupFormSwitching(container);
   });
  }
 
@@ -889,7 +844,7 @@ function setupFormSwitching(container, modalInstance) {
   switchToLogin.addEventListener('click', () => {
    container.innerHTML = set_innerHTML_of_shoLgnP();
    initializeLoginForm(container);
-   setupFormSwitching(container, modalInstance);
+   setupFormSwitching(container);
   });
  }
 }
@@ -897,6 +852,7 @@ function setupFormSwitching(container, modalInstance) {
 function setupLoginEventListeners(container) {
  const loginSubmit = container.querySelector('#loginSubmit');
  const loginPassword = container.querySelector('#loginPassword');
+ if (loginPassword) enforcePasswordMaxLength(loginPassword);
  const countryCodeSelect = container.querySelector('#lp-loginCountryCode');
  const forgotPassword = container.querySelector('#forgotPassword');
 
@@ -917,10 +873,10 @@ function setupLoginEventListeners(container) {
  if (forgotPassword) {
   forgotPassword.addEventListener('click', async function (e) {
    e.preventDefault();
+   isReRegisterMode = true;
    container.innerHTML = set_innerHTML_of_register();
    initializeRegisterForm(container);
-   setupFormSwitching(container, modalInstance);
-   await showsuccessmodal('Re-register');
+   setupFormSwitching(container);
   });
  }
 }
@@ -933,6 +889,8 @@ function setupRegisterEventListeners(container) {
  const localName = container.querySelector('#localName');
  const regPassword = container.querySelector('#regPassword');
  const confirmPassword = container.querySelector('#confirmPassword');
+ if (regPassword) enforcePasswordMaxLength(regPassword);
+ if (confirmPassword) enforcePasswordMaxLength(confirmPassword);
  const countryCodeSelect = container.querySelector('#lp-registerCountryCode');
 
  if (countryCodeSelect) {
@@ -1037,7 +995,7 @@ function updateOtpTextAppearanceLP(otpTextToggle) {
    otpTextToggle.style.backgroundColor = 'red';
    otpTextToggle.style.color = 'white';
   } else {
-   otpTextToggle.textContent = 'New';
+   otpTextToggle.textContent = isReRegisterMode ? 'My' : 'New';
    otpTextToggle.style.backgroundColor = '';
    otpTextToggle.style.color = '';
   }
@@ -1349,6 +1307,8 @@ function blockAutofillOnDigitsLP(input, index) {
  input.addEventListener('mousedown', unlock);
  input.addEventListener('touchstart', unlock);
  input.addEventListener('keydown', unlock);
+ input.addEventListener('focus', unlock);
+ input.addEventListener('paste', unlock);
 }
 
 function createMobileDigitInputsLP(containerId, requiredLength) {
@@ -1459,26 +1419,42 @@ function createOtpDigitInputsLP() {
 function handleMobileDigitInputLP(e) {
  const input = e.target;
  const index = parseInt(input.dataset.index);
- let value = input.value;
+ const container = input.closest('[id$="DigitsContainer"]');
+ if (!container) return;
+ const inputs = container.querySelectorAll('input');
 
- value = value.replace(/\D/g, '');
+ let value = String(input.value || '').replace(/\D/g, '');
 
+ // If several digits arrived at once (fast typing / IME), distribute them
+ // across the following inputs instead of discarding the extras.
  if (value.length > 1) {
-  value = value.charAt(0);
- }
-
- input.value = value;
- input.classList.remove('is-invalid');
-
- if (value.length === 1) {
-  const container = input.closest('[id$="DigitsContainer"]');
-  const inputs = container.querySelectorAll('input');
-  if (index < inputs.length - 1) {
-   setTimeout(() => {
-    inputs[index + 1].focus();
-   }, 10);
+  let pos = index;
+  for (let i = 0; i < value.length && pos < inputs.length; i++) {
+   inputs[pos].value = value.charAt(i);
+   inputs[pos].classList.remove('is-invalid');
+   pos++;
   }
  }
+
+ // Normalise the current field to a single digit.
+ if (input.value.length > 1) {
+  input.value = input.value.charAt(0);
+ }
+ if (input.value && !/^\d$/.test(input.value)) {
+  input.value = '';
+ }
+ input.classList.remove('is-invalid');
+
+ // Move focus to the next empty input without dropping keystrokes.
+ setTimeout(() => {
+  let target = null;
+  const startIndex = Math.min(index + 1, inputs.length - 1);
+  for (let i = startIndex; i < inputs.length; i++) {
+   if (inputs[i].value === '') { target = inputs[i]; break; }
+  }
+  if (!target && index < inputs.length - 1) target = inputs[index + 1];
+  if (target) target.focus();
+ }, 0);
 }
 
 function handleOtpDigitInputLP(e) {
@@ -2038,8 +2014,56 @@ function addCustomStylesP() {
    #confirmPasswordError:not(.d-none){display:block!important}
    .cntrsec{color : #dc3545; font-size : 200%;}
 [id$="DigitsContainer"] input.form-control{border-color:#6c757d!important;font-size:16px!important;color:#000!important;background-color:#fff!important;padding:.375rem 0.25rem!important}[id$="DigitsContainer"] input.form-control:focus{border-color:#495057!important;box-shadow:0 0 0 .2rem rgb(108 117 125 / .25)!important;color:#000!important;background-color:#fff!important}#lp-otpDigitsContainer input.form-control{border-color:#6c757d!important;font-size:16px!important;color:#000!important;background-color:#fff!important;padding:.375rem 0.25rem!important;text-transform:uppercase!important}#lp-otpDigitsContainer input.form-control:focus{border-color:#495057!important;box-shadow:0 0 0 .2rem rgb(108 117 125 / .25)!important;color:#000!important;background-color:#fff!important}[id$="DigitsContainer"] input,#lp-otpDigitsContainer input{-webkit-text-fill-color:#000!important}#lp-resendOtp:disabled{cursor:not-allowed;opacity:.6}#lp-resendOtp.btn-warning{background-color:#ffc107!important;border-color:#ffc107!important;color:#212529!important}.blink-text{animation:blinkAnim 1s step-end infinite}@keyframes blinkAnim{0%,100%{opacity:1}50%{opacity:0}}
+.my1lp-pw-tooltip{position:absolute;z-index:2147483647;background:#dc3545;color:#fff;padding:6px 10px;border-radius:6px;font-size:12px;line-height:1.3;opacity:0;transform:translateY(-4px);transition:opacity .18s ease,transform .18s ease;pointer-events:none;max-width:260px;box-shadow:0 4px 12px rgba(0,0,0,.25);}
+.my1lp-pw-tooltip.show{opacity:1;transform:translateY(0);}
+.my1lp-pw-tooltip::before{content:'';position:absolute;top:-6px;left:14px;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:6px solid #dc3545;}
 `;
  document.head.appendChild(style);
+}
+
+// Floating tooltip for password length validation
+function showPasswordLengthTooltip(anchor) {
+ const msg = 'Must only 8 digits password acceptable';
+ let tip = document.getElementById('my1lp-pw-tooltip');
+ if (!tip) {
+  tip = document.createElement('div');
+  tip.id = 'my1lp-pw-tooltip';
+  tip.className = 'my1lp-pw-tooltip';
+  document.body.appendChild(tip);
+ }
+ tip.textContent = msg;
+ const rect = anchor.getBoundingClientRect();
+ tip.style.left = (rect.left + window.scrollX) + 'px';
+ tip.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+ // force reflow
+ void tip.offsetWidth;
+ tip.classList.add('show');
+ if (tip._hideTimer) clearTimeout(tip._hideTimer);
+ tip._hideTimer = setTimeout(function () {
+  tip.classList.remove('show');
+  setTimeout(function () { if (tip.parentNode) tip.parentNode.removeChild(tip); }, 200);
+ }, 2000);
+}
+
+function enforcePasswordMaxLength(input) {
+ if (!input) return;
+ input.setAttribute('maxlength', '8');
+ input.addEventListener('keydown', function (e) {
+  if (input.value.length >= 8 && e.key && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+   e.preventDefault();
+   input.focus();
+   showPasswordLengthTooltip(input);
+  }
+ });
+ input.addEventListener('paste', function (e) {
+  const cd = e.clipboardData || window.clipboardData;
+  const text = cd ? cd.getData('text') : '';
+  if (input.value.length + (text || '').length > 8) {
+   e.preventDefault();
+   input.focus();
+   showPasswordLengthTooltip(input);
+  }
+ });
 }
 
 function my1loNormColorP(value) {

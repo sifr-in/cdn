@@ -500,11 +500,24 @@ function initializePWAAfterFirebase() {
       localStorage.setItem(SW_STATE_KEY, 'installed');
      }
 
-     // Listen for controller change (happens after refresh)
+     // Listen for controller change (happens after the new worker activates).
      navigator.serviceWorker.addEventListener('controllerchange', () => {
       console.log('Controller changed - service worker updated');
-      // Auto-refresh when new service worker takes control
-      window.location.reload();
+      // Safe refresh: never yank the page while it is backgrounded. If the tab
+      // is hidden, wait until the user comes back, then reload once.
+      if (window.__my1CtrlReloading) return;
+      window.__my1CtrlReloading = true;
+      const safeReload = () => window.location.reload();
+      if (document.visibilityState === 'visible') {
+       safeReload();
+      } else {
+       document.addEventListener('visibilitychange', function onVisible() {
+        if (document.visibilityState === 'visible') {
+         document.removeEventListener('visibilitychange', onVisible);
+         safeReload();
+        }
+       });
+      }
      });
 
      // If there's no controller, we need to wait for activation
@@ -572,11 +585,24 @@ function initializePWAAfterFirebase() {
        }
       }
 
-      // Auto-refresh if this is a new service worker installation
-      if (!navigator.serviceWorker.controller) {
+      // First install: the page loaded before the worker controlled it, so one
+      // refresh is required. Do it only once per session and only while the
+      // tab is visible, so it can never loop or interrupt a background tab.
+      if (!navigator.serviceWorker.controller && !sessionStorage.getItem('my1_sw_first_install_reload')) {
        console.log('New service worker installed, refreshing page...');
+       sessionStorage.setItem('my1_sw_first_install_reload', '1');
        setTimeout(() => {
-        window.location.reload();
+        const safeReload = () => window.location.reload();
+        if (document.visibilityState === 'visible') {
+         safeReload();
+        } else {
+         document.addEventListener('visibilitychange', function onVisible() {
+          if (document.visibilityState === 'visible') {
+           document.removeEventListener('visibilitychange', onVisible);
+           safeReload();
+          }
+         });
+        }
        }, 1000);
       }
      }, 1000);
@@ -886,12 +912,26 @@ if (typeof my1uzr !== 'undefined' && my1uzr && my1uzr.worknOnPg && window[my1uzr
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Later</button>
-            <button type="button" class="btn btn-primary" id="refresh-after-enable">Refresh Page</button>
+            <button type="button" class="btn btn-primary" id="refresh-after-enable">Check Again</button>
         </div>
     `;
 
+  // Re-check in place instead of reloading the whole page. Once the user has
+  // allowed notifications in the browser, this picks the new permission up
+  // immediately and starts the messaging subscription.
   document.getElementById('refresh-after-enable').addEventListener('click', () => {
-   window.location.reload();
+   modalInstance.hide();
+   const status = getNotificationPermissionStatus();
+   if (status === 'granted') {
+    showToast('Notifications enabled successfully!', { type: 'success', duration: 3000 });
+    if (typeof firebase !== 'undefined' && firebase.messaging) {
+     initFirebaseMessaging();
+    }
+   } else if (status === 'denied') {
+    showToast('Notifications are still blocked. Change the browser site setting to "Allow".', { type: 'warning', duration: 4000 });
+   } else {
+    showToast('Notifications are not enabled yet.', { type: 'info', duration: 3000 });
+   }
   });
 
   modalInstance.show();
