@@ -1,5 +1,5 @@
 const tblsRequired = ["c", "f", "fp", "s", "p", "b", "be", "ba", "i", "r", "x"];
-const inTbls = ["dontCret:", "public:", "2/b-2~p,s", "2/b-3~c,b,i,r,ba,p,s,be", "2/b-4~c,b,i,r,ba,p,s,be", "2/b-7~c,b,i,r,ba,p,s,be", "2/1-9~b,be,r,i", "2/b-23~r", "2/b-25~p,s", "2/b-47~r,ba,p,s","2/j-80~c","2/j-79~c", "2/o-102~be", "2/p-103~r", "2/t-104~", "2/p-105~r", "2/00-122~ba,p,s" , "2/00-123~x,r"];
+const inTbls = ["dontCret:", "public:", "2/b-2~p,s", "2/b-3~c,b,i,r,ba,p,s,be", "2/b-4~c,b,i,r,ba,p,s,be", "2/b-7~c,b,i,r,ba,p,s,be", "2/1-9~b,be,r,i", "2/b-23~r", "2/b-25~p,s", "2/b-47~r,ba,p,s","2/j-79~c","2/j-80~c", "2/o-102~be", "2/p-103~r", "2/t-104~", "2/p-105~r", "2/00-122~ba,p,s" , "2/00-123~x,r"];
 //104 for .da
 const moduLst = [
  { "a": ",2,3,4,7,9,25,104,", "b": "Dashboard", "c": "fa-plus-circle", "d": "mn_prods", "e": "#198754" }
@@ -7,7 +7,8 @@ const moduLst = [
 const cust_const = [
   { "a": "billingModule", "b": 0, "c": "more customiztaion", "d": "here for add item bill will be if 0 = normal, 1 = car garage, 2 = laundry", "u": "url-explaining-video" },
   { "a": "bePrModule", "b": 3, "c": "more custom..", "d": "here for be print bill will be if 1 = normal as old view, 2 = normal with updated view, 3 = updaet new theme with updated view", "u": "url-explaining-video" },
-  { "a": "showEyeMesuremetsTableInBill", "b": 0, "c": "more customiztaion", "d": "here for eye measurments table in bill will be if 0 = don't show, 1 = show", "u": "url-explaining-video" }
+  { "a": "showEyeMesuremetsTableInBill", "b": 0, "c": "", "d": "here for eye measurments table in bill will be if 0 = don't show, 1 = show", "u": "url-explaining-video" },
+  { "a": "show_1hide_0MenuPopupItme", "b": {"bgtiv":1,"bexps":1}, "c": "", "d": "here if 'bgtiv'(bill inverd) or 'bexps'(expenditures) is == 1 then show them in menu.popup and if 0 or undefined then hide;", "u": "url-explaining-video" }
 ];
 moduLst.hook = "onModuLstAllowed";
 window[my1uzr.worknOnPg].moduLst = moduLst;
@@ -264,22 +265,22 @@ function formatShortDisplay(val) {
   { "a": 9, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@asdf2e1/b/b.min.js", "c": "set_bill_innerHTML", "r": "set_bill_innerHTML" },
   { "a": 10, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@14002e4/b/ba.min.js", "c": "open_bil_inward", "r": "open_bil_inward" },
   { "a": 11, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/bn.js", "c": "set_add_itm_nw_innerHTML", "r": "set_add_itm_nw_innerHTML" },
-  { "a": 12, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/bp.js", "c": "set_deup_prod_innerHTML", "r": "set_deup_prod_innerHTML" },
+  { "a": 12, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/b/bp.js", "c": "set_deup_prod_innerHTML", "r": "set_deup_prod_innerHTML" },
   { "a": 13, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@a30ac23/b/bPrOp.min.css" },
-  { "a": 14, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/ei.min.js", "c": "open_entind_crud", "r": "open_entind_crud" },
-  { "a": 15, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1lp.min.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
-  { "a": 16, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1ap.min.js" },
+  { "a": 14, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/ei.min.js", "c": "open_entind_crud", "r": "open_entind_crud" },
+  { "a": 15, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/my1lp.min.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
+  { "a": 16, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/my1ap.min.js" },
   { "a": 17, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/cmn/my1xi.min.js" },
   { "a": 18, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@24bf6ca/cmn/my1drv.min.js" },
-  { "a": 19, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1e3.min.js", "c": "fileUploadTesting", "r": "fileUploadTesting" },
+  //{ "a": 19, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1e3.min.js", "c": "fileUploadTesting", "r": "fileUploadTesting" },
   { "a": 20, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fc84f58/cmn/my1dra.min.js", "c": "upldAnyFile2drv", "r": "upldAnyFile2drv" },
   { "a": 21, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/be.js", "c": "set_be_innerHTML", "r": "set_be_innerHTML" },
   { "a": 22 },
-  { "a": 23, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/be_da.js", "c": "showPrintSettings", "r": "showPrintSettings" },
+  { "a": 23, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/b/be_da.js", "c": "showPrintSettings", "r": "showPrintSettings" },
   { "a": 24, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1img.min.js", "c": "open_addimage", "r": "open_addimage" },
-  { "a": 25, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1236a32/cmn/clrChe.js", "c": "showClearCacheModal", "r": "showClearCacheModal" },
-  { "a": 26, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/bi.js", "c": "set_bill_Inverd_innerHTML", "r": "set_bill_Inverd_innerHTML" },
-  { "a": 27, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/bgtiv.js", "c": "set_get_data_innerHTML", "r": "set_get_data_innerHTML" },
+  { "a": 25, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/clrChe.js", "c": "showClearCacheModal", "r": "showClearCacheModal" },
+  { "a": 26, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/b/bi.js", "c": "set_bill_Inverd_innerHTML", "r": "set_bill_Inverd_innerHTML" },
+  { "a": 27, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/b/bgtiv.js", "c": "set_get_data_innerHTML", "r": "set_get_data_innerHTML" },
   { "a": 28, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/b/rep_coll.js", "c": "set_rep_coll_innerHTML", "r": "set_rep_coll_innerHTML" },
   { "a": 29 },
   { "a": 30, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
@@ -294,7 +295,7 @@ function formatShortDisplay(val) {
  // billingModule 0 = normal items, 1 = garage / services.
  // Any missing / unknown value (including 2 = laundry, until its module is supplied) falls back to 0.
  const addItemModules = {
-  0: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/shoRegItm.js", c: "showAddNormalItemModal" },
+  0: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/b/shoRegItm.js", c: "showAddNormalItemModal" },
   1: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/shoCarwork.js", c: "showAddCarWorkModal" },
   2: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/shoLodryItm.js", c: "showAddLondryItemModal" }
  };
@@ -313,7 +314,7 @@ function formatShortDisplay(val) {
  const bePrModules = {
   1: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/bePr.js" },
   2: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/bePr2.js" },
-  3: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/bePr3.js" }
+  3: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/b/bePr3.js" }
  };
  const bePrModuleSelected = bePrModules[bePrModule] || bePrModules[3];
  const bePrItem = csh1.find(x => x.a === 22);
@@ -356,7 +357,7 @@ function formatShortDisplay(val) {
  window[my1uzr.worknOnPg].confg.itmNameMxLength = 32;
  window[my1uzr.worknOnPg].confg.addByQR = 1;
  window[my1uzr.worknOnPg].confg.scanDelayQR = 3000;
- //window[my1uzr.worknOnPg].confg.shodateofberthForEi = 1;
+ //window[my1uzr.worknOnPg].confg.shodateofberthForEi = 1; // set to 1 to SHOW Birth Date (hidden by default)
  const shoEyeMsrmntTbl = showEyeMesuremetsTableInBill == 1;
 
  window.allowFloat = function (el, decimals = 2, maxInt = 7) {
@@ -499,44 +500,39 @@ function formatShortDisplay(val) {
 </button>
   <div class="collapse" id="navbarNav">
     <div class="menu-popup">
-
         <div class="menu-grid">
-
             <div class="menu-item" id="sync_all_info">
                 <i class="fas fa-sync"></i>
                 <span>Sync Data</span>
             </div>
-
             <div class="menu-item" onclick="(async()=>{await loadExe2Fn(12,[],[1]);})()">
                 <i class="fas fa-info-circle"></i>
                 <span>Manage Products</span>
             </div>
-
-            <div class="menu-item" onclick="(async()=>{await loadExe2Fn(26,[],[1]);})()">
+            ${window[my1uzr.worknOnPg].clientConfig?.cust_da_const?.show_1hide_0MenuPopupItme?.bgtiv == 1 ? `
+              <div class="menu-item" onclick="(async()=>{await loadExe2Fn(26,[],[1]);})()">
                 <i class="fas fa-square-plus"></i>
                 <span>Bill Inward</span>
-            </div>
-
-            <div class="menu-item" onclick="(async()=>{await loadExe2Fn(28,[],[1]);})()">
-                <i class="fas fa-chart-bar"></i>
-                <span>Reports</span>
-            </div>
+              </div>
+            ` : ''}
             <div class="menu-item" onclick="(async()=>{await loadExe2Fn(31,[],[1]);})()">
                 <i class="fas fa-barcode"></i>
                 <span>Barcodes</span>
             </div>
-
-            <div class="menu-item" onclick="(async()=>{await loadExe2Fn(32,[],[1]);})()">
+            <div class="menu-item" onclick="(async()=>{await loadExe2Fn(28,[],[1]);})()">
+                <i class="fas fa-chart-bar"></i>
+                <span>Reports</span>
+            </div>
+            ${window[my1uzr.worknOnPg].clientConfig?.cust_da_const?.show_1hide_0MenuPopupItme?.bgtiv== 1 ? `
+              <div class="menu-item" onclick="(async()=>{await loadExe2Fn(32,[],[1]);})()">
                 <i class="fas fa-file-invoice-dollar"></i>
                 <span>Expenditures</span>
-            </div>
-
-
+              </div>
+            ` : ''}
             <div class="menu-item menu-sub-toggle" id="settings_toggle" onclick="toggleNavSubMenu()">
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
             </div>
-
         </div>
 
         <div class="menu-sub-dropdown" id="menuSubDropdown">
@@ -1454,7 +1450,7 @@ style="font-size: 0.8rem;">
 
  function selectModalItem(item) {
   document.getElementById('modalItemName').value = item.gn;
-  document.getElementById('modalItemRate').value = item.k;
+  document.getElementById('modalItemRate').value = (typeof window.getSellingPriceFromStock === 'function' ? window.getSellingPriceFromStock(item) : (item.k || 0));
   document.getElementById('modalItemQty').value = '';
 
   // Set the data-item-id attribute
@@ -1610,12 +1606,13 @@ onerror="this.style.display='none'; document.getElementById('modalItemImageConta
   // Apply the product's Tax 1 / Tax 2 rates to the new card.
   // Prefer the modal inputs (what the user sees) when that modal has them.
   const productRow = items.find(i => i.a == itemId) || null;
-  const tax1Input = document.getElementById('modalItemTax1');
-  const tax2Input = document.getElementById('modalItemTax2');
-  const rates = (tax1Input || tax2Input)
-   ? { tax1: itemTaxClampPercent(tax1Input && tax1Input.value), tax2: itemTaxClampPercent(tax2Input && tax2Input.value) }
-   : productTaxRates(productRow);
-  const taxAmounts = itemTaxAmounts(rates.tax1, rates.tax2, price);
+  const modalTaxAmounts = (typeof getModalTaxAmounts === 'function') ? getModalTaxAmounts() : null;
+  const rates = modalTaxAmounts
+   ? { tax1: modalTaxAmounts.tax1, tax2: modalTaxAmounts.tax2 }
+   : ((document.getElementById('modalItemTax1') || document.getElementById('modalItemTax2'))
+      ? { tax1: itemTaxClampPercent(document.getElementById('modalItemTax1') && document.getElementById('modalItemTax1').value), tax2: itemTaxClampPercent(document.getElementById('modalItemTax2') && document.getElementById('modalItemTax2').value) }
+      : productTaxRates(productRow));
+  const taxAmounts = modalTaxAmounts || itemTaxAmounts(rates.tax1, rates.tax2, price);
   const taxPercent = price > 0
    ? itemTaxRound((taxAmounts.taxAmount / price) * 100)
    : itemTaxRound(rates.tax1 + rates.tax2);
@@ -2907,7 +2904,7 @@ ${renderExistingPayments(c594ashInfo)}
   const taxAmount = taxInfo.total;
   const taxPercent = linePrice > 0 ? itemTaxRound((taxAmount / linePrice) * 100) : itemTaxRound(tax1 + tax2);
   const savedRate = linePrice / (parseFloat(item.h) || 1);
-  const rateToShow = savedRate > 0 ? savedRate : (parseFloat(itemDetails.k || 0) || 0);
+  const rateToShow = savedRate > 0 ? savedRate : (parseFloat((typeof window.getSellingPriceFromStock === 'function' ? window.getSellingPriceFromStock(itemDetails) : itemDetails.k) || 0) || 0);
 
   const itemHTML = `
 <div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${item.f}" data-item-rate="${rateToShow}" data-item-description="${String(item.i || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" data-item-subname="${String(taxInfo.subName || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" data-item-tax1="${tax1.toFixed(2)}" data-item-tax2="${tax2.toFixed(2)}" data-item-tax1-amount="${taxInfo.tax1.toFixed(2)}" data-item-tax2-amount="${taxInfo.tax2.toFixed(2)}" data-item-tax-percent="${taxPercent.toFixed(2)}" data-item-tax-amount="${taxAmount.toFixed(2)}">
@@ -3941,7 +3938,7 @@ Continuous mode: Items will be added automatically. Click stop or press back but
  // Function to directly add item from QR scan
  function addItemDirectlyFromQR(item) {
   const itemId = item.a;
-  const currentRate = parseFloat(item.k || 0);
+  const currentRate = (typeof window.getSellingPriceFromStock === 'function' ? window.getSellingPriceFromStock(item) : parseFloat(item.k || 0));
   const quantity = 1; // Default quantity for QR scan
 
   // Check if item already exists in sale list with same rate
@@ -4211,7 +4208,7 @@ ${stockIndicator}
 <small class="text-muted">${item.ba_f || ''}</small>
 </div>
 <div class="item-price">
-<small class="text-muted">₹${item.k || '0'}</small>
+<small class="text-muted">₹${(typeof window.getSellingPriceFromStock === 'function' ? window.getSellingPriceFromStock(item) : (item.k || 0))}</small>
 </div>
 `;
 
@@ -4351,7 +4348,25 @@ ${stockIndicator}
   return { tax1: legacyTotal, tax2: 0, total: legacyTotal, subName: billItem.j == null ? '' : String(billItem.j) };
  }
 
- function itemTaxAmounts(tax1, tax2, linePrice) {
+ // Selling price for a stock row is stored inside the sold_in string (s.l),
+// e.g. "18~2-50-55--2-2-22" where 50 is the selling price. Fall back to
+// the legacy s.k field when sold_in is empty.
+window.getSellingPriceFromStock = function (row) {
+ const soldIn = row && (row.l || row.sold_in || row.soldIn);
+ const first = Array.isArray(soldIn) ? soldIn[0] : soldIn;
+ const str = String(first || '').trim();
+ if (str) {
+  const parts = str.split('~');
+  if (parts.length >= 2) {
+   const m = parts[1].match(/^([\d.]*)-([\d.]*)/);
+   const sp = m ? parseFloat(m[2]) : NaN;
+   if (Number.isFinite(sp)) return sp;
+  }
+ }
+ return parseFloat(row && row.k) || 0;
+};
+
+function itemTaxAmounts(tax1, tax2, linePrice) {
   const amount1 = itemTaxRound((linePrice * itemTaxClampPercent(tax1)) / 100);
   const amount2 = itemTaxRound((linePrice * itemTaxClampPercent(tax2)) / 100);
   return { tax1Amount: amount1, tax2Amount: amount2, taxAmount: itemTaxRound(amount1 + amount2) };
@@ -5976,15 +5991,6 @@ margin-top: 70px;
   document.head.appendChild(style);
  }
 
-
-
- function function2runAfter_O_Login() {
-  //location.reload();
- }
- function function2runAfter_P_Login() {
-  //location.reload();
- }
-
  function handl_op_rspons(response, reload = 0) {
   return (async () => {
    try {
@@ -6321,7 +6327,7 @@ margin-top: 70px;
   const matchedItem = items.find(item => item.a == itemId);
   if (!matchedItem) return false;
 
-  const currentRate = parseFloat(matchedItem.k || 0);
+  const currentRate = (typeof window.getSellingPriceFromStock === 'function' ? window.getSellingPriceFromStock(matchedItem) : parseFloat(matchedItem.k || 0));
 
   // Check if item exists in sale list with same ID and rate
   const addedItems = document.querySelectorAll('#addedItemsContainer .added-item-card');
@@ -7341,8 +7347,6 @@ This remark will be automatically filled in the bill notes section for new bills
  window.addItemDirectlyFromQR = addItemDirectlyFromQR;
  window.handl_op_rspons = handl_op_rspons;
  window.commonFnToRunAfter_op_ViewCall = commonFnToRunAfter_op_ViewCall;
- window.function2runAfter_O_Login = function2runAfter_O_Login;
- window.function2runAfter_P_Login = function2runAfter_P_Login;
  window.handleUploadedFile = handleUploadedFile;
 
 })();

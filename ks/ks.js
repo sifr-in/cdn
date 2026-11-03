@@ -1,6 +1,6 @@
 // ks.js - Court Case Register
 const tblsRequired = ["f", "fp", "cs", "c", "a", "cs91"];
-const inTbls = ["dontCret:cs91", "pubilc:", "2/t-72~cs", "2/m-91~a", "2/m-92~cs,a,c91,c", "2/n-96~cs,a,c91,c", "2/n-98~cs,a,c91,c", "2/o-99~a", "2/o-101~cs,a", "2/r-107~cs,a,c91,c", "2/r-108~cs,a,c91,c"];
+const inTbls = ["dontCret:cs91", "pubilc:", "2/t-72~cs", "2/j-79~c", "2/j-80~c", "2/m-91~a", "2/m-92~cs,a,c91,c", "2/n-96~cs,a,c91,c", "2/n-98~cs,a,c91,c", "2/o-99~a", "2/o-101~cs,a", "2/r-107~cs,a,c91,c", "2/r-108~cs,a,c91,c"];
 const cust_const = [
  {
   "a": "maxNoOfAdvOnBoard", "b": 9, "c": "more customiztaion", "d": "number of advocates that can be assigned case", "u": "url-explaining-video"
@@ -72,26 +72,24 @@ const dontRestartAfterLogin = 1;
    },
    {
     a: 4,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fbf62ad/cmn/my1lp.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/my1lp.js",
     c: "open_shoLgnP",
     r: "open_shoLgnP",
    },
    { a: 5, u: "https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js" },
    {
     a: 8,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1xi.min.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/my1xi.min.js",
    },
     {
     a: 25,
     u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9fcde10/ks/addNewCase.js",
-    //u: "git/addNewCase.js",
     c: "showAddCaseModal,toggleCNRFields,toggleMoreDetails,saveCase,openEditCaseModal,updateCaseRecord,switchEditTab,openMemberSelector,selectFilerParty,selectAnswererParty",
     r: " ",
    },
    {
     a: 26,
     u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9fcde10/ks/allCases.js",
-    //u: "git/allCases.js",
     c: "showAllCases,showHome",
     r: " ",
    },
@@ -116,19 +114,18 @@ const dontRestartAfterLogin = 1;
    {
     a: 24,
     u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@794889f/ks/printRecords.js",
-    //u: "printRecords.js",
     c: "printDashboard",
     r: " ",
    },
    {
     a: 27,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/cmn/ei.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/ei.js",
     c: "open_entind_crud",
     r: "open_entind_crud",
    },
    {
     a: 30,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1236a32/cmn/clrChe.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/clrChe.js",
     c: "showClearCacheModal",
     r: "showClearCacheModal",
    },
@@ -144,7 +141,7 @@ const dontRestartAfterLogin = 1;
     c: "open_my1ctr",
     r: "open_my1ctr",
    },
-   { "a": 33, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1d6dac3/cmn/my1ap.min.js" }
+   { "a": 33, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/my1ap.min.js" }
   ];
  }
 
