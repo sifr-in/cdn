@@ -68,7 +68,7 @@ function admPpMinDateFor(card) {
 
 // Check if user is logged in
 function isLoggedIn() {
- return typeof my1uzr !== 'undefined' && my1uzr != null && my1uzr.mk != null;
+ return typeof my1uzr !== 'undefined' && my1uzr != null && my1uzr.jk != null;
 }
 
 // Self-contained theme helper: builds a full palette from arbitrary appcss
@@ -807,7 +807,6 @@ async function AdmPpOpenPermits() {
   }
   const myFp = allFp.filter(function (r) { return String(r.e) === myMo && String(r.f) === myMc; });
 
-  console.log('admPp: AdmPpOpenPermits called, mods:', mods.length, 'fp:', allFp.length, 'myFp:', myFp.length, 'f:', fRecs.length);
 
   if (mods.length) {
     dropMenu.innerHTML = '<li><button class="dropdown-item" data-mod-idx="-1"><i class="fas fa-list me-2 text-secondary"></i>Show All</button></li>'
@@ -1172,7 +1171,6 @@ async function AdmPpOpenPermits() {
   });
 
   personBtn.addEventListener('click', async function () {
-    console.log('admPp: opening ei.js for user selection');
     var xtraEiFlds = typeof window[my1uzr.worknOnPg].clientConfig !== 'undefined' && typeof window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_forCust !== 'undefined'
      ? window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_forCust : null;
     const t987 = getCacheId("ei.js");
@@ -1206,7 +1204,6 @@ async function AdmPpOpenPermits() {
 
 window.commonFnToRunAfter_AdmPpGvPrmUserSelect = async function (obj, swtch) {
   if (swtch === undefined) swtch = 1;
-  console.log('admPp: user select callback fired, swtch:', swtch, 'obj:', obj);
   if (swtch !== 1) {
     if (typeof showToast === 'function') showToast('Please select a valid user', { type: 'warning', duration: 2000 });
     return;
@@ -1218,7 +1215,6 @@ window.commonFnToRunAfter_AdmPpGvPrmUserSelect = async function (obj, swtch) {
   var mob = obj.e || '';
   var name = obj.h || obj.i || 'Unknown';
   admPpState.selectedUser = { a: uid, e: mob, f: obj.f, h: name };
-  console.log('admPp: user stored:', admPpState.selectedUser);
 
   admPpSelUFPerms = [];
   if (mob) {
@@ -1311,7 +1307,7 @@ async function open_my1ctr(...args) {
     if (isLoggedIn()) {
       showUserInfoModal();
     } else{
-      const t987 = getCacheId("my1lp.js");
+      const t987 = getCacheId("my1jp.js");
     await loadExe2Fn(t987, [], [1]);
     }
   }

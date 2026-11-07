@@ -1170,7 +1170,6 @@ child-safety@${data.business ? data.business.replace(/\s+/g, '').toLowerCase() :
   modalStack.push(modalId);
  }
 
- console.log(`Child Safety Policy modal displayed for ${businessName}`);
 
  return modalResult;
 }
@@ -1201,14 +1200,6 @@ function get_child_safety_pol_data() {
 // Helper function to report child safety concern
 function report_child_safety_concern(type, details = {}) {
  showToast('Reporting child safety concern...', { type: 'warning' });
-
- // This would connect to your backend API
- console.log('Child Safety Report:', {
-  type: type,
-  details: details,
-  timestamp: new Date().toISOString(),
-  reportedBy: 'user'
- });
 
  // Simulate API call
  setTimeout(() => {

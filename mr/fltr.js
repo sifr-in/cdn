@@ -70,6 +70,17 @@ try {
  console.error('Error parsing saved filters:', e);
 }
 
+// A full reload wipes window[page].activeFilters, but the form is restored from
+// localStorage above. Seed the in-memory filters too, so the nav's active-filter
+// badge (git/mr.js reads P.activeFilters) still shows for the restored filters.
+try {
+ var _wk = (typeof my1uzr !== 'undefined' && my1uzr && my1uzr.worknOnPg) ? window[my1uzr.worknOnPg] : null;
+ if (_wk && savedFilters && Object.keys(savedFilters).length) {
+  if (!_wk.activeFilters || !Object.keys(_wk.activeFilters).length) _wk.activeFilters = savedFilters;
+  if (typeof window.__mrUpdateFilterBadge === 'function') { try { window.__mrUpdateFilterBadge(); } catch (e) { } }
+ }
+} catch (e) { }
+
 // Helper function to get saved value or empty
 function getSavedValue(key, subKey = null) {
  if (subKey) {
@@ -1091,7 +1102,15 @@ function resetFilters() {
  profilesData = [];
  hasMore = true;
  currentPage = 0;
- 
+
+ //reset also clears the active-filter badge on the nav's filter button:
+ //no active filters means no badge (git/mr.js reads P.activeFilters)
+ try {
+  var wk = (typeof my1uzr !== 'undefined' && my1uzr && my1uzr.worknOnPg) ? window[my1uzr.worknOnPg] : null;
+  if (wk) wk.activeFilters = {};
+ } catch (e) { }
+ if (typeof window.__mrUpdateFilterBadge === 'function') { try { window.__mrUpdateFilterBadge(); } catch (e) { } }
+
  pullNwProfiles(null, true).then(result => {
   if (result && result.profiles) {
    profilesData = result.profiles;
@@ -1157,7 +1176,6 @@ function getInputValue(name) {
 }
 
 window.filterResultsUpdated = function(filteredProfiles) {
- console.log('filterResultsUpdated called with', filteredProfiles?.length || 0, 'profiles');
  
  try {
   const container = document.getElementById('profiles-container');

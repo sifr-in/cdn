@@ -39,10 +39,10 @@ function getDrawerImageUrl() {
   if (!u) return null;
   if (typeof window.mrResolveProfileImages === 'function') {
    const imgs = window.mrResolveProfileImages(u);
-   return imgs.thumbnail || imgs.display || null;
+   return imgs.thumbnail || null;
   }
   const parsed = typeof u === 'string' ? JSON.parse(u) : u;
-  return parsed?.b || parsed?.a || null;
+  return parsed?.a || null;
  } catch { return null; }
 }
 
@@ -63,7 +63,7 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
 
  // Get profile data from window object
  const defaultUrl = 'https://cdn-icons-png.freepik.com/512/13470/13470397.png?ga=GA1.1.943033089.1762783218';
- const profileImageUrl = getDrawerImageUrl() || defaultUrl;
+ const profileImageUrl = getDrawerImageUrl();
  const u1 = getDrawerUser();
  const userName = u1.mn || 'User Number';
  const mobileNumber = fmtDrawerMobile(u1.mo) || 'Not provided';
@@ -352,7 +352,6 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
    icon: 'fas fa-share-alt',
    color: '#6c757d', // Grey color
    onClick: () => {
-    console.log('Share App clicked');
     shareApp();
    }
   },

@@ -20,7 +20,7 @@
 (function () {
     "use strict";
 
-    var API = "https://my1.in/3/d.php";
+    //var API = "https://my1.in/3/d.php";
     var MODAL_ID = "mrProfileDtlsModal";
     var IMGVIEW_ID = "mrImageViewer";
     var CSS_ID = "mrPrflCss";
@@ -82,9 +82,9 @@
     }
     function isLoggedIn() {
         try {
-            if (window.my1uzr && window.my1uzr.mk) return true;
+            if (window.my1uzr && window.my1uzr.jk) return true;
             //the logged-in token is copied into payload0 by my1e3; either place counts
-            return !!(window.payload0 && window.payload0.mk);
+            return !!(window.payload0 && window.payload0.jk);
         } catch (e) { return false; }
     }
 
@@ -313,7 +313,7 @@
 
     function buildPayload(fn) {
         var p = (typeof window.payload0 !== "undefined" && window.payload0) ? window.payload0 : (window.payload0 = {});
-        p.vw = 4; p.fn = fn;
+        p.fn = fn; p.ul = "3/0d.php"; p.gt = 3;
         return p;
     }
 
@@ -347,7 +347,7 @@
             ".mrd-section{margin:16px 0 10px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--rg-muted,#6f6656);}",
             ".mrd-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;margin-top:8px;}",
             ".mrd-gallery img{width:100%;height:64px;object-fit:cover;border-radius:10px;border:1px solid rgba(201,164,92,.45);cursor:pointer;}",
-            ".mrd-viewer{position:fixed;inset:0;z-index:1060;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(12,9,4,.88);opacity:0;transition:opacity .22s ease;box-sizing:border-box;}",
+            ".mrd-viewer{position:fixed;inset:0;z-index:3400;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(12,9,4,.88);opacity:0;transition:opacity .22s ease;box-sizing:border-box;}",
             ".mrd-viewer.open{opacity:1;}",
             ".mrd-viewer img{max-width:94vw;max-height:88vh;border-radius:12px;box-shadow:0 24px 60px rgba(0,0,0,.5);display:block;}",
             ".mrd-viewer .mrd-viewer-x{position:absolute;top:14px;right:16px;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}",
@@ -529,7 +529,8 @@
     async function refreshCounts() {
         var ok = false;
         try {
-            var resp = await window.fnj3(API, buildPayload(70), 1, true, null, 20000, 0, 1, 1, 1);
+            var resp = await fnj4(null, buildPayload(70), 1, 1, null, 20000, 1, 1);
+            //var resp = await window.fnj3(API, buildPayload(70), 1, true, null, 20000, 0, 1, 1, 1);
             if (resp && resp.su == 1) {
                 ok = true;
                 if (resp.mr && resp.mr.l && resp.mr.l.length) {
@@ -647,7 +648,8 @@
                 typeof dbDexieManager.getMaxDateRecords === "function") {
                 try { p.la = await dbDexieManager.getMaxDateRecords(window.dbnm, [{ tb: "mu" }]); } catch (eL) { }
             }
-            var resp = await window.fnj3(API, p, 1, true, null, 20000, 0, 2, 1, 1);
+            var resp = await fnj4(null, p, 1, 1, null, 20000, 2, 1);
+            //var resp = await window.fnj3(API, p, 1, true, null, 20000, 0, 2, 1, 1);
             hndlRspo66(resp, profileId);
         } catch (e) {
             console.error("prfl: unlock failed", e);

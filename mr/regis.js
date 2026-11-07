@@ -817,7 +817,16 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
     }
     addDefault = !hasCountry;
    }
-   if (addDefault) {
+   //only fall back to the default country for genuinely flat countries (no region
+   //list, e.g. Germany). For countries with a region tree (e.g. India) a single
+   //stored id cannot be reliably placed, and guessing produces misleading city
+   //names (e.g. a district id read as "Kumbakonam"). Show "-" instead.
+   var defHasRegion = false;
+   try {
+    if (typeof window.__mrCtryRegionList === "function" && window.__mrCtryRegionList(def)) defHasRegion = true;
+   } catch (eR) { }
+   if (!defHasRegion && String(def.iso2 || "").toLowerCase() === "in" && Array.isArray(window.var_intal)) defHasRegion = true;
+   if (addDefault && !defHasRegion) {
     //the legacy city slot is the real city; later junk slots must not join the path
     var defIds = (firstLegacyCity && legCity.length) ? legCity : ids;
     add([String(def.a)].concat(defIds), defIds.length === 1, false);
@@ -870,6 +879,10 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
  }
 
  function viewResolvePlace(profile, root) {
+  var grp = PLACE_GROUPS[root];
+  //without the root slot (e.g. a2/b2/c3) the lower slots are orphans and would
+  //resolve to the wrong place (e.g. a5=1 read as a country); show nothing instead
+  if (grp && !viewPlaceIds(baseVal(profile, grp[0])).length) return { ids: [], names: [], levels: [] };
   var c = viewPlaceCandidates(profile, root);
   var best = null;
   for (var i = 0; i < c.list.length; i++) {
@@ -2257,7 +2270,7 @@ var reqStar = {};
   var sendLabel = isUpdate ? "Update profile" : "Save profile";
   //owner delete (fn 69) only exists on the member's own update form and only while
   //the profile is still live (d < 0 means it is already submitted for deletion)
-  var showRemove = isUpdate && !adminMode && !(base && Number(base.d) < 0);
+  var showRemove = !!(isUpdate && !adminMode && base && base.d >= 0 && base.w);
   var pickerOpen = false;
   //>= 0 while the image picker is replacing the gallery photo at that slot
   //(clicking an existing rg-gal-item instead of the "+" add button)
@@ -2293,8 +2306,6 @@ var reqStar = {};
    return '<input type="hidden" id="rgf-' + esc(k) + '" data-name="' + esc(k) + '" value="' + esc(baseVal(base, k)) + '">';
   }).join("");
 
-  const hasMrRecords = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "mr" }]);
-
   ov.innerHTML =
    '<div class="rg-box">' +
    '<div class="rg-head">' +
@@ -2306,15 +2317,16 @@ var reqStar = {};
    '<i class="fa-solid fa-xmark"></i></button>' +
    "</div>" +
    '<div class="rg-body rg-alrdy' + (adminMode ? ' d-none' : '') + '">' +
-   '<button type="button" class="rg-btn rgAlrdyRegMem" id="rgAlrdyRegMem">' +
-   '<i class="fa-solid ' + (isUpdate ? 'fa-rotate"></i><span>  Refresh' : 'fa-user-check"></i><span>  Already Registered') + '</span></button>' +
+   '<button type="button" class="rg-btn rgAlrdyRegMem' + (isDeletedProfile(base) ? ' rg-btn-danger' : '') + '" id="rgAlrdyRegMem"' +
+    (isDeletedProfile(base) ? ' style="background-image:linear-gradient(135deg,#a33120,#7a1f14);color:#fff;border-color:#a33120;"' : '') + '>' +
+   '<i class="fa-solid ' + (isDeletedProfile(base) ? 'fa-user-xmark"></i><span>Profile deleted' : isUpdate ? 'fa-rotate"></i><span>Refresh' : 'fa-user-check"></i><span>Already Registered') + '</span></button>' +
    '</div>' +
    '<div class="rg-body">' +
    '<form id="rgRegForm" novalidate>' +
    '<div class="rg-fields">' + fieldsHtml + carryHtml + "</div>" +
    '<div class="rg-msg" id="rgRegMsg"></div>' +
    '<div class="rg-actions' + (showRemove ? ' rg-actions-row' : '') + '">' +
-   (showRemove ? '<button type="button" class="rg-btn rg-btn-white bg-danger text-white '+ (hasMrRecords?.w ? '' : 'd-none') +'" id="rgRegRemove">' +
+   (showRemove ? '<button type="button" class="rg-btn rg-btn-white bg-danger text-white '+ (base && base.a ? '' : 'd-none') +'" id="rgRegRemove">' +
     '<i class="fa-solid fa-trash"></i><span>Remove</span></button>' : '') +
    '<button type="submit" class="rg-btn rg-btn-main ' + (isUpdate ? 'rg-btn-update' : 'rg-btn-add') +'" id="rgRegSend">' +
    '<i class="fa-solid fa-check"></i><span>' + sendLabel + "</span></button>" +
@@ -2409,19 +2421,45 @@ var reqStar = {};
     hideMsg();
     setSending(true);
     var p0 = null;
+    var reopenId = null;   //set once fn 70 returns a row: re-render below
     try {
      if (typeof clearPayload0 === "function") clearPayload0();
      if (!window.payload0) window.payload0 = {};
      p0 = window.payload0;
-     p0.vw = 4;
      p0.fn = 70; //fn 70 = chkMyCount (my own profile)
-     var resp = await fnj3("https://my1.in/3/d.php", p0, 1, true, null, 20000, 0, 2, 1, 1);
-     hndlRspo70(resp);
+     p0.ul = "3/0d.php";
+     p0.gt = 3;
+     var resp = await fnj4(null, p0, 1, 1, null, 20000, 2, 1);
+     //var resp = await fnj3("https://my1.in/3/d.php", p0, 1, true, null, 20000, 0, 2, 1, 1);
+     if (resp && resp.su == 1) {
+      var myRow = null;
+      if (typeof window.hndlRspo70 === "function") {
+       myRow = await window.hndlRspo70(resp);   //stores rows + persists own row
+      }
+      //fn 70 closes this modal (activeClose) and refreshes the list. Re-open it in
+      //UPDATE mode from the row that was just stored so every field, select, place
+      //picker, image and hidden "a" re-renders (instead of keeping stale values) and
+      //the button/remove/deleted state matches the fresh row.
+      if (myRow && myRow.a != null) reopenId = myRow.a;
+     } else {
+      showMsg("err", (resp && (resp.ms || resp.m)) || "No registered profile found for this number.");
+      if (typeof window.showelsemodal === "function") {
+       window.showelsemodal((resp && (resp.ms || resp.m)) || "No registered profile found for this number.");
+      }
+     }
     } catch (err) {
      showMsg("err", "Failed to load profile: " + ((err && err.message) || err));
     } finally {
      try { if (p0) { delete p0.x1; delete p0.x2; delete p0.la; delete p0.drml; } } catch (eX) { }
      setSending(false);
+     if (reopenId != null && typeof window.showRegistrationModal === "function") {
+      //hndlRspo70 is in mr.js and cannot see this module's private activeClose, so the
+      //modal is still open here: tear it down cleanly, then rebuild from the fresh row
+      try { close(); } catch (eC) { }
+      try {
+       await window.showRegistrationModal(reopenId, adminMode ? { admin: true } : undefined);
+      } catch (eRe) { console.error(eRe); }
+     }
     }
    });
   }
@@ -2445,40 +2483,86 @@ var reqStar = {};
     setRemoveBusy(true);
     try {
      if (typeof clearPayload0 === "function") clearPayload0();
-     payload0.vw = 4;
      payload0.fn = 69; //fn 69 = delete profile by profile owner
-     payload0.x1 = reason; //1 got partner / 2 not interested / 3 personal reason
+     payload0.x1 = reason; //negative status code from mr.da RG_REMOVE_REASONS
      payload0.x2 = base.a; //ID
      payload0.x3 = base.w; //UID
-     var resp = await fnj3("https://my1.in/3/d.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+     payload0.ul = "3/0d.php";
+     payload0.gt = 3;
+     var resp = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
+     //var resp = await fnj3("https://my1.in/3/d.php", payload0, 1, true, null, 20000, 0, 2, 1, 1);
      if (resp && (resp.su == 1 || Number(resp.cd) > 0)) {
-      //drop the local row too: mrRenderList merges Dexie rows back into the list
+       try {
+         var myRow = (resp.mr && Array.isArray(resp.mr.l) && resp.mr.l.length) ? resp.mr.l[0] : null;
+         if ((!myRow || myRow.a == null) && typeof payload0 !== "undefined" && payload0) {
+           var pv = payload0.x2;
+           if (pv && pv.a != null) myRow = { a: pv.a };
+         }
+         if (myRow && myRow.a != null && typeof window.mrPersistMyEinMR === "function") {
+           window.mrPersistMyEinMR(myRow);
+         }
+       } catch (eP) { console.error(eP); }
+       if (typeof showToast === "function") {
+       showToast("Profile removed successfully.", { type: "success", duration: 3000, position: "top" });
+      }
+      //re-fetch the profile directly from local (Dexie/localStorage) by id so
+      //isDeletedProfile(base) reflects the latest stored row (d < 0) instead of
+      //the stale base captured when the modal opened
+      //use the server's updated row (resp.mr.l[0]) as the source of truth so base
+      //reflects the deleted status (d < 0) immediately, instead of the stale row
+      //returned by findProfile (Dexie hasn't been overwritten yet)
       try {
-       if (typeof dbDexieManager !== "undefined" && dbDexieManager &&
-        typeof dbDexieManager.deleteRecords === "function" && dbnm) {
-        await dbDexieManager.deleteRecords(dbnm, "mr", base.a);
+       var respRow = (resp.mr && Array.isArray(resp.mr.l) && resp.mr.l.length) ? resp.mr.l[0] : null;
+       if (respRow && respRow.a != null) {
+        base = respRow;
+        //persist into Dexie + localStorage so findProfile returns d<0 on reopen
+        if (typeof dbDexieManager !== "undefined" && dbDexieManager && typeof dbDexieManager.insertToDexie === "function" && dbnm) {
+         await dbDexieManager.insertToDexie(dbnm, "mr", [respRow], true, ["a"]);
+        }
+        if (typeof window.mrPersistMyEinMR === "function") window.mrPersistMyEinMR(respRow);
        }
-      } catch (eD) { console.warn("regis: local remove failed", eD); }
-      //forget the cached own row so the drawer offers Register again
+      } catch (eFb) { console.error(eFb); }
+      //close the update form, then refresh the list from Dexie/server
+      try { close(); } catch (eC) { }
       try {
-       var tn = window.appOwner && window.appOwner.tn;
-       if (tn) localStorage.removeItem(tn + "_myEinMR");
-       window.myEinMR = null;
-      } catch (eL) { }
-      //if (typeof safeReload === "function") safeReload(); else location.reload();
+       if (typeof mrRenderList === "function") await mrRenderList(true);
+      } catch (eR) { console.error(eR); }
       return;
      }
      window.showelsemodal((resp && (resp.ms || resp.m)) || "Could not remove your profile. Please try again.");
     } catch (err) {
      window.showelsemodal("Failed to remove profile: " + ((err && err.message) || err));
     } finally {
-     try { if (p0) { delete p0.x1; delete p0.x2; delete p0.x3; } } catch (eX) { }
+     try { if (payload0) { delete payload0.x1; delete payload0.x2; delete payload0.x3; } } catch (eX) { }
      setRemoveBusy(false);
     }
    });
   }
 
-  //second confirmation step: pick one of the three delete reasons
+  //delete reasons come from mr.da: RG_REMOVE_REASONS = [{a:<status code>, e:<label>}]
+  function removeReasonOptions() {
+   var C = rgCfg(), P = rgP();
+   var list = C.RG_REMOVE_REASONS ||
+    (window.da_mr && window.da_mr.RG_REMOVE_REASONS) ||
+    P.RG_REMOVE_REASONS;
+   if (!Array.isArray(list) || !list.length) {
+    list = [
+     { a: -11, e: "Got the partner" },
+     { a: -12, e: "Not interested in service" },
+     { a: -13, e: "Personal reason" }
+    ];
+   }
+   return list;
+  }
+
+  //true only for the owner-delete codes configured in RG_REMOVE_REASONS (-11/-12/-13)
+   function isDeletedProfile(p) {
+    var d = Number(p && p.d);
+    if (!(d < 0)) return false;
+    return true;
+   }
+
+  //second confirmation step: pick a delete reason (configured in mr.da)
   function askRemoveReason() {
    return new Promise(function (resolve) {
     var wrap = document.createElement("div");
@@ -2487,9 +2571,9 @@ var reqStar = {};
      '<div class="rg-reason-box" role="dialog" aria-modal="true" aria-label="Reason for removing profile">' +
      '<h4 class="rg-reason-title">Why are you removing your profile?</h4>' +
      '<p class="rg-reason-sub">Please select a reason to continue.</p>' +
-     window[my1uzr.worknOnPg].clientConfig?.RG_REMOVE_REASONS.map(function (r, i) {
-      return '<button type="button" class="rg-reason-opt" data-reason="' + r.v + '">' +
-       '<span class="rg-reason-num">' + (i + 1) + '</span><span>' + esc(r.t) + '</span></button>';
+     removeReasonOptions().map(function (r, i) {
+      return '<button type="button" class="rg-reason-opt" data-reason="' + esc(r.a) + '">' +
+       '<span class="rg-reason-num">' + (i + 1) + '</span><span>' + esc(r.e) + '</span></button>';
      }).join("") +
      '<button type="button" class="rg-btn rg-btn-ghost rg-reason-cancel" data-reason-cancel="1">Cancel</button>' +
      '</div>';
@@ -3188,8 +3272,9 @@ var reqStar = {};
    delete window.mrRegisParentSelected;
    rgClearedParents = {};
    setTimeout(function () {
-    var node = document.getElementById(MODAL_ID);
-    if (node && node.parentNode) node.parentNode.removeChild(node);
+    //remove only OUR overlay: a re-open (e.g. after "Refresh" in the already-registered
+    //flow) creates a new node with the same id and must not be removed by this timer
+    if (ov && ov.parentNode) ov.parentNode.removeChild(ov);
    }, 260);
    document.removeEventListener("keydown", onKey);
    if (lastFocus && lastFocus.focus) { try { lastFocus.focus(); } catch (e) { } }
@@ -3602,7 +3687,6 @@ var reqStar = {};
 
    try {
     if (typeof clearPayload0 === "function") clearPayload0();
-    payload0.vw = 4;
     payload0.fn = adminMode ? (isUpdate ? 63 : 62) : 68;
     if (typeof dbDexieManager !== "undefined" && dbDexieManager &&
      typeof dbDexieManager.getMaxDateRecords === "function" &&
@@ -3614,13 +3698,16 @@ var reqStar = {};
     }
     payload0.x2 = out;
     if (C.drml) payload0.drml = C.drml;
-    var endpoint = payload0.fn === 68
-    ? "https://my1.in/3/e.php"
-    : "https://my1.in/2/" + (adminMode && !isUpdate ? "f.php" : "c.php");
-    var resp = await fnj3(endpoint, payload0, 1, true, null, 20000, 0, 2, 1, 1);
-    hndlRspo68(resp);
+    payload0.ul = payload0.fn === 68
+      ? "3/0e.php"
+      : `2/${adminMode && !isUpdate ? "0f" : "0c"}.php`;
+    payload0.gt = payload0.fn === 68 ? 3 : 2;
+    var resp = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
+    //var resp = await fnj3(endpoint, payload0, 1, true, null, 20000, 0, 2, 1, 1);
+    var hRsp = window["hndlRspo" + payload0.fn] || window.hndlRspo68;
+    if (typeof hRsp === "function") hRsp(resp);
    } catch (err) {
-    showMsg("err", "Failed to save: " + ((err && err.message) || err));
+    window.showelsemodal("Failed to save: " + resp.ms || ((err && err.message) || err));
    } finally {
     try { delete payload0.x2; delete payload0.x1; delete payload0.la; delete payload0.drml; } catch (eX) { }
     setSending(false);
@@ -3686,5 +3773,10 @@ var reqStar = {};
    window.showelsemodal((resp && (resp.ms || resp.m)) || "Please try again.");
   }
  };
+
 };
+ window.hndlRspo62 = function (resp) {
+  return typeof window.hndlRspo68 === "function" ? window.hndlRspo68(resp) : undefined;
+ };
+ window.hndlRspo63 = window.hndlRspo62;
 })();

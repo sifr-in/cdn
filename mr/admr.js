@@ -18,9 +18,10 @@
  var savedScrollY_ = 0;
  var mqRows_ = [];
  var reUpOpen_ = 0;
+ var reUpStatusFilter_ = "0";   // default: pending only
  var cRows_ = [];       // local "c" table (contacts): c.e is the member's mobile
  var muRows_ = [];      // local "mu" table (unlock records): used count = rows where mu.e == mr.e
- var cardsView_ = 0;    // admin profile list: 1 = card view, 0 = table view (persisted)
+ var cardsView_ = 1;    // admin profile list: 1 = card view, 0 = table view (persisted); default = cards
 
  function statusList() {
   var out = [];
@@ -166,8 +167,10 @@
   catch (eK) { return "mr_admCardsView"; }
  }
  function loadCardsPref() {
-  try { cardsView_ = localStorage.getItem(cardsPrefKey()) === "1" ? 1 : 0; }
-  catch (eL) { cardsView_ = 0; }
+  try {
+   var v = localStorage.getItem(cardsPrefKey());
+   cardsView_ = (v === null) ? 1 : (v === "1" ? 1 : 0);
+  } catch (eL) { cardsView_ = 1; }
  }
  function saveCardsPref() {
   try { localStorage.setItem(cardsPrefKey(), cardsView_ ? "1" : "0"); } catch (eS) { }
@@ -189,7 +192,10 @@
  }
  // Used count = how many "mu" (unlock) rows carry this member's id (mu.e == mr.e)
  function usedCountOf(p) {
-  var id = (p && p.e != null) ? String(p.e) : "";
+  //count of "mu" (unlock) records where c.a == mu.e, using the joined "c"
+  //row for this profile (c.a is the registering-customer id)
+  var c = cRowOfProfile(p);
+  var id = (c && c.a != null) ? String(c.a) : "";
   if (!id) { return 0; }
   var n = 0;
   for (var i = 0; i < muRows_.length; i++) {
@@ -211,7 +217,7 @@
   var st = document.createElement("style");
   st.id = PAGE_ID + "_css";
   st.textContent =
-   "#" + PAGE_ID + "{--adm-ember:#8B1E3F;--adm-ember-d:#6E1733;--adm-gold:#c9a45c;--adm-gold-d:#b08d45;--adm-ink:#33302a;--adm-mut:#8a8176;--adm-line:#e7dcc6;--adm-cream:#faf4e6;position:fixed;inset:0;z-index:3000;background:var(--adm-cream);color:var(--adm-ink);font-family:'Segoe UI',system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden;}" +
+   "#" + PAGE_ID + "{--adm-ember:#8B1E3F;--adm-ember-d:#6E1733;--adm-gold:#c9a45c;--adm-gold-d:#b08d45;--adm-ink:#33302a;--adm-mut:#8a8176;--adm-line:#d8caac;--adm-cream:#faf4e6;position:fixed;inset:0;z-index:3000;background:var(--adm-cream);color:var(--adm-ink);font-family:'Segoe UI',system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden;}" +
    "#" + PAGE_ID + " *,#" + PAGE_ID + " *::before,#" + PAGE_ID + " *::after{box-sizing:border-box;}" +
    ".adm-page{display:flex;flex-direction:column;height:100%;}" +
    ".adm-head{display:flex;align-items:center;gap:12px;padding:12px 18px;background:linear-gradient(135deg,#8B1E3F,#6E1733);color:#fff;box-shadow:0 3px 14px rgba(110,23,51,.35);z-index:2;}" +
@@ -240,7 +246,7 @@
    ".adm-btn-gold{background:linear-gradient(135deg,#c9a45c,#b08d45);color:#3a2c10;box-shadow:0 3px 10px rgba(176,141,69,.35);}" +
    ".adm-btn-ghost{background:#fff;color:#8B1E3F;border:1px solid var(--adm-line);}" +
    ".adm-btn-danger{background:linear-gradient(135deg,#c0392b,#92261a);color:#fff;box-shadow:0 3px 10px rgba(146,38,26,.3);}" +
-   ".adm-sel{flex:0 1 160px;width:auto;min-width:0;max-width:38%;height:42px;border:1px solid var(--adm-line);border-radius:40px;padding:0 12px;background:#fff;color:var(--adm-ink);font-size:13.5px;outline:none;cursor:pointer;text-overflow:ellipsis;}" +
+   ".adm-sel{flex:0 1 160px;width:auto;min-width:0;max-width:38%;height:42px;border:1.4px solid var(--adm-line);border-radius:40px;padding:0 12px;background:#fff;color:var(--adm-ink);font-size:13.5px;outline:none;cursor:pointer;text-overflow:ellipsis;}" +
    ".adm-state{text-align:center;padding:46px 16px;color:var(--adm-mut);}" +
    ".adm-state .adm-spin{display:inline-block;width:34px;height:34px;border:3px solid var(--adm-line);border-top-color:var(--adm-ember);border-radius:50%;animation:admSpin .7s linear infinite;}" +
    "@keyframes admSpin{to{transform:rotate(360deg)}}" +
@@ -416,10 +422,12 @@
  async function syncProfiles() {
   try {
    if (typeof clearPayload0 === "function") { clearPayload0(); }
-   payload0.vw = 4;
    payload0.fn = 60;
+   payload0.ul = "2/0e.php";
+   payload0.gt = 2;
    payload0.la = await maxDate([{ tb: "c" }, { tb: "mr" }, { tb: "mq" }, { tb: "ma" }, { tb: "mu" }]);
-   var r = await fnj3("https://my1.in/2/e.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+   var r = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
+   //var r = await fnj3("https://my1.in/2/e.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
    admClear();
    if (r && r.su == 1) {
     try {
@@ -460,10 +468,12 @@
   if (st) { st.innerHTML = '<div class="adm-spin"></div>'; }
   try {
    if (typeof clearPayload0 === "function") { clearPayload0(); }
-   payload0.vw = 4;
    payload0.fn = 61;
+   payload0.ul = "2/g.php";
+   payload0.gt = 2;
    payload0.la = await maxDate([{ tb: "mp" }]);
-   var r = await fnj3("https://my1.in/2/g.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+   var r = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
+   //var r = await fnj3("https://my1.in/2/g.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
    admClear();
    if (r && r.su == 1) {
     try {
@@ -516,16 +526,25 @@
   if (!wrap) { return; }
   var list = filteredRows();
   if (!rows_.length) {
-   if (state) { state.innerHTML = '<div class="adm-ico"><i class="fa-solid fa-users"></i></div><div>No profiles yet.</div><div style="font-size:12.5px;margin-top:6px">Use <b>Refresh</b> to sync from the server.</div>'; }
+   if (state) {
+    state.innerHTML = '<div class="adm-ico"><i class="fa-solid fa-users"></i></div><div>No profiles yet.</div><div style="font-size:12.5px;margin-top:6px">Use <b>Refresh</b> to sync from the server.</div>';
+    state.classList.remove("d-none");
+   }
    wrap.innerHTML = "";
    return;
   }
   if (!list.length) {
-   if (state) { state.innerHTML = '<div class="adm-ico"><i class="fa-solid fa-magnifying-glass"></i></div><div>No profiles match the current filters.</div>'; }
+   var stName = (status_ === "" || status_ == null) ? "" : statusName(status_);
+   if (state) {
+    state.innerHTML = '<div class="adm-ico" style="font-size:44px;"><i class="fa-solid fa-magnifying-glass"></i></div>' +
+     '<div style="font-size:20px;font-weight:700;margin-top:10px;">No ' + (stName ? esc(stName) + ' ' : '') + 'profiles</div>' +
+     '<div style="font-size:13px;margin-top:6px;color:var(--adm-mut);">Try a different status or search.</div>';
+    state.classList.remove("d-none");
+   }
    wrap.innerHTML = "";
    return;
   }
-  if (state) { state.innerHTML = ""; }
+  if (state) { state.innerHTML = ""; state.classList.add("d-none"); }
   
   if (cardsView_) {
    var cardsHtml = "";
@@ -584,7 +603,7 @@
   var mobHtml = mobVal ? '<div class="adm-pc-mob"><i class="fa-solid fa-mobile-screen"></i> ' + esc(mobVal) + '</div>' : '';
   
   // Counts
-  var countsHtml = '<div class="adm-pc-counts">' + esc(d2Of(p)) + ', ' + esc(d1Of(p)) + ', ' + esc(usedCountOf(p)) + ' <span>//free, paid, used</span></div>';
+  var countsHtml = '<div class="adm-pc-counts">Free ' + esc(d2Of(p)) + ', Paid ' + esc(d1Of(p)) + ', Used ' + esc(usedCountOf(p)) + ' Counts</div>';
   
   // Date
   var added = ((function(){ var rawAdded = (p.rd != null && String(p.rd).trim() !== "") ? p.rd : ""; return rawAdded ? fmtDate(rawAdded) : ""; })());
@@ -690,7 +709,7 @@
    "<div class='adm-body'>" +
    "<section class='adm-panel' id='admPanelProfiles'>" +
    "<div class='adm-toolbar'>" +
-   "<div class='adm-tb-back'><button type='button' class='adm-btn adm-btn-ghost' data-act='reupback'><i class='fa-solid fa-arrow-left'></i> Back to profiles</button><span class='adm-reup-title'>Image update requests</span></div>" +
+   "<div class='adm-tb-back'><button type='button' class='adm-btn adm-btn-ghost' data-act='reupback'><i class='fa-solid fa-arrow-left'></i> Back to profiles</button><select id='admReUpStatus' class='adm-sel' aria-label='Re-Up status'><option value=''>All</option><option value='0' selected>Pending</option><option value='1'>Accepted</option><option value='-1'>Rejected</option><option value='-3'>Blocked</option></select></div>" +
    "<div class='adm-toolbar-main' id='admToolbarMain'>" +
    "<div class='adm-search'><i class='fa-solid fa-magnifying-glass'></i><input type='search' id='admSearch' placeholder='Search name, father, mobile or ID...'></div>" +
    "<div class='adm-toolbar-rt'>" +
@@ -714,8 +733,9 @@
   var sEl = root.querySelector("#admStatus");
   var list = statusList();
   sEl.innerHTML = '<option value="">All statuses</option>' + list.map(function (s) {
-   return '<option value="' + esc(s.a) + '">' + esc(s.e) + "</option>";
+   return '<option value="' + esc(s.a) + '"' + (String(s.a) === "0" ? " selected" : "") + '>' + esc(s.e) + "</option>";
   }).join("");
+  status_ = "0";
 
   root.addEventListener("click", function (e) {
    var t = e.target;
@@ -771,6 +791,13 @@
    status_ = this.value;
    renderProfiles();
   });
+  var ruf = root.querySelector("#admReUpStatus");
+  if (ruf) {
+   ruf.addEventListener("change", function () {
+    reUpStatusFilter_ = this.value;
+    renderReUp();
+   });
+  }
   var cv = root.querySelector("#admCardsView");
   if (cv) {
    cv.addEventListener("change", function () {
@@ -927,12 +954,14 @@
   try {
    var x2 = (p.l != null && String(p.l).trim() !== "") ? String(p.l).trim() : (p.w || "");
    if (typeof clearPayload0 === "function") { clearPayload0(); }
-   payload0.vw = 4;
    payload0.fn = 67;
    payload0.x1 = reason;
    payload0.x2 = x2;
    payload0.x3 = p.m || "";
-   var r = await fnj3("https://my1.in/2/h.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+   payload0.ul = "2/h.php";
+   payload0.gt = 2;
+   var r = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
+   //var r = await fnj3("https://my1.in/2/h.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
    admClear();
    if (r && (r.su == 1 || (r.cd != null && Number(r.cd) > 0))) {
     toast("Profile removed.", "success");
@@ -975,12 +1004,14 @@
  async function updateStatus(p, val) {
   try {
    if (typeof clearPayload0 === "function") { clearPayload0(); }
-   payload0.vw = 4;
    payload0.fn = 63;
    payload0.la = await maxDate([{ tb: "mr" }]);
    payload0.x1 = p.a;
    payload0.x2 = { e: p.e, f: p.f, d: val };
-   var r = await fnj3("https://my1.in/2/f.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+   payload0.ul = "2/0f.php";
+   payload0.gt = 2;
+   var r = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
+   //var r = await fnj3("https://my1.in/2/f.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
    admClear();
    if (r && r.su == 1) {
     toast("Status updated.", "success");
@@ -989,7 +1020,7 @@
     } catch (eH) { }
     await loadProfilesFromDexie();
    } else {
-    toast((r && (r.ms || r.m)) || "Update failed.", "error");
+    window.showelsemodal((r && (r.ms || r.m)) || "Update failed.", "error");
    }
   } catch (err) {
    admClear();
@@ -1061,12 +1092,14 @@
   try {
    var x2 = { plan_id: planId, e: vals.e, f: vals.f === "" ? null : vals.f, g: vals.g === "" ? null : vals.g, i: vals.i === "" ? null : vals.i, h: vals.h === "" ? null : vals.h, j: vals.j };
    if (typeof clearPayload0 === "function") { clearPayload0(); }
-   payload0.vw = 4;
    payload0.fn = 65;
    payload0.la = await maxDate([{ tb: "mp" }]);
    payload0.x1 = planId;
    payload0.x2 = x2;
-   var r = await fnj3("https://my1.in/2/e.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+   payload0.ul = "2/e.php";
+   payload0.gt = 2;
+   var r = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
+   //var r = await fnj3("https://my1.in/2/e.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
    admClear();
    if (r && r.su == 1) {
     toast("Plan updated.", "success");
@@ -1101,6 +1134,7 @@
 
  async function openReUp() {
   reUpOpen_ = 1;
+  reUpStatusFilter_ = "0";
   var panel = document.getElementById("admPanelProfiles");
   if (panel) { panel.classList.add("adm-reup-on"); }
   var state = document.getElementById("admProfilesState");
@@ -1113,6 +1147,9 @@
 
  function closeReUp() {
   reUpOpen_ = 0;
+  reUpStatusFilter_ = "0";
+  var ruf = document.getElementById('admReUpStatus');
+  if (ruf) { ruf.value = "0"; }
   var panel = document.getElementById("admPanelProfiles");
   if (panel) { panel.classList.remove("adm-reup-on"); }
   renderProfiles();
@@ -1177,7 +1214,10 @@
   var wrap = document.getElementById("admTableWrap");
   if (!wrap) { return; }
   if (state) { state.innerHTML = ""; }
-  var list = mqRows_.slice().sort(function (x, y) {
+  var list = mqRows_.slice().filter(function (r) {
+   if (reUpStatusFilter_ === "") { return true; }
+   return String(r.d == null ? "0" : r.d) === String(reUpStatusFilter_);
+  }).sort(function (x, y) {
    var dx = String(x.b || ""), dy = String(y.b || "");
    if (dx !== dy) { return dy < dx ? -1 : 1; }
    return Number(y.a || 0) - Number(x.a || 0);
@@ -1230,7 +1270,6 @@
  async function sendReUp(r, kind, blocked) {
   try {
    if (typeof clearPayload0 === "function") { clearPayload0(); }
-   payload0.vw = 4;
    payload0.fn = 120;
    payload0.x1 = r.a; //mq.a = image update request id
    var accepting = kind === "accept";
@@ -1241,12 +1280,18 @@
    payload0.x2 = accepting ? stAccept : stReject;
    //x3 is only sent for the "block" case; a plain accept/reject omits it entirely
    if (!accepting && blocked) { payload0.x3 = stBlock; }
-   var resp = await fnj3("https://my1.in/2/u.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+   payload0.ul = "2/0u.php";
+   payload0.gt = 2;
+   payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "mq" }]);
+   var resp = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
+   //var resp = await fnj3("https://my1.in/2/u.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
    admClear();
    if (resp && (resp.su == 1 || (resp.cd != null && Number(resp.cd) > 0))) {
     toast(accepting
      ? "Request accepted."
      : (blocked ? "Request rejected and profile blocked." : "Request rejected."), "success");
+    //apply the server delta to local Dexie first (updates mq status), then re-read
+    try { if (typeof handl_mr_rspons === "function") { await handl_mr_rspons(resp); } } catch (eH) { }
     //await syncProfiles();
     await loadReUpFromDexie();
    } else {

@@ -344,11 +344,13 @@
  async function beCheckPlan_fn(plan) {
   try {
    if (typeof clearPayload0 === "function") clearPayload0();
-   payload0.vw = 4;
    payload0.fn = 70;
    payload0.cd = 2;
    payload0.pid = plan.a;
-   var resp = await fnj3("https://my1.in/2/c.php", payload0, 1, true, null, 20000, 0, 2, 1, 1);
+   payload0.ul = "3/0d.php";
+   payload0.gt = 3;
+   var resp = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
+   //var resp = await fnj3("https://my1.in/3/d.php", payload0, 1, true, null, 20000, 0, 2, 1, 1);
    //hndlRspo70 (git/mr.js) normalises both response shapes, stores the row and returns it.
    var myRow = null;
    if (typeof window.hndlRspo70 === "function") {

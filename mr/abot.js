@@ -470,7 +470,6 @@ placeholder="Company tagline" id="abtus_tagline">
   modalStack.push(modalId);
  }
 
- console.log(`About Us modal displayed with data for ${businessName}`);
 
  return modalResult;
 }
