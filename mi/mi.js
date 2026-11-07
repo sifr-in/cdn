@@ -1,4 +1,3 @@
-// ks.js - Court Case Register
 const tblsRequired = ["f", "fp", "mi", "r", "mb", "c"];//mb:milk Prices, mi:Milk collection, r: payments
 const moduLst = [
  { a: ",89,", b: "Dashboard", c: "fa-chart-line", d: "window.toggleAdminPanel()", e: "#0d6efd" },
@@ -12,33 +11,16 @@ const moduLst = [
 const inTbls = ["dontCret:", "public:76", "2/b-23~r", "2/h-71~mb", "2/h-72~", "2/h-73~mi", "2/h-74~mb", "2/j-75~mi", "3/a-76~mi,mb,r", "2/l-87~r", "2/m-89~mb"];
 //fn:72 must be re check to 2/h because not found
 const cust_const = [
- {
-  "a": "showClntReckonInTbl", "b": 1, "c": "more customiztaion", "d": "show milk reckonning to milker in table view", "u": "url-explaining-video"
- },
- {
-  "a": "milkDeci", "b": 2, "c": "more cust", "d": "show milk collection in given digits", "u": "url"
- },
- {
-  "a": "fatDeci", "b": 1, "c": "", "d": "show fat in given digits", "u": "url"
- },
- {
-  "a": "snfDeci", "b": 1, "c": "", "d": "show snf in given digits", "u": "url"
- },
- {
-  "a": "rfrshAfternoonTT", "b": 15, "c": "", "d": "restriction to refresh collection afternoon-data after given time", "u": "url"
- },
- {
-  "a": "rfrshNightTT", "b": 21, "c": "", "d": "restriction to refresh collection night-data after given time", "u": "url"
- },
- {
-  "a": "reptsDrpdnOrFT", "b": 1, "c": "", "d": "at bill/reports modal show dropdown or From-To fillter", "u": "url"
- },
- {
-  "a": "reptsTB", "b": 31, "c": "", "d": "at bill/reports dropdown condition for tb by ", "u": "url"
- },
- {
-  "a": "seprateIdCowBuffelo", "b": 1, "c": "", "d": "when adding a party if his cow & bufellow code is separate, this is used; 2 unique ids can be created", "u": "url"
- }
+ {"a": "milkReportModule", "b": 0, "c": "more customiztaion", "d": "if 0 then show suppiler records as normal source and if 1 then show suppiler records as clinet provided source c.c1", "u": "url-explaining-video"},
+ {"a": "showClntReckonInTbl", "b": 1, "c": "more customiztaion", "d": "show milk reckonning to milker in table view", "u": "url-explaining-video"},
+ {"a": "milkDeci", "b": 2, "c": "more custom", "d": "show milk collection in given digits", "u": "url"},
+ {"a": "fatDeci", "b": 1, "c": "", "d": "show fat in given digits", "u": "url"},
+ {"a": "snfDeci", "b": 1, "c": "", "d": "show snf in given digits", "u": "url"},
+ {"a": "rfrshAfternoonTT", "b": 15, "c": "", "d": "restriction to refresh collection afternoon-data after given time", "u": "url"},
+ {"a": "rfrshNightTT", "b": 21, "c": "", "d": "restriction to refresh collection night-data after given time", "u": "url"},
+ {"a": "reptsDrpdnOrFT", "b": 1, "c": "", "d": "at bill/reports modal show dropdown or From-To fillter", "u": "url"},
+ {"a": "reptsTB", "b": 31, "c": "", "d": "at bill/reports dropdown condition for tb by ", "u": "url"},
+ {"a": "seprateIdCowBuffelo", "b": 1, "c": "", "d": "when adding a party if his cow & bufellow code is separate, this is used; 2 unique ids can be created", "u": "url"}
 ];
 if (typeof window.closeModal !== "function") {
  window.closeModal = function (modalId) {
@@ -85,11 +67,10 @@ window[my1uzr.worknOnPg].changeToView = "";
 window[my1uzr.worknOnPg].colsToHide = "n,";
 window[my1uzr.worknOnPg].colsToHidePartyDetails = "";
 window.fnCombineCowBuffalo = function (...obj) {
-  const tsrrh = obj[0];
-  const tsrrfpay = obj[1];
-  console.log(obj);
-  const result = "," + Object.values(tsrrh).join(",") + ",";
-  return result;
+ const tsrrh = obj[0];
+ const tsrrfpay = obj[1];
+ const result = "," + Object.values(tsrrh).join(",") + ",";
+ return result;
 };
 
 window.fnSeparateCowBuffalo = function (storedVal) {
@@ -305,7 +286,7 @@ window.openSupplierList = function (callbackName, xtraFlds) {
    },
    {
     a: 4,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/cmn/my1lo.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/cmn/my1lo.min.js",
     c: "open_shoLgnO",
     r: "open_shoLgnO"
    },
@@ -313,87 +294,77 @@ window.openSupplierList = function (callbackName, xtraFlds) {
    { a: 6, u: "https://code.jquery.com/jquery-3.6.0.min.js" },
    {
     a: 7,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/cmn/my1ap.min.js"
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1ap.min.js"
    },
    {
     a: 8,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1xi.min.js"
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/my1xi.min.js"
    },
    {
     a: 9,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/mr/andro.js"
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/mr/andro.min.js"
    },
    {
     a: 24,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mi_hr.js"
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mi_hr.min.js"
    },
-   {
-    a: 25,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/suplr_hst.js",
-    c: "showSupplierCollectionHistory",
-    r: "showSupplierCollectionHistory"
-   },
+   { a: 25 },
    {
     a: 26,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1236a32/cmn/clrChe.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/clrChe.min.js",
     c: "showClearCacheModal",
     r: "showClearCacheModal"
    },
    {
     a: 27,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@a813e1f/cmn/my1ctr.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@a813e1f/cmn/my1ctr.min.js",
     c: "open_my1ctr",
     r: "open_my1ctr"
    },
    {
     a: 28,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fbf62ad/cmn/my1lp.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fbf62ad/cmn/my1lp.min.js",
     c: "open_shoLgnP",
     r: "open_shoLgnP"
    },
-   {
-    a: 29,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/suplr_repts.js",
-    c: "showCollectionReports",
-    r: "showCollectionReports"
-   },
+   { a: 29 },
    {
     a: 30,
     u: "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
    },
    {
     a: 31,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/mr/noti.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/mr/noti.min.js",
     c: "showNotifications",
     r: "showNotifications"
    },
    {
     a: 32,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/admn_hst.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/admn_hst.min.js",
     c: "showCollectionHistory,editCollectionRecord,editPaymentRecord",
     r: "admnHistoryReady"
    },
    {
     a: 33,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mlkPrsnLst.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mlkPrsnLst.min.js",
     c: "showPersonList,initPersonList,filterPersonsByCategory,showSupplierPaymentModal,submitSupplierPayment",
     r: "initPersonList"
    },
    {
     a: 34,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mlkCltFrm.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mlkCltFrm.min.js",
     c: "showMilkCollectionForm,initMilkCollectionForm,calculateTotal",
     r: "initMilkCollectionForm"
    },
    {
     a: 35,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mlkPricg.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mlkPricg.min.js",
     c: "showMilkPricing,initMilkPricing,submitMilkPricing",
     r: "initMilkPricing"
    },
    {
     a: 36,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/imptPricg.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/imptPricg.min.js",
     c: "showImportPricing,initImportPricing",
     r: "initImportPricing"
    },
@@ -405,24 +376,38 @@ window.openSupplierList = function (callbackName, xtraFlds) {
    },
    {
     a: 38,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mlkPaymtFrm.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mlkPaymtFrm.min.js",
     c: "showMilkPaymentForm,initMilkPaymentForm,loadPaymentFormFields,addTempPayment,submitAllPayments",
     r: "initMilkPaymentForm"
    },
    {
     a: 39,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/daryRgstr.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/daryRgstr.min.js",
     c: "showDairyRegister,applyDairyRegisterFilter,printDairyRegister,initDairyRegister",
     r: "initDairyRegister"
    },
    {
     a: 40,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mlkShgFrm.js",
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mlkShgFrm.min.js",
     c: "showSangh,initSangh,submitSanghEntry,updateSanghEntry,viewSanghHistory",
     r: "initSangh"
    },
+   {
+    a: 41,
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1jo.min.js",
+    c: "open_shoJgnO",
+    r: "open_shoJgnO"
+   },
+   {
+    a: 42,
+    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1jp.min.js",
+    c: "open_shoJgnP",
+    r: "open_shoJgnP"
+   }
   ];
  }
+
+ // csh entries for 25/29 patched after config loads (see below)
 
  if (!window.milk_categories || !window.milk_categories.length) {
   window.milk_categories = [
@@ -449,7 +434,6 @@ window.openSupplierList = function (callbackName, xtraFlds) {
  };
 
  try {
-  console.log("🚀 Starting Supplier Portal...");
   let result1 = null;
 
   if (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].usdInAndroWv === 1)
@@ -491,9 +475,17 @@ window.openSupplierList = function (callbackName, xtraFlds) {
   }
 
 
-  console.log("✅ Framework dependencies loaded");
   await loadMilkCollectConfig();
   seprateIdCowBuffelo = window[my1uzr.worknOnPg].clientConfig?.cust_da_const?.seprateIdCowBuffelo;
+  const isC1Now = window[my1uzr.worknOnPg].clientConfig?.cust_da_const?.milkReportModule === 1;
+  const csh1Now = window[my1uzr.worknOnPg].csh;
+  [
+   [29, isC1Now ? "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mi/supRpC1.js" : "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/suplr_repts.js", "showCollectionReports"],
+   [25, isC1Now ? "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mi/supHsC1.js" : "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/suplr_hst.js", "showSupplierCollectionHistory"]
+  ].forEach(([a, u, c]) => {
+   const item = csh1Now?.find(x => x.a === a);
+   if (item) Object.assign(item, { u, c, r: c });
+  });
   await recomputeAllowedModules();
 
   // ✅ Self-contained "Clear All Data" modal (replaces CDN clrChe.js modal
@@ -697,7 +689,6 @@ window.openSupplierList = function (callbackName, xtraFlds) {
    console.warn("Auto-open supplier history skipped:", err);
   }
 
-  console.log("✅ Supplier Portal initialized successfully");
  } catch (e) {
   console.error("❌ App initialization error:", e);
   document.getElementById("main_body").innerHTML = `
@@ -755,6 +746,26 @@ function normalizePhone(phone) {
   .trim();
 }
 
+function parseSupplierC1(raw) {
+ if (!raw) return null;
+ try {
+  var v = raw;
+  if (typeof v === "string") {
+   v = v.trim();
+   if (v.charAt(0) === '"' && v.charAt(v.length - 1) === '"') {
+    try { v = JSON.parse(v); } catch (e) { /* keep */ }
+   }
+   v = JSON.parse(v);
+   if (typeof v === "string") {
+    try { v = JSON.parse(v); } catch (e2) { /* keep */ }
+   }
+  }
+  return v && typeof v === "object" ? v : null;
+ } catch (err) {
+  return null;
+ }
+}
+
 /**
  * Resolve the logged-in supplier from my1uzr (read-only login identity) using
  * the local Dexie "c" (supplier master) table, matched by mobile + relation "1".
@@ -768,6 +779,15 @@ window.getCurrentSupplier = async function (alRecords) {
 
  // A cached REAL c-table record for this mobile is final.
  if (cached && !cached.__fb && mobile && normalizePhone(cached.e) === mobile) {
+  if (!cached.c1) {
+   try {
+    var cachedRecs = (await dbDexieManager.getAllRecords(dbnm, "c")) || [];
+    var cachedRec = cachedRecs.find(function (s) {
+     return parseInt(s && s.a) === parseInt(cached.a);
+    });
+    if (cachedRec) cached.c1 = parseSupplierC1(cachedRec.c1);
+   } catch (err) { /* keep cached as-is */ }
+  }
   return cached;
  }
 
@@ -786,6 +806,7 @@ window.getCurrentSupplier = async function (alRecords) {
     e: rec.e || my1uzr.mo || "Unknown",
     f: String(rec.f || "1"),
     k: rec.k || "",
+    c1: parseSupplierC1(rec.c1),
    };
   }
  } catch (err) {
@@ -857,6 +878,7 @@ async function showSupplierPortal() {
  html += '<div class="hero-chip">🥛 Supplier Account</div>';
  html += '<div class="hero-name" id="supplierName">-</div>';
  html += '<div class="hero-sub" id="supplierDetails">-</div>';
+ html += '<div class="hero-sub" id="supplierDetailsEmail">-</div>';
  html += "</div>";
  html += "</div>";
 
@@ -952,31 +974,33 @@ async function showSupplierPortal() {
 // ============================================================
 
 window.checkAndLoadSupplierData = async function () {
- console.log("🔍 Checking supplier data from mi table...");
+ var isC1 = window[my1uzr.worknOnPg]?.clientConfig?.cust_da_const?.milkReportModule === 1;
 
- // ✅ Get all mi records
- var allRecords = await dbDexieManager.getAllRecords(dbnm, "mi") || [];
- console.log("📊 Total records in mi table:", allRecords.length);
+ // ✅ Get all mi records (not required in c1 mode; records live in c.c1)
+ var allRecords = isC1
+  ? []
+  : (await dbDexieManager.getAllRecords(dbnm, "mi")) || [];
 
- if (allRecords.length === 0) {
-  console.error(
-   "Info",
-   "⚠️ No milk records found, Please Try Again Later."
-  );
-  return false;
- }
+ if (!isC1) {
+  if (allRecords.length === 0) {
+   console.error(
+    "Info",
+    "⚠️ No milk records found, Please Try Again Later."
+   );
+   return false;
+  }
 
- // ✅ Get unique supplier IDs from mi records
- var supplierIds = new Set();
- allRecords.forEach(function (record) {
-  if (record.e) supplierIds.add(record.e);
- });
+  // ✅ Get unique supplier IDs from mi records
+  var supplierIds = new Set();
+  allRecords.forEach(function (record) {
+   if (record.e) supplierIds.add(record.e);
+  });
 
- console.log("📊 Unique supplier IDs found in mi table:", supplierIds.size);
 
- if (supplierIds.size === 0) {
-  showelsemodal("⚠️ No supplier records found. Please click Refresh to sync data from server.");
-  return false;
+  if (supplierIds.size === 0) {
+   showelsemodal("⚠️ No supplier records found. Please click Refresh to sync data from server.");
+   return false;
+  }
  }
 
  var mobile = my1uzr.mo || my1uzr.phone || "";
@@ -987,7 +1011,6 @@ window.checkAndLoadSupplierData = async function () {
  var supplier = await window.getCurrentSupplier(allRecords);
 
  if (!supplier) {
-  console.log("⚠️ No supplier account found for:", mobile);
   showMessageModal(
    "Info",
    "⚠️ No supplier account found. Please click Refresh to sync data.",
@@ -996,13 +1019,12 @@ window.checkAndLoadSupplierData = async function () {
   return false;
  }
 
- console.log("✅ Supplier found:", window[my1uzr.worknOnPg].currentSupplier);
 
  var dashboard = document.getElementById("supplierDashboard");
 
  if (dashboard) dashboard.style.display = "block";
 
- updateSupplierInfo();
+ await updateSupplierInfo();
  await loadSupplierHistory(allRecords);
  return true;
 };
@@ -1011,26 +1033,146 @@ window.checkAndLoadSupplierData = async function () {
 // UPDATE SUPPLIER INFO
 // ============================================================
 
-function updateSupplierInfo() {
+function isValidSupplierName(v) {
+ if (v === undefined || v === null) return false;
+ var s = String(v).trim();
+ if (!s || s === "-") return false;
+ // Reject zero-dates and plain date values like 0000-00-00 / 2026-11-06.
+ if (/^0{4}-0{2}-0{2}/.test(s)) return false;
+ if (/^\d{4}-\d{2}-\d{2}/.test(s)) return false;
+ return true;
+}
+
+async function resolveSupplierDisplayName(supplier) {
+ var candidates = [];
+ if (supplier) {
+  candidates.push(supplier.h, supplier.i);
+  if (supplier.a !== undefined && supplier.a !== null) {
+   try {
+    var recs = (await dbDexieManager.getAllRecords(dbnm, "c")) || [];
+    var rec = recs.find(function (x) {
+     return parseInt(x && x.a) === parseInt(supplier.a);
+    });
+    if (rec) candidates.unshift(rec.h, rec.i);
+   } catch (err) { /* ignore */ }
+  }
+ }
+ candidates.push(my1uzr.mn, my1uzr.mu);
+ for (var i = 0; i < candidates.length; i++) {
+  if (isValidSupplierName(candidates[i])) return String(candidates[i]).trim();
+ }
+ return "Supplier";
+}
+
+async function resolveSupplierC1(supplier) {
+ if (!supplier) return null;
+ if (supplier.c1 && typeof supplier.c1 === "object") return supplier.c1;
+ try {
+  var recs = (await dbDexieManager.getAllRecords(dbnm, "c")) || [];
+  var rec = recs.find(function (x) {
+   return parseInt(x && x.a) === parseInt(supplier.a);
+  });
+  var parsed = rec ? parseSupplierC1(rec.c1) : null;
+  if (parsed) supplier.c1 = parsed;
+  return parsed;
+ } catch (err) {
+  return null;
+ }
+}
+
+async function updateSupplierInfo() {
  var supplier = window[my1uzr.worknOnPg].currentSupplier;
  if (!supplier) return;
 
  var nameEl = document.getElementById("supplierName");
  var detailsEl = document.getElementById("supplierDetails");
- if (nameEl) nameEl.textContent = supplier.h || "Supplier";
+ var detailsEml = document.getElementById("supplierDetailsEmail");
+ var displayName = await resolveSupplierDisplayName(supplier);
+ if (nameEl) nameEl.textContent = displayName;
  if (detailsEl) detailsEl.textContent = "📱 " + (supplier.e || "");
+ if (detailsEml) {
+  var c1 = await resolveSupplierC1(supplier);
+  var isC1 = window[my1uzr.worknOnPg]?.clientConfig?.cust_da_const?.milkReportModule === 1;
+  var eml = c1 ? c1.eml || "" : "";
+  detailsEml.textContent = (isC1 || eml) && eml ? "✉️ " + eml : "";
+ }
 }
 
 // ============================================================
 // LOAD SUPPLIER HISTORY (Dashboard Summary)
 // ============================================================
 
+window.loadSupplierDashboardC1 = async function (supplier, preFetchedCRecords) {
+ var c1 = supplier && supplier.c1 ? supplier.c1 : null;
+ if (!c1 && supplier) {
+  try {
+   var cRecords = preFetchedCRecords ||
+    (await dbDexieManager.getAllRecords(dbnm, "c")) || [];
+   var rec = cRecords.find(function (x) {
+    return parseInt(x && x.a) === parseInt(supplier.a);
+   });
+   c1 = rec ? parseSupplierC1(rec.c1) : null;
+  } catch (err) {
+   c1 = null;
+  }
+ }
+
+ var totalQty = 0;
+ var totalAmt = 0;
+ var totalReceived = 0;
+ var mlk = (c1 && c1.mlk) || {};
+ // Duplicate mlk entries (same data stored under different keys) must not
+ // double-count totals.
+ var seenMlk = {};
+
+ Object.keys(mlk).forEach(function (sid) {
+  var node = mlk[sid] || {};
+  var sig = JSON.stringify(node, function (key, value) {
+   if (value && typeof value === "object" && !Array.isArray(value)) {
+    return Object.keys(value).sort().reduce(function (o, k) {
+     o[k] = value[k];
+     return o;
+    }, {});
+   }
+   return value;
+  });
+  if (seenMlk[sig]) return;
+  seenMlk[sig] = true;
+  ["m", "e"].forEach(function (sessionKey) {
+   var session = node[sessionKey] || {};
+   Object.keys(session).forEach(function (date) {
+    var entry = session[date] || {};
+    if (entry.i === undefined && entry.j === undefined) return;
+    totalQty += parseFloat(entry.i) || 0;
+    totalAmt += parseFloat(entry.j) || 0;
+   });
+  });
+  var de = (node.b && node.b.de) || [];
+  de.forEach(function (dd) {
+   if (parseInt(dd.ty, 10) === 2) {
+    totalReceived += parseFloat(dd.a) || 0;
+   }
+  });
+ });
+
+ var tmEl = document.getElementById("totalMilk");
+ if (tmEl) tmEl.textContent = window.fmtMilk(totalQty) + " Ltr";
+ var taEl = document.getElementById("totalAmount");
+ if (taEl) taEl.textContent = "₹" + totalAmt.toFixed(2);
+ var srEl = document.getElementById("supplierReceived");
+ if (srEl) srEl.textContent = "₹" + totalReceived.toFixed(2);
+};
+
 window.loadSupplierHistory = async function (preFetchedMiRecords, supplierOverride) {
- console.log("🔄 Loading supplier history...");
 
  var supplier = supplierOverride || window[my1uzr.worknOnPg].currentSupplier;
  if (!supplier) {
-  console.log("⚠️ No supplier found");
+  return;
+ }
+
+ var isC1 = window[my1uzr.worknOnPg]?.clientConfig?.cust_da_const?.milkReportModule === 1;
+ if (isC1) {
+  await window.loadSupplierDashboardC1(supplier);
   return;
  }
 
@@ -1120,9 +1262,6 @@ window.openSupplierHistory = async function () {
   return;
  }
 
- console.log("📜 Opening history for supplier:");
- console.log("   Mobile (e):", userPhone);
- console.log("   Relation (f):", relation);
  // ✅ Load the supplier history module (csh id 25) which runs
  //  showSupplierCollectionHistory with e and f.
  await loadExe2Fn(25, [userPhone, relation], [1]);
@@ -1346,9 +1485,10 @@ function shiftDateBackOneDay(dateStr) {
 async function buildRefreshDelta(dbName) {
  var rows =
   (await dbDexieManager.getMaxDateRecords(dbName, [
-   { tb: "mi", col: "f", cl: "f" },
-   { tb: "r", col: "k", cl: "k" },
-   { tb: "mb", col: "e", cl: "e" },
+   { tb: "mi"},
+   { tb: "c"},
+   { tb: "r"},
+   { tb: "mb"},
   ])) || [];
  return rows.map(function (row) {
   if (!row || typeof row.la !== "string") return row;
@@ -1376,22 +1516,24 @@ window.refreshSupplierData = async function (opts) {
    return false;
   }
   window._manualRfrshInFlight = true;
-  showMessageModal(
-   "Info",
-   "Data auto-refreshes daily at " +
-   formatHour12(_cfg.aftHour) +
-   " & " +
-   formatHour12(_cfg.ngtHour) +
-   ".\n\nRefreshing data now...",
-   false,
-  );
+  var isLoggedIn = !!(my1uzr && (my1uzr.mo || my1uzr.phone));
+  if (isLoggedIn) {
+   showMessageModal(
+    "Info",
+    "Data auto-refreshes daily at " +
+    formatHour12(_cfg.aftHour) +
+    " & " +
+    formatHour12(_cfg.ngtHour) +
+    ".\n\nRefreshing data now...",
+    false,
+   );
+  }
  }
  try {
   clearPayload0();
   payload0.vw = 1;
   payload0.fn = 76;
   payload0.la = await buildRefreshDelta(dbnm);
-
   var response = await fnj3(
    "https://my1.in/3/a.php",
    payload0,
@@ -1404,7 +1546,6 @@ window.refreshSupplierData = async function (opts) {
    1,
   );
 
-  console.log("📥 Server refresh response:", response);
 
   if (response && response.su == 1) {
    await window.hndlRspo76(response);
@@ -1412,7 +1553,7 @@ window.refreshSupplierData = async function (opts) {
     await recordManualRefreshState();
    }
    markAutoRefreshSlotsDone(
-    getPendingAutoRefreshPeriods(getAutoRefreshConfig()),
+    (opts && opts.periods) || getPendingAutoRefreshPeriods(getAutoRefreshConfig()),
    );
    window.openSupplierHistory();
    return true;
@@ -1481,6 +1622,13 @@ window.hndlRspo76 = async function (response) {
 // AUTO REFRESH - Twice daily (afternoon + night) data sync.
 // Times come from mi.da -> cust_da_const.rfrshAfternoonTT /
 // rfrshNightTT (24h hour-of-day, e.g. 15 = 3 PM, 21 = 9 PM).
+//
+// The scheduled refresh fires when the clock actually crosses one
+// of those times while the app is open (not on every init/tick).
+// When the app opens after a time already passed, one catch-up
+// refresh runs if that slot has not been refreshed today.
+// Auto refresh never runs while localStorage "my1uzr" is missing,
+// null, or has no valid login token (jk).
 // A successful refresh (auto or manual) marks today's pending
 // slots done so the same slot is not refreshed again.
 // ============================================================
@@ -1556,40 +1704,117 @@ function getPendingAutoRefreshPeriods(cfg, today) {
  return pending;
 }
 
+// Reads the persisted login state. localStorage "my1uzr" is set to
+// the string "null" on logout, so treat missing/null/empty as logged out.
+function getStoredLoggedInUser() {
+ try {
+  var raw = localStorage.getItem("my1uzr");
+  if (!raw || raw === "null" || raw === "undefined") return null;
+  var user = JSON.parse(raw);
+  if (!user || typeof user !== "object") return null;
+  if (user.jk == null || String(user.jk).length < 1) return null;
+  return user;
+ } catch (e) {
+  return null;
+ }
+}
+
 function autoRefreshReady() {
- if (my1uzr && my1uzr.mk) return true;
+ if (!getStoredLoggedInUser()) return false;
  var ws = window[my1uzr.worknOnPg] || {};
- if ((ws.allowedModulesMenuItems || []).length > 0) return true;
- return ws._supPortalDataLoaded === 1;
+ return !!ws.clientConfig;
+}
+
+// Returns the configured slots whose exact start time falls in
+// (fromMs, toMs]. This is what makes the refresh fire when the
+// clock crosses 15:00 / 21:00 instead of on every init.
+function getCrossedAutoRefreshPeriods(cfg, fromMs, toMs) {
+ if (!cfg) cfg = getAutoRefreshConfig();
+ if (!(toMs > fromMs)) return [];
+ var targets = [
+  { h: cfg.aftHour, k: "afternoon" },
+  { h: cfg.ngtHour, k: "night" },
+ ];
+ var periods = [];
+ var day = new Date(fromMs);
+ day.setHours(0, 0, 0, 0);
+ var endDay = new Date(toMs);
+ endDay.setHours(0, 0, 0, 0);
+ while (day.getTime() <= endDay.getTime()) {
+  for (var i = 0; i < targets.length; i++) {
+   var t = new Date(day);
+   t.setHours(targets[i].h, 0, 0, 0);
+   if (
+    t.getTime() > fromMs &&
+    t.getTime() <= toMs &&
+    periods.indexOf(targets[i].k) === -1
+   ) {
+    periods.push(targets[i].k);
+   }
+  }
+  day.setDate(day.getDate() + 1);
+ }
+ return periods;
 }
 
 window._autoRfrshRunning = false;
+var _autoRfrshLastCheck = 0;
 
-async function autoRefreshTick() {
- if (window._autoRfrshRunning) return;
- if (!autoRefreshReady()) return;
- var cfg = getAutoRefreshConfig();
- var today = todayKey();
- var pending = getPendingAutoRefreshPeriods(cfg, today);
- if (!pending.length) return;
+async function runAutoRefresh(periods) {
+ if (window._autoRfrshRunning) return false;
+ if (!periods || !periods.length) return false;
+ if (!getStoredLoggedInUser()) return false;
  window._autoRfrshRunning = true;
  try {
-  var ok = await window.refreshSupplierData({ src: "auto" });
+  var ok = await window.refreshSupplierData({ src: "auto", periods: periods });
   if (ok === false) {
-   console.warn("Auto refresh not completed for:", pending);
+   console.warn("Auto refresh not completed for:", periods);
   }
+  return ok;
  } catch (e) {
   console.warn("Auto refresh error:", e);
+  return false;
  } finally {
   window._autoRfrshRunning = false;
  }
 }
 
+// Runs once when the app opens: catches up a slot that already passed
+// today and has not been refreshed yet.
+async function catchUpAutoRefresh() {
+ if (!getStoredLoggedInUser()) return;
+ if (!autoRefreshReady()) return;
+ var pending = getPendingAutoRefreshPeriods(getAutoRefreshConfig());
+ if (!pending.length) return;
+ await runAutoRefresh(pending);
+}
+
+async function autoRefreshTick() {
+ if (window._autoRfrshRunning) return;
+ var now = Date.now();
+ var from = _autoRfrshLastCheck || now;
+ _autoRfrshLastCheck = now;
+
+ // Not logged in -> never auto refresh; advance the baseline so the
+ // crossing is not replayed later. A missed slot is handled by the
+ // one-time catch-up in initAutoRefresh after login/open.
+ if (!getStoredLoggedInUser()) return;
+ if (!autoRefreshReady()) return;
+
+ var crossed = getCrossedAutoRefreshPeriods(getAutoRefreshConfig(), from, now);
+ if (!crossed.length) return;
+ await runAutoRefresh(crossed);
+}
+
 window.initAutoRefresh = function () {
  if (window._autoRfrshInited) return;
+ // Do not start the timer while logged out. Login later calls this
+ // again through onModuLstAllowed, so it can start then.
+ if (!getStoredLoggedInUser()) return;
  window._autoRfrshInited = 1;
- autoRefreshTick();
+ _autoRfrshLastCheck = Date.now();
  setInterval(autoRefreshTick, 60000);
+ catchUpAutoRefresh();
 };
 
 // ============================================================
@@ -2377,16 +2602,9 @@ window.fetchPricingData = async function () {
    1,
   );
 
-  console.log("📦 Fetch pricing response:", response);
 
   if (response && response.su == 1) {
    var hasRecords = response.mb && response.mb.l && response.mb.l.length > 0;
-   console.log(
-    "📊 mb.l length:",
-    response.mb && response.mb.l ? response.mb.l.length : 0,
-    "→ hasRecords:",
-    hasRecords,
-   );
    if (hasRecords) {
     if (typeof handl_mi_rspons === "function") {
      await handl_mi_rspons(response, 0);
@@ -2395,7 +2613,6 @@ window.fetchPricingData = async function () {
    }
    return "empty";
   }
-  console.log("❌ Fetch pricing failed - response:", response);
   return false;
  } catch (error) {
   console.error("Fetch pricing error:", error);
@@ -3405,5 +3622,3 @@ function theme() {
 
 window.theme = theme;
 window.__palette = _palette;
-
-console.log("🥛 Supplier Portal loaded successfully!");

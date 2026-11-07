@@ -18,7 +18,10 @@ async function set_owner() {
 
  if (window.my1uzr != null && window.my1uzr.mk != null) {
   window.payload0.mk = window.my1uzr.mk;
- } else {
+ } 
+ if (window.my1uzr != null && window.my1uzr.jk != null) {
+  window.payload0.jk = window.my1uzr.jk;
+ } else if (window.my1uzr == null || window.my1uzr.mk == null)  {
   window.my1uzr = {};
  }
  window.my1uzr.worknFor = window.appOwner.tn + "_" + window.payload0.fi + "_" + window.payload0.fk + "_" + window.my1uzr.mo + "_" + window.my1uzr.mc;
@@ -36,6 +39,7 @@ function clearPayload0() {
   fi: window.payload0.fi,
   fk: window.payload0.fk
  };
+ if (window.payload0.jk != null) keep.jk = window.payload0.jk;
  if (window.payload0.mk != null) keep.mk = window.payload0.mk;
  Object.keys(window.payload0).forEach(k => delete window.payload0[k]);
  Object.assign(window.payload0, keep);
@@ -83,10 +87,13 @@ window.showelsemodal = function (errorMsg) {
 
  // Close handlers
  var closeModal = function () {
-  document.body.removeChild(overlay);
+  if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
  };
 
- document.getElementById('errorOkBtn').onclick = closeModal;
+ //scope the lookup to THIS modal: document.getElementById can resolve to the
+ //button of an earlier, still-open modal (same id), which left the new OK dead
+ var errorOkBtn = modal.querySelector('#errorOkBtn');
+ if (errorOkBtn) errorOkBtn.onclick = closeModal;
  overlay.onclick = function (e) {
   if (e.target === overlay) closeModal();
  };
@@ -122,13 +129,16 @@ window.showsuccessmodal = function (successMsg, callback) {
 
  // Close handlers
  var closeModal = function () {
-  document.body.removeChild(overlay);
+  if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
   if (typeof callback === 'function') {
    callback();
   }
  };
 
- document.getElementById('successOkBtn').onclick = closeModal;
+ //scope the lookup to THIS modal: document.getElementById can resolve to the
+ //button of an earlier, still-open modal (same id), which left the new OK dead
+ var successOkBtn = modal.querySelector('#successOkBtn');
+ if (successOkBtn) successOkBtn.onclick = closeModal;
  overlay.onclick = function (e) {
   if (e.target === overlay) closeModal();
  };
@@ -243,7 +253,6 @@ async function chkModuLstAgainstFNF(moduLst) {
   }
  });
  if (temp11.length === 0)
-  console.log("Allowed Menu Count: " + temp11);
  temp11.hook = moduLst.hook || "onModuLstAllowed";
  return temp11;
 }
@@ -265,16 +274,13 @@ let backButtonTimeout = null;
 // Screen Wake Lock functions - Common utility for all scripts
 async function requestWakeLock() {
  if (!isWakeLockSupported) {
-  console.log('Screen Wake Lock API not supported');
   return;
  }
 
  try {
   wakeLock = await navigator.wakeLock.request('screen');
-  console.log('Screen Wake Lock acquired');
 
   wakeLock.addEventListener('release', () => {
-   console.log('Screen Wake Lock released');
   });
  } catch (err) {
   console.error(`Error acquiring Wake Lock: ${err.message}`);
@@ -286,7 +292,6 @@ async function releaseWakeLock() {
   try {
    await wakeLock.release();
    wakeLock = null;
-   console.log('Screen Wake Lock released');
   } catch (err) {
    console.error(`Error releasing Wake Lock: ${err.message}`);
   }
@@ -302,13 +307,11 @@ function setupWakeLockVisibilityHandler() {
    // Don't release immediately, wait a bit in case user comes back
    setTimeout(() => {
     if (document.visibilityState === 'hidden' && typeof releaseWakeLock === 'function') {
-     console.log('Releasing wake lock after 30 seconds in background');
      releaseWakeLock();
     }
    }, 30000); // Release after 30 seconds of being hidden
   } else if (document.visibilityState === 'visible') {
    await requestWakeLock();
-   console.log('Page visible - wake lock can be reacquired if needed');
   }
  });
 }
@@ -556,7 +559,6 @@ async function loadCshScriptsSequentially(...scriptIds) {
   try {
    await loadPromiseScript(scriptInfo.u);
    loadedCount++;
-   console.log(`Loaded: ${scriptInfo.u} (${loadedCount}/${totalScripts})`);
   } catch (error) {
    console.error('Failed to load script:', error);
    return {
@@ -591,12 +593,10 @@ async function loadAllScriptsSequentially(scriptsToLoad) {
 
      await loadPromiseScript(scriptUrl);
      loadedCount++;
-     console.log(`Loaded: ${scriptUrl} (${loadedCount}/${totalScripts})`);
     }
    } else {
     await loadPromiseScript(scriptInfo.url);
     loadedCount++;
-    console.log(`Loaded: ${scriptInfo.url} (${loadedCount}/${totalScripts})`);
    }
   } catch (error) {
    console.error('Failed to load script:', error);
@@ -931,10 +931,11 @@ function postCall_Json(rURL, jsonData, tkrq, syncOrNo) {
  var retTxt = "";
  if (tkrq == 1) {
   if (my1uzr != null && localStorage.getItem(my1uzr.worknOnPg) == 1) {
-   if (my1uzr.mk.length < 1)
+   var postToken = my1uzr.jk || my1uzr.mk;
+   if (!postToken || postToken.length < 1)
     showLogIn();
    else {
-    const longNumber = parseInt(my1uzr.mk.slice(-10), 10);
+    const longNumber = parseInt(postToken.slice(-10), 10);
     checkExpiry(longNumber);
    }
   } else {
@@ -964,8 +965,9 @@ function postCall_Json(rURL, jsonData, tkrq, syncOrNo) {
 }
 
 function checkExpiry() {
- if (my1uzr != null && my1uzr.mk != null) {
-  var longNumber = parseInt(my1uzr.mk.slice(-10), 10) * 1000;
+ var token = my1uzr != null ? (my1uzr.jk || my1uzr.mk) : null;
+ if (token != null) {
+  var longNumber = parseInt(token.slice(-10), 10) * 1000;
   longNumber = longNumber + 302400 * 1000;//302400 seconds = 5 days
   var date = new Date(longNumber);
   const now = new Date();
@@ -1025,7 +1027,6 @@ function makeChange(strFnNm) {
  }
  if (isLongPressActive) {
   window[strFnNm]();
-  console.log("long click detected");
  }
 }
 
@@ -1034,7 +1035,6 @@ function fn_revert_LongClk() {
 }
 
 function fn_dblClk_LongClk() {
- console.log("doubleclick detected");
 }
 
 function joinData(item, srcCol2match, arrayName1945, destiCol2match, lstOfcolsToAppend) {
@@ -1373,13 +1373,14 @@ async function checkInternetConnection() {
 function chkIfLoggedIn() {
  return new Promise((resolve) => {
   if (my1uzr != null && localStorage.getItem(my1uzr.worknOnPg)) {
-   if (!my1uzr.mk || my1uzr.mk.length < 1) {
+   var loginToken = my1uzr.jk || my1uzr.mk;
+   if (!loginToken || loginToken.length < 1) {
     if (typeof dontShoLoginConfirmation !== 'undefined' && null !== dontShoLoginConfirmation && 1 == dontShoLoginConfirmation) {
      localStorage.setItem(my1uzr.worknOnPg, 'true');
     }
     resolve({ su: 0, ms: "Login again." });
    } else {
-    const longNumber = parseInt(my1uzr.mk.slice(-10), 10);
+    const longNumber = parseInt(loginToken.slice(-10), 10);
     resolve({ su: 1, ms: "Session expired" });
    }
   } else {
@@ -1431,29 +1432,20 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
     xtraj_payload.endP = url;
     if (shoLoginByOas2orByPas1 > 0) {
      if (shoLoginByOas2orByPas1 == 2) {
-      const t1170 = getCacheId("my1lo.js");
+      const t1170 = getCacheId("my1jo.js");
       if (t1170)
        await loadExe2Fn(t1170, [], [1]);
       else
-       await loadExecFn('open_shoLgnO', 'open_shoLgnO', ['dv_to_set_open_shoLgnO_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/cmn/my1lo.js', []);
+       await loadExecFn('open_shoJgnO', 'open_shoJgnO', ['dv_to_set_open_shoJgnO_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1jo.js', []);
      } else {
-      const t1176 = getCacheId("my1lp.js");
+      const t1176 = getCacheId("my1jp.js");
       if (t1176)
        await loadExe2Fn(t1176, [], [1]);
       else
-       await loadExecFn('open_shoLgnP', 'open_shoLgnP', ['dv_to_set_open_shoLgnP_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@fbf62ad/cmn/my1lp.js', []);
+       await loadExecFn('open_shoJgnP', 'open_shoJgnP', ['dv_to_set_open_shoJgnP_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1jp.js', []);
      }
      window.suppressModals = true;
      return;
-     // Immediately remove any full-screen loaders so they stop the moment the login modal appears
-     document.querySelectorAll('div').forEach(function (el) {
-      var st = el.style;
-      if (st && st.position === 'fixed' && st.top === '0px' && st.left === '0px' &&
-       (st.width === '100%' || st.width === '100vw') &&
-       (st.height === '100%' || st.height === '100vh') && parseInt(st.zIndex || '0', 10) >= 9999) {
-       el.remove();
-      }
-     });
      //return Promise.reject(new Error("Login required"));
     } else {
      return Promise.reject(new Error(JSON.stringify(t343mp)));
@@ -1575,9 +1567,19 @@ async function fnj3(url, jsonPayload, loginRequired_0_1, async_1 = true, loaderI
 }
 async function fnj4(url, jsonPayload, loginRequired_0_1, async_1 = 1, loaderId = null, timeout = 20000, shoLoginByOas2orByPas1 = 0, loaderSho1Hide0 = 1) {
  try {
-  if(!jsonPayload || !jsonPayload.ul || !jsonPayload.gt){
-   return Promise.reject(new Error("Payload and .ul & .gt must requred for fnj4"));
+  let jsonPayloadCheck = null;
+  try {
+   if (typeof jsonPayload === "string") {
+    jsonPayloadCheck = JSON.parse(jsonPayload);
+   } else {
+    jsonPayloadCheck = jsonPayload;
+   }
+   delete jsonPayloadCheck?.mk;
+  } catch (e) { jsonPayloadCheck = null; }
+  if (!jsonPayloadCheck || !jsonPayloadCheck.ul || !jsonPayloadCheck.gt) {
+       return Promise.reject(new Error("Payload and .ul & .gt are required for fnj4"));
   }
+  if (jsonPayloadCheck) jsonPayload = jsonPayloadCheck;
   if (!url || (typeof url === 'string' && url.trim() === '')) {
   // 1) Determine "current path" (directory, always ending with "/")
   let path = location.pathname;
@@ -1629,13 +1631,13 @@ async function fnj4(url, jsonPayload, loginRequired_0_1, async_1 = 1, loaderId =
     xtraj_payload.endP = url;
     if (shoLoginByOas2orByPas1 > 0) {
      if (shoLoginByOas2orByPas1 == 2) {
-      const t1170 = getCacheId("my1lo.js");
+      const t1170 = getCacheId("my1jo.js");
       if (t1170)
        await loadExe2Fn(t1170, [], [1]);
       else
        await loadExecFn('open_shoLgnO', 'open_shoLgnO', ['dv_to_set_open_shoLgnO_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/cmn/my1lo.js', []);
      } else {
-      const t1176 = getCacheId("my1lp.js");
+      const t1176 = getCacheId("my1jp.js");
       if (t1176)
        await loadExe2Fn(t1176, [], [1]);
       else
@@ -1862,7 +1864,7 @@ function showLoginInfo(shoLogOut, showLoginModalDirectly, shoLoginByOas2orByPas1
  const infoContainer = document.getElementById('login-info-container');
  infoContainer.innerHTML = '';
 
- if (typeof my1uzr !== 'undefined' && my1uzr !== null && my1uzr.mk) {
+ if (typeof my1uzr !== 'undefined' && my1uzr !== null && (my1uzr.jk || my1uzr.mk)) {
   dontShoThisLoginModal = 0;
   const userInfo = document.createElement('div');
   userInfo.className = 'user-info';
@@ -1955,7 +1957,6 @@ function chkLoadLoginExists(shoLoginByOas2orByPas1) {
  const existingModal = document.getElementById('loginModalBackdrop');
 
  if (existingModal && existingModal.style.display !== 'none') {
-  console.log('Login modal already open, skipping reload');
   return Promise.resolve({
    __loginRequired: true,
    ms: "Login modal already open and visible"
@@ -2011,7 +2012,6 @@ async function validateImageUrl(url) {
    }
   }
  } catch (e) {
-  console.log("HEAD request failed, falling back to other methods");
  }
 
  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
@@ -2121,13 +2121,69 @@ function mrEmitAudioState() {
 }
 function mrTrackAudio(audio) {
  if (!audio) return audio;
+ //never attach the listeners twice: callers (preload, OTP, playAud) may pass the
+ //same element more than once
+ if (audio.__mrTracked) return audio;
+ audio.__mrTracked = true;
  const onPlay = () => { mrPlayingAudios.add(audio); mrEmitAudioState(); };
  const onStop = () => { mrPlayingAudios.delete(audio); mrEmitAudioState(); };
  audio.addEventListener("playing", onPlay);
  audio.addEventListener("pause", onStop);
  audio.addEventListener("ended", onStop);
- audio.addEventListener("error", onStop);
+ audio.addEventListener("error", function () {
+  //invalidate the cache so the next play fetches a fresh, complete copy
+  //instead of reusing a partially-buffered/stale element (which skips parts)
+  try { mrAudioCache.delete(audio.src || ""); } catch (e) { }
+  onStop();
+  try {
+   const src = audio.src;
+   if (src) { audio.src = src; audio.load(); }
+  } catch (e2) { }
+ });
+ audio.addEventListener("stalled", function () {
+  //a playing element may still recover on its own; calling load() here resets the
+  //buffer and was cutting the sound off mid-play. Only refresh an idle/failed one.
+  try { if (audio.paused) { audio.load(); } } catch (e) { }
+ });
  return audio;
+}
+
+// Start an audio element from the very beginning. A reused/streamed element (Drive proxy,
+// curl.php) can ignore "currentTime = 0" and resume where it was paused, which is what made
+// the same intro part go missing on repeated plays. Seek first and wait for "seeked"
+// (short fallback) before calling play().
+function mrStartAudioAtZero(a, onReady) {
+ if (!a || typeof onReady !== "function") return;
+ let done = false;
+ const fire = function () {
+  if (done) return;
+  done = true;
+  try { onReady(); } catch (e) { }
+ };
+ try {
+  if (a.readyState >= 3 && a.currentTime > 0.05) {
+   const onSeeked = function () {
+    a.removeEventListener("seeked", onSeeked);
+    fire();
+   };
+   a.addEventListener("seeked", onSeeked);
+   try {
+    a.currentTime = 0;
+   } catch (eSeek) {
+    a.removeEventListener("seeked", onSeeked);
+    fire();
+    return;
+   }
+   setTimeout(function () {
+    a.removeEventListener("seeked", onSeeked);
+    try { a.currentTime = 0; } catch (e2) { }
+    fire();
+   }, 300);
+   return;
+  }
+ } catch (e0) { }
+ try { a.currentTime = 0; } catch (e1) { }
+ fire();
 }
 
 // Resolve a raw value to a playable URL: a Google Drive URL or bare file id, a direct
@@ -2274,24 +2330,124 @@ function preloadWajiwSounds(list) {
   try { const a = mrGetAudio(raw); if (a) return a; } catch (e) { }
   try { return mrTrackAudio(new Audio(mrResolveAudioUrl(raw))); } catch (e2) { return null; }
  }
+ //is this raw the SAME cached element as `el`? Two wajiw keys / a raw key vs its URL can
+ //map to one shared Audio element; switching context between them must not cut the sound.
+ function sameAudio(raw, el) {
+  if (!raw || !el) { return false; }
+  try { return audioFor(raw) === el; } catch (e) { return false; }
+ }
  function play(raw) {
   const a = audioFor(raw);
   if (!a) return;
+  const r = raw || "";
+
+  //1. the exact element is already audible: a duplicate request coming from a concurrent
+  //UI event must NOT restart it from 0 (that restarted the same file mid-way and made the
+  //same part of the sound disappear). Re-arm the button on the newest context and stop.
+  if (a === last && !a.paused && !a.ended) {
+   currentRaw = r;
+   armed = r;
+   return;
+  }
+  //2. the same element is still loading/waiting for its start: only re-arm the button.
+  //A second load() aborts the first fetch and can resume from a byte offset, which is
+  //exactly why coinciding triggers skipped the beginning of the sound.
+  if (a.__mrStarting) {
+   currentRaw = r;
+   armed = r;
+   return;
+  }
+
+  //3. Serialise playback. mrPlayingAudios is filled by the async "playing" event, so an
+  //audio that is still loading is NOT in the Set yet; pause `last` explicitly and bump
+  //every other element's generation so a pending canplay/timeout from an earlier play
+  //can never restart it mid-way.
   try {
    mrPlayingAudios.forEach(function (other) {
-    if (other !== a && typeof other.pause === "function") { try { other.pause(); } catch (e) { } }
+    if (other === a) { return; }
+    other.__playGen = (other.__playGen || 0) + 1;
+    other.__mrStarting = 0;
+    if (typeof other.pause === "function") { try { other.pause(); } catch (e) { } }
+    //an element that is still loading never fires "pause"; drop it explicitly so
+    //the "playing" state (and the button) can not stay on for a silent audio
+    mrPlayingAudios.delete(other);
    });
   } catch (e) { }
+  if (last && last !== a) {
+   last.__playGen = (last.__playGen || 0) + 1;
+   last.__mrStarting = 0;
+   if (typeof last.pause === "function") { try { last.pause(); } catch (e) { } }
+   mrPlayingAudios.delete(last);
+  }
+  const gen = (a.__playGen || 0) + 1;
+  a.__playGen = gen;
+  a.__mrStarting = gen;   //a start for this element is now in flight
   last = a;
-  currentRaw = raw || "";   //the sound that just started (its config "e")
-  armed = raw || "";        //the button follows the sound that actually played
-  try { a.currentTime = 0; } catch (e) { }
-  Promise.resolve(a.play()).catch(function () { });
+  currentRaw = r;         //the sound that just started (its config "e")
+  armed = r;              //the button follows the sound that actually played
+  //mark it playing synchronously so the button and other callers see it immediately
+  mrPlayingAudios.add(a);
+  mrEmitAudioState();
+
+  let started = false;
+  const start = function () {
+   if (started) { return; }               //canplay and the timeout must start it once
+   if (a.__playGen !== gen) { return; }   //superseded by a newer play/stop
+   started = true;
+   //always begin at 0: seeking first (and waiting for it) stops a reused stream from
+   //resuming at its old position and skipping the intro
+   mrStartAudioAtZero(a, function () {
+    if (a.__playGen !== gen) { return; }
+    a.__mrStarting = 0;
+    Promise.resolve(a.play()).catch(function () {
+     if (a.__playGen !== gen) { return; }  //interrupted by a newer play: expected
+     mrPlayingAudios.delete(a);
+     mrEmitAudioState();
+    });
+   });
+  };
+  //if the cached element is not fully buffered, force a clean fetch before playing
+  //so we don't resume from a partial/stale buffer (which skips parts of the audio)
+  if (a.readyState >= 3) { //HAVE_FUTURE_DATA
+   start();
+  } else {
+   let fbTimer = 0;
+   const onCanPlay = function () {
+    a.removeEventListener("canplay", onCanPlay);
+    a.removeEventListener("canplaythrough", onCanPlay);
+    try { clearTimeout(fbTimer); } catch (eT) { }
+    if (a.__playGen !== gen) { return; }
+    start();
+   };
+   a.addEventListener("canplay", onCanPlay);
+   a.addEventListener("canplaythrough", onCanPlay);
+   try { a.load(); } catch (e) { }
+   //fallback: play anyway after a short wait if canplay never fires
+   fbTimer = setTimeout(function () {
+    a.removeEventListener("canplay", onCanPlay);
+    a.removeEventListener("canplaythrough", onCanPlay);
+    if (a.__playGen !== gen) { return; }
+    try { start(); } catch (e) { }
+   }, 2000);
+  }
  }
  function toggle() {
   if (last && typeof last.pause === "function" && !last.ended && currentRaw === armed) {
-   if (last.paused) { try { Promise.resolve(last.play()).catch(function () { }); } catch (e) { } }
+   if (last.paused) {
+    //a start is already queued for this element: let it play instead of doubling it
+    if (last.__mrStarting) { return; }
+    //resume: bump the generation so a stale canplay/timeout cannot fire twice
+    const g = (last.__playGen || 0) + 1;
+    last.__playGen = g;
+    try {
+     Promise.resolve(last.play()).catch(function () {
+      if (last && last.__playGen === g) { mrPlayingAudios.delete(last); mrEmitAudioState(); }
+     });
+    } catch (e) { }
+   }
    else {
+    last.__playGen = (last.__playGen || 0) + 1;   //cancel a pending deferred start
+    last.__mrStarting = 0;
     try { last.pause(); } catch (e) { }
     /* a USER pause through the shared button counts toward mr.da
      * "autoPlaySoundStopAfter" for this exact sound. stopAll()/pipeline stops
@@ -2333,9 +2489,18 @@ function preloadWajiwSounds(list) {
  function stopAll() {
   try {
    mrPlayingAudios.forEach(function (a) {
-    if (a && typeof a.pause === "function") { try { a.pause(); } catch (e) { } }
+    if (!a) { return; }
+    a.__playGen = (a.__playGen || 0) + 1;   //cancel any pending canplay/timeout
+    a.__mrStarting = 0;
+    if (typeof a.pause === "function") { try { a.pause(); } catch (e) { } }
    });
   } catch (e) { }
+  if (last) {
+   last.__playGen = (last.__playGen || 0) + 1;
+   last.__mrStarting = 0;
+   try { last.pause(); } catch (eL) { }
+  }
+  try { mrPlayingAudios.clear(); mrEmitAudioState(); } catch (eC2) { }
   last = null;
   currentRaw = "";
  }
@@ -2346,7 +2511,9 @@ function preloadWajiwSounds(list) {
   show: function (raw) {
    ensure();
    const r = raw || "";
-   if (r !== armed && last) stopAll();   //context changed: release the old sound
+   //context changed: release the old sound — unless the new raw resolves to the very
+   //same cached element, in which case it would cut the sound mid-way for no reason
+   if (r !== armed && last && !sameAudio(r, last)) stopAll();
    armed = r;
    btn.classList.add("is-on");
   },
@@ -2360,7 +2527,8 @@ function preloadWajiwSounds(list) {
   /* arm a sound without changing visibility */
   setSound: function (raw) {
    const r = raw || "";
-   if (r !== armed) stopAll();           //switching context drops the old sound
+   //switching context drops the old sound, unless it is the same cached element
+   if (r !== armed && last && !sameAudio(r, last)) stopAll();
    armed = r;
    return armed;
   },
@@ -2401,16 +2569,25 @@ function playAud(audioUrl) {
   if (!src) return Promise.reject(new Error("No audio source"));
 
   const audio = mrGetAudio(audioUrl) || mrTrackAudio(new Audio(src));
-  //stop any other audio so a new play never overlaps the previous one
+  //stop any other audio so a new play never overlaps the previous one; bump the
+  //generation too so an earlier pending canplay/timeout cannot restart it mid-way
   Array.from(mrPlayingAudios).forEach((other) => {
-   if (other !== audio && typeof other.pause === "function") {
-    try { other.pause(); } catch (e) { }
+   if (other !== audio) {
+    other.__playGen = (other.__playGen || 0) + 1;
+    other.__mrStarting = 0;
+    if (typeof other.pause === "function") {
+     try { other.pause(); } catch (e) { }
+    }
    }
   });
-  try { audio.currentTime = 0; } catch (eC) { }
-  return audio.play().then(() => audio).catch((err) => {
-   console.warn('Audio play failed:', src, err && err.message);
-   throw err;
+  //always start from 0, waiting for the seek when the element was reused mid-way
+  return new Promise((resolve, reject) => {
+   mrStartAudioAtZero(audio, () => {
+    audio.play().then(() => resolve(audio)).catch((err) => {
+     console.warn('Audio play failed:', src, err && err.message);
+     reject(err);
+    });
+   });
   });
 
  } catch (error) {
@@ -2445,21 +2622,18 @@ let backButtonHandlerInitialized = false;
 function initializeUniversalBackButtonHandler() {
  if (backButtonHandlerInitialized) return;
 
- console.log('Initializing Universal Back Button Handler...');
 
  // Method 1: History API approach
  initializeHistoryState();
 
  // Method 2: Direct back button interception
  window.addEventListener('popstate', function (event) {
-  console.log('Back button detected via popstate');
   handleUniversalBackButton();
  });
 
  // Method 3: Fallback for PWA direct launch
  window.addEventListener('pagehide', function (event) {
   if (areAnyModalsOpen()) {
-   console.log('Page hide with modals open - intercepting');
    event.preventDefault();
    handleUniversalBackButton();
 
@@ -2477,7 +2651,6 @@ function initializeUniversalBackButtonHandler() {
   }
   //used in sho.html
   if (typeof dontShowReloadConfirmation !== 'undefined' && dontShowReloadConfirmation === 1) {
-   console.log('Reload confirmation suppressed by dontShowReloadConfirmation flag');
    return; // Exit without showing confirmation
   }
  });
@@ -2496,7 +2669,6 @@ function initializeHistoryState() {
 }
 
 function handleUniversalBackButton() {
- console.log('Universal back button handler triggered');
 
  // Clear existing timeout
  if (backButtonTimeout) {
@@ -2506,11 +2678,9 @@ function handleUniversalBackButton() {
  // Increment press count
  backButtonPressCount++;
 
- console.log(`Back button pressed ${backButtonPressCount} time(s), Modal stack: ${modalStack.length}`);
 
  // Set timeout to reset counter after 2 seconds
  backButtonTimeout = setTimeout(() => {
-  console.log('Resetting back button counter');
   backButtonPressCount = 0;
  }, 500);
 
@@ -2585,19 +2755,16 @@ function handleThirdBackPress() {
  }
 
  // Allow exit
- console.log('Third back press - allowing exit');
  return false; // Don't handle, let browser exit
 }
 
 function closeTopModalFromStack() {
  if (modalStack.length === 0) {
-  console.log('No modals in stack to close');
   return false;
  }
 
  // Get the topmost modal (last in the stack - highest z-index)
  const topModalId = modalStack[modalStack.length - 1];
- console.log(`Closing top modal from stack: ${topModalId}`);
 
  const modalElement = document.getElementById(topModalId);
 
@@ -2612,7 +2779,6 @@ function closeTopModalFromStack() {
 }
 
 function closeAllModalsUniversally() {
- console.log('Closing ALL remaining modals');
  let closedCount = 0;
 
  // Close from top of stack to bottom (reverse order)
@@ -2632,14 +2798,12 @@ function closeAllModalsUniversally() {
  modalStack = [];
  modalZIndexCounter = 1050;
 
- console.log(`Closed ${closedCount} modals`);
  return closedCount;
 }
 
 function closeModalElement(modal) {
  try {
   const modalId = modal.id || 'anonymous';
-  console.log(`Attempting to close modal: ${modalId}`);
 
   // Method 1: Try Bootstrap modal API first
   if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
@@ -2647,7 +2811,6 @@ function closeModalElement(modal) {
    if (bsModal) {
     bsModal.hide();
     removeModalFromStack(modalId);
-    console.log(`Closed via Bootstrap API: ${modalId}`);
     return true;
    }
   }
@@ -2673,14 +2836,12 @@ function closeModalElement(modal) {
    document.body.style.paddingRight = '';
 
    removeModalFromStack(modalId);
-   console.log(`Closed via class removal: ${modalId}`);
    return true;
   }
 
   // Method 4: Generic hide for any modal-like element
   modal.style.display = 'none';
   removeModalFromStack(modalId);
-  console.log(`Closed via display none: ${modalId}`);
   return true;
 
  } catch (error) {
@@ -2693,13 +2854,11 @@ function closeModalElement(modal) {
 }
 
 function cleanupModalArtifacts() {
- console.log('Cleaning up modal artifacts...');
 
  // Remove modal backdrops
  const backdrops = document.querySelectorAll('.modal-backdrop, .modal-backdrop.fade.show');
  backdrops.forEach(backdrop => {
   backdrop.remove();
-  console.log('Removed backdrop');
  });
 
  // Remove body modal classes
@@ -2719,7 +2878,6 @@ function cleanupModalArtifacts() {
   if (overlay.style.backgroundColor === 'rgba(0, 0, 0, 0.5)' ||
    overlay.style.background === 'rgba(0, 0, 0, 0.5)') {
    overlay.remove();
-   console.log('Removed overlay');
   }
  });
 }
@@ -2728,7 +2886,6 @@ function areAnyModalsOpen() {
  const allElements = document.querySelectorAll('*');
  for (let element of allElements) {
   if (isModalElement(element)) {
-   console.log('Found open modal:', element.id || 'anonymous');
    return true;
   }
  }
@@ -3048,7 +3205,6 @@ function makeDraggable(element) {
 
 // Replace the existing DOMContentLoaded handler
 document.addEventListener('DOMContentLoaded', function () {
- console.log('Initializing Universal Back Button Handler');
  initializeUniversalBackButtonHandler();
  setupWakeLockVisibilityHandler();
 
@@ -3436,6 +3592,7 @@ function pageLoader(on = true) {
 
 // Export for global access
 window.my1PageLoader = pageLoader;
+window.showToast = showToast;
 window.handleUniversalBackButton = handleUniversalBackButton;
 window.closeAllModalsUniversally = closeAllModalsUniversally;
 window.set_owner = set_owner;
@@ -3462,7 +3619,7 @@ window.preloadWajiwSounds = preloadWajiwSounds;
 
  const appPath = vMatch[1].replace(/\.js$/, '.min.js');
  const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + hash + '/' + appPath;
- //const url = 'b.js';
+ //const url = 'mi.js';
  set_owner();
  loadPromiseScript(url);
 })();

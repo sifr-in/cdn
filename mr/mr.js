@@ -55,7 +55,7 @@ const moduLst = [
 //public 69 delete profile by profile owner
 //ma table - short listed profiles
 //mu table - used profiles
-const inTbls = ["dontCret~", "pubilc~64,66,67,68,69,70,118", "2/e-60~mr,c,mq,ma", "2/g-61~mp", "2/f-62~mr", "2/f-63~mr", "4/a-64~mr", "2/e-65~mp", "3/d-66~mu,mr,ma", "2/h-67~mr", "3/e-68~mr,mr_h,mq", "3/d-69~mr", "3/d-70~mr", "4/a-118~", "2/u-120~"];//118 for get image id
+const inTbls = ["dontCret~", "pubilc~64,66,67,68,69,70,118", "2/0e-60~mr,c,mq,ma", "2/g-61~mp", "2/0f-62~mr", "2/0f-63~mr", "4/b-64~mr", "2/e-65~mp", "3/0d-66~mu,mr,ma", "2/h-67~mr", "3/0e-68~mr,mr_h,mq", "3/0d-69~mr", "3/0d-70~mr", "2/j-79~c", "2/j-80~c", "4/a-118~", "2/u-120~"];//118 for get image id
 const cust_const = [
  { "a": "paymentGatewayIntegrated", "b": 0, "c": "more customiztaion", "d": "if value is 1 payment gatewy will be shown, else manual", "u": "url-explaining-video" },
  { "a": "paymentRequiresProfile", "b": 0, "c": "more custom...", "d": "if value is 1 & payment gatewy on then will be users registration or profile is requred to use gatway, else cotinue as is", "u": "url-explaining-video" },
@@ -74,8 +74,7 @@ window[my1uzr.worknOnPg].onModuLstAllowed2 = function (allowedModules) {
  * Everything that used to be declared twice (once per branch) lives here exactly once.
  * Only values that genuinely differ per app live in MR_MODE_CFG below.
  * ========================================================================================== */
-const imgObjDimensRqd = ["1080x720px~1-124kb", "1920x1080px~1-250kb"];
-window.imgObjDimensRqd = imgObjDimensRqd;
+window.imgObjDimensRqd = [];
 //shared constants
 const sho_da_tkLimit = 1;
 let appData = {};
@@ -102,31 +101,31 @@ window[my1uzr.worknOnPg].csh = [
     { a: 3, u: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" },
     { a: 4, u: "https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js" },
     { a: 5, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/my1xi.min.js" },
-    { a: 6, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1lp.min.js", c: "open_shoLgnP", r: "open_shoLgnP" },
-    { a: 7, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/cmn/my1lo.min.js", c: "open_shoLgnO", r: "open_shoLgnO" },
+    { a: 6, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1jp.min.js", c: "open_shoJgnP", r: "open_shoJgnP" },
+    { a: 7, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1jo.min.js", c: "open_shoJgnO", r: "open_shoJgnO" },
     { a: 8, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/conta.min.js", c: "showContactModal", r: "showContactModal" },
-    { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1img.js", c: "open_addimage", r: "open_addimage" },
+    { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1img.min.js", c: "open_addimage", r: "open_addimage" },
     //{ a: 101, u: "git/my1gal.js", c: "open_my1gall", r: "open_my1gall" }, not in use keep as
-    { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@a813e1f/cmn/my1ctr.js", c: "open_my1ctr", r: "open_my1ctr" },
-    { a: 12, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/fltr.js", c: "showFilterBox", r: "showFilterBox" },
-    { a: 13, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/drwr.js", c: "showDrawer", r: "showDrawer" },
-    { a: 14, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12a98fe/mr/regis.js", c: "showRegistrationModal", r: "showRegistrationModal" },
-    { a: 17, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/plans.js", c: "showMarriagePlans", r: "showMarriagePlans" },
-    { a: 55, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/prfl.js", c: "mrPrflReady", r: "mrShowProfileDtlsLazy" },
-    { a: 15, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/cmn/ei.min.js", c: "open_entind_crud", r: "open_entind_crud" },
-    { a: 39, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/slkt.js", c: "openCommonSelectionModal", r: "openCommonSelectionModal" },
-    { a: 47, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/slkt2.js", c: "setValByPrprtyDepthToElm", r: "setValByPrprtyDepthToElm" },
-    { a: 48, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/admr.js", c: "openMrAdmin", r: "openMrAdmin" },
+    { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1ctr.min.js", c: "open_my1ctr", r: "open_my1ctr" },
+    { a: 12, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/fltr.min.js", c: "showFilterBox", r: "showFilterBox" },
+    { a: 13, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/drwr.min.js", c: "showDrawer", r: "showDrawer" },
+    { a: 14, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/regis.min.js", c: "showRegistrationModal", r: "showRegistrationModal" },
+    { a: 17, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/plans.min.js", c: "showMarriagePlans", r: "showMarriagePlans" },
+    { a: 55, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/prfl.min.js", c: "mrPrflReady", r: "mrShowProfileDtlsLazy" },
+    { a: 15, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/ei.min.js", c: "open_entind_crud", r: "open_entind_crud" },
+    { a: 39, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/slRlgn.min.js", c: "openCommonSelectionModal", r: "openCommonSelectionModal" },
+    { a: 47, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/slCoTal.min.js", c: "setValByPrprtyDepthToElm", r: "setValByPrprtyDepthToElm" },
+    { a: 48, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/admr.min.js", c: "openMrAdmin", r: "openMrAdmin" },
     { a: 18, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/caste.da" },
     { a: 19, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/ctco.da" },
-    { a: 20, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/abot.js", c: "set_abot_us_innerHTML", r: "set_abot_us_innerHTML" },
-    { a: 24, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b6da9c0/mr/chldpol.js", c: "set_child_safety_pol_innerHTML", r: "set_child_safety_pol_innerHTML" },
-    { a: 23, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/mr/unlockinfo.js", c: "mrUnlockInfoModal", r: "mrUnlockInfoModal" },
+    { a: 20, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/abot.min.js", c: "set_abot_us_innerHTML", r: "set_abot_us_innerHTML" },
+    { a: 24, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/chldpol.min.js", c: "set_child_safety_pol_innerHTML", r: "set_child_safety_pol_innerHTML" },
+    { a: 23, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/unlkInf.min.js", c: "mrUnlockInfoModal", r: "mrUnlockInfoModal" },
     { a: 31, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@666354f/cmn/degs.da" },
     { a: 33, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@0208362/cmn/occu.da" },
     { a: 45, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/intal.da" },
     { a: 22, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1ap.min.js" },
-    { a: 25, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1236a32/cmn/clrChe.min.js", c: "showClearCacheModal", r: "showClearCacheModal"}
+    { a: 25, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/clrChe.min.js", c: "showClearCacheModal", r: "showClearCacheModal"}
 ];
 
 /* ------------------------------------------------------------------------------------------
@@ -143,14 +142,16 @@ async function showPhonePePostData() {
         if (typeof clearPayload0 === "function") clearPayload0();
         if (!window.payload0) window.payload0 = {};
         var p = window.payload0;
-        p.vw = 4;
         p.fn = 70;//fn 70 = chkMyCount -> credits the paid unlock count
         p.x1 = data.orderId;
+        p.ul = "2/c.php";
+        p.gt = 2;
         if (typeof dbDexieManager !== "undefined" && dbDexieManager &&
             typeof dbDexieManager.getMaxDateRecords === "function") {
             try { p.la = await dbDexieManager.getMaxDateRecords(window.dbnm, [{ tb: "mr" }]); } catch (eL) { }
         }
-        var resp = await fnj3("https://my1.in/2/c.php", p, 1, true, null, 20000, 0, 2, 1, 1);
+        var resp = await fnj4(null, p, 1, 1, null, 20000, 2, 1);
+        //var resp = await fnj3("https://my1.in/2/c.php", p, 1, true, null, 20000, 0, 2, 1, 1);
         if (resp && resp.su == 1) {
             if (typeof handl_mr_rspons === "function") { await handl_mr_rspons(resp); }
             if (typeof window.showsuccessmodal === "function") {
@@ -174,10 +175,8 @@ try {
     let result1 = await loadCshScriptsSequentially(1, 2, 3, 4, 5, 17, 22, 25);//here keep only that no have c, r other must used with loadExe2fn for call
     if (!result1.success) throw new Error("Failed to load required scripts: " + result1.error);
 
-    console.log("ðŸ“¦ Creating database tables for:", dbnm);
 
     const createResult = await dbDexieManager.handleNwTables("loader", dbnm, tblsRequired);
-    console.log("âœ… Database initialized:", dbnm, "| Failure count:", createResult.failureCount);
 
     var hook = window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg][moduLst.hook];
     var existing = window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].allowedModulesMenuItems;
@@ -196,6 +195,7 @@ try {
 
     try { window.da_mr = cfg; } catch(e){}
     try { if (!window[my1uzr.worknOnPg]) window[my1uzr.worknOnPg] = {}; window[my1uzr.worknOnPg].clientConfig = cfg; } catch(e){}
+    window.imgObjDimensRqd = cfg?.imgObjDimensRqd;
 } catch (e) {
     console.error("Failed to initialize:", e);
     window[my1uzr.worknOnPg].clientConfig = {};
@@ -850,11 +850,13 @@ function __mrLowestProfileCursor() {
 
 async function pullProfiles(whr, reset) {
     try {
-        payload0.vw = 4;
         payload0.fn = 64;
         payload0.x1 = (reset) ? '' : (__mrLowestProfileCursor() || '');
         payload0.whr = whr || '';
-        const response = await fnj3("https://my1.in/4/a.php", payload0, 0, true, null, 20000, 0, 1, 1, 0);
+        payload0.ul = "4/b.php";
+        payload0.gt = 4;
+        const response = await fnj4(null, payload0, 0, 1, null, 20000, 2, 0);
+        //const response = await fnj3("https://my1.in/4/a.php", payload0, 0, true, null, 20000, 0, 1, 1, 0);
         if (!(response && response.su == 1)) {
             if (typeof window.showelsemodal === "function") {
                 window.showelsemodal((response && (response.ms || response.m)) || "Request failed");
@@ -862,20 +864,24 @@ async function pullProfiles(whr, reset) {
         }
         if (response.su == 1) {
             const rows = (response.mr && response.mr.l) ? response.mr.l : [];
-            const profiles = rows.map(applyProfileImageData);
+            //main-page profile cards: hide anything whose status (d) is below 1
+            //(pending / denied / blocked etc. must not appear in the browse list)
+            const profiles = rows.map(applyProfileImageData).filter(function (p) {
+                return Number(p && p.d) >= 1;
+            });
             if (profiles.length === 0) {
-                console.warn("[mr] g.php su=1 but carried no rows. whr=" + JSON.stringify(payload0.whr)
+                console.warn("[mr] b.php su=1 but carried no rows. whr=" + JSON.stringify(payload0.whr)
                     + " x1=" + JSON.stringify(payload0.x1));
             }
             return {
                 profiles: profiles,
-                hasMore: !!((response.mr && response.mr.hasMore) || profiles.length > 0),
+                hasMore: !!((response.mr && response.mr.hasMore) || rows.length > 0),
                 ok: true
             };
         }
         return { profiles: [], hasMore: false, ok: false };
     } catch (error) {
-        console.warn("g.php request failed:", error && error.message);
+        console.warn("b.php request failed:", error && error.message);
         if (typeof window.showelsemodal === "function") {
             window.showelsemodal(error && error.message ? error.message : "Request failed");
         } else {
@@ -1025,6 +1031,57 @@ window.applyProfileImageData = applyProfileImageData;
 //unavailable, so a dead cache never breaks an image.
 window.mrImg = (function () {
     var CACHE = "mr-img-v1", mem = Object.create(null), busy = Object.create(null);
+    //cap concurrent image fetches: Google Drive (lh3.googleusercontent.com)
+    //returns 429 when a whole list of cards is fetched at once, so only a few
+    //run in parallel and the rest wait their turn.
+    var MAX_CONC = 2, active = 0, queue = [];
+
+    function drain() {
+        while (active < MAX_CONC && queue.length) {
+            var start = queue.shift();
+            start();
+        }
+    }
+
+    function runJob(url, resolve, attempt) {
+        attempt = attempt || 0;
+        active++;
+        var open = (window.caches && typeof fetch === "function") ? caches.open(CACHE) : Promise.reject();
+        open.then(function (c) {
+            return c.match(url).then(function (hit) {
+                if (hit) return hit;
+                return fetch(url, { mode: "cors", credentials: "omit" }).then(function (res) {
+                    //a 429 (or any non-2xx) must NOT be cached: res.blob() would turn
+                    //the error page into a bogus object URL and the <img> stays blank
+                    if (!res || !res.ok) { throw new Error("http-" + (res ? res.status : 0)); }
+                    try { c.put(url, res.clone()); } catch (e) { }
+                    return res;
+                });
+            });
+        }).then(function (res) {
+            if (!res) throw new Error("no-response");
+            return res.blob();
+        }).then(function (blob) {
+            if (!blob || !blob.size) throw new Error("empty-blob");
+            mem[url] = URL.createObjectURL(blob);
+            active--;
+            resolve(mem[url]);
+            drain();
+        }).catch(function () {
+            active--;
+            if (attempt < 2) {
+                //Google Drive answers 429 under load; back off and retry a couple of
+                //times before falling back to the plain URL
+                setTimeout(function () {
+                    queue.push(function () { runJob(url, resolve, attempt + 1); });
+                    drain();
+                }, 1000 * (attempt + 1));
+            } else {
+                resolve(url);
+            }
+            drain();
+        });
+    }
 
     function load(url) {
         if (url == null) return Promise.resolve(url);
@@ -1033,23 +1090,8 @@ window.mrImg = (function () {
         if (mem[url]) return Promise.resolve(mem[url]);
         if (busy[url]) return busy[url];
         busy[url] = new Promise(function (resolve) {
-            var open = (window.caches && typeof fetch === "function") ? caches.open(CACHE) : Promise.reject();
-            open.then(function (c) {
-                return c.match(url).then(function (hit) {
-                    if (hit) return hit;
-                    return fetch(url, { mode: "cors", credentials: "omit" }).then(function (res) {
-                        if (res && res.ok) { try { c.put(url, res.clone()); } catch (e) { } }
-                        return res;
-                    });
-                });
-            }).then(function (res) {
-                if (!res) throw new Error("no-response");
-                return res.blob();
-            }).then(function (blob) {
-                if (!blob || !blob.size) throw new Error("empty-blob");
-                mem[url] = URL.createObjectURL(blob);
-                resolve(mem[url]);
-            }).catch(function () { resolve(url); });
+            queue.push(function () { runJob(url, resolve); });
+            drain();
         });
         busy[url].then(function () { delete busy[url]; });
         return busy[url];
@@ -1596,6 +1638,14 @@ async function __mrOpenRegistration(explicitId) {
                 if (o && Number(o.a) > 0) id = o.a;
             }
         } catch (e) { }
+    }
+    //after a page refresh the localStorage copy can be missing while the in-memory row
+    //(loaded by prfl.js) is already there: still open UPDATE instead of the Add form
+    if (!id) {
+        try {
+            var mem = window.myEinMR;
+            if (mem && Number(mem.a) > 0) id = mem.a;
+        } catch (eMem) { }
     }
     //re-read the latest full row from the local "mr" table so every field prefills
     if (id && typeof dbDexieManager !== 'undefined'
