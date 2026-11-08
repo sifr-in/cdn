@@ -104,7 +104,7 @@ window[my1uzr.worknOnPg].csh = [
     { a: 6, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1jp.min.js", c: "open_shoJgnP", r: "open_shoJgnP" },
     { a: 7, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1jo.min.js", c: "open_shoJgnO", r: "open_shoJgnO" },
     { a: 8, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/conta.min.js", c: "showContactModal", r: "showContactModal" },
-    { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1img.min.js", c: "open_addimage", r: "open_addimage" },
+    { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@60f8540/cmn/my1img.min.js", c: "open_addimage", r: "open_addimage" },
     //{ a: 101, u: "git/my1gal.js", c: "open_my1gall", r: "open_my1gall" }, not in use keep as
     { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1ctr.min.js", c: "open_my1ctr", r: "open_my1ctr" },
     { a: 12, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/fltr.min.js", c: "showFilterBox", r: "showFilterBox" },
@@ -807,11 +807,6 @@ async function hndlRspo70(resp) {
     if (myRow && myRow.a != null && typeof window.mrPersistMyEinMR === "function") {
         try { window.mrPersistMyEinMR(myRow); } catch (eP) { console.error(eP); }
     }
-    //this call can be the tail of the plans modal: "Get Free" while logged in
-    //(git/plans.js -> beCheckPlan_fn) or the guest path that opened the login modal and
-    //came back through my1lo as hndlRspo70(result.xtra). In both cases the plans modal
-    //is stale now; the view-profile modal already open underneath is left as it is and
-    //the unlock confirm still opens from its own "Unlock profile" button.
     if (typeof window.mrCloseMarriagePlans === "function") {
         try { window.mrCloseMarriagePlans(); } catch (ePC) { console.error(ePC); }
     }
@@ -821,10 +816,6 @@ async function hndlRspo70(resp) {
         //a free plan (price 0) is already credited by the server: never send it to payment
         if (plan && Number(plan.e) !== 0) { try { window.mrPayForPlan(plan); } catch (ePay) { console.error(ePay); } }
     }
-    //the "Already Registered" flow keeps its welcome toast; the cd:2 flow is silent (caller messages).
-    //Decide from the row fn 70 actually returned: window.myEinMR is always defined (prfl.js
-    //installs a getter/setter) and was just updated above, so it can not tell whether a
-    //profile was found.
     if (!topShape && typeof showToast === "function") {
         showToast((myRow && myRow.a != null) ? "Welcome back!" : "Updated successfully", { type: "success", duration: 3000, position: "top" });
     }
@@ -1573,11 +1564,6 @@ function createProfileCard(profile) {
     return col;
 }
 
-/* ---- first card: view-only mirror of the profile cards --------------------------------
- * Same shell, content slots and order as createProfileCard; the controls are read-only
- * and any click on the card opens the registration modal (git/regis.js via csh 14). */
-
-//religion options from the lookup; built at render time (lookups load after this file)
 function __mrNewCardReligionOpts() {
     const opts = [{ v: '', l: 'Religion' }];
     (window.var_caste_rlgns || []).forEach(r => {
@@ -1604,13 +1590,8 @@ function __mrNewCardDegreeOpts() {
     return opts;
 }
 
-//store the member's own profile row in memory + localStorage "<tn>_myEinMR" so the
-//registration modal reopens pre-filled and the app recognises the member's profile
 function __mrPersistMyRow(row) {
     if (!row) return;
-    //prfl.js defines window.myEinMR with a setter that normalises the row (keeps known
-    //d1/d2 totals) and writes "<tn>_myEinMR" itself. Writing the raw row here afterwards
-    //would undo that, so only use the local fallback when the setter is absent.
     var handled = false;
     try {
         var d = Object.getOwnPropertyDescriptor(window, "myEinMR");
@@ -1760,10 +1741,6 @@ function createEmptyProfileCard() {
     return col;
 }
 
-//the first add card is only for a member with no local data yet: if the "mr" IndexedDB
-//(Dexie) table already holds any row, drop the card from the grid, else reveal it.
-//NOTE: dbDexieManager is a top-level `const` in the CDN script, so it is a lexical
-//global (bare) and NOT a window property - window.dbDexieManager is undefined.
 function __mrHideAddCardIfLocalData(col) {
     var reveal = function () { col.style.visibility = ''; };
     try {
@@ -2782,17 +2759,6 @@ input.form-control.is-invalid:focus{ box-shadow:0 0 0 3px rgba(163,49,32,.2); }
 }
 `;
 
-/* ---- body scroll lock while any popup/drawer is open --------------------------------
- * Watches the document for the app's overlay layers (.rg-overlay - regis/prfl modals,
- * .mrd-viewer - image viewer, .ht-modal-overlay - contact, .mrp-overlay - Membership
- * Plans, #drawerBackdrop/#mobileDrawer)
- * and freezes the page scroll underneath while any of them is open. Overlays remove
- * themselves on close (prfl/regis keep them ~260ms for the fade, so the lock releases
- * after that), but the drawer only toggles inline display:none when it closes, so we
- * also watch style/class attribute changes on the drawer/overlay elements. Bootstrap
- * .modal is left to Bootstrap, which locks body itself. Unlock is debounced 80ms and
- * re-verified so a nested/replaced layer (e.g. child viewer over a modal, or closing
- * a modal that another one replaces) never flashes the background scroll. */
 (function () {
     var SEL = '.rg-overlay, .mrd-viewer, .ht-modal-overlay, .mrp-overlay';
     var SEL_OBS = SEL + ', #drawerBackdrop, #mobileDrawer';
@@ -2804,12 +2770,6 @@ input.form-control.is-invalid:focus{ box-shadow:0 0 0 3px rgba(163,49,32,.2); }
         var db = document.getElementById('drawerBackdrop');
         return !!(db && db.offsetWidth > 0);
     }
-    //Pin the body off-screen by its current offset instead of setting
-    //overflow:hidden. With html/body{height:100%} the overflow trick collapses the
-    //document's scrollable area, so the window is clamped to scrollTop 0 and the
-    //profile list jumps to the top when the modal closes. Pinning keeps the visible
-    //background exactly where it was, still blocks background scrolling, and the
-    //offset is re-applied with scrollTo on unlock.
     function lockBody() {
         if (lockedByUs) return;
         savedScrollY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
@@ -2830,8 +2790,6 @@ input.form-control.is-invalid:focus{ box-shadow:0 0 0 3px rgba(163,49,32,.2); }
         b.right = '';
         b.width = '';
         if (!y) return;
-        //Bootstrap's reboot sets :root{scroll-behavior:smooth}, which would turn this
-        //restore into an animated scroll. Override it for the jump, then put it back.
         var de = document.documentElement;
         var prev = de.style.scrollBehavior;
         de.style.scrollBehavior = 'auto';
