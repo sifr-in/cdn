@@ -1250,9 +1250,6 @@
    return;
   }
 
-  // When the server flag is on, validate + send g values directly in the payload
-  // (fn 118, payload0.g1/g2/... top-level) and pass the returned {url,g1,g2,...}
-  // to the end function. Otherwise keep the current local flow unchanged.
   let cbArg = imgObj;
   if (adServerFlag()) {
    const pObj = {};
@@ -1263,20 +1260,16 @@
     window.showelsemodal('Please add an image first');
     return;
    }
-   // drml read is guarded the same way as the rest of the app (my1uzr is optional here)
-   let drml = 'sambodhisarang.in';
-   try {
-    const P = window.my1uzr && window.my1uzr.worknOnPg ? window[window.my1uzr.worknOnPg] : null;
-    if (P && P.clientConfig && P.clientConfig.drml) drml = P.clientConfig.drml;
-   } catch (eX) { }
+   clearPayload0();
    const savedPayload = Object.assign({}, window.payload0 || {});
-   savedPayload.vw = 4;
    savedPayload.fn = 118;
-   savedPayload.drml = drml;
+   savedPayload.ul = "4/a.php";
+   savedPayload.gt = 4;
    Object.assign(savedPayload, pObj);
    let response = null;
    try {
-    response = await window.fnj3("https://my1.in/4/a.php", savedPayload, 0, true, null, 20000, 0, 1, 1, 1);
+    response = await fnj4(null, savedPayload, 0, 1, null, 20000, 2, 1);
+    //response = await window.fnj3("https://my1.in/4/a.php", savedPayload, 0, true, null, 20000, 0, 1, 1, 1);
     if (!(response && response.su == 1)) {
      window.showelsemodal((response && (response.ms || response.m)) || 'Could not save image');
      return;
@@ -1368,12 +1361,6 @@
   } catch (eCB) {
    console.error('image callback error:', eCB);
   }
-
-  // const logObj = { url: String(finalImageUrl).substring(0, 50) + '...' };
-  // gValues.forEach(function (v, i) {
-  //     logObj['g' + (i + 1)] = String(v || '').substring(0, 50) + (v ? '...' : '');
-  // });
-  // console.log('Image saved:', logObj);
  };
 
  window.removeProfileImage = function () {
