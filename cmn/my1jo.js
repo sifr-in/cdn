@@ -340,16 +340,16 @@ function showMobileConfirmationModalLO(countryCode, mobileNumber, callback) {
   `;
  const confirmBtn = modalContent.querySelector('#confirmMobileBtn');
  const editBtn = modalContent.querySelector('#editMobileBtn');
-const handleClose = (result) => {
-   modalResult.modalInstance.hide();
-   callback(result);
-  };
-  confirmBtn.addEventListener('click', () => handleClose(true));
-  editBtn.addEventListener('click', () => handleClose(false));
-  modalResult.modalElement.addEventListener('hidden.bs.modal', () => {
-   callback(false);
-  });
-  modalResult.modalInstance.show();
+ const handleClose = (result) => {
+  modalResult.modalInstance.hide();
+  callback(result);
+ };
+ confirmBtn.addEventListener('click', () => handleClose(true));
+ editBtn.addEventListener('click', () => handleClose(false));
+ modalResult.modalElement.addEventListener('hidden.bs.modal', () => {
+  callback(false);
+ });
+ modalResult.modalInstance.show();
 }
 
 function autoFillAndVerifyOtp(otp) {
@@ -737,11 +737,11 @@ function getRequiredMobileLengthLO(countryCode) {
 async function getOTP_LO(countryCode, mobileNumber) {
  const requiredLength = getRequiredMobileLengthLO(countryCode);
  if (mobileNumber.length !== requiredLength) { showAlertModalLO(`Please enter a valid ${requiredLength}-digit mobile number for ${countryCode}`); return { success: false }; }
- const data = { yo: mobileNumber, yc: countryCode, ul:"4/og.php", gt:4 };
+ const data = { yo: mobileNumber, yc: countryCode, ul: "4/og.php", gt: 4 };
  if (isOtpSuppressed) { data.supress = 1; }
  try {
-    const body = JSON.stringify(data);
-    const response = await fnj4(null, body, 0, 1, null, 20000, 2, 0);
+  const body = JSON.stringify(data);
+  const response = await fnj4(null, body, 0, 1, null, 20000, 2, 0);
   if (response.su == 1) { return { success: true, waitTime: response.wait || 30 }; }
   else { window?.showelsemodal(response.ms || "No Success"); return { success: false }; }
  } catch (error) {
@@ -759,15 +759,15 @@ async function verifyOTP_LO(otp) {
  if (mobileNumber.length !== requiredLength) { showAlertModalLO(`Please enter a valid ${requiredLength}-digit mobile number`); return; }
  const l_oginName = document.getElementById("loginName") ? document.getElementById("loginName").value.trim() : "";
  const l_oginLocalName = document.getElementById("localName") ? document.getElementById("localName").value.trim() : "";
- const data = { yo: mobileNumber, yc: countryCode, mp: otp, mn: l_oginName, mu: l_oginLocalName, eo: appOwner.eo, ec: appOwner.ec, ul:"4/ov.php", gt:4, xtra: typeof xtraj_payload !== "undefined" ? xtraj_payload : null };
+ const data = { yo: mobileNumber, yc: countryCode, mp: otp, mn: l_oginName, mu: l_oginLocalName, eo: appOwner.eo, ec: appOwner.ec, ul: "4/ov.php", gt: 4, xtra: typeof xtraj_payload !== "undefined" ? xtraj_payload : null };
  if (!my1loXtraValidate()) return;
  var xtraVals = my1loXtraCollect();
  xtraVals = await my1loXtraPreProcess(xtraVals, my1loXtraGet(), data);
  xtraVals = await my1loXtraPostProcess(xtraVals, my1loXtraGet(), data);
  if (xtraVals && Object.keys(xtraVals).length > 0) data.p = xtraVals;
  try {
-    const body = JSON.stringify(data);
-    const response = await fnj4(null, body, 0, 1, null, 20000, 2, 0);
+  const body = JSON.stringify(data);
+  const response = await fnj4(null, body, 0, 1, null, 20000, 2, 0);
   const verifyOtpText = document.getElementById("lo-verifyOtpText");
   const verifyOtpLoader = document.getElementById("lo-verifyOtpLoader");
   const verifyOtpBtn = document.getElementById("lo-verifyOtpBtn");
@@ -783,8 +783,12 @@ async function verifyOTP_LO(otp) {
    userData.fnp = response.fnp;
    localStorage.setItem("my1uzr", JSON.stringify(userData));
    const storedData = JSON.parse(localStorage.getItem("my1uzr")) || {};
-   my1uzr = { ...my1uzr, ...storedData };
-   // my1uzr = JSON.parse(localStorage.getItem("my1uzr"));
+   const _prevWorknOnPg = (typeof my1uzr !== "undefined" && my1uzr) ? my1uzr.worknOnPg : null;
+   const _prevWorknFor = (typeof my1uzr !== "undefined" && my1uzr) ? my1uzr.worknFor : null;
+   my1uzr = Object.assign((typeof my1uzr === "object" && my1uzr) ? my1uzr : {}, storedData);
+   if (_prevWorknOnPg != null) my1uzr.worknOnPg = _prevWorknOnPg;
+   if (_prevWorknFor != null) my1uzr.worknFor = _prevWorknFor;
+   window.my1uzr = my1uzr;
    payload0.jk = response.uzr.jk;
    payload0.mk = response.uzr.mk;
    nameOfLoggedInPage = `${my1uzr.mo}_${my1uzr.mc}_${appOwner.tn}_${payload0.fi}_${payload0.fk}_${appOwner.pg}`;
@@ -874,13 +878,13 @@ function set_innerHTML_of_shoLgnO() {
         <div class="container p-0">
             <div class="card">
                 <div class="card-header text-center d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Login with <span id="lo-otpTextToggle" style="cursor: pointer; padding: 2px 5px; border-radius: 3px; transition: all 0.3s;">OTP</span></h5>
+                    <h5 class="card-title mb-0">Login with <span id="lo-otpTextToggle" class=".card-title" style="cursor: pointer; padding: 2px 5px; border-radius: 3px; transition: all 0.3s;">OTP</span></h5>
                     <div class="d-flex align-items-center gap-2">
                         <button type="button" class="btn btn-sm lo-pw-login" onclick="openLoginWithPassFromLoginWith()" title="Login with Password">🔑 Password</button>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                 </div>
-                <div class="card-body" style="background-color: #33FFCC;">
+                <div class="card-body" style="background-color: #DBEAFE;">
                     <!--
                     <div class="mb-3">
                         <label for="loginName" class="form-label">
@@ -940,11 +944,11 @@ function set_innerHTML_of_shoLgnO() {
 }
 
 async function openLoginWithPassFromLoginWith() {
-    const modal = bootstrap.Modal.getInstance(document.getElementById(id_of_dv_shoJgnO_to_set_processed_dom_object));
-    if (modal) modal.hide();
-    const t932 = getCacheId("my1lp.js");
-    if (t932)
-        await loadExe2Fn(t932, ['dv_to_set_open_my1ctr_processed', 0, 1, 2], [1]);
+ const modal = bootstrap.Modal.getInstance(document.getElementById(id_of_dv_shoJgnO_to_set_processed_dom_object));
+ if (modal) modal.hide();
+ const t932 = getCacheId("my1lp.js");
+ if (t932)
+  await loadExe2Fn(t932, ['dv_to_set_open_my1ctr_processed', 0, 1, 2], [1]);
 }
 
 function setupOtpTextToggleLO() {
@@ -964,8 +968,8 @@ function setupOtpTextToggleLO() {
 function updateOtpTextAppearanceLO() {
  const otpTextToggle = document.getElementById("lo-otpTextToggle");
  if (otpTextToggle) {
-  if (isOtpSuppressed) { otpTextToggle.textContent = "sending OTP disabled"; otpTextToggle.style.backgroundColor = "red"; otpTextToggle.style.color = "white"; }
-  else { otpTextToggle.textContent = "OTP"; otpTextToggle.style.backgroundColor = ""; otpTextToggle.style.color = ""; }
+  if (isOtpSuppressed) { otpTextToggle.textContent = "disabled"; otpTextToggle.style.backgroundColor = "red"; otpTextToggle.style.color = "white"; }
+  else { otpTextToggle.textContent = "OTP"; }
  }
 }
 
@@ -1050,7 +1054,7 @@ function createOtpDigitInputsLO() {
 
 function addCustomStyles() {
  const style = document.createElement("style");
- style.textContent = `#lo-mobileDigitsContainer input.form-control {border-color: #6c757d !important;font-size: 16px !important;color: #000 !important;background-color: #fff !important;padding: 0.375rem 0.25rem !important;}#lo-mobileDigitsContainer input.form-control:focus {border-color: #495057 !important;box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;color: #000 !important;background-color: #fff !important;}#lo-otpDigitsContainer input.form-control {border-color: #6c757d !important;font-size: 16px !important;color: #000 !important;background-color: #fff !important;padding: 0.375rem 0.25rem !important;text-transform: uppercase !important;}#lo-otpDigitsContainer input.form-control:focus {border-color: #495057 !important;box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;color: #000 !important;background-color: #fff !important;}#lo-mobileDigitsContainer input,#lo-otpDigitsContainer input {-webkit-text-fill-color: #000 !important;}#fullScreenLoader {background-color: rgba(255, 255, 255, 0.9) !important;z-index: 10000 !important;}#autoVerifyProgress, #manualVerifyMsg {font-size: 0.875rem;padding: 0.5rem;margin-bottom: 0.5rem;}#lo-resendOtp:disabled {cursor: not-allowed;opacity: 0.6;}#lo-resendOtp.btn-warning {background-color: #ffc107 !important;border-color: #ffc107 !important;color: #212529 !important;}#audioErrorMsg {font-size: 0.875rem;padding: 0.5rem;margin-bottom: 0.5rem;}.lo-pw-login {color: #6c757d;border-color: #6c757d;background: transparent;}#lo-getOtpBtn:disabled {opacity: 0.6;cursor: not-allowed;}.blink-text {animation: blinkAnim 1s step-end infinite;} @keyframes blinkAnim {0%,100%{opacity:1}50%{opacity:0}}body.modal-open{overflow:visible!important;padding-right:0!important}.modal-content{border:3px solid #212529!important;border-radius:12px!important;} .modal-header,.modal-footer{border-color:#212529!important;}`;
+ style.textContent = `#lo-mobileDigitsContainer input.form-control {border-color: #6c757d !important;font-size: 16px !important;color: #000 !important;background-color: #fff !important;padding: 0.375rem 0.25rem !important;}#lo-mobileDigitsContainer input.form-control:focus {border-color: #495057 !important;box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;color: #000 !important;background-color: #fff !important;}#lo-otpDigitsContainer input.form-control {border-color: #6c757d !important;font-size: 16px !important;color: #000 !important;background-color: #fff !important;padding: 0.375rem 0.25rem !important;text-transform: uppercase !important;}#lo-otpDigitsContainer input.form-control:focus {border-color: #495057 !important;box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important;color: #000 !important;background-color: #fff !important;}#lo-mobileDigitsContainer input,#lo-otpDigitsContainer input {-webkit-text-fill-color: #000 !important;}#fullScreenLoader {background-color: rgba(255, 255, 255, 0.9) !important;z-index: 10000 !important;}#autoVerifyProgress, #manualVerifyMsg {font-size: 0.875rem;padding: 0.5rem;margin-bottom: 0.5rem;}#lo-resendOtp:disabled {cursor: not-allowed;opacity: 0.6;}#lo-resendOtp.btn-warning {background-color: #ffc107 !important;border-color: #ffc107 !important;color: #212529 !important;}#audioErrorMsg {font-size: 0.875rem;padding: 0.5rem;margin-bottom: 0.5rem;}.lo-pw-login {color: #6c757d;border-color: #6c757d;background: transparent;}#lo-getOtpBtn:disabled {opacity: 0.6;cursor: not-allowed;}.blink-text {animation: blinkAnim 1s step-end infinite;} @keyframes blinkAnim {0%,100%{opacity:1}50%{opacity:0}}body.modal-open{overflow:visible!important;padding-right:0!important}.modal-content{border:3px solid #212529!important;border-radius:12px!important;} .modal-header,.modal-footer{border-color:#212529!important;}#lo-getOtpBtn,#lo-verifyOtpBtn{background-color:#198754!important;border-color:#198754!important;color:#fff!important;}#lo-getOtpBtn:hover,#lo-verifyOtpBtn:hover{background-color:#146c43!important;border-color:#146c43!important;color:#fff!important;}`;
  document.head.appendChild(style);
 }
 
@@ -1536,11 +1540,11 @@ function getOtpFromInputsLO() {
 // Mirrors the ei.js dynamic-extra-fields engine (myxtraFlds_fildsToNeeds), self-contained
 // with a "my1loX" prefix to avoid global-name collisions when both scripts are present.
 function my1loXtraGet() {
-    try {
-        var c = (typeof window[my1uzr.worknOnPg].clientConfig === "object" && window[my1uzr.worknOnPg].clientConfig) ? window[my1uzr.worknOnPg].clientConfig : {};
-        var defs = c && c.xtraEiFlds_forLoginO;
-        return (defs && typeof defs === "object" && Object.keys(defs).length > 0) ? defs : null;
-    } catch (e) { return null; }
+ try {
+  var c = (typeof window[my1uzr.worknOnPg].clientConfig === "object" && window[my1uzr.worknOnPg].clientConfig) ? window[my1uzr.worknOnPg].clientConfig : {};
+  var defs = c && c.xtraEiFlds_forLoginO;
+  return (defs && typeof defs === "object" && Object.keys(defs).length > 0) ? defs : null;
+ } catch (e) { return null; }
 }
 function my1loXtraIsGroup(def) {
  if (!def || typeof def !== "object") return false;
@@ -1583,73 +1587,73 @@ function my1loXtraRender() {
  function renderDef(def, path, inDiv) {
   var out = "";
   if (!def || typeof def !== "object") return out;
-   if (my1loXtraIsGroup(def)) {
-    var children = my1loXtraChildren(def);
-    var hasBox = (def.type === "div" || (def.x && typeof def.x === "object") || !!def.lbl) && !inDiv;
-     var isMeta = function (key) { return key === "lbl" || key === "type" || key === "ptrn" || key === "rq" || key === "rqOneOf" || key === "preProcess" || key === "postProcess" || key === "x"; };
-    if (hasBox) {
-     out += '<div style="' + boxStyle + '">';
-     if (def.lbl) out += '<div class="text-xs fw-bold text-uppercase mb-2" style="color:#343a40;"><i class="fas fa-layer-group me-1" style="color:' + p.brand + ';"></i>' + def.lbl + '</div>';
-     var _ro = def.rqOneOf && typeof def.rqOneOf === "object" && def.rqOneOf.length ? def.rqOneOf : null;
-     var _roSelDone = false;
-     for (var ck in def) {
-      if (!def.hasOwnProperty(ck)) continue;
-      if (isMeta(ck)) {
-       if (_ro && ck === "rqOneOf" && !_roSelDone) {
-        _roSelDone = true;
-        out += '<select class="my1loXph-rqOneOf-sel" data-path="' + path + '" style="font-size:14px;' + inpDyn + 'padding:6px 8px;margin-bottom:8px;"><option value="" disabled selected>Select...</option>';
-        for (var ri = 0; ri < _ro.length; ri++) {
-         var rKey = _ro[ri];
-         var rLbl = (children[rKey] && children[rKey].lbl) || rKey;
-         out += '<option value="' + rKey + '">' + rLbl + '</option>';
-        }
-         out += '</select>';
-         out += '<span class="my1loXph-err" data-path="' + path + '__rqOneOfSel" style="font-size:11px;color:#dc3545;display:none;margin-top:2px;"></span>';
-        }
-        continue;
+  if (my1loXtraIsGroup(def)) {
+   var children = my1loXtraChildren(def);
+   var hasBox = (def.type === "div" || (def.x && typeof def.x === "object") || !!def.lbl) && !inDiv;
+   var isMeta = function (key) { return key === "lbl" || key === "type" || key === "ptrn" || key === "rq" || key === "rqOneOf" || key === "preProcess" || key === "postProcess" || key === "x"; };
+   if (hasBox) {
+    out += '<div style="' + boxStyle + '">';
+    if (def.lbl) out += '<div class="text-xs fw-bold text-uppercase mb-2" style="color:#343a40;"><i class="fas fa-layer-group me-1" style="color:' + p.brand + ';"></i>' + def.lbl + '</div>';
+    var _ro = def.rqOneOf && typeof def.rqOneOf === "object" && def.rqOneOf.length ? def.rqOneOf : null;
+    var _roSelDone = false;
+    for (var ck in def) {
+     if (!def.hasOwnProperty(ck)) continue;
+     if (isMeta(ck)) {
+      if (_ro && ck === "rqOneOf" && !_roSelDone) {
+       _roSelDone = true;
+       out += '<select class="my1loXph-rqOneOf-sel" data-path="' + path + '" style="font-size:14px;' + inpDyn + 'padding:6px 8px;margin-bottom:8px;"><option value="" disabled selected>Select...</option>';
+       for (var ri = 0; ri < _ro.length; ri++) {
+        var rKey = _ro[ri];
+        var rLbl = (children[rKey] && children[rKey].lbl) || rKey;
+        out += '<option value="' + rKey + '">' + rLbl + '</option>';
        }
-       if (!def.x && !children[ck]) continue;
-      if (_ro && _ro.indexOf(ck) !== -1) {
-       out += '<div class="my1loXph-rqOneOf-item" data-rqoneof="' + path + '" data-rqoneof-key="' + ck + '" style="display:none;">';
-       out += renderDef(children[ck], path + "__" + ck, true);
-       out += '</div>';
-      } else {
-       out += renderDef(children[ck], path + "__" + ck, true);
+       out += '</select>';
+       out += '<span class="my1loXph-err" data-path="' + path + '__rqOneOfSel" style="font-size:11px;color:#dc3545;display:none;margin-top:2px;"></span>';
       }
+      continue;
      }
-     out += "</div>";
-    } else {
-     if (def.lbl) out += '<div class="text-xs fw-bold text-uppercase mt-3" style="color:#343a40;"><i class="fas fa-layer-group me-1" style="color:' + p.brand + ';"></i>' + def.lbl + '</div>';
-     var _ro = def.rqOneOf && typeof def.rqOneOf === "object" && def.rqOneOf.length ? def.rqOneOf : null;
-     var _roSelDone = false;
-     for (var pk in def) {
-      if (!def.hasOwnProperty(pk)) continue;
-      if (isMeta(pk)) {
-       if (_ro && pk === "rqOneOf" && !_roSelDone) {
-        _roSelDone = true;
-        out += '<select class="my1loXph-rqOneOf-sel" data-path="' + path + '" style="font-size:14px;' + inpDyn + 'padding:6px 8px;margin-bottom:8px;"><option value="" disabled selected>Select...</option>';
-        for (var ri = 0; ri < _ro.length; ri++) {
-         var rKey = _ro[ri];
-         var rLbl = (children[rKey] && children[rKey].lbl) || rKey;
-         out += '<option value="' + rKey + '">' + rLbl + '</option>';
-        }
-         out += '</select>';
-         out += '<span class="my1loXph-err" data-path="' + path + '__rqOneOfSel" style="font-size:11px;color:#dc3545;display:none;margin-top:2px;"></span>';
-        }
-        continue;
-       }
-       if (!children[pk]) continue;
-      if (_ro && _ro.indexOf(pk) !== -1) {
-       out += '<div class="my1loXph-rqOneOf-item" data-rqoneof="' + path + '" data-rqoneof-key="' + pk + '" style="display:none;">';
-       out += renderDef(children[pk], path + "__" + pk, inDiv);
-       out += '</div>';
-      } else {
-       out += renderDef(children[pk], path + "__" + pk, inDiv);
-      }
+     if (!def.x && !children[ck]) continue;
+     if (_ro && _ro.indexOf(ck) !== -1) {
+      out += '<div class="my1loXph-rqOneOf-item" data-rqoneof="' + path + '" data-rqoneof-key="' + ck + '" style="display:none;">';
+      out += renderDef(children[ck], path + "__" + ck, true);
+      out += '</div>';
+     } else {
+      out += renderDef(children[ck], path + "__" + ck, true);
      }
     }
-    return out;
+    out += "</div>";
+   } else {
+    if (def.lbl) out += '<div class="text-xs fw-bold text-uppercase mt-3" style="color:#343a40;"><i class="fas fa-layer-group me-1" style="color:' + p.brand + ';"></i>' + def.lbl + '</div>';
+    var _ro = def.rqOneOf && typeof def.rqOneOf === "object" && def.rqOneOf.length ? def.rqOneOf : null;
+    var _roSelDone = false;
+    for (var pk in def) {
+     if (!def.hasOwnProperty(pk)) continue;
+     if (isMeta(pk)) {
+      if (_ro && pk === "rqOneOf" && !_roSelDone) {
+       _roSelDone = true;
+       out += '<select class="my1loXph-rqOneOf-sel" data-path="' + path + '" style="font-size:14px;' + inpDyn + 'padding:6px 8px;margin-bottom:8px;"><option value="" disabled selected>Select...</option>';
+       for (var ri = 0; ri < _ro.length; ri++) {
+        var rKey = _ro[ri];
+        var rLbl = (children[rKey] && children[rKey].lbl) || rKey;
+        out += '<option value="' + rKey + '">' + rLbl + '</option>';
+       }
+       out += '</select>';
+       out += '<span class="my1loXph-err" data-path="' + path + '__rqOneOfSel" style="font-size:11px;color:#dc3545;display:none;margin-top:2px;"></span>';
+      }
+      continue;
+     }
+     if (!children[pk]) continue;
+     if (_ro && _ro.indexOf(pk) !== -1) {
+      out += '<div class="my1loXph-rqOneOf-item" data-rqoneof="' + path + '" data-rqoneof-key="' + pk + '" style="display:none;">';
+      out += renderDef(children[pk], path + "__" + pk, inDiv);
+      out += '</div>';
+     } else {
+      out += renderDef(children[pk], path + "__" + pk, inDiv);
+     }
+    }
    }
+   return out;
+  }
   var ftype = def.type || "text";
   var req = def.rq === 1 || def.rq === true;
   var lbl = def.lbl || path;
@@ -1743,7 +1747,7 @@ function my1loXtraBind() {
   el.addEventListener("input", function () {
    var v = el.value || "";
    var strip = el.getAttribute("data-strip");
-   if (strip) { try { v = v.replace(new RegExp(strip, "g"), ""); } catch (e) {} }
+   if (strip) { try { v = v.replace(new RegExp(strip, "g"), ""); } catch (e) { } }
    if (el.getAttribute("data-uc")) v = v.toUpperCase();
    var ml = parseInt(el.getAttribute("data-maxlen") || "", 10);
    if (ml > 0 && v.length > ml) v = v.substring(0, ml);
@@ -1753,32 +1757,32 @@ function my1loXtraBind() {
  document.querySelectorAll("#my1loXtraFields .my1loXph-val").forEach(function (el) {
   el.addEventListener("input", function () { my1loXtraLiveCheck(this); });
   el.addEventListener("change", function () { my1loXtraLiveCheck(this); });
-   el.addEventListener("blur", async function () {
-    var path = this.getAttribute("data-path");
-    if (!path) return;
-    var def = my1loXtraFindDefByPath(my1loXtraGet(), path);
-    if (!def || !def.preProcess || typeof window[def.preProcess] !== "function") return;
-    var pre = await my1loXtraRunPre(def, String(this.value || ""), null);
-    if (String(pre) !== String(this.value || "")) this.value = pre;
-    my1loXtraLiveCheck(this);
-   });
+  el.addEventListener("blur", async function () {
+   var path = this.getAttribute("data-path");
+   if (!path) return;
+   var def = my1loXtraFindDefByPath(my1loXtraGet(), path);
+   if (!def || !def.preProcess || typeof window[def.preProcess] !== "function") return;
+   var pre = await my1loXtraRunPre(def, String(this.value || ""), null);
+   if (String(pre) !== String(this.value || "")) this.value = pre;
+   my1loXtraLiveCheck(this);
   });
-  document.querySelectorAll(".my1loXph-rqOneOf-sel").forEach(function (sel) {
-   sel.addEventListener("change", function () {
-    var gp = this.getAttribute("data-path");
-    document.querySelectorAll('.my1loXph-rqOneOf-item[data-rqoneof="' + gp + '"]').forEach(function (d) { d.style.display = "none"; });
-    var chosen = this.value;
-    if (chosen) {
-     var item = document.querySelector('.my1loXph-rqOneOf-item[data-rqoneof="' + gp + '"][data-rqoneof-key="' + chosen + '"]');
-     if (item) {
-      item.style.display = "";
-      var def = my1loXtraFindDefByPath(my1loXtraGet(), gp + "__" + chosen);
-      if (def && def._origRq !== undefined) { def.rq = def._origRq; delete def._origRq; }
-     }
+ });
+ document.querySelectorAll(".my1loXph-rqOneOf-sel").forEach(function (sel) {
+  sel.addEventListener("change", function () {
+   var gp = this.getAttribute("data-path");
+   document.querySelectorAll('.my1loXph-rqOneOf-item[data-rqoneof="' + gp + '"]').forEach(function (d) { d.style.display = "none"; });
+   var chosen = this.value;
+   if (chosen) {
+    var item = document.querySelector('.my1loXph-rqOneOf-item[data-rqoneof="' + gp + '"][data-rqoneof-key="' + chosen + '"]');
+    if (item) {
+     item.style.display = "";
+     var def = my1loXtraFindDefByPath(my1loXtraGet(), gp + "__" + chosen);
+     if (def && def._origRq !== undefined) { def.rq = def._origRq; delete def._origRq; }
     }
-   });
+   }
   });
- }
+ });
+}
 function my1loXtraFindDefByPath(xtra, path) {
  if (!xtra || typeof xtra !== "object") return null;
  var parts = path.split("__");
@@ -1792,16 +1796,16 @@ function my1loXtraFindDefByPath(xtra, path) {
  }
  return cur;
 }
- function my1loXtraCheckField(def, path, focusOnFail) {
-  if (!def || typeof def !== "object") return true;
-  var el = my1loXtraQuery("my1loXph-val", path);
-  if (!el) return true;
-  var rpItem = el.closest('.my1loXph-rqOneOf-item');
-  if (rpItem && rpItem.style.display === "none") {
-   if (def.rq !== undefined && def._origRq === undefined) { def._origRq = def.rq; def.rq = 0; }
-   return true;
-  }
-  var isFile = def.type === "file";
+function my1loXtraCheckField(def, path, focusOnFail) {
+ if (!def || typeof def !== "object") return true;
+ var el = my1loXtraQuery("my1loXph-val", path);
+ if (!el) return true;
+ var rpItem = el.closest('.my1loXph-rqOneOf-item');
+ if (rpItem && rpItem.style.display === "none") {
+  if (def.rq !== undefined && def._origRq === undefined) { def._origRq = def.rq; def.rq = 0; }
+  return true;
+ }
+ var isFile = def.type === "file";
  var req = def.rq === 1 || def.rq === true;
  var errEl = my1loXtraQuery("my1loXph-err", path);
  var val = String(el.value || "").trim();
@@ -1810,7 +1814,7 @@ function my1loXtraFindDefByPath(xtra, path) {
   if (isFile) { var box = my1loXtraQuery("my1loXph-img-box", path); if (box) box.style.borderColor = "#dc3545"; }
   else el.style.borderColor = "#dc3545";
   if (focusOnFail) {
-   try { var t = isFile ? my1loXtraQuery("my1loXph-img-box", path) : el; t.focus(); t.scrollIntoView({ block: "center" }); } catch (e) {}
+   try { var t = isFile ? my1loXtraQuery("my1loXph-img-box", path) : el; t.focus(); t.scrollIntoView({ block: "center" }); } catch (e) { }
   }
   return false;
  };
@@ -1821,8 +1825,8 @@ function my1loXtraFindDefByPath(xtra, path) {
   return true;
  };
  if (req && !val) return failLocal((def.lbl || path) + " is required");
-var ptrn = def.ptrn || def.pattern;
-  if (val && ptrn && typeof ptrn === "string") {
+ var ptrn = def.ptrn || def.pattern;
+ if (val && ptrn && typeof ptrn === "string") {
   var re = null;
   try { re = new RegExp(ptrn); } catch (e) { re = null; }
   if (re && !re.test(val)) return failLocal("Invalid " + (def.lbl || path));
@@ -1867,58 +1871,58 @@ function my1loXtraValidate() {
    }
   }
  }
-  walk(xtra, "");
-   (function() {
-    function chkGroup(obj, basePath) {
-     for (var k in obj) {
-      if (!obj.hasOwnProperty(k)) continue;
-      var def = obj[k];
-      var path = basePath ? basePath + "__" + k : k;
-      if (!def || typeof def !== "object") continue;
-      if (my1loXtraIsGroup(def)) {
-       var ro = def.rqOneOf;
-       if (ro && typeof ro === "object" && ro.length) {
-        var ch = my1loXtraChildren(def);
-        var anyVal = false;
-        var anyVisible = false;
-        var lbls = [];
-        var firstVisiblePath = null;
-        var ddEl = my1loXtraQuery("my1loXph-rqOneOf-sel", path);
-        for (var i = 0; i < ro.length; i++) {
-         var fk = ro[i];
-         if (ch[fk] && ch[fk].lbl) lbls.push(ch[fk].lbl);
-         var cel = my1loXtraQuery("my1loXph-val", path + "__" + fk);
-         if (!cel) continue;
-         var celItem = cel.closest('.my1loXph-rqOneOf-item');
-         if (celItem && celItem.style.display === "none") continue;
-         if (!anyVisible) { anyVisible = true; firstVisiblePath = path + "__" + fk; }
-         if (String(cel.value || "").trim()) { anyVal = true; break; }
-        }
-         if (!anyVal) {
-          ok = false;
-          if (!firstInvalid) {
-           firstInvalid = ddEl || (firstVisiblePath ? my1loXtraQuery("my1loXph-val", firstVisiblePath) : null) || null;
-          }
-          var errEl = !anyVisible
-           ? my1loXtraQuery("my1loXph-err", path + "__rqOneOfSel")
-           : (ddEl ? my1loXtraQuery("my1loXph-err", path + "__" + ro[0]) : (firstVisiblePath ? my1loXtraQuery("my1loXph-err", firstVisiblePath) : null));
-          if (errEl) {
-           errEl.textContent = !anyVisible ? "Required" : "Please enter at least one: " + lbls.join(", ");
-           errEl.style.display = "block";
-          }
-        }
+ walk(xtra, "");
+ (function () {
+  function chkGroup(obj, basePath) {
+   for (var k in obj) {
+    if (!obj.hasOwnProperty(k)) continue;
+    var def = obj[k];
+    var path = basePath ? basePath + "__" + k : k;
+    if (!def || typeof def !== "object") continue;
+    if (my1loXtraIsGroup(def)) {
+     var ro = def.rqOneOf;
+     if (ro && typeof ro === "object" && ro.length) {
+      var ch = my1loXtraChildren(def);
+      var anyVal = false;
+      var anyVisible = false;
+      var lbls = [];
+      var firstVisiblePath = null;
+      var ddEl = my1loXtraQuery("my1loXph-rqOneOf-sel", path);
+      for (var i = 0; i < ro.length; i++) {
+       var fk = ro[i];
+       if (ch[fk] && ch[fk].lbl) lbls.push(ch[fk].lbl);
+       var cel = my1loXtraQuery("my1loXph-val", path + "__" + fk);
+       if (!cel) continue;
+       var celItem = cel.closest('.my1loXph-rqOneOf-item');
+       if (celItem && celItem.style.display === "none") continue;
+       if (!anyVisible) { anyVisible = true; firstVisiblePath = path + "__" + fk; }
+       if (String(cel.value || "").trim()) { anyVal = true; break; }
+      }
+      if (!anyVal) {
+       ok = false;
+       if (!firstInvalid) {
+        firstInvalid = ddEl || (firstVisiblePath ? my1loXtraQuery("my1loXph-val", firstVisiblePath) : null) || null;
        }
-       chkGroup(my1loXtraChildren(def), path);
-       continue;
+       var errEl = !anyVisible
+        ? my1loXtraQuery("my1loXph-err", path + "__rqOneOfSel")
+        : (ddEl ? my1loXtraQuery("my1loXph-err", path + "__" + ro[0]) : (firstVisiblePath ? my1loXtraQuery("my1loXph-err", firstVisiblePath) : null));
+       if (errEl) {
+        errEl.textContent = !anyVisible ? "Required" : "Please enter at least one: " + lbls.join(", ");
+        errEl.style.display = "block";
+       }
       }
      }
+     chkGroup(my1loXtraChildren(def), path);
+     continue;
     }
-    chkGroup(xtra, "");
-   })();
-  if (firstInvalid) {
-   try { firstInvalid.focus(); firstInvalid.scrollIntoView({ block: "center" }); } catch (e) {}
+   }
   }
-  return ok;
+  chkGroup(xtra, "");
+ })();
+ if (firstInvalid) {
+  try { firstInvalid.focus(); firstInvalid.scrollIntoView({ block: "center" }); } catch (e) { }
+ }
+ return ok;
 }
 function my1loXtraCollect() {
  var xtra = my1loXtraGet();
@@ -1931,12 +1935,12 @@ function my1loXtraCollect() {
    var path = basePath ? basePath + "__" + k : k;
    if (!def || typeof def !== "object") continue;
    if (my1loXtraIsGroup(def)) { dest[k] = {}; walk(my1loXtraChildren(def), path, dest[k]); continue; }
-    var el = my1loXtraQuery("my1loXph-val", path);
-    if (el) {
-     var _roItem = el.closest('.my1loXph-rqOneOf-item');
-     if (_roItem && _roItem.style.display === "none") continue;
-     dest[k] = el.value;
-    }
+   var el = my1loXtraQuery("my1loXph-val", path);
+   if (el) {
+    var _roItem = el.closest('.my1loXph-rqOneOf-item');
+    if (_roItem && _roItem.style.display === "none") continue;
+    dest[k] = el.value;
+   }
   }
  }
  walk(xtra, "", out);

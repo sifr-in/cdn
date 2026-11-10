@@ -141,7 +141,7 @@ function set_innerHTML_of_shoLgnP() {
 <h5 class="card-title mb-0">Login with Password</h5>
 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
-<div class="card-body" style="background-color: #FFCCFF;">
+<div class="card-body" style="background-color: #DBEAFE;">
 <div class="mb-3">
 <!--label for="loginMobile" class="form-label">Mobile Number</label-->
 <div class="input-group flex-nowrap">
@@ -207,10 +207,10 @@ function set_innerHTML_of_register() {
 <div class="container p-0">
 <div class="card">
 <div class="card-header text-center d-flex justify-content-between align-items-center">
-<h5 class="card-title mb-0">${isReRegisterMode ? 'Re-register <span id="lp-otpTextToggle" style="cursor: pointer; padding: 2px 5px; border-radius: 3px; transition: all 0.3s;">My</span> Account' : 'Register <span id="lp-otpTextToggle" style="cursor: pointer; padding: 2px 5px; border-radius: 3px; transition: all 0.3s;">New</span> Account'}</h5>
+<h5 class="card-title mb-0">${isReRegisterMode ? 'Re-register <span id="lp-otpTextToggle" class=".card-title" style="cursor: pointer; padding: 2px 5px; border-radius: 3px; transition: all 0.3s;">My</span> Account' : 'Register <span id="lp-otpTextToggle" class=".card-title" style="cursor: pointer; padding: 2px 5px; border-radius: 3px; transition: all 0.3s;">New</span> Account'}</h5>
 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
-<div class="card-body" style="background-color: #99FFFF; max-height: 70vh; overflow-y: auto;">
+<div class="card-body" style="background-color: #DBEAFE; max-height: 70vh; overflow-y: auto;">
 <div class="mb-3">
 <!--label for="registerMobile" class="form-label">Mobile Number</label-->
 <div class="input-group flex-nowrap">
@@ -286,12 +286,12 @@ You agree with the <a href="#" class="text-primary">Terms & Conditions</a> when 
 <div class="row align-items-center mt-1">
     <div class="col-8">
         <hr class="my-1">
-        <p class="text-muted mb-0 ms-1">Already have an account?-></p>
+        <p class="text-primary mb-0 ms-1">Already have an account?</p>
     </div>
 
     <div class="col-4 text-end">
         <hr class="my-1">
-        <button id="switchToLogin" class="btn btn-outline-secondary btn-sm">
+        <button id="switchToLogin" class="btn btn-outline-primary btn-sm">
             Login here
         </button>
     </div>
@@ -762,7 +762,7 @@ async function open_shoJgnP(...args) {
  swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn = args[3] || 0;
 
  if (isLoggedInLP()) {
-  if (swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn === 2) {}
+  if (swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn === 2) { }
   return;
  }
 
@@ -996,8 +996,6 @@ function updateOtpTextAppearanceLP(otpTextToggle) {
    otpTextToggle.style.color = 'white';
   } else {
    otpTextToggle.textContent = isReRegisterMode ? 'My' : 'New';
-   otpTextToggle.style.backgroundColor = '';
-   otpTextToggle.style.color = '';
   }
  }
 }
@@ -1696,7 +1694,7 @@ async function getOTP_LP(countryCode, mobileNumber) {
   return { success: false };
  }
 
- const data = { yo: mobileNumber, yc: countryCode, ul:"4/og.php", gt:4 };
+ const data = { yo: mobileNumber, yc: countryCode, ul: "4/og.php", gt: 4 };
 
  // Add suppression flag if OTP is disabled
  if (isOtpSuppressed) {
@@ -1704,8 +1702,8 @@ async function getOTP_LP(countryCode, mobileNumber) {
  }
 
  try {
-    const body = JSON.stringify(data);
-    const response = await fnj4(null, body, 0, 1, null, 20000, 1, 0);
+  const body = JSON.stringify(data);
+  const response = await fnj4(null, body, 0, 1, null, 20000, 1, 0);
   const result = response;
 
   if (result.su == 1) {
@@ -1725,11 +1723,11 @@ async function getOTP_LP(countryCode, mobileNumber) {
 }
 
 async function verifyOTP_LP(countryCode, mobileNumber, otp) {
- const data = { yo: mobileNumber, yc: countryCode, mp: otp, ul:"4/ov.php", gt:4 };
+ const data = { yo: mobileNumber, yc: countryCode, mp: otp, ul: "4/ov.php", gt: 4 };
 
  try {
-    const body = JSON.stringify(data);
-    const response = await fnj4(null, body, 0, 1, null, 20000, 1, 0);
+  const body = JSON.stringify(data);
+  const response = await fnj4(null, body, 0, 1, null, 20000, 1, 0);
   const result = response;
 
   if (result.su == 1) {
@@ -1754,8 +1752,8 @@ async function performRegistration(countryCode, mobileNumber, localName, otp, pa
   pw: password,
   eo: appOwner.eo,
   ec: appOwner.ec,
-  ul:"4/sp.php",
-  gt:4
+  ul: "4/sp.php",
+  gt: 4
  };
 
  if (!my1lpXtraValidate()) return;
@@ -1764,8 +1762,8 @@ async function performRegistration(countryCode, mobileNumber, localName, otp, pa
  if (xtraVals && Object.keys(xtraVals).length > 0) data.p = xtraVals;
 
  try {
-    const body = JSON.stringify(data);
-    const response = await fnj4(null, body, 0, 1, null, 20000, 1, 0);
+  const body = JSON.stringify(data);
+  const response = await fnj4(null, body, 0, 1, null, 20000, 1, 0);
   const result = response;
 
   if (result.su == 1) {
@@ -1789,8 +1787,8 @@ async function performLogin(countryCode, mobileNumber, password) {
    pw: password,
    eo: appOwner.eo,
    ec: appOwner.ec,
-   ul:"4/gt.php",
-   gt:4,
+   ul: "4/gt.php",
+   gt: 4,
    xtra: typeof xtraj_payload !== "undefined" ? xtraj_payload : null
   };
 
@@ -1798,8 +1796,8 @@ async function performLogin(countryCode, mobileNumber, password) {
    if (validateMobileNumber(data.yo)) {
     if (data.pw != null && data.pw.length > 5) {
      try {
-        const body = JSON.stringify(data);
-        const response = await fnj4(null, body, 0, 1, null, 20000, 1, 0);
+      const body = JSON.stringify(data);
+      const response = await fnj4(null, body, 0, 1, null, 20000, 1, 0);
       const result = response;
 
       if (result.su == 1) {
@@ -1811,7 +1809,12 @@ async function performLogin(countryCode, mobileNumber, password) {
         userData.fnp = result.fnp;
         localStorage.setItem('my1uzr', JSON.stringify(userData));
         const storedData = JSON.parse(localStorage.getItem("my1uzr")) || {};
-        my1uzr = { ...my1uzr, ...storedData };
+        const _prevWorknOnPg = (typeof my1uzr !== "undefined" && my1uzr) ? my1uzr.worknOnPg : null;
+        const _prevWorknFor = (typeof my1uzr !== "undefined" && my1uzr) ? my1uzr.worknFor : null;
+        my1uzr = Object.assign((typeof my1uzr === "object" && my1uzr) ? my1uzr : {}, storedData);
+        if (_prevWorknOnPg != null) my1uzr.worknOnPg = _prevWorknOnPg;
+        if (_prevWorknFor != null) my1uzr.worknFor = _prevWorknFor;
+        window.my1uzr = my1uzr;
         // my1uzr = JSON.parse(localStorage.getItem('my1uzr'));
         payload0.jk = result.uzr.jk;
         payload0.mk = result.uzr.mk;
@@ -1885,6 +1888,21 @@ async function performLogin(countryCode, mobileNumber, password) {
             hook(allowedModules);
            } else {
             console.warn(hookName + " hook not defined; allowed modules not shown in menu");
+           }
+          }
+          // Full re-render only when my1jp was triggered by my1ctr; otherwise refresh in place if open.
+           if (window.__my1jpCaller === "my1ctr") {
+            try {
+             delete window.__my1jpCaller;
+             if (typeof showUserInfoModal === "function") await showUserInfoModal();
+             else if (typeof open_my1ctr === "function") await open_my1ctr("dv_to_set_open_my1ctr_processed", 0, 1, 2);
+            }
+           catch (e) { console.warn('my1ctr re-render failed:', e); }
+          } else {
+           var my1ctrOpen = (typeof admPpModalRefs !== 'undefined' && admPpModalRefs && admPpModalRefs.instance && document.getElementById('admPpModMenu'));
+           if (my1ctrOpen && typeof admPpRenderModMenu === 'function') {
+            try { await admPpRenderModMenu(); }
+            catch (e) { console.warn('admPp menu refresh failed:', e); }
            }
           }
          }
@@ -2006,7 +2024,7 @@ function addCustomStylesP() {
 [id$="DigitsContainer"] input.form-control{border-color:#6c757d!important;font-size:16px!important;color:#000!important;background-color:#fff!important;padding:.375rem 0.25rem!important}[id$="DigitsContainer"] input.form-control:focus{border-color:#495057!important;box-shadow:0 0 0 .2rem rgb(108 117 125 / .25)!important;color:#000!important;background-color:#fff!important}#lp-otpDigitsContainer input.form-control{border-color:#6c757d!important;font-size:16px!important;color:#000!important;background-color:#fff!important;padding:.375rem 0.25rem!important;text-transform:uppercase!important}#lp-otpDigitsContainer input.form-control:focus{border-color:#495057!important;box-shadow:0 0 0 .2rem rgb(108 117 125 / .25)!important;color:#000!important;background-color:#fff!important}[id$="DigitsContainer"] input,#lp-otpDigitsContainer input{-webkit-text-fill-color:#000!important}#lp-resendOtp:disabled{cursor:not-allowed;opacity:.6}#lp-resendOtp.btn-warning{background-color:#ffc107!important;border-color:#ffc107!important;color:#212529!important}.blink-text{animation:blinkAnim 1s step-end infinite}@keyframes blinkAnim{0%,100%{opacity:1}50%{opacity:0}}
 .my1lp-pw-tooltip{position:absolute;z-index:2147483647;background:#dc3545;color:#fff;padding:6px 10px;border-radius:6px;font-size:12px;line-height:1.3;opacity:0;transform:translateY(-4px);transition:opacity .18s ease,transform .18s ease;pointer-events:none;max-width:260px;box-shadow:0 4px 12px rgba(0,0,0,.25);}
 .my1lp-pw-tooltip.show{opacity:1;transform:translateY(0);}
-.my1lp-pw-tooltip::before{content:'';position:absolute;top:-6px;left:14px;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:6px solid #dc3545;}
+.my1lp-pw-tooltip::before{content:'';position:absolute;top:-6px;left:14px;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:6px solid #dc3545;}#loginSubmit,#lp-sendOtpBtn,#lp-verifyOtpBtn,#completeRegistration{background-color:#198754!important;border-color:#198754!important;color:#fff!important;}#loginSubmit:hover,#lp-sendOtpBtn:hover,#lp-verifyOtpBtn:hover,#completeRegistration:hover{background-color:#146c43!important;border-color:#146c43!important;color:#fff!important;}
 `;
  document.head.appendChild(style);
 }
