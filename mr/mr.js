@@ -101,8 +101,8 @@ window[my1uzr.worknOnPg].csh = [
     { a: 3, u: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" },
     { a: 4, u: "https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js" },
     { a: 5, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/my1xi.min.js" },
-    { a: 6, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1jp.min.js", c: "open_shoJgnP", r: "open_shoJgnP" },
-    { a: 7, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1jo.min.js", c: "open_shoJgnO", r: "open_shoJgnO" },
+    { a: 6, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@d13c09b/cmn/my1jp.min.js", c: "open_shoJgnP", r: "open_shoJgnP" },
+    { a: 7, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@d13c09b/cmn/my1jo.min.js", c: "open_shoJgnO", r: "open_shoJgnO" },
     { a: 8, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/conta.min.js", c: "showContactModal", r: "showContactModal" },
     { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@60f8540/cmn/my1img.min.js", c: "open_addimage", r: "open_addimage" },
     //{ a: 101, u: "git/my1gal.js", c: "open_my1gall", r: "open_my1gall" }, not in use keep as
@@ -1506,19 +1506,15 @@ function createProfileCard(profile) {
     const religionNames = __mrReligionNames(profile);
     const relationTxt = __mrRelationName(profile.j);
 
-    const metaItem = (icon, text) => (text
-        ? `<span class="app-card__meta-item"><i class="fas fa-${icon}"></i>${__mrEscHtml(text)}</span>`
-        : '');
-    //religion chip shows the whole chain (religion -> caste -> sub caste) as a mini tree
-    const religionItem = religionNames.length
-        ? `<span class="app-card__meta-item app-card__meta-item--tree"><i class="fas fa-${__mrMetaIcon('k')}"></i><span class="app-card__tree">`
-            + religionNames.map((nm, i) => `<span class="app-card__tree-node lv${i}">${__mrEscHtml(nm)}</span>`).join('')
-            + `</span></span>`
-        : '';
-    const metaHtml = religionItem
-        + metaItem(__mrMetaIcon('g'), ageTxt)
-        + metaItem(__mrMetaIcon('h'), height)
-        + metaItem(__mrMetaIcon('s'), degreeTxt);
+    //Layout A: no religion; age + height on one row with the eye badge on the right;
+    //degree below (2 lines) on the left, badge in the same right column.
+    const inlineParts = [];
+    if (ageTxt && ageTxt !== '-') inlineParts.push(`<span class="app-card__meta-item"><i class="fas fa-${__mrMetaIcon('g')}"></i>${__mrEscHtml(ageTxt)}</span>`);
+    if (height) inlineParts.push(`<span class="app-card__meta-item"><i class="fas fa-${__mrMetaIcon('h')}"></i>${__mrEscHtml(height)}</span>`);
+    const inlineMeta = inlineParts.join('');
+    const viewBadge = `<button type="button" class="app-card__view-badge" title="View Profile"
+            onclick="showProfileDtls(${profileId})"><i class="fas fa-eye"></i></button>`;
+    const degreeText = degreeTxt ? `<span class="app-card__degree-text"><i class="fas fa-${__mrMetaIcon('s')}"></i> ${__mrEscHtml(degreeTxt)}</span>` : '';
 
     const col = document.createElement('div');
     //Bootstrap column classes stay so the grid works without our CSS
@@ -1541,8 +1537,8 @@ function createProfileCard(profile) {
                     const ec = window.ownr_ec || '';
                     const pj = window.ownr_pj || '';
                     if (!eo || !ec || !pj) return `<span class="app-card__id">ID: ${__mrEscHtml(uid)}</span>`;
-                    const url = `http://my1.in/${eo}/${ec}/${pj}/p/${encodeURIComponent(uid)}.html`;
-                    return `<span class="app-card__id app-card__id--link" role="button" tabindex="0" title="Share profile" onclick="event.stopPropagation(); var u='${url.replace(/'/g,"\\'")}'; if(typeof shareApp==='function'){ shareApp({url:u, title:'Profile ${uid.replace(/'/g,"\\'")}', text:'Profile ${uid.replace(/'/g,"\\'")}' }); } else if(navigator.share){ navigator.share({title:'Profile ${uid.replace(/'/g,"\\'")}', text:'Profile ${uid.replace(/'/g,"\\'")}', url:u}).catch(function(){ try{prompt('Copy this link:',u);}catch(e){} }); } else { try{prompt('Copy this link:',u);}catch(e){} }">ID: ${__mrEscHtml(uid)}</span>`;
+                    const url = `https://my1.in/${eo}/${ec}/${pj}/p/${encodeURIComponent(uid)}.html`;
+                    return `<span class="app-card__id app-card__id--link" role="button" tabindex="0" title="Share profile" onclick="event.stopPropagation(); var u='${url.replace(/'/g,"\\'")}'; if(typeof shareApp==='function'){ shareApp({url:u}); } else if(navigator.share){ navigator.share({url:u}).catch(function(){ try{prompt('Copy this link:',u);}catch(e){} }); } else { try{prompt('Copy this link:',u);} catch(e){} }">ID: ${__mrEscHtml(uid)}</span>`;
                 })()}
             </div>
 
@@ -1551,12 +1547,12 @@ function createProfileCard(profile) {
                     <h3 class="app-card__name">${__mrEscHtml(firstName)}</h3>
                     ${relationTxt ? `<span class="app-detail-main">${__mrEscHtml(relationTxt)}</span>` : ''}
                 </div>
-                ${metaHtml ? `<div class="app-card__meta">${metaHtml}</div>` : ''}
-                <div class="app-card__actions">
-                    <button type="button" class="app-btn-primary"
-                            onclick="showProfileDtls(${profileId})">
-                        <i class="fas fa-eye"></i> View Profile
-                    </button>
+                <div class="app-card__row">
+                    <div class="app-card__row-left">
+                        ${inlineMeta ? `<div class="app-card__meta-inline">${inlineMeta}</div>` : ''}
+                        ${degreeText}
+                    </div>
+                    <div class="app-card__row-right">${viewBadge}</div>
                 </div>
             </div>
         </div>
@@ -1620,8 +1616,6 @@ async function __mrOpenRegistration(explicitId) {
             }
         } catch (e) { }
     }
-    //after a page refresh the localStorage copy can be missing while the in-memory row
-    //(loaded by prfl.js) is already there: still open UPDATE instead of the Add form
     if (!id) {
         try {
             var mem = window.myEinMR;
@@ -1646,26 +1640,21 @@ function mrOpenRegistrationForMe() { __mrOpenRegistration(); }
 function createEmptyProfileCard() {
     const col = document.createElement('div');
     col.className = 'col-12 col-sm-6 col-md-4 col-lg-3 mb-4 app-card app-card--new';
-    //stay invisible until the local "mr" check resolves, so an async read can
-    //never flash this card for a member who already has local records
     col.style.visibility = 'hidden';
 
     const optsHtml = (list) => list
         .map(o => `<option value="${__mrEscHtml(o.v)}">${__mrEscHtml(o.l)}</option>`)
         .join('');
-    //view-only select: not focusable, clicks pass through to the card handler
     const vSel = (field, list, label, cls) => `
         <select class="app-card__select${cls ? ' ' + cls : ''}" data-mrfield="${field}"
                 tabindex="-1" aria-label="${__mrEscHtml(label)}">
             ${optsHtml(list)}
         </select>`;
-    //view-only input: readonly + not focusable, clicks pass through to the card handler
     const vInp = (field, attrs) => `
         <input class="app-card__input" data-mrfield="${field}" tabindex="-1" readonly ${attrs}>`;
     const metaItem = (icon, ctl) => `
         <span class="app-card__meta-item"><i class="fas fa-${icon}"></i>${ctl}</span>`;
 
-    //title slots match createProfileCard: name + relation status (.app-detail-main)
     const titleHtml = `
         <div class="app-card__title">
             <h3 class="app-card__name">
@@ -1674,8 +1663,6 @@ function createEmptyProfileCard() {
             </h3>
             ${vSel('j', __mrNewCardStatusOpts(), 'Status', 'app-detail-main')}
         </div>`;
-
-    //meta chips in the same order/icons as createProfileCard (no location-dot)
     const metaHtml = metaItem(__mrMetaIcon('k'), vSel('k', __mrNewCardReligionOpts(), 'Religion'))
         + metaItem(__mrMetaIcon('g'), vInp('g', `placeholder="Age" aria-label="Age"`))
         + metaItem(__mrMetaIcon('h'), vInp('h', `type="text" inputmode="decimal" placeholder="Height" aria-label="Height"`))
@@ -1700,9 +1687,7 @@ function createEmptyProfileCard() {
         </div>
     `;
 
-    //view-only card: any click (controls, Save, image area) opens the registration modal
     col.addEventListener('click', function () {
-        //member's own saved profile (in-memory first, then localStorage fallback)
         function getSelfProfileLocal() {
             try {
                 if (typeof getSelfProfile === 'function') {
@@ -2233,7 +2218,7 @@ h1,h2,h3,h4,h5,h6,.h1,.h2,.h3,.h4,.h5,.h6,.card-title,.modal-title{
 }
 .form-control::placeholder{ color:#9c937f; opacity:1; }
 .form-control:disabled,.form-control[readonly]{ background-color:#faf4e6; }
-.form-select{ background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%238B1E3F' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3E%3C/svg%3E"); }
+.form-select{ background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='https://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%238B1E3F' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3E%3C/svg%3E"); }
 .input-group-text{
   background:#faf4e6;
   border:1px solid rgba(150,120,70,.45);
@@ -2581,6 +2566,64 @@ input.form-control.is-invalid:focus{ box-shadow:0 0 0 3px rgba(163,49,32,.2); }
 .app-card__tree-node.lv2{ color:#6b6355; font-size:.74rem; padding-left:24px; }
 .app-card__tree-node.lv1::before,.app-card__tree-node.lv2::before{ content:"⤵ "; color:#c9a45c; font-size:.65rem; }
 
+/* religion block: head on its own line, caste+age+height on one non-wrapping
+   line, sub-caste below */
+.app-card__religion{ display:flex; flex-direction:column; gap:.25rem; margin:.35rem 0; }
+.app-card__religion-head{ display:inline-flex; align-items:center; gap:.35rem; font-weight:700; color:#8B1E3F; font-size:.9rem; }
+.app-card__religion-head i{ color:var(--mr-primary); font-size:.78rem; }
+.app-card__meta-inline{
+  display:flex; flex-wrap:nowrap; align-items:center; gap:.6rem;
+  font-size:.85rem; font-weight:600; color:var(--muted);
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+}
+.app-card__meta-inline .app-card__meta-item{ display:inline-flex; align-items:center; gap:.3rem; flex:0 0 auto; white-space:nowrap; }
+.app-card__meta-inline .app-card__meta-item i{ color:var(--mr-primary); font-size:.78rem; }
+.app-card__caste{ flex:0 0 auto; white-space:nowrap; color:var(--muted); font-weight:600; }
+.app-card__religion-sub{ font-size:.78rem; color:#6b6355; padding-left:1.35rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* degree: text may wrap to 2 lines, circular badge pinned on the right */
+.app-card__degree{
+  display:flex; align-items:flex-start; justify-content:space-between; gap:.6rem;
+  margin:.35rem 0 .5rem;
+}
+.app-card__degree-text{
+  display:flex; align-items:flex-start; gap:.35rem;
+  font-size:.85rem; font-weight:600; color:var(--muted);
+  line-height:1.35;
+  flex:1 1 auto; min-width:0;
+}
+.app-card__degree-text i{ color:var(--mr-primary); font-size:.78rem; margin-top:.2rem; flex:0 0 auto; }
+.app-card__degree-badge{
+  flex:0 0 auto;
+  width:2.1rem; height:2.1rem; border-radius:50%;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,var(--gold-light),var(--gold));
+  color:#241d12; font-size:.85rem; font-weight:700;
+  box-shadow:0 2px 6px rgba(0,0,0,.18);
+}
+/* circular view-profile badge instead of the big button */
+.app-card__actions{ display:flex; justify-content:flex-end; margin-top:auto; padding-top:.6rem; }
+.app-card__view-badge{
+  width:2.6rem; height:2.6rem; border-radius:50%;
+  display:inline-flex; align-items:center; justify-content:center;
+  background-image:linear-gradient(135deg,var(--mr-primary),var(--mr-primary-600) 55%,var(--mr-primary-700));
+  color:#ffffff; border:none; cursor:pointer;
+  font-size:.9rem;
+  box-shadow:0 8px 20px rgba(78,12,35,.24);
+  transition:transform .18s ease, box-shadow .18s ease, background-image .18s ease, color .18s ease;
+}
+.app-card__view-badge:hover{
+  transform:translateY(-2px) scale(1.06);
+  box-shadow:0 10px 26px rgba(78,12,35,.32);
+  background-image:linear-gradient(135deg,#7a2317,#5c1a12 55%,#430f13);
+  color:#ffffff;
+}
+.app-card__degree--solo{ justify-content:flex-end; }
+/* Layout A: age+height row with eye badge on the right; degree below */
+.app-card__row{ display:flex; align-items:center; justify-content:space-between; gap:1rem; margin:.35rem 0; }
+.app-card__row-left{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:.35rem; }
+.app-card__row-right{ flex:0 0 auto; display:flex; align-items:center; }
+.app-card__degree-text{ display:block; font-size:.85rem; font-weight:600; color:var(--muted); line-height:1.35; }
+.app-card__degree-text i{ color:var(--mr-primary); font-size:.78rem; margin-right:.35rem; }
 .app-card__role{
   display:flex; align-items:center; gap:.4rem;
   font-size:.85rem; font-weight:600; color:#5c4a18;
