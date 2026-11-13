@@ -159,10 +159,42 @@ async function openDepthSelectionModal(inputId, value, divId, key, fullObject) {
  //mustSelectTillLast (mr.da dfltReligious / dfltCaste / default*Country) is the same
  //switch seen from the form side: 1 (or an absent key) commits only a full path down
  //to the last level, 0 also offers the OK button so the user may stop early
- const mustSelectTillLast = (fullObject && fullObject.mustSelectTillLast !== undefined &&
-  fullObject.mustSelectTillLast !== null && fullObject.mustSelectTillLast !== '')
-  ? (Number(fullObject.mustSelectTillLast) === 0 ? 0 : 1) : 1;
- const partially = !!(fullObject && fullObject.partially) || mustSelectTillLast === 0;
+ //the caller does not always carry the config: the filter passes it on first open,
+ //but the pencil / chip edit routes (setValByPrprtyDepthToElm) re-open with a bare
+ //object. Remember the resolved options per input/div/key so a later edit still
+ //knows the picker is partial (mustSelectTillLast 0) and keeps its OK button.
+ const optStash = (window.__mrPickerOpts = window.__mrPickerOpts || {});
+ const optKeys = [];
+ if (inputId) optKeys.push('i:' + inputId);
+ if (divId) optKeys.push('d:' + divId);
+ if (key) optKeys.push('k:' + key);
+ const stashPrev = {};
+ optKeys.forEach(function (ok) { if (optStash[ok]) Object.assign(stashPrev, optStash[ok]); });
+ fullObject = Object.assign({}, stashPrev, fullObject || {});
+ //never let a bare re-open erase a config the first open already knew
+ ['mustSelectTillLast', 'partially', 'Partially', 'ctry'].forEach(function (f) {
+  if ((fullObject[f] === undefined || fullObject[f] === null || fullObject[f] === '') && stashPrev[f] !== undefined) {
+   fullObject[f] = stashPrev[f];
+  }
+ });
+ optKeys.forEach(function (ok) { optStash[ok] = fullObject; });
+
+ //resolve the config from every shape it can arrive in: top-level, nested in
+ //the country-info object (fltr.js placeCountryInfo -> fo.ctry), or stamped on
+ //the picker box by the filter (data-mstl / data-partial)
+ let cfgMust = (fullObject.mustSelectTillLast !== undefined && fullObject.mustSelectTillLast !== null && fullObject.mustSelectTillLast !== '')
+  ? fullObject.mustSelectTillLast
+  : (fullObject.ctry ? fullObject.ctry.mustSelectTillLast : undefined);
+ if ((cfgMust === undefined || cfgMust === null || cfgMust === '') && divElement) {
+  const dm = divElement.getAttribute('data-mstl');
+  if (dm !== null && dm !== '') cfgMust = dm;
+ }
+ const mustSelectTillLast = (cfgMust !== undefined && cfgMust !== null && cfgMust !== '')
+  ? (Number(cfgMust) === 0 ? 0 : 1) : 1;
+ let cfgPartial = fullObject.partially || fullObject.Partially === 1 || fullObject.Partially === '1' ||
+  (fullObject.ctry && (fullObject.ctry.partially || fullObject.ctry.Partially === 1 || fullObject.ctry.Partially === '1'));
+ if (!cfgPartial && divElement && divElement.getAttribute('data-partial') === '1') cfgPartial = true;
+ const partially = !!cfgPartial || mustSelectTillLast === 0;
  //0-based levels frozen by config (dfltReligious -> 0, dfltCaste -> 1); they are
  //never changeable and Clear can never remove them
  const lockedLevels = (fullObject && Array.isArray(fullObject.lockedLevels)) ? fullObject.lockedLevels.map(Number) : [];
@@ -270,15 +302,16 @@ async function openDepthSelectionModal(inputId, value, divId, key, fullObject) {
  //level below the locked prefix still holds a value
  footerClearBtn.disabled = !startHasValue || (valueParts <= fixedDepth);
  footer.appendChild(footerClearBtn);
- //partial selection (filter city pickers, mr.da "Partially"): an OK button commits
- //the deepest chosen level instead of only a leaf. Shown only when the caller asks.
+ //an OK button commits the deepest chosen level (mid-level apply). Shown only
+ //when `partially` is true (mustSelectTillLast === 0 or Partially === 1);
+ //hidden entirely when mustSelectTillLast === 1 with no Partially flag.
  let footerOkBtn = null;
  if (partially) {
   footerOkBtn = document.createElement('button');
   footerOkBtn.type = 'button';
   footerOkBtn.className = 'btn btn-primary ok-btn';
   footerOkBtn.innerHTML = '<i class="fas fa-check me-1"></i> OK';
-  footerOkBtn.disabled = true;
+  footerOkBtn.disabled = false;
   footerOkBtn.addEventListener('click', () => commitCurrentPath());
   footer.appendChild(footerOkBtn);
  }
@@ -294,7 +327,7 @@ async function openDepthSelectionModal(inputId, value, divId, key, fullObject) {
   const storedArrayName = divElement.getAttribute('data-selection-array') || fullObject.e || '';
   const storedDepth = parseInt(divElement.getAttribute('data-depth-for-native')) || requiredDepth;
   if (typeof window.setValByPrprtyDepthToElm === 'function') {
-   window.setValByPrprtyDepthToElm(inputId, newValue, divId, key, { c: storedArrayName, canAdd: 1, depthForNative: storedDepth });
+   window.setValByPrprtyDepthToElm(inputId, newValue, divId, key, { c: storedArrayName, canAdd: 1, depthForNative: storedDepth, mustSelectTillLast: mustSelectTillLast, partially: partially });
   }
   modalInstance.hide();
  });
@@ -313,7 +346,7 @@ async function openDepthSelectionModal(inputId, value, divId, key, fullObject) {
   const storedArrayName = divElement.getAttribute('data-selection-array') || fullObject.e || '';
   const storedDepth = parseInt(divElement.getAttribute('data-depth-for-native')) || requiredDepth;
   if (typeof window.setValByPrprtyDepthToElm === 'function') {
-   window.setValByPrprtyDepthToElm(inputId, newValue, divId, key, { c: storedArrayName, canAdd: 1, depthForNative: storedDepth });
+   window.setValByPrprtyDepthToElm(inputId, newValue, divId, key, { c: storedArrayName, canAdd: 1, depthForNative: storedDepth, mustSelectTillLast: mustSelectTillLast, partially: partially });
   }
   modalInstance.hide();
  }
@@ -328,7 +361,7 @@ async function openDepthSelectionModal(inputId, value, divId, key, fullObject) {
   const ciC = (fullObject && fullObject.ctry) ||
               (typeof window.mrCountryInfoFor === 'function' && window.mrCountryInfoFor(key)) || null;
   if (ciC && ciC.id !== undefined && ciC.id !== null && ciC.id !== '' &&
-      (!selectedIds.length || String(selectedIds[0]) === String(ciC.id))) {
+      (!selectedIds.length || !ctryItem(selectedIds[0]) || String(selectedIds[0]) === String(ciC.id))) {
    const row = ctryItem(ciC.id);
    if (row) {
     if (!selectedIds.length) selectedIds = [String(row.a)];
@@ -602,7 +635,7 @@ async function openDepthSelectionModal(inputId, value, divId, key, fullObject) {
      //non-final level must never commit directly - descend instead.
      const isLeaf = card.dataset.leaf === '1';
      const mustDescend = !isLeaf && mustSelectTillLast === 1 && itemDepth < (requiredDepth || effectiveMaxDepth());
-     if (!isLeaf || mustDescend) {
+     if (mustDescend) {
       gotoResultPath(String(newValue).split(',').filter(Boolean), itemDepth);
       return;
      }
@@ -610,7 +643,7 @@ async function openDepthSelectionModal(inputId, value, divId, key, fullObject) {
     if (inEl) { inEl.value = newValue; }
     const storedArrayName = divElement?.getAttribute('data-selection-array') || fullObject.e || '';
     const storedDepth = parseInt(divElement?.getAttribute('data-depth-for-native')) || requiredDepth;
-    if (typeof window.setValByPrprtyDepthToElm === 'function') { window.setValByPrprtyDepthToElm(inputId, newValue, divId, key, { c: storedArrayName, canAdd: 1, depthForNative: storedDepth }); }
+    if (typeof window.setValByPrprtyDepthToElm === 'function') { window.setValByPrprtyDepthToElm(inputId, newValue, divId, key, { c: storedArrayName, canAdd: 1, depthForNative: storedDepth, mustSelectTillLast: mustSelectTillLast, partially: partially }); }
     modalInstance.hide();
    });
   });
@@ -786,8 +819,9 @@ async function openDepthSelectionModal(inputId, value, divId, key, fullObject) {
   if (footerClearBtn) {
    footerClearBtn.disabled = selCount <= fixedDepth;
   }
-  //the partial-selection OK button stays disabled until something is on the path
-  if (footerOkBtn) footerOkBtn.disabled = selCount === 0;
+  //the OK button is only rendered for partial pickers and is always enabled
+  //(commitCurrentPath() no-ops on an empty path)
+  if (footerOkBtn) footerOkBtn.disabled = false;
   if (isSearchMode) { const searchInput = document.getElementById(`depthSearch_${modalId}`); if (searchInput && searchInput.value.trim()) { renderSearchResults(searchInput.value.trim()); return; } else { isSearchMode = false; } }
   renderItems();
  }
@@ -855,7 +889,7 @@ async function openDepthSelectionModal(inputId, value, divId, key, fullObject) {
      if (inEl) { inEl.value = newValue; }
      const storedArrayName = divElement?.getAttribute('data-selection-array') || fullObject.e || '';
      const storedDepth = parseInt(divElement?.getAttribute('data-depth-for-native')) || requiredDepth;
-     if (typeof window.setValByPrprtyDepthToElm === 'function') { window.setValByPrprtyDepthToElm(inputId, newValue, divId, key, { c: storedArrayName, canAdd: 1, depthForNative: storedDepth }); }
+     if (typeof window.setValByPrprtyDepthToElm === 'function') { window.setValByPrprtyDepthToElm(inputId, newValue, divId, key, { c: storedArrayName, canAdd: 1, depthForNative: storedDepth, mustSelectTillLast: mustSelectTillLast, partially: partially }); }
      modalInstance.hide();
     }
    });
@@ -936,6 +970,10 @@ async function openDepthSelectionModal(inputId, value, divId, key, fullObject) {
    }
   }
   updateUI();
+  //safety: re-evaluate the OK button after the region list (if any) settles,
+  //so a re-opened partial picker keeps its OK button visible
+  setTimeout(updateUI, 120);
+
  }
 
  setTimeout(finishOpen, 60);
@@ -943,6 +981,25 @@ async function openDepthSelectionModal(inputId, value, divId, key, fullObject) {
  modalElement.addEventListener('hidden.bs.modal', function onHide() {
   modalElement.removeEventListener('hidden.bs.modal', onHide);
   if (scopedStyles && scopedStyles.parentNode) scopedStyles.parentNode.removeChild(scopedStyles);
+  //clean up the lifted backdrop (fltr.js liftPlaceModal pins the picker's own
+  //backdrop at z-index 100000). Never remove the parent modal's backdrop and
+  //never leave the lifted one behind - it would sit above the filter modal and
+  //swallow clicks.
+  setTimeout(function () {
+   if (typeof window.__mrSyncModalBackdrops === 'function') {
+    window.__mrSyncModalBackdrops();
+    return;
+   }
+   var stillShown = document.querySelectorAll('.modal.show').length;
+   var bds = document.querySelectorAll('.modal-backdrop[data-mr-lifted="1"]');
+   bds.forEach(function (b) { b.remove(); });
+   if (!stillShown) {
+    document.querySelectorAll('.modal-backdrop').forEach(function (b) { b.remove(); });
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('padding-right');
+   }
+  }, 0);
   setTimeout(() => { if (modalElement && modalElement.parentNode) modalElement.parentNode.removeChild(modalElement); }, 300);
  });
 

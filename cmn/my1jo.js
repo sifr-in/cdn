@@ -846,13 +846,13 @@ async function verifyOTP_LO(otp) {
     if (appModuLst && typeof chkModuLstAgainstFNF === 'function') {
      window.suppressModals = true;
      let allowedModules;
+     const hookName = appModuLst?.hook;
      try {
       allowedModules = await chkModuLstAgainstFNF(appModuLst);
      } finally {
       window.suppressModals = false;
      }
      if (allowedModules && allowedModules.length > 0) {
-      const hookName = allowedModules.hook || "onModuLstAllowed";
       const hook = window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg][hookName];
       if (typeof hook === 'function') {
        hook(allowedModules);
@@ -946,7 +946,7 @@ function set_innerHTML_of_shoLgnO() {
 async function openLoginWithPassFromLoginWith() {
  const modal = bootstrap.Modal.getInstance(document.getElementById(id_of_dv_shoJgnO_to_set_processed_dom_object));
  if (modal) modal.hide();
- const t932 = getCacheId("my1lp.js");
+ const t932 = getCacheId("my1jp.js");
  if (t932)
   await loadExe2Fn(t932, ['dv_to_set_open_my1ctr_processed', 0, 1, 2], [1]);
 }

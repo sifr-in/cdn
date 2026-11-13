@@ -257,16 +257,14 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
  drawerHeader.appendChild(headerContent);
  drawerHeader.appendChild(closeButton);
 
- // Define the exact menu sequence with icons (all icons in grey color, removed Profile Privacy)
  const defaultMenuItems = [
   {
     title: getSelfProfile() ? 'Update Profile' : 'Register Profile',
     icon: 'fas fa-user-cog',
-    color: '#6c757d', // Grey color
+    color: '#6c757d',
     onClick: () => {
       const self = getSelfProfile();
 
-      // ✅ If NO profile exists → this is a "Register Profile" action
       if (!self) {
         const poseTill = window[my1uzr.worknOnPg]?.clientConfig?.registrationPoseTill;
 
@@ -291,6 +289,43 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
       })();
     }
   },
+  ...((!((window.my1uzr && window.my1uzr.jk) || (window.payload0 && window.payload0.jk))) ? [{
+    title: 'Already Registered - Login',
+    icon: 'fas fa-user-cog',
+    color: '#6c757d',
+    onClick: async () => {
+      const poseTill = window[my1uzr.worknOnPg]?.clientConfig?.registrationPoseTill;
+      if (poseTill !== undefined && poseTill !== null && String(poseTill).trim().length > 0) {
+        window.showConfirmModal(String(poseTill));
+        return;
+      }
+      // Refresh the stored profile only: run fn 70 (chkMyCount) -> hndlRspo70,
+      // without opening or reopening the registration modal.
+      if (typeof window.handleAlreadyRegistered === 'function') {
+        await window.handleAlreadyRegistered({ reopen: false });
+        return;
+      }
+      // Fallback: call the refresh endpoint directly.
+      try {
+        if (typeof clearPayload0 === 'function') clearPayload0();
+        const p0 = window.payload0 || (window.payload0 = {});
+        p0.fn = 70;
+        p0.ul = '3/0d.php';
+        p0.gt = 3;
+        const resp = await fnj4(null, p0, 1, 1, null, 20000, 2, 1);
+        if (resp && resp.su == 1 && typeof window.hndlRspo70 === 'function') {
+          await window.hndlRspo70(resp);
+        }
+      } catch (err) {
+        console.warn('Profile refresh failed:', err);
+      } finally {
+        try {
+          const p0 = window.payload0;
+          if (p0) { delete p0.x1; delete p0.x2; delete p0.la; delete p0.drml; }
+        } catch (e) {}
+      }
+    }
+  }] : []),
   {
       title: 'Membership Plans',
       icon: 'fas fa-gem',
@@ -300,16 +335,6 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
               await loadExe2Fn(17, [], [1]); 
           })();
       }
-  },
-  {
-   title: 'Contact Us',
-   icon: 'fas fa-headset',
-   color: '#6c757d',
-    onClick: () => {
-     (async () => {
-      await loadExe2Fn(8, [], [1]);
-     })();
-    }
   },
   {
    title: 'About Us',

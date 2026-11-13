@@ -179,7 +179,9 @@
   }
   //which info sound the plans modal offers: free plan not added vs already added
   function freePlanSoundRaw() {
-    return soundRawOf(freeAlreadyAdded() ? "pga" : "pgf");
+    var freeCnt = Number(cfg().cust_da_const?.freeCnt) || 0;
+    if (freeAlreadyAdded()) return soundRawOf(freeCnt > 0 ? "pga" : "pgaNoFree");
+    return soundRawOf(freeCnt > 0 ? "pgf" : "pgfNoFree");
   }
 
   function planHtml(plan, recommended) {
@@ -236,7 +238,13 @@
     var f = Number(p.f);
     if (needed > 0 && f >= needed && f < recCount) { recCount = f; recId = String(p.a); }
    });
-   body = '<div class="mrp-list">' + list.map(function (p) {
+   //free plan card is only shown when mr.da freeCnt > 0
+   var freeCnt = Number((cfg().cust_da_const || {}).freeCnt) || 0;
+   var visibleList = list.filter(function (p) {
+    if (Number(p.e) === 0 && !(freeCnt > 0)) return false;
+    return true;
+   });
+   body = '<div class="mrp-list">' + visibleList.map(function (p) {
     return planHtml(p, recId != null && String(p.a) === recId);
    }).join("") + '</div>';
   }

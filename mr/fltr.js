@@ -27,6 +27,9 @@ function fltrPlaySound(key) {
 }
 
 async function showFilterBox() {
+ //sweep backdrops left behind by a replaced/interrupted modal; this keeps any
+ //backdrop that still belongs to an open modal
+ if (typeof window.__mrSyncModalBackdrops === 'function') { try { window.__mrSyncModalBackdrops(); } catch (e) { } }
  // Create modal dynamically
  const modal = create_modal_dynamically('filterModal');
  const modalContent = modal.contentElement; // .modal-body
@@ -37,7 +40,7 @@ async function showFilterBox() {
  modalContentEl.insertAdjacentHTML('afterbegin', `
         <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); border-bottom: 1px solid rgba(255,255,255,0.2); padding: 11px 16px;">
             <h5 class="modal-title" style="color: var(--text-on-primary); font-size: 1.1rem; margin: 0;">
-                <i class="fas fa-filter me-2"></i>Filter Profiles
+                <i class="fa-solid fa-sliders me-2"></i>Filter Profiles
             </h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
@@ -175,9 +178,9 @@ modalContent.innerHTML = `
           <i class="fas fa-birthday-cake me-1"></i>Age (years)
         </label>
         <div class="d-flex w-100 gap-1">
-            <input type="number" class="form-control form-control-sm filter-input" name="min_age" placeholder="Min" min="18" max="99" value="${getSavedValue('min_age')}" aria-label="Min age">
+            <input type="number" class="form-control form-control-sm filter-input" name="min_age" placeholder="Min" min="18" max="99" inputmode="numeric" maxlength="2" value="${getSavedValue('min_age')}" aria-label="Min age" title="Age must be between 18 and 99" data-bs-toggle="tooltip" data-bs-placement="top" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,2);">
           <span class="text-muted align-self-center">-</span>
-            <input type="number" class="form-control form-control-sm filter-input" name="max_age" placeholder="Max" min="18" max="99" value="${getSavedValue('max_age')}" aria-label="Max age">
+            <input type="number" class="form-control form-control-sm filter-input" name="max_age" placeholder="Max" min="18" max="99" inputmode="numeric" maxlength="2" value="${getSavedValue('max_age')}" aria-label="Max age" title="Age must be between 18 and 99" data-bs-toggle="tooltip" data-bs-placement="top" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,2);">
         </div>
       </div>
     </div>
@@ -187,9 +190,9 @@ modalContent.innerHTML = `
           <i class="fas fa-ruler-vertical me-1"></i>Height (ft.in)
         </label>
         <div class="d-flex w-100 gap-1">
-            <input type="text" class="form-control form-control-sm filter-input" name="min_height" placeholder="5.2" pattern="^(\\d{1,2})(\\.\\d{1,2})?$" value="${getSavedValue('min_height')}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\\..*?)\\./g, '$1');">
+            <input type="text" class="form-control form-control-sm filter-input" name="min_height" placeholder="5.10" pattern="^\\d(\\.\\d{1,2})?$" value="${getSavedValue('min_height')}" title="Height: 1 digit . up to 2 decimals (e.g. 5.10)" data-bs-toggle="tooltip" data-bs-placement="top" oninput="var v=this.value.replace(/[^0-9.]/g,'').replace(/(\\..*)\\./g,'$1'); var m=v.match(/^(\\d)(\\.\\d{0,2})?/); this.value=m?m[0]:v.slice(0,1);">
           <span class="text-muted align-self-center">-</span>
-            <input type="text" class="form-control form-control-sm filter-input" name="max_height" placeholder="6.0" pattern="^(\\d{1,2})(\\.\\d{1,2})?$" value="${getSavedValue('max_height')}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\\..*?)\\./g, '$1');">
+            <input type="text" class="form-control form-control-sm filter-input" name="max_height" placeholder="6.00" pattern="^\\d(\\.\\d{1,2})?$" value="${getSavedValue('max_height')}" title="Height: 1 digit . up to 2 decimals (e.g. 6.00)" data-bs-toggle="tooltip" data-bs-placement="top" oninput="var v=this.value.replace(/[^0-9.]/g,'').replace(/(\\..*)\\./g,'$1'); var m=v.match(/^(\\d)(\\.\\d{0,2})?/); this.value=m?m[0]:v.slice(0,1);">
         </div>
       </div>
     </div>
@@ -265,6 +268,23 @@ modalContentEl.insertAdjacentHTML('beforeend', `
 function setupValidationListeners() {
  const applyBtn = document.getElementById('applyFilters');
  if (!applyBtn) return;
+
+ try {
+  document.querySelectorAll('input[name="min_age"],input[name="max_age"],input[name="min_height"],input[name="max_height"]').forEach(function (el) {
+   if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+    new bootstrap.Tooltip(el, { trigger: 'manual', customClass: 'filter-tooltip' });
+    el.addEventListener('keydown', function (e) {
+     if (e.key !== 'Enter') return;
+     try { validateForm(); } catch (err) { }
+     const t = bootstrap.Tooltip.getInstance(el);
+     if (!t) return;
+     if (el.classList.contains('is-invalid')) t.show(); else t.hide();
+    });
+    el.addEventListener('input', function () { try { bootstrap.Tooltip.getInstance(el)?.hide(); } catch (err) { } });
+    el.addEventListener('blur', function () { try { bootstrap.Tooltip.getInstance(el)?.hide(); } catch (err) { } });
+   }
+  });
+ } catch (e) { }
  
  function validateForm() {
   let isValid = true;
@@ -288,9 +308,9 @@ function setupValidationListeners() {
   // Validate Height inputs
   const minHeight = document.querySelector('input[name="min_height"]');
   const maxHeight = document.querySelector('input[name="max_height"]');
-  const heightPattern = /^(\d{1,2})(\.\d{1,2})?$/;
-  if (minHeight && minHeight.value.trim() !== '') { if (!heightPattern.test(minHeight.value.trim())) { isValid = false;minHeight.classList.add('is-invalid'); } else { minHeight.classList.remove('is-invalid'); } }
-  if (maxHeight && maxHeight.value.trim() !== '') { if (!heightPattern.test(maxHeight.value.trim())) { isValid = false;maxHeight.classList.add('is-invalid'); } else { maxHeight.classList.remove('is-invalid'); } }
+  const heightPattern = /^\d(\.\d{1,2})?$/;
+  if (minHeight && minHeight.value.trim() !== '') { if (!heightPattern.test(minHeight.value.trim())) { isValid = false;minHeight.classList.add('is-invalid'); minHeight.title='Height must be like 5.10 (1 digit . 2 decimals)'; } else { minHeight.classList.remove('is-invalid'); minHeight.title='Height: 1 digit . up to 2 decimals (e.g. 5.10)'; } }
+  if (maxHeight && maxHeight.value.trim() !== '') { if (!heightPattern.test(maxHeight.value.trim())) { isValid = false;maxHeight.classList.add('is-invalid'); maxHeight.title='Height must be like 5.10 (1 digit . 2 decimals)'; } else { maxHeight.classList.remove('is-invalid'); maxHeight.title='Height: 1 digit . up to 2 decimals (e.g. 5.10)'; } }
   
   // Validate Income inputs
   const minIncome = document.querySelector('input[name="min_income"]');
@@ -302,8 +322,8 @@ function setupValidationListeners() {
   // Validate Age inputs
   const minAge = document.querySelector('input[name="min_age"]');
   const maxAge = document.querySelector('input[name="max_age"]');
-  if (minAge && minAge.value) { const age = parseInt(minAge.value); if (age < 18 || age > 99) { isValid = false;minAge.classList.add('is-invalid'); } else { minAge.classList.remove('is-invalid'); } }
-  if (maxAge && maxAge.value) { const age = parseInt(maxAge.value); if (age < 18 || age > 99) { isValid = false;maxAge.classList.add('is-invalid'); } else { maxAge.classList.remove('is-invalid'); } }
+  if (minAge && minAge.value) { const age = parseInt(minAge.value); if (age < 18 || age > 99) { isValid = false;minAge.classList.add('is-invalid'); minAge.title='Age must be between 18 and 99'; } else { minAge.classList.remove('is-invalid'); minAge.title='Age must be between 18 and 99'; } }
+  if (maxAge && maxAge.value) { const age = parseInt(maxAge.value); if (age < 18 || age > 99) { isValid = false;maxAge.classList.add('is-invalid'); maxAge.title='Age must be between 18 and 99'; } else { maxAge.classList.remove('is-invalid'); maxAge.title='Age must be between 18 and 99'; } }
   
   applyBtn.disabled = !isValid;
  }
@@ -420,7 +440,7 @@ function addFilterModalStyles() {
   style.id = 'filterModalStyles';
   style.textContent = `
 .filter-modal .modal-dialog {
-    margin: 1.75rem auto;
+    margin: 5vh auto 1.75rem;
     max-width: 500px; /* limits width */
 }
 .filter-modal .modal-content {
@@ -543,9 +563,18 @@ function addFilterModalStyles() {
     cursor: pointer;
     transition: all 0.2s ease;
 }
+.tooltip.filter-tooltip .tooltip-inner {
+  background: #ffffff;
+  color: #c0392b;
+  border: 1px solid #c0392b;
+  font-weight: 600;
+}
+.tooltip.filter-tooltip.bs-tooltip-top .tooltip-arrow::before {
+  border-top-color: #c0392b;
+}
 @media (max-width: 576px) {
     .filter-modal .modal-dialog {
-        margin: 0.5rem;
+        margin: 5vh 0.5rem 0.5rem;
     }
     .filter-modal .modal-content {
         max-height: 90vh;
@@ -830,6 +859,9 @@ function placeCountryInfo(k) {
   code: code,
   canChange: canChange,
   partially: Number(cfg.Partially) === 1,
+  mustSelectTillLast: (cfg.mustSelectTillLast === undefined || cfg.mustSelectTillLast === null || cfg.mustSelectTillLast === '')
+   ? 1
+   : (Number(cfg.mustSelectTillLast) === 0 ? 0 : 1),
   countryField: ''
  };
 }
@@ -854,10 +886,15 @@ function paintPlace(k) {
  if (!box || !inp) return;
  if (typeof window.setValByPrprtyDepthToElm !== 'function' || !inp.value) { box.innerHTML = placeFallbackText(k); return; }
  try {
+  //forward the picker config so a later edit / chip click re-opens with the
+  //same mustSelectTillLast (0 keeps the mid-level OK button available)
+  var pci = placeCountryInfo(k);
   window.setValByPrprtyDepthToElm(inp.id, inp.value, box.id, k, {
    c: placeArr(k),
    canAdd: 0,
-   depthForNative: placeDepth(k)
+   depthForNative: placeDepth(k),
+   mustSelectTillLast: pci ? pci.mustSelectTillLast : 1,
+   partially: pci ? (pci.partially || pci.mustSelectTillLast === 0) : false
   });
  } catch (e) {
   box.innerHTML = placeFallbackText(k);
@@ -865,15 +902,30 @@ function paintPlace(k) {
 }
 
 function liftPlaceModal() {
- setTimeout(function () {
+ //Lift only the backdrop Bootstrap made for the depth picker (it is appended
+ //after the filter modal's). Lifting the filter modal's own backdrop leaves it
+ //pinned at z-index 100000 above the filter modal once the picker closes, so
+ //the whole page looks frozen. Retry briefly: the picker's backdrop can appear
+ //a tick after openDepthSelectionModal() returns.
+ var tries = 0;
+ (function tick() {
+  tries++;
   try {
-   var last = null;
-   document.querySelectorAll('.modal[id^="depth_select_modal_"]').forEach(function (m) { m.style.zIndex = '100001'; last = m; });
+   var depth = document.querySelector('.modal[id^="depth_select_modal_"]');
+   if (!depth) { if (tries < 12) setTimeout(tick, 30); return; }
+   depth.style.zIndex = '100001';
+   var dlg = depth.querySelector('.modal-dialog');
+   if (dlg) dlg.style.zIndex = '100002';
    var bds = document.querySelectorAll('.modal-backdrop');
-   if (bds.length) bds[bds.length - 1].style.zIndex = '100000';
-   if (last) { var dlg = last.querySelector('.modal-dialog'); if (dlg) dlg.style.zIndex = '100002'; }
+   if (bds.length > 1) {
+    var bd = bds[bds.length - 1];
+    bd.style.zIndex = '100000';
+    bd.setAttribute('data-mr-lifted', '1');
+    return;
+   }
   } catch (e) { }
- }, 40);
+  if (tries < 12) setTimeout(tick, 30);
+ })();
 }
 
 async function openPlace(k) {
@@ -891,7 +943,18 @@ async function openPlace(k) {
  }
  if (!fo) fo = { e: placeArr(k), f: placeDepth(k) };
  var ci = placeCountryInfo(k);
- if (ci) { fo.ctry = ci; fo.partially = ci.partially; }
+ if (ci) {
+  fo.ctry = ci;
+  fo.mustSelectTillLast = ci.mustSelectTillLast;
+  //mustSelectTillLast 0 also means a partial path is allowed (mid-level OK)
+  fo.partially = ci.partially || ci.mustSelectTillLast === 0;
+  //stamp the config on the box so a later bare re-open (chip / pencil edit)
+  //still knows whether mid-level OK is allowed
+  try {
+   box.setAttribute('data-mstl', String(ci.mustSelectTillLast));
+   box.setAttribute('data-partial', (ci.partially || ci.mustSelectTillLast === 0) ? '1' : '0');
+  } catch (e) { }
+ }
  try {
   window.openDepthSelectionModal(inp.id, inp.value, box.id, k, fo);
   liftPlaceModal();
@@ -1096,7 +1159,20 @@ function resetFilters() {
  const modalElement = document.getElementById('filterModal');
  if (modalElement) {
   const modal = bootstrap.Modal.getInstance(modalElement);
-  if (modal) { modal.hide(); }
+  if (modal) {
+   modalElement.addEventListener('hidden.bs.modal', function once() {
+    modalElement.removeEventListener('hidden.bs.modal', once);
+    if (typeof window.__mrSyncModalBackdrops === 'function') {
+     window.__mrSyncModalBackdrops();
+    } else {
+     document.querySelectorAll('.modal-backdrop').forEach(function (b) { b.remove(); });
+     document.body.classList.remove('modal-open');
+     document.body.style.removeProperty('overflow');
+     document.body.style.removeProperty('padding-right');
+    }
+   }, { once: true });
+   modal.hide();
+  }
  }
 
  profilesData = [];
@@ -1123,7 +1199,7 @@ function resetFilters() {
       const profileCard = window.createProfileCard(profile);
       container.appendChild(profileCard);
      });
-     window.initLazyLoadImages();
+     if (window.mrImg) window.mrImg.hydrate(container);
     }
    
    const loaderContainer = document.getElementById('loader-container');
@@ -1176,6 +1252,7 @@ function getInputValue(name) {
 }
 
 window.filterResultsUpdated = function(filteredProfiles) {
+ console.log('filterResultsUpdated called with', filteredProfiles?.length || 0, 'profiles');
  
  try {
   const container = document.getElementById('profiles-container');
@@ -1189,7 +1266,7 @@ window.filterResultsUpdated = function(filteredProfiles) {
     const profileCard = createProfileCard(profile);
     container.appendChild(profileCard);
    });
-   window.initLazyLoadImages();
+   if (window.mrImg) window.mrImg.hydrate(container);
    
    const loaderContainer = document.getElementById('loader-container');
    if (loaderContainer) { loaderContainer.innerHTML = ''; }
@@ -1250,7 +1327,7 @@ async function fetchFilteredRecords(filters) {
          const profileCard = createProfileCard(profile); 
          container.appendChild(profileCard); 
        }); 
-       window.initLazyLoadImages(); 
+       if (window.mrImg) window.mrImg.hydrate(container); 
      } else { 
        container.innerHTML = `<div class="col-12"><div class="alert alert-info text-center"><i class="fas fa-info-circle me-2"></i>No profiles found matching your filters. Try adjusting your criteria.</div></div>`; 
      } 

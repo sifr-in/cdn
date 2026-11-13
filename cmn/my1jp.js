@@ -7,6 +7,9 @@ let isReRegisterMode = false;
 let swtch_0nothing_1flex_2block_shoLgnP;
 if (typeof swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn === "undefined") { var swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn = 0; }
 if (typeof isOtpSuppressed === "undefined") { var isOtpSuppressed = false; }
+if (typeof swtch_2showMy1ctrOnLogin_1showOtherDynamicly_0normalNoOpenAny === 'undefined') {
+  window.swtch_2showMy1ctrOnLogin_1showOtherDynamicly_0normalNoOpenAny = null;
+}
 
 // Resend timer functionality
 if (typeof resendTimer === "undefined") { var resendTimer = null; }
@@ -760,6 +763,7 @@ async function open_shoJgnP(...args) {
  switch_shoLgnP_create_nw_modal = args[1] || 0;
  swtch_0nothing_1flex_2block_shoLgnP = args[2] || 0;
  swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn = args[3] || 0;
+ swtch_2showMy1ctrOnLogin_1showOtherDynamicly_0normalNoOpenAny = args[4] || 0;
 
  if (isLoggedInLP()) {
   if (swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn === 2) { }
@@ -1876,13 +1880,13 @@ async function performLogin(countryCode, mobileNumber, password) {
          if (appModuLst && typeof chkModuLstAgainstFNF === 'function') {
           window.suppressModals = true;
           let allowedModules;
+          const hookName = appModuLst.hook;
           try {
            allowedModules = await chkModuLstAgainstFNF(appModuLst);
           } finally {
            window.suppressModals = false;
           }
           if (allowedModules && allowedModules.length > 0) {
-           const hookName = allowedModules.hook || "onModuLstAllowed";
            const hook = window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg][hookName];
            if (typeof hook === 'function') {
             hook(allowedModules);
@@ -1891,12 +1895,12 @@ async function performLogin(countryCode, mobileNumber, password) {
            }
           }
           // Full re-render only when my1jp was triggered by my1ctr; otherwise refresh in place if open.
-           if (window.__my1jpCaller === "my1ctr") {
-            try {
-             delete window.__my1jpCaller;
-             if (typeof showUserInfoModal === "function") await showUserInfoModal();
-             else if (typeof open_my1ctr === "function") await open_my1ctr("dv_to_set_open_my1ctr_processed", 0, 1, 2);
-            }
+          if (window.__my1jpCaller === "my1ctr") {
+           try {
+            delete window.__my1jpCaller;
+            if (typeof showUserInfoModal === "function") await showUserInfoModal();
+            else if (typeof open_my1ctr === "function") await open_my1ctr("dv_to_set_open_my1ctr_processed", 0, 1, 2);
+           }
            catch (e) { console.warn('my1ctr re-render failed:', e); }
           } else {
            var my1ctrOpen = (typeof admPpModalRefs !== 'undefined' && admPpModalRefs && admPpModalRefs.instance && document.getElementById('admPpModMenu'));
@@ -1905,6 +1909,18 @@ async function performLogin(countryCode, mobileNumber, password) {
             catch (e) { console.warn('admPp menu refresh failed:', e); }
            }
           }
+         }
+         try {
+          var my1ctrArgs = ['dv_to_set_open_my1ctr_processed', 0, 1, 2, swtch_2showMy1ctrOnLogin_1showOtherDynamicly_0normalNoOpenAny];
+          var my1ctrId = null;
+          try { my1ctrId = getCacheId('my1ctr.js'); } catch (e) { my1ctrId = null; }
+          if (my1ctrId != null && typeof loadExe2Fn === 'function') {
+           await loadExe2Fn(my1ctrId, my1ctrArgs, [1]);
+          } else {
+           console.warn('my1ctr auto-open failed:');
+          }
+         } catch (e) {
+          console.warn('my1ctr auto-open failed:', e);
          }
         }, 800);
        } else {

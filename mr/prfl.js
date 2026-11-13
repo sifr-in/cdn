@@ -391,7 +391,7 @@
 
     /* ---- detail modal -------------------------------------------------------------- */
     function heroHtml(profile, unlocked) {
-        var thumb = profile.thumbnail || "";
+        var thumb = profile.originalImage || profile.thumbnail;
         var badges = "";
         //if (String(profile.qa || "").trim()) badges += '<span class="mrd-badge mrd-badge--v"><i class="fas fa-circle-check"></i>Verified</span>';
         //if (profile.i && parseFloat(profile.i) > 0) badges += '<span class="mrd-badge mrd-badge--p"><i class="fas fa-crown"></i>Premium</span>';

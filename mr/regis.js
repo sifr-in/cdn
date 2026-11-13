@@ -2414,8 +2414,7 @@ var reqStar = {};
 
   //"Already Registered Member" -> fn 70 (chkMyCount): fetch my own profile by my mobile
   //number, then store it in the Dexie "mr" table and in localStorage "<tn>_myEinMR".
-  if (allreadyBtn) {
-   allreadyBtn.addEventListener("click", async function () {
+  var handleAlreadyRegistered = async function (opts) {
     if (sending) return;
     if (typeof fnj3 !== "function") { showMsg("err", "Network helper unavailable."); return; }
     hideMsg();
@@ -2452,17 +2451,26 @@ var reqStar = {};
     } finally {
      try { if (p0) { delete p0.x1; delete p0.x2; delete p0.la; delete p0.drml; } } catch (eX) { }
      setSending(false);
-     if (reopenId != null && typeof window.showRegistrationModal === "function") {
+     if (opts && opts.reopen === false) {
+      //refresh-only callers (e.g. the drawer menu) do not want the modal reopened
+     } else if (reopenId != null && typeof window.showRegistrationModal === "function") {
       //hndlRspo70 is in mr.js and cannot see this module's private activeClose, so the
       //modal is still open here: tear it down cleanly, then rebuild from the fresh row
-      try { close(); } catch (eC) { }
+      try { if (typeof close === 'function') close(); } catch (eC) { }
+      try {
+       var _ov = document.getElementById(MODAL_ID);
+       if (_ov && _ov.parentNode) _ov.parentNode.removeChild(_ov);
+      } catch (eC2) { }
+      try { document.body.style.overflow = ''; } catch (eC3) { }
       try {
        await window.showRegistrationModal(reopenId, adminMode ? { admin: true } : undefined);
       } catch (eRe) { console.error(eRe); }
      }
     }
-   });
-  }
+  };
+  if (allreadyBtn) allreadyBtn.addEventListener("click", handleAlreadyRegistered);
+  //exposed for callers outside this module (e.g. the drawer menu)
+  window.handleAlreadyRegistered = handleAlreadyRegistered;
 
   //Remove own profile -> fn 69 (public delete by profile owner). Three steps:
   //1) are you sure, 2) pick a reason (-1/-2/-3), 3) cannot be undone.
