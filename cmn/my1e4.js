@@ -1,0 +1,3609 @@
+window.appcss = null;
+let xtraj_payload = null;
+let appData = {};
+let tblFailureCount = 1;
+const cacheStrategy = 1;
+async function set_owner() {
+ const pathParts = window.location.pathname.split('/').filter(p => p);
+ const eo = window.ownr_eo = window.ownr_eo || pathParts[0];
+ const ec = window.ownr_ec = window.ownr_ec || pathParts[1];
+ const pj = window.ownr_pj = window.ownr_pj || pathParts[2];
+ window.appOwner = {
+  tn: `${eo}_${ec}`.replace(/\./g, "_"),
+  eo: eo,
+  ec: ec
+ };
+ window.appOwner.pg = window.location.href.split("/").pop().split("?")[0];
+
+ window.payload0 = { "eo": eo, "ec": ec, "fi": 0, "fk": 0 };
+ window.my1uzr = JSON.parse(localStorage.getItem('my1uzr'));
+ window.dbnm = "my1_in_" + window.appOwner.tn;
+
+ if (window.my1uzr != null && window.my1uzr.mk != null) {
+  window.payload0.mk = window.my1uzr.mk;
+ }
+ if (window.my1uzr != null && window.my1uzr.jk != null) {
+  window.payload0.jk = window.my1uzr.jk;
+ } else if (window.my1uzr == null || window.my1uzr.mk == null) {
+  window.my1uzr = {};
+ }
+ window.my1uzr.worknFor = window.appOwner.tn + "_" + window.payload0.fi + "_" + window.payload0.fk + "_" + window.my1uzr.mo + "_" + window.my1uzr.mc;
+ window.my1uzr.worknOnPg = window.my1uzr.worknFor + "_" + window.appOwner.pg;
+ if (window.my1uzr.mo && window.my1uzr.mc) {
+  window.dbnm = "my1_in_" + window.appOwner.tn + "_" + window.my1uzr.mo.replace(/\./g, "_") + "_" + window.my1uzr.mc + "_" + window.payload0.fi + "_" + window.payload0.fk;
+ }
+ window[my1uzr.worknOnPg] = {};
+}
+function clearPayload0() {
+ if (!window.payload0) return;
+ const keep = {
+  eo: window.payload0.eo,
+  ec: window.payload0.ec,
+  fi: window.payload0.fi,
+  fk: window.payload0.fk
+ };
+ if (window.payload0.jk != null) keep.jk = window.payload0.jk;
+ if (window.payload0.mk != null) keep.mk = window.payload0.mk;
+ Object.keys(window.payload0).forEach(k => delete window.payload0[k]);
+ Object.assign(window.payload0, keep);
+}
+window.suppressModals = false;
+
+window.getGoogleDriveImageUrl = function getGoogleDriveImageUrl(value, thumbnail) {
+ if (!value) return '';
+ value = String(value).trim();
+ var parts = value.split(/\s+/);
+ if (parts.length >= 1 && /^[A-Za-z0-9_-]{20,}$/.test(parts[0])) {
+  var fileId = thumbnail && parts[1] ? parts[1] : parts[0];
+  return 'https://lh3.googleusercontent.com/d/' + fileId + '=s0?authuser=0';
+ }
+ return value;
+}
+
+// Vanilla JS modal functions - no Bootstrap required
+window.showelsemodal = function (errorMsg) {
+ if (window.suppressModals) { window.suppressModals = false; return false; }
+ // Create overlay
+ var overlay = document.createElement('div');
+ overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2147483647;display:flex;align-items:flex-start;justify-content:center;';
+
+ // Create modal
+ var modal = document.createElement('div');
+ modal.style.cssText = 'background:white;border-radius:8px;margin-top:120px;max-width:400px;width:90%;box-shadow:0 4px 20px rgba(0,0,0,0.3);animation:fadeIn 0.3s ease;';
+ modal.innerHTML = '<div style="padding:24px;text-align:center;">' +
+  '<div style="margin-bottom:16px;"><i style="font-size:48px;color:#dc3545;">&#9888;</i></div>' +
+  '<h5 style="color:#dc3545;margin-bottom:8px;font-size:18px;">No Success</h5>' +
+  '<p style="color:#6c757d;margin-bottom:16px;font-size:14px;">' + (typeof window.escapeHTML === 'function' ? window.escapeHTML(errorMsg) : errorMsg) + '</p>' +
+  '<button style="background:#0d6efd;color:white;border:none;padding:6px 16px;border-radius:4px;cursor:pointer;font-size:14px;" id="errorOkBtn">&#10003; OK</button>' +
+  '</div>';
+
+ overlay.appendChild(modal);
+ document.body.appendChild(overlay);
+
+ // Add animation style if not exists
+ if (!document.getElementById('modalAnimStyle')) {
+  var style = document.createElement('style');
+  style.id = 'modalAnimStyle';
+  style.textContent = '@keyframes fadeIn{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}';
+  document.head.appendChild(style);
+ }
+
+ // Close handlers
+ var closeModal = function () {
+  if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+ };
+
+ //scope the lookup to THIS modal: document.getElementById can resolve to the
+ //button of an earlier, still-open modal (same id), which left the new OK dead
+ var errorOkBtn = modal.querySelector('#errorOkBtn');
+ if (errorOkBtn) errorOkBtn.onclick = closeModal;
+ overlay.onclick = function (e) {
+  if (e.target === overlay) closeModal();
+ };
+
+ return false;
+};
+
+window.showsuccessmodal = function (successMsg, callback) {
+ // Create overlay
+ var overlay = document.createElement('div');
+ overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2147483647;display:flex;align-items:flex-start;justify-content:center;';
+
+ // Create modal
+ var modal = document.createElement('div');
+ modal.style.cssText = 'background:white;border-radius:8px;margin-top:120px;max-width:400px;width:90%;box-shadow:0 4px 20px rgba(0,0,0,0.3);animation:fadeIn 0.3s ease;';
+ modal.innerHTML = '<div style="padding:24px;text-align:center;">' +
+  //'<div style="margin-bottom:16px;"><i style="font-size:48px;color:#198754;">&#10004;</i></div>' +
+  '<h5 style="color:#198754;margin-bottom:8px;font-size:18px;">Success</h5>' +
+  '<p style="color:#6c757d;margin-bottom:16px;font-size:14px;">' + (typeof window.escapeHTML === 'function' ? window.escapeHTML(successMsg) : successMsg) + '</p>' +
+  '<button style="background:#198754;color:white;border:none;padding:6px 16px;border-radius:4px;cursor:pointer;font-size:14px;" id="successOkBtn">&#10003; OK</button>' +
+  '</div>';
+
+ overlay.appendChild(modal);
+ document.body.appendChild(overlay);
+
+ // Add animation style if not exists
+ if (!document.getElementById('modalAnimStyle')) {
+  var style = document.createElement('style');
+  style.id = 'modalAnimStyle';
+  style.textContent = '@keyframes fadeIn{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}';
+  document.head.appendChild(style);
+ }
+
+ // Close handlers
+ var closeModal = function () {
+  if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+  if (typeof callback === 'function') {
+   callback();
+  }
+ };
+
+ //scope the lookup to THIS modal: document.getElementById can resolve to the
+ //button of an earlier, still-open modal (same id), which left the new OK dead
+ var successOkBtn = modal.querySelector('#successOkBtn');
+ if (successOkBtn) successOkBtn.onclick = closeModal;
+ overlay.onclick = function (e) {
+  if (e.target === overlay) closeModal();
+ };
+
+ return false;
+};
+
+window.showConfirmModal = function (message, isDanger = 0) {
+ return new Promise((resolve) => {
+  // Check if Bootstrap modal is available
+  if (typeof create_modal_dynamically !== 'function') {
+   // Fallback to vanilla confirm
+   resolve(confirm(message));
+   return;
+  }
+
+  // Check if modals are suppressed
+  if (window.suppressModals) {
+   window.suppressModals = false;
+   resolve(true); // Auto-confirm when suppressed
+   return;
+  }
+
+  try {
+   const modalId = 'confirmModal_' + Date.now();
+   const modalResult = create_modal_dynamically(modalId);
+   if (!modalResult) {
+    resolve(confirm(message));
+    return;
+   }
+   const { contentElement, modalInstance, modalElement } = modalResult;
+
+   setTimeout(() => {
+    const md = modalElement.querySelector('.modal-dialog');
+    if (md) {
+     md.classList.add('modal-dialog-centered');
+     md.style.maxWidth = 'auto';
+     md.style.zIndex = '2147483647';
+    }
+    modalElement.style.zIndex = '2147483647';
+    const bds = document.querySelectorAll('.modal-backdrop');
+    if (bds.length) bds[bds.length - 1].style.zIndex = '2147483646';
+   }, 50);
+
+   let settled = false;
+   contentElement.innerHTML = `
+<div class="p-4">
+<div class="text-center mb-3">
+<i class="fas fa-question-circle text-${isDanger==0 ? 'warning' : 'danger'}" style="font-size:48px;"></i>
+</div>
+<p class="text-center mb-4 ${isDanger==0 ? '' : 'fw-bold'}" style="white-space: pre-line;">${message}</p>
+<div class="d-flex justify-content-center gap-2">
+<button type="button" class="btn btn-${isDanger==0 ? 'success' : 'danger'}" id="${modalId}_confirm"><i class="fas fa-check me-1"></i>Confirm</button>
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Cancel</button>
+</div>
+</div>`;
+
+   const confirmBtn = contentElement.querySelector('#' + modalId + '_confirm');
+   confirmBtn.addEventListener('click', function () {
+    if (settled) return;
+    settled = true;
+    resolve(true);
+    modalInstance.hide();
+   });
+
+   modalElement.addEventListener('hidden.bs.modal', function () {
+    modalInstance.dispose();
+    modalElement.remove();
+    if (!settled) {
+     settled = true;
+     resolve(false);
+    }
+   }, { once: true });
+
+   modalInstance.show();
+  } catch (e) {
+   console.error('Confirm modal creation failed:', e);
+   resolve(confirm(message));
+  }
+ });
+};
+
+var escapeHTML = function (str) {
+ if (str == null) return '';
+ var div = document.createElement('div');
+ div.appendChild(document.createTextNode(String(str)));
+ return div.innerHTML;
+};
+
+async function chkModuLstAgainstFNF(moduLst) {
+ let temp11 = [];
+ if (
+  typeof dbDexieManager === "undefined" ||
+  typeof dbDexieManager.getAllRecords !== "function"
+ ) {
+  return temp11;
+ }
+ const tableHandal_f = await dbDexieManager.getAllRecords(dbnm, 'f');
+ moduLst.forEach(module => {
+  // Convert ",82,72,86," → ["82", "72", "86"]
+  const moduleIds = module.a
+   .split(',')
+   .filter(id => id !== '');
+  // Check whether ANY module ID matches record.h
+  const isMatched = tableHandal_f.some(record =>
+   moduleIds.includes(String(record.h))
+  );
+  if (isMatched) {
+   // Remove "a" before adding
+   const { a, ...moduleWithoutA } = module;
+   temp11.push(moduleWithoutA);
+  }
+ });
+ if (temp11.length === 0)
+  temp11.hook = moduLst.hook || "onModuLstAllowed";
+ return temp11;
+}
+
+const monthFullNms = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const monthShortNms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+let modalStack = [];
+let modalZIndexCounter = 1050;
+
+// Add these with your other global variables at the top
+let wakeLock = null;
+let isWakeLockSupported = 'wakeLock' in navigator;
+
+// Back button press counter
+let backButtonPressCount = 0;
+let backButtonTimeout = null;
+
+// Screen Wake Lock functions - Common utility for all scripts
+async function requestWakeLock() {
+ if (!isWakeLockSupported) {
+  return;
+ }
+
+ try {
+  wakeLock = await navigator.wakeLock.request('screen');
+
+  wakeLock.addEventListener('release', () => {
+  });
+ } catch (err) {
+  console.error(`Error acquiring Wake Lock: ${err.message}`);
+ }
+}
+
+async function releaseWakeLock() {
+ if (wakeLock) {
+  try {
+   await wakeLock.release();
+   wakeLock = null;
+  } catch (err) {
+   console.error(`Error releasing Wake Lock: ${err.message}`);
+  }
+ }
+}
+
+// Handle visibility change to reacquire wake lock when page becomes visible again
+function setupWakeLockVisibilityHandler() {
+ if (!isWakeLockSupported) return;
+
+ document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'hidden') {
+   // Don't release immediately, wait a bit in case user comes back
+   setTimeout(() => {
+    if (document.visibilityState === 'hidden' && typeof releaseWakeLock === 'function') {
+     releaseWakeLock();
+    }
+   }, 30000); // Release after 30 seconds of being hidden
+  } else if (document.visibilityState === 'visible') {
+   await requestWakeLock();
+  }
+ });
+}
+
+function attachModalListeners() {
+ // Listen for Bootstrap modal show events
+ document.addEventListener('show.bs.modal', function (event) {
+  const modal = event.target;
+  const modalId = modal.id;
+
+  if (!modalStack.includes(modalId)) {
+   // Set increasing z-index for proper stacking
+   modal.style.zIndex = modalZIndexCounter++;
+   modalStack.push(modalId);
+
+   // Push state to history when modal opens
+   history.pushState({
+    modalOpen: true,
+    modalId: modalId,
+    modalStack: [...modalStack]
+   }, '');
+  }
+ });
+
+ // Listen for Bootstrap modal hide events
+ document.addEventListener('hide.bs.modal', function (event) {
+  const modalId = event.target.id;
+  removeModalFromStack(modalId);
+ });
+}
+
+function removeModalFromStack(modalId) {
+ const index = modalStack.indexOf(modalId);
+ if (index !== -1) {
+  modalStack.splice(index, 1);
+
+  // Update history state when modal closes
+  history.replaceState({
+   modalOpen: modalStack.length > 0,
+   modalStack: [...modalStack]
+  }, '');
+ }
+}
+
+function getNumArrayFromObjArr(jsonArray, key) {
+ return jsonArray
+  .map(obj => {
+   const val = obj[key];
+   // Convert to number if it's a string representation
+   const num = typeof val === 'string' ? parseFloat(val) : Number(val);
+   return isNaN(num) ? null : num; // handle non-numeric values
+  })
+  .filter(num => num !== null); // remove null values
+}
+
+function createDynamicLoader(message = 'Loading...', countdown = null) {
+ //const loader = createDynamicLoader();const loader = createDynamicLoader('wait ...');const loader = createDynamicLoader('wait ...', 5);
+ //loader.removeLoader();
+ //loader.updateCountdown(10); // Changes countdown to 10 seconds
+ const loader = document.createElement('div');
+ loader.style.position = 'fixed';
+ loader.style.top = '0';
+ loader.style.left = '0';
+ loader.style.width = '100%';
+ loader.style.height = '100%';
+ loader.style.backgroundColor = 'rgba(0,0,0,0.5)';
+ loader.style.display = 'flex';
+ loader.style.justifyContent = 'center';
+ loader.style.alignItems = 'center';
+ loader.style.zIndex = '2147483647';
+ loader.style.flexDirection = 'column';
+
+ // Create spinner container
+ const spinnerContainer = document.createElement('div');
+ spinnerContainer.style.position = 'relative';
+ spinnerContainer.style.display = 'flex';
+ spinnerContainer.style.justifyContent = 'center';
+ spinnerContainer.style.alignItems = 'center';
+ spinnerContainer.style.width = '4rem';
+ spinnerContainer.style.height = '4rem';
+
+ // Create spinner
+ const spinner = document.createElement('div');
+ spinner.style.width = '100%';
+ spinner.style.height = '100%';
+ spinner.style.border = '4px solid #f3f3f3';
+ spinner.style.borderTop = '4px solid #007bff';
+ spinner.style.borderRadius = '50%';
+ spinner.style.animation = 'spin 1s linear infinite';
+
+ // Add CSS for spinner animation
+ if (!document.querySelector('#loader-spin-style')) {
+  const style = document.createElement('style');
+  style.id = 'loader-spin-style';
+  style.textContent = `
+@keyframes spin {
+0% { transform: rotate(0deg); }
+100% { transform: rotate(360deg); }
+}
+`;
+  document.head.appendChild(style);
+ }
+
+ spinnerContainer.appendChild(spinner);
+
+ // Create countdown element if countdown is provided
+ let countdownElement = null;
+ let countdownInterval = null;
+
+ if (countdown !== null) {
+  countdownElement = document.createElement('div');
+  countdownElement.style.position = 'absolute';
+  countdownElement.style.fontSize = '1.2rem';
+  countdownElement.style.fontWeight = 'bold';
+  countdownElement.style.color = '#007bff';
+  countdownElement.textContent = countdown;
+  spinnerContainer.appendChild(countdownElement);
+
+  // Start countdown if it's a number
+  if (typeof countdown === 'number' && countdown > 0) {
+   let timeLeft = countdown;
+   countdownInterval = setInterval(() => {
+    timeLeft--;
+    countdownElement.textContent = timeLeft;
+
+    if (timeLeft <= 0) {
+     clearInterval(countdownInterval);
+    }
+   }, 1000);
+  }
+ }
+
+ // Create message element
+ const messageElement = document.createElement('div');
+ messageElement.style.marginTop = '1rem';
+ messageElement.style.color = 'white';
+ messageElement.style.fontSize = '1.1rem';
+ messageElement.textContent = message;
+
+ // Create loader content container
+ const loaderContent = document.createElement('div');
+ loaderContent.style.display = 'flex';
+ loaderContent.style.flexDirection = 'column';
+ loaderContent.style.alignItems = 'center';
+ loaderContent.appendChild(spinnerContainer);
+ loaderContent.appendChild(messageElement);
+
+ loader.appendChild(loaderContent);
+
+ // Add method to remove loader and clean up interval
+ loader.removeLoader = function () {
+  if (countdownInterval) {
+   clearInterval(countdownInterval);
+  }
+  if (document.body.contains(this)) {
+   document.body.removeChild(this);
+  }
+ };
+
+ // Add method to update countdown
+ loader.updateCountdown = function (newCountdown) {
+  if (countdownElement && typeof newCountdown === 'number') {
+   clearInterval(countdownInterval);
+   let timeLeft = newCountdown;
+   countdownElement.textContent = timeLeft;
+
+   countdownInterval = setInterval(() => {
+    timeLeft--;
+    countdownElement.textContent = timeLeft;
+
+    if (timeLeft <= 0) {
+     clearInterval(countdownInterval);
+    }
+   }, 1000);
+  }
+ };
+
+ document.body.appendChild(loader);
+ return loader;
+}
+function loadPromiseScript(url) {
+ return new Promise((resolve, reject) => {
+  // Check if it's a CSS file
+  if (url.endsWith('.css') || url.includes('/css/')) {
+   // Check for duplicates
+   const existingLink = document.querySelector(`link[href="${url}"]`);
+   if (existingLink) {
+    resolve();
+    return;
+   }
+
+   const link = document.createElement("link");
+   link.rel = "stylesheet";
+   link.href = url;
+   link.onload = resolve;
+   link.onerror = reject;
+   document.head.appendChild(link);
+  } else {
+   // It's a JS file
+   // Duplicate handling: a tag in the DOM may still be downloading or have
+   // failed. If we already loaded it, resolve; else remove the stale tag so
+   // the retry actually re-downloads.
+   const existingScript = document.querySelector(`script[src="${url}"]`);
+   if (existingScript) {
+    if (existingScript.dataset.htLoaded === "1") {
+     resolve();
+     return;
+    }
+    existingScript.remove();
+   }
+
+   const script = document.createElement("script");
+   script.onload = function () {
+    const tag = document.querySelector(`script[src="${url}"]`);
+    if (tag) tag.dataset.htLoaded = "1";
+    resolve();
+   };
+   script.onerror = reject;
+   script.src = url;
+   document.head.appendChild(script);
+  }
+ });
+}
+async function loadCshScriptsSequentially(...scriptIds) {
+ // Get the cache array
+ const csheArray = window[my1uzr.worknOnPg]?.csh || [];
+
+ // Filter scripts by the provided "a" values
+ const scriptsToLoad = csheArray.filter(script => scriptIds.includes(script.a));
+
+ if (scriptsToLoad.length === 0) {
+  console.warn('No scripts found with the provided IDs:', scriptIds);
+  return {
+   success: false,
+   error: 'No scripts found with provided IDs',
+   loadedCount: 0,
+   totalScripts: 0
+  };
+ }
+
+ let loadedCount = 0;
+ const totalScripts = scriptsToLoad.length;
+
+ for (const scriptInfo of scriptsToLoad) {
+  try {
+   await loadPromiseScript(scriptInfo.u);
+   loadedCount++;
+  } catch (error) {
+   console.error('Failed to load script:', error);
+   return {
+    success: false,
+    error: error,
+    loadedCount: loadedCount,
+    totalScripts: totalScripts
+   };
+  }
+ }
+
+ return {
+  success: true,
+  loadedCount: loadedCount,
+  totalScripts: totalScripts,
+  message: `All ${loadedCount} scripts loaded successfully`
+ };
+}
+async function loadAllScriptsSequentially(scriptsToLoad) {
+ let loadedCount = 0;
+ const totalScripts = scriptsToLoad.reduce((count, scriptInfo) => {
+  return count + (scriptInfo.fls ? scriptInfo.fls.length : 1);
+ }, 0);
+
+ for (const scriptInfo of scriptsToLoad) {
+  try {
+   if (scriptInfo.fls) {
+    for (const fileInfo of scriptInfo.fls) {
+     const scriptUrl = scriptInfo.url
+      .replace('__', fileInfo.h)
+      .replace('__', fileInfo.f);
+
+     await loadPromiseScript(scriptUrl);
+     loadedCount++;
+    }
+   } else {
+    await loadPromiseScript(scriptInfo.url);
+    loadedCount++;
+   }
+  } catch (error) {
+   console.error('Failed to load script:', error);
+   return {
+    success: false,
+    error: error,
+    loadedCount: loadedCount,
+    totalScripts: totalScripts
+   };
+  }
+ }
+
+ return {
+  success: true,
+  loadedCount: loadedCount,
+  totalScripts: totalScripts,
+  message: `All ${loadedCount} scripts loaded successfully`
+ };
+}
+
+async function loadAndExeFn(functionName, params = [], idOfLoader, scriptUrl) {
+ const loader = document.getElementById(idOfLoader);
+ if (loader) loader.style.display = 'block'; // Show loader
+
+ try {
+  // Check if function exists
+  if (typeof window[functionName] === 'function') {
+   window[functionName](...params); // Spread params correctly
+  } else {
+   await loadPromiseScript(scriptUrl); // Assume this loads the script
+   if (typeof window[functionName] === 'function') {
+    window[functionName](...params); // Spread params
+   } else {
+    throw new Error(`Function "${functionName}" not found after loading script.`);
+   }
+  }
+ } catch (e) {
+  console.error('Error:', e.message);
+  alert(`Error: ${e.message}. Please retry or contact support.`);
+ } finally {
+  if (loader) loader.style.display = 'none'; // Hide loader
+ }
+}
+
+async function loadExecFn(fnsToChk, fnsToRun, pFNarams = [], idOfLoader, scriptUrl, pSCRParams = []) {
+ const loader = document.getElementById(idOfLoader);
+ if (loader) loader.style.display = 'block'; // Show loader
+
+ try {
+  // Split comma-separated function names and trim whitespace
+  const functionsToCheck = fnsToChk.split(',').map(fn => fn.trim());
+  const missingFunctions = [];
+
+  // Check if all functions exist
+  for (const fnName of functionsToCheck) {
+   if (typeof window[fnName] !== 'function') {
+    missingFunctions.push(fnName);
+   }
+  }
+
+  if (missingFunctions.length === 0) {
+   // All functions exist, execute fnsToRun if provided
+   if (fnsToRun && fnsToRun.trim() !== '') {
+    const functionsToRun = fnsToRun.split(',').map(fn => fn.trim());
+
+    // Execute functions sequentially and wait for each to complete
+    for (const fnName of functionsToRun) {
+     if (typeof window[fnName] === 'function') {
+      const result = window[fnName](...pFNarams);
+      // If function returns a Promise, wait for it
+      if (result instanceof Promise) {
+       await result;
+      }
+     } else {
+      console.warn(`Function "${fnName}" not found for execution.`);
+     }
+    }
+   }
+  } else {
+   // Some functions are missing, load the script
+   await loadPromiseScript(scriptUrl);
+
+   // Check again after loading the script
+   const stillMissing = [];
+   for (const fnName of functionsToCheck) {
+    if (typeof window[fnName] !== 'function') {
+     stillMissing.push(fnName);
+    }
+   }
+
+   if (stillMissing.length === 0) {
+    // All functions now exist, execute fnsToRun if provided
+    if (fnsToRun && fnsToRun.trim() !== '') {
+     const functionsToRun = fnsToRun.split(',').map(fn => fn.trim());
+
+     // Execute functions sequentially and wait for each to complete
+     for (const fnName of functionsToRun) {
+      if (typeof window[fnName] === 'function') {
+       const result = window[fnName](...pFNarams);
+       // If function returns a Promise, wait for it
+       if (result instanceof Promise) {
+        await result;
+       }
+      } else {
+       console.warn(`Function "${fnName}" not found for execution.`);
+      }
+     }
+    }
+   } else {
+    throw new Error(`Functions "${stillMissing.join(', ')}" not found after loading script.`);
+   }
+  }
+ } catch (e) {
+  console.error('loadExecFn params:', { fnsToChk, fnsToRun, pFNarams, idOfLoader, scriptUrl, pSCRParams });
+  console.error('Error:', e.message);
+  alert(`Error: ${e.message}. Please retry or contact support.`);
+ } finally {
+  if (loader) loader.style.display = 'none'; // Hide loader
+ }
+}
+function getNextCshId() {
+ if (!window[my1uzr.worknOnPg].cach || window[my1uzr.worknOnPg].cach.length === 0) {
+  return 1;
+ }
+ // Get the highest 'a' value and increment
+ const maxA = Math.max(...window[my1uzr.worknOnPg].cach.map(item => item.a));
+ return maxA + 1;
+}
+const __loadExe2FnInflight = {};
+async function loadExe2Fn(id_as_a, pFNarams = [], pSCRParams = []) {
+ const key = String(id_as_a);
+ if (__loadExe2FnInflight[key]) return __loadExe2FnInflight[key];
+
+ const run = (async () => {
+  let loader = null;
+
+  try {
+   // Validate required global objects
+   if (typeof my1uzr === 'undefined') {
+    throw new Error('my1uzr object not found');
+   }
+
+   if (!my1uzr.worknOnPg) {
+    throw new Error('my1uzr.worknOnPg not defined');
+   }
+
+   if (!window[my1uzr.worknOnPg]) {
+    throw new Error(`window["${my1uzr.worknOnPg}"] not found`);
+   }
+
+   if (!window[my1uzr.worknOnPg].csh || !Array.isArray(window[my1uzr.worknOnPg].csh)) {
+    throw new Error(`window["${my1uzr.worknOnPg}"].csh array not found`);
+   }
+
+   // Find the configuration by id
+   const config = window[my1uzr.worknOnPg].csh.find(item => item.a === id_as_a);
+   if (!config) {
+    throw new Error(`Configuration with id ${id_as_a} not found in csh array.`);
+   }
+
+   // Validate config properties
+   if (!config.u) {
+    throw new Error(`Script URL (u) not found in configuration with id ${id_as_a}`);
+   }
+
+   if (!config.c) {
+    throw new Error(`Functions to check (c) not found in configuration with id ${id_as_a}`);
+   }
+
+   if (!config.r) {
+    throw new Error(`Functions to run (r) not found in configuration with id ${id_as_a}`);
+   }
+
+   const { u: scriptUrl, c: fnsToChk, r: fnsToRun } = config;
+
+   // Validate pSCRParams for loader handling
+   if (!Array.isArray(pSCRParams)) {
+    throw new Error('pSCRParams must be an array');
+   }
+
+   // Handle loader based on pSCRParams
+   if (pSCRParams[0] === 1) {
+    // Create new dynamic loader
+    if (typeof createDynamicLoader !== 'function') {
+     throw new Error('createDynamicLoader function not found');
+    }
+    loader = createDynamicLoader('Loading...', null);
+   } else if (pSCRParams[0] === 0) {
+    if (!pSCRParams[1]) {
+     throw new Error('Loader ID required when pSCRParams[0] is 0');
+    }
+    // Use existing loader by ID
+    loader = document.getElementById(pSCRParams[1]);
+    if (!loader) {
+     console.warn(`Loader with ID "${pSCRParams[1]}" not found`);
+    } else {
+     loader.style.display = 'block';
+    }
+   }
+
+   // Validate loadPromiseScript function exists
+   if (typeof loadPromiseScript !== 'function') {
+    throw new Error('loadPromiseScript function not found');
+   }
+
+   // Split comma-separated function names and trim whitespace
+   const functionsToCheck = fnsToChk.split(',').map(fn => fn.trim());
+   const missingFunctions = [];
+
+   // Check if all functions exist
+   for (const fnName of functionsToCheck) {
+    if (typeof window[fnName] !== 'function') {
+     missingFunctions.push(fnName);
+    }
+   }
+
+   if (missingFunctions.length === 0) {
+    // All functions exist, execute fnsToRun if provided
+    if (fnsToRun && fnsToRun.trim() !== '') {
+     const functionsToRun = fnsToRun.split(',').map(fn => fn.trim());
+
+     // Execute functions sequentially and wait for each to complete
+     for (const fnName of functionsToRun) {
+      if (typeof window[fnName] === 'function') {
+       const result = window[fnName](...pFNarams);
+       // If function returns a Promise, wait for it
+       if (result instanceof Promise) {
+        await result;
+       }
+      } else {
+       console.warn(`Function "${fnName}" not found for execution.`);
+      }
+     }
+    }
+   } else {
+    // Some functions are missing, load the script
+    await loadPromiseScript(scriptUrl);
+
+    // Check again after loading the script
+    const stillMissing = [];
+    for (const fnName of functionsToCheck) {
+     if (typeof window[fnName] !== 'function') {
+      stillMissing.push(fnName);
+     }
+    }
+
+    if (stillMissing.length === 0) {
+     // All functions now exist, execute fnsToRun if provided
+     if (fnsToRun && fnsToRun.trim() !== '') {
+      const functionsToRun = fnsToRun.split(',').map(fn => fn.trim());
+
+      // Execute functions sequentially and wait for each to complete
+      for (const fnName of functionsToRun) {
+       if (typeof window[fnName] === 'function') {
+        const result = window[fnName](...pFNarams);
+        // If function returns a Promise, wait for it
+        if (result instanceof Promise) {
+         await result;
+        }
+       } else {
+        console.warn(`Function "${fnName}" not found for execution.`);
+       }
+      }
+     }
+    } else {
+     throw new Error(`Functions "${stillMissing.join(', ')}" not found after loading script.`);
+    }
+   }
+  } catch (e) {
+   console.error('loadExe2Fn params:', { id_as_a, pFNarams, pSCRParams });
+   console.error('Error:', e.message);
+   alert(`Error: ${e.message}. Please retry or contact support.`);
+  } finally {
+   // Hide loader
+   if (pSCRParams[0] === 1 && loader) {
+    // Remove dynamic loader
+    if (typeof loader.removeLoader === 'function') {
+     loader.removeLoader();
+    } else {
+     console.warn('Loader does not have removeLoader method');
+    }
+   } else if (pSCRParams[0] === 0 && loader) {
+    // Hide existing loader
+    loader.style.display = 'none';
+   }
+  }
+ })();
+
+ __loadExe2FnInflight[key] = run;
+ try {
+  return await run;
+ } finally {
+  delete __loadExe2FnInflight[key];
+ }
+}
+
+function loadScript(url, callback) {
+ var script = document.createElement("script")
+ script.type = "text/javascript";
+ if (script.readyState) {  // only required for IE <9
+  script.onreadystatechange = function () {
+   if (script.readyState === "loaded" || script.readyState === "complete") {
+    script.onreadystatechange = null;
+    callback();
+   }
+  };
+ } else {  //Others
+  script.onload = function () {
+   if (callback)
+    callback();
+  };
+ }
+
+ script.src = url;
+ document.getElementsByTagName("head")[0].appendChild(script);
+}
+
+function setStatusOfThisPageAsLoggedIn() {
+ localStorage.setItem(my1uzr.worknOnPg, 1);
+ let tmpElm = document.getElementById('dyna_dv_1');
+ if (typeof tmpElm !== 'undefined')
+  tmpElm.style.display = "none";
+}
+
+function close_dyna_dv_1() {
+ let tmpElm = document.getElementById('dyna_dv_1');
+ if (typeof tmpElm !== 'undefined')
+  tmpElm.style.display = "none";
+}
+
+function postCall_Json(rURL, jsonData, tkrq, syncOrNo) {
+ var retTxt = "";
+ if (tkrq == 1) {
+  if (my1uzr != null && localStorage.getItem(my1uzr.worknOnPg) == 1) {
+   var postToken = my1uzr.jk || my1uzr.mk;
+   if (!postToken || postToken.length < 1)
+    showLogIn();
+   else {
+    const longNumber = parseInt(postToken.slice(-10), 10);
+    checkExpiry(longNumber);
+   }
+  } else {
+   let tmpElm = document.getElementById('dyna_dv_1');
+   tmpElm.classList.add("modal");
+   tmpElm.innerHTML = '<div class="modal-content"><h2 style="text-align:center;">This page requires login for selected entind.<br>Do u want to login on this page?<br>Click yes to continue;</h2><br><br><br><button onClick="setStatusOfThisPageAsLoggedIn()" style="background-color:green;">yes</button><br><br><button onClick="close_dyna_dv_1()" style="background-color:red;">reject</button></div>';
+   tmpElm.style.display = "block";
+  }
+ }
+ var xhr = new XMLHttpRequest();
+ xhr.open("POST", rURL, syncOrNo);
+ xhr.setRequestHeader("Content-Type", "application/json");
+
+ xhr.onreadystatechange = function () {
+  if (xhr.readyState == 4 && xhr.status == 200) {
+   retTxt = xhr.responseText;
+   if (typeof loader !== 'undefined')
+    loader.style.display = 'none';
+  } else if (xhr.status == 500) {
+   alert("err calling API. status: 500");
+  }
+ };
+ if (typeof loader !== 'undefined')
+  loader.style.display = 'flex';
+ xhr.send(JSON.stringify(jsonData));
+ return retTxt;
+}
+
+function checkExpiry() {
+ var token = my1uzr != null ? (my1uzr.jk || my1uzr.mk) : null;
+ if (token != null) {
+  var longNumber = parseInt(token.slice(-10), 10) * 1000;
+  longNumber = longNumber + 302400 * 1000;//302400 seconds = 5 days
+  var date = new Date(longNumber);
+  const now = new Date();
+  var temp = now.getTime();
+ }
+}
+
+function getMaxDtt(arr, key) {
+ var dtt34 = "1970-01-01 00:00:00"; // Use a valid date here
+ if (arr != null && arr.length > 0) {
+  let maxDate = arr.reduce((max, item) =>
+   new Date(item[key]) > new Date(max) ? item[key] : max, arr[0][key]);
+
+  // Ensure both dates are valid and compare
+  if (new Date(maxDate) > new Date(dtt34)) dtt34 = maxDate;
+ }
+ return dtt34;
+}
+
+function setMaxDtOfGivenTbls(path, str) {
+ const myArr94 = str.split(",");//e.g. "tdo_jarray~t,msg_jarray~m,group_jarray~g"
+ for (const itm95 of myArr94) {
+  const ar96 = itm95.split("~");
+  const tblNm = path + "_" + ar96[0];
+  payload0["la_" + ar96[1]] = getMaxDtt(window[tblNm], ar96[2]);
+ }
+}
+
+function addInitialsColumn(item, sourceCol, colToAdd) {
+ if (item[sourceCol] != null) {
+  item[colToAdd] = item[sourceCol].split(/\s/).reduce((response, word) => response += word.slice(0, 1), '');
+  if (item[colToAdd].length < 3)
+   item[colToAdd] = item[sourceCol].substring(0, 3);
+ }
+ return item;
+}
+
+//https://stackoverflow.com/a/19539548/2173890
+let longPressDelay = 1500; // Duration in milliseconds of how long you have to hold click.
+let isLongPressActive = false;
+let longPressTimer;
+
+function fn_start_LongClk(e, strFnNm) {
+ isLongPressActive = true;
+ longPressTimer = setTimeout(makeChange(strFnNm), longPressDelay);
+ // In case you want to prevent Default functionality on mouse down.
+ if (e.preventDefault) {
+  e.preventDefault();
+ } else {
+  e.returnValue = false;
+ }
+}
+
+function makeChange(strFnNm) {
+ if (longPressTimer) {
+  clearTimeout(longPressTimer);
+ }
+ if (isLongPressActive) {
+  window[strFnNm]();
+ }
+}
+
+function fn_revert_LongClk() {
+ isLongPressActive = false;
+}
+
+function fn_dblClk_LongClk() {
+}
+
+function joinData(item, srcCol2match, arrayName1945, destiCol2match, lstOfcolsToAppend) {
+ var tmpArray = window[arrayName1945];
+ const tmpItem1950 = tmpArray.find(tmp => tmp[destiCol2match] == item[srcCol2match]);
+ const tmpAr1951 = lstOfcolsToAppend.split(",");
+ for (i = 0; i < tmpAr1951.length; i++) {
+  const tmpAr1953 = tmpAr1951[i].split("~");
+  if (tmpItem1950 != null)
+   Object.keys(tmpItem1950).forEach(function (key, index) {
+    if (tmpAr1953[0] == key) {
+     item[tmpAr1953[1]] = tmpItem1950[key];
+    }
+   });
+ }
+ return item;
+}
+
+function joinMultipleData(item, srcCol2match, arrayName1945, destiCol2match, lstOfcolsToAppend) {
+ var tmpArray = window[arrayName1945];
+ const tmpItem1950 = tmpArray.find(tmp => tmp[destiCol2match] == item[srcCol2match]);
+ const tmpAr1951 = lstOfcolsToAppend.split(",");
+ for (i = 0; i < tmpAr1951.length; i++) {
+  const tmpAr1953 = tmpAr1951[i].split("~");
+  if (tmpItem1950 != null)
+   Object.keys(tmpItem1950).forEach(function (key, index) {
+    if (tmpAr1953[0] == key) {
+     item[tmpAr1953[1]] = tmpItem1950[key];
+    }
+   });
+ }
+ return item;
+}
+
+function padTo2Digits(num) {
+ return num.toString().padStart(2, '0');
+}
+
+function convertDateFormatToIndia(date) {//ddmmyy
+ return [
+  padTo2Digits(date.getDate()),
+  padTo2Digits(date.getMonth() + 1),
+  date.getFullYear()
+ ].join('-');
+}
+
+function convertToIndianDateTime(dateStr) {
+ let d258ate = new Date(dateStr);
+ const year = d258ate.getFullYear();
+ const month = String(d258ate.getMonth() + 1).padStart(2, '0');
+ const day = String(d258ate.getDate()).padStart(2, '0');
+ const hours = String(d258ate.getHours()).padStart(2, '0');
+ const minutes = String(d258ate.getMinutes()).padStart(2, '0');
+
+ return `${day}-${month}-${year} ${hours}:${minutes}`;
+}
+
+function convertToDateTimeWithT(date) {
+ const year = date.getFullYear();
+ const month = String(date.getMonth() + 1).padStart(2, '0');
+ const day = String(date.getDate()).padStart(2, '0');
+ const hours = String(date.getHours()).padStart(2, '0');
+ const minutes = String(date.getMinutes()).padStart(2, '0');
+
+ return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function convertDateFormatToComputer(date) {//yymmdd
+ return [
+  date.getFullYear(),
+  padTo2Digits(date.getMonth() + 1),
+  padTo2Digits(date.getDate())
+ ].join('-');
+}
+
+function updateOrInsert_2_GivenArray(nwArray, keyInNwArray, keyInAlreadyArray, lostr_nm) {
+ let tmpArray = JSON.parse(localStorage.getItem(lostr_nm)) || [];
+ for (item of nwArray) {
+  var add = 1;
+  for (i = 0; i < tmpArray.length; i++) {
+   if (tmpArray[i][keyInAlreadyArray] == item[keyInNwArray]) {
+    tmpArray[i] = item;
+    add = 0;
+   }
+  }
+  if (add == 1) {
+   tmpArray.push(item);
+  }
+ }
+ localStorage.setItem(lostr_nm, JSON.stringify(tmpArray));
+ return tmpArray;
+}
+
+function validateMobileNumber(mobileNumber) {
+ mobileNumber = mobileNumber.trim();
+ if (mobileNumber === '0000000000') {
+  return true;
+ } else {
+  if (mobileNumber.length == 10) {
+   mobileNumber = 91 + "." + mobileNumber;
+  }
+  const regex = /^\d+(\.\d+)?$/;
+  if (mobileNumber > 91.4999999999 && mobileNumber.length == 13 && mobileNumber < 92)
+   return regex.test(mobileNumber);
+  else
+   return false;
+ }
+}
+
+function findByMultipleKeys(arr, criteria) {
+ return arr.filter((item) => {
+  return Object.keys(criteria).every((key) => {
+   return item[key] === criteria[key];
+  });
+ });
+}
+
+function filterByDateRange(arrayObj, strtDtObj, endDtObj, key) {
+ var ar267 = arrayObj.filter(a => {
+  var date = new Date(a[key]);
+  return (date >= strtDtObj && date <= endDtObj);
+ });
+ return ar267;
+}
+
+function isASCII(str) {
+ return /^[\x00-\x7F]*$/.test(str);
+}
+
+function sort_by_key(array, key) {
+ return array.sort(function (a, b) {
+  var x = a[key]; var y = b[key];
+  return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+ });
+}
+
+function getWorkPathNm() {
+ const pathParts = window.location.pathname.split('/').filter(part => part !== '');
+ if (pathParts.length >= 2) {
+  return `${pathParts[0]}_${pathParts[1].replace('.html', '')}`;
+ }
+ return `root`;
+}
+
+async function fechJsonOfUrl(daFileUrl) {
+ try {
+  const response = await fetch(daFileUrl);
+  if (!response.ok) throw new Error('Failed to fetch app data');
+  const data = await response.json();
+  return data;
+ } catch (error) {
+  console.error('Error fetching app data:', error);
+  return {};
+ }
+}
+
+function showOKmodal(message) {
+ const modalOverlay = document.createElement('div');
+ const modal = document.createElement('div');
+ const modalContent = document.createElement('div');
+ const modalMessage = document.createElement('p');
+ const okButton = document.createElement('button');
+ const closeButton = document.createElement('button');
+ const buttonContainer = document.createElement('div');
+
+ modalMessage.textContent = message;
+ okButton.textContent = 'OK';
+ closeButton.innerHTML = '&times;';
+
+ modalOverlay.style.position = 'fixed';
+ modalOverlay.style.top = '0';
+ modalOverlay.style.left = '0';
+ modalOverlay.style.width = '100%';
+ modalOverlay.style.height = '100%';
+ modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+ modalOverlay.style.display = 'flex';
+ modalOverlay.style.justifyContent = 'center';
+ modalOverlay.style.alignItems = 'center';
+ modalOverlay.style.zIndex = '1000';
+
+ modal.style.backgroundColor = 'white';
+ modal.style.color = "black";
+ modal.style.padding = '20px';
+ modal.style.borderRadius = '5px';
+ modal.style.width = '300px';
+ modal.style.maxWidth = '80%';
+ modal.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+ modal.style.position = 'relative';
+
+ closeButton.style.position = 'absolute';
+ closeButton.style.top = '5px';
+ closeButton.style.right = '10px';
+ closeButton.style.background = 'none';
+ closeButton.style.border = 'none';
+ closeButton.style.fontSize = '20px';
+ closeButton.style.cursor = 'pointer';
+
+ buttonContainer.style.marginTop = '20px';
+ buttonContainer.style.textAlign = 'right';
+
+ okButton.style.padding = '8px 16px';
+ okButton.style.backgroundColor = '#4CAF50';
+ okButton.style.color = 'white';
+ okButton.style.border = 'none';
+ okButton.style.borderRadius = '4px';
+ okButton.style.cursor = 'pointer';
+
+ modal.appendChild(closeButton);
+ modal.appendChild(modalMessage);
+ buttonContainer.appendChild(okButton);
+ modal.appendChild(buttonContainer);
+ modalOverlay.appendChild(modal);
+
+ document.body.appendChild(modalOverlay);
+
+ function closeModal() {
+  document.body.removeChild(modalOverlay);
+ }
+
+ okButton.addEventListener('click', closeModal);
+ closeButton.addEventListener('click', closeModal);
+ modalOverlay.addEventListener('click', (e) => {
+  if (e.target === modalOverlay) {
+   closeModal();
+  }
+ });
+
+ modal.addEventListener('click', (e) => {
+  e.stopPropagation();
+ });
+}
+
+function showToast(message, options = {}) {
+ const defaults = {
+  duration: 3000,
+  position: 'bottom',
+  type: 'info',
+  dismissible: true,
+  animation: 'fade'
+ };
+ const settings = { ...defaults, ...options };
+
+ let container = document.getElementById('dynamic-toast-container');
+ if (!container) {
+  container = document.createElement('div');
+  container.id = 'dynamic-toast-container';
+  Object.assign(container.style, {
+   position: 'fixed',
+   top: '0',
+   left: '0',
+   width: '100%',
+   height: '0',
+   overflow: 'visible',
+   zIndex: '9999',
+   pointerEvents: 'none'
+  });
+  document.body.appendChild(container);
+ }
+
+ const toast = document.createElement('div');
+ Object.assign(toast.style, {
+  position: 'absolute',
+  left: '50%',
+  padding: '12px 24px',
+  borderRadius: '4px',
+  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+  fontFamily: 'Arial, sans-serif',
+  fontSize: '14px',
+  opacity: '0',
+  maxWidth: '80%',
+  textAlign: 'center',
+  wordBreak: 'break-word',
+  transition: 'opacity 0.3s ease',
+  willChange: 'opacity',
+  backfaceVisibility: 'hidden',
+  pointerEvents: 'auto'
+ });
+
+ switch (settings.position) {
+  case 'top':
+   toast.style.top = '20px';
+   toast.style.transform = 'translateX(-50%)';
+   break;
+  case 'middle':
+   toast.style.top = '50%';
+   toast.style.transform = 'translate(-50%, -50%)';
+   break;
+  default: // bottom
+   toast.style.bottom = '20px';
+   toast.style.transform = 'translateX(-50%)';
+ }
+
+ const typeColors = {
+  info: '#2196F3',
+  success: '#4CAF50',
+  warning: '#FF9800',
+  error: '#F44336'
+ };
+ toast.style.backgroundColor = typeColors[settings.type] || typeColors.info;
+ toast.style.color = '#ffffff';
+ toast.textContent = message;
+
+ container.appendChild(toast);
+
+ setTimeout(() => {
+  toast.style.opacity = '1';
+ }, 10);
+
+ let timeoutId;
+ const dismiss = () => {
+  clearTimeout(timeoutId);
+  toast.style.opacity = '0';
+  setTimeout(() => toast.remove(), 300);
+ };
+
+ if (settings.dismissible) {
+  toast.addEventListener('click', dismiss);
+ }
+
+ timeoutId = setTimeout(dismiss, settings.duration);
+
+ return { dismiss };
+}
+async function checkInternetConnection() {
+ try {
+  const response = await fetch('https://www.google.com/favicon.ico', {
+   method: 'HEAD',
+   mode: 'no-cors',
+   cache: 'no-cache'
+  });
+  return true;
+ } catch (error) {
+  return false;
+ }
+}
+function chkIfLoggedIn() {
+ return new Promise((resolve) => {
+  if (my1uzr != null && localStorage.getItem(my1uzr.worknOnPg)) {
+   var loginToken = my1uzr.jk || my1uzr.mk;
+   if (!loginToken || loginToken.length < 1) {
+    if (typeof dontShoLoginConfirmation !== 'undefined' && null !== dontShoLoginConfirmation && 1 == dontShoLoginConfirmation) {
+     localStorage.setItem(my1uzr.worknOnPg, 'true');
+    }
+    resolve({ su: 0, ms: "Login again." });
+   } else {
+    const longNumber = parseInt(loginToken.slice(-10), 10);
+    resolve({ su: 1, ms: "Session expired" });
+   }
+  } else {
+   if (typeof dontShoLoginConfirmation !== 'undefined' && null !== dontShoLoginConfirmation && 1 == dontShoLoginConfirmation) {
+    localStorage.setItem(my1uzr.worknOnPg, 'true');
+    resolve({ su: 0, ms: "u must be logged in" });
+   } else {
+    if (my1uzr) {
+     window.suppressModals = true;
+     localStorage.setItem(my1uzr.worknOnPg, 'true');
+     resolve({ su: 0, ms: "u must be logged in" });
+    }
+   }
+  }
+ });
+}
+function getCacheId(fileName) {
+ const target = fileName.replace(".min.js", ".js");
+
+ const item = (window[my1uzr.worknOnPg].csh || []).find(function (obj) {
+  if (!obj.u) return false;
+
+  const file = obj.u.split("/").pop().replace(".min.js", ".js");
+  return file === target;
+ });
+
+ return item ? item.a : null;
+}
+async function fnj4(url, jsonPayload, loginRequired_0_1, async_1 = 1, loaderId = null, timeout = 20000, shoLoginByOas2orByPas1 = 0, loaderSho1Hide0 = 1) {
+ try {
+  let jsonPayloadCheck = null;
+  try {
+   if (typeof jsonPayload === "string") {
+    jsonPayloadCheck = JSON.parse(jsonPayload);
+   } else {
+    jsonPayloadCheck = jsonPayload;
+   }
+   delete jsonPayloadCheck?.mk;
+  } catch (e) { jsonPayloadCheck = null; }
+  if (!jsonPayloadCheck || !jsonPayloadCheck.ul || !jsonPayloadCheck.gt) {
+   return Promise.reject(new Error("Payload and .ul & .gt are required for fnj4"));
+  }
+  if (jsonPayloadCheck) jsonPayload = jsonPayloadCheck;
+  if (!url || (typeof url === 'string' && url.trim() === '')) {
+   // 1) Determine "current path" (directory, always ending with "/")
+   let path = location.pathname;
+   const last = path.split('/').pop();
+   // If the last segment looks like a file (has an extension), drop it.
+   if (last && /\.[a-z0-9]+$/i.test(last)) {
+    path = path.slice(0, path.length - last.length); // keeps trailing '/'
+   } else if (!path.endsWith('/')) {
+    path = path + '/';
+   }
+
+   // 2) Detect local server vs live
+   const host = location.hostname;
+   const isLocal =
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host === '0.0.0.0' ||
+    host === '::1' ||
+    host.endsWith('.local') ||
+    /^192\.168\./.test(host) ||
+    /^10\./.test(host) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(host);
+
+   // 3) Build the URL
+   if (isLocal) {
+    url = 'https://my1.in' + path + '0.php';
+   } else
+    url = location.origin + path + '0.php';
+  }
+
+  // Check internet connection first
+  if (!navigator.onLine) {
+   return Promise.reject(new Error("Connect to network"));
+  }
+  // Optional: More robust check
+  const isConnected = await checkInternetConnection();
+  if (!isConnected) {
+   return Promise.reject(new Error("No stable internet connection"));
+  }
+  // if (typeof publicFunctions === "string" && publicFunctions && !publicFunctions.includes(`,${jsonPayload.fn},`)) {
+  //     return Promise.reject(new Error("Not allowed to use this Funtion!"));
+  // }
+  if (loginRequired_0_1 == 1) {
+   const t343mp = await chkIfLoggedIn();
+   if (t343mp.su == 2) {
+    return Promise.reject(new Error("first accept login"));
+   } else if (t343mp.su == 0) {
+    xtraj_payload = { ...jsonPayload };
+    xtraj_payload.endP = url;
+    if (shoLoginByOas2orByPas1 > 0) {
+     if (shoLoginByOas2orByPas1 == 2) {
+      const t1170 = getCacheId("my1jo.js");
+      if (t1170)
+       await loadExe2Fn(t1170, [], [1]);
+      else
+       await loadExecFn('open_shoLgnO', 'open_shoLgnO', ['dv_to_set_open_shoLgnO_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/cmn/my1lo.js', []);
+     } else {
+      const t1176 = getCacheId("my1jp.js");
+      if (t1176)
+       await loadExe2Fn(t1176, [], [1]);
+      else
+       await loadExecFn('open_shoLgnP', 'open_shoLgnP', ['dv_to_set_open_shoLgnP_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@fbf62ad/cmn/my1lp.js', []);
+     }
+     window.suppressModals = true;
+     return;
+    } else {
+     return Promise.reject(new Error(JSON.stringify(t343mp)));
+    }
+   }
+  }
+  let xhr = null;
+  let isAborted = false;
+  let dynamicLoaderId = null;
+
+  const executeRequest = () => {
+   return new Promise((resolve, reject) => {
+    // Create loader if loaderId is null AND loaderSho1Hide0 is 1
+    if (loaderSho1Hide0 == 1) {
+     if (loaderId === null) {
+      dynamicLoaderId = 'loader-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+      const loaderHtml = `
+<div id="${dynamicLoaderId}" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(43,22,14,0.5); backdrop-filter: blur(4px); z-index: 2147483647;">
+<div class="spinner-border text-light" role="status">
+<span class="visually-hidden">Loading...</span>
+</div>
+</div>
+`;
+      document.body.insertAdjacentHTML('beforeend', loaderHtml);
+     } else if (loaderId) {
+      document.getElementById(loaderId).style.display = "flex";
+     }
+    }
+
+    xhr = new XMLHttpRequest();
+    xhr.open('POST', url, async_1 == 1);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.timeout = timeout;
+
+    xhr.onload = function () {
+     if (isAborted) return;
+     cleanupLoader();
+
+     try {
+      if (xhr.status >= 200 && xhr.status < 300) {
+       const response = JSON.parse(xhr.responseText);
+       if (response) {
+        resolve(response);
+       } else {
+        reject(new Error(response.ms || "API call was not successful"));
+       }
+      } else {
+       let errorMsg = `HTTP error ${xhr.status}`;
+       try {
+        const errorResponse = JSON.parse(xhr.responseText);
+        if (errorResponse.message) {
+         errorMsg += `: ${errorResponse.message}`;
+        }
+       } catch (e) {
+        errorMsg += `: ${xhr.statusText}`;
+       }
+       reject(new Error(errorMsg));
+      }
+     } catch (e) {
+      reject(new Error(`Failed to parse response: ${e.message}`));
+     }
+    };
+
+    xhr.onerror = function () {
+     if (isAborted) return;
+     cleanupLoader();
+     reject(new Error("Network error - request failed to complete"));
+    };
+
+    xhr.ontimeout = function () {
+     if (isAborted) return;
+     cleanupLoader();
+     reject(new Error("Request timed out"));
+    };
+
+    xhr.onabort = function () {
+     cleanupLoader();
+     reject(new Error("Request was aborted"));
+    };
+
+    try {
+     xhr.send(JSON.stringify(jsonPayload));
+    } catch (e) {
+     cleanupLoader();
+     reject(new Error(`Failed to send request: ${e.message}`));
+    }
+   });
+  };
+
+  // Helper function to cleanup loader
+  const cleanupLoader = () => {
+   if (loaderSho1Hide0 == 1) {
+    if (dynamicLoaderId) {
+     const loaderElement = document.getElementById(dynamicLoaderId);
+     if (loaderElement) {
+      loaderElement.remove();
+     }
+     dynamicLoaderId = null;
+    } else if (loaderId) {
+     document.getElementById(loaderId).style.display = "none";
+    }
+   }
+  };
+
+  const cancel = () => {
+   isAborted = true;
+   if (xhr) {
+    xhr.abort();
+   }
+   cleanupLoader();
+  };
+
+  const requestPromise = executeRequest();
+  requestPromise.cancel = cancel;
+  return requestPromise;
+ } catch (error) {
+  return Promise.reject(error);
+ }
+}
+
+function loadLoginSystem(shoLoginByOas2orByPas1, fnNmToCreateLoginModal) {
+ return new Promise((resolve, reject) => {
+  if (typeof window[fnNmToCreateLoginModal] === 'function' && typeof setupL3EventListeners === 'function') {
+   resolve();
+   return;
+  }
+
+  let lognScrptUrl = "https://cdn.jsdelivr.net/gh/sifr-in/cdn@59ed0c0/cmn/my1lp.js";
+  if (shoLoginByOas2orByPas1 == 2) lognScrptUrl = "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7c51d7f/cmn/my1lo.js";
+
+  loadScript(lognScrptUrl, () => {
+   if (typeof window[fnNmToCreateLoginModal] === 'function' && typeof setupL3EventListeners === 'function') {
+    resolve();
+   } else {
+    reject(new Error("Login system loaded but required functions not found"));
+   }
+  });
+ });
+}
+
+function showLoginInfo(shoLogOut, showLoginModalDirectly, shoLoginByOas2orByPas1, dontShoThisLoginModal) {
+ let loginInfoModal = document.getElementById('login-info-modal');
+
+ if (!loginInfoModal) {
+  loginInfoModal = document.createElement('div');
+  loginInfoModal.id = 'login-info-modal';
+  loginInfoModal.className = 'modal';
+  loginInfoModal.style.display = 'none';
+  loginInfoModal.style.position = 'fixed';
+  loginInfoModal.style.zIndex = '1000';
+  loginInfoModal.style.left = '0';
+  loginInfoModal.style.top = '0';
+  loginInfoModal.style.width = '100%';
+  loginInfoModal.style.height = '100%';
+  loginInfoModal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+  loginInfoModal.style.justifyContent = 'center';
+  loginInfoModal.style.alignItems = 'center';
+
+  const modalContent = document.createElement('div');
+  modalContent.className = 'modal-content';
+  modalContent.style.backgroundColor = '#fff';
+  modalContent.style.padding = '20px';
+  modalContent.style.color = '#000';
+  modalContent.style.borderRadius = '8px';
+  modalContent.style.maxWidth = '400px';
+  modalContent.style.maxHeight = '85%';
+  modalContent.style.width = '90%';
+  modalContent.style.position = 'relative';
+
+  const closeButton = document.createElement('span');
+  closeButton.className = 'close-modal';
+  closeButton.innerHTML = '&times;';
+  closeButton.style.position = 'absolute';
+  closeButton.style.right = '15px';
+  closeButton.style.top = '5px';
+  closeButton.style.fontSize = '28px';
+  closeButton.style.cursor = 'pointer';
+  closeButton.addEventListener('click', () => {
+   loginInfoModal.style.display = 'none';
+  });
+
+  const span_lgot = document.createElement('span');
+  span_lgot.style.cursor = 'pointer';
+  span_lgot.textContent = ' _';
+  span_lgot.addEventListener('click', () => {
+   if (confirm('Are you sure you want to log out?')) {
+    my1uzr = null;
+    localStorage.setItem('my1uzr', null);
+    location.reload();
+   }
+  });
+
+  const modalTitle = document.createElement('h2');
+  modalTitle.className = 'modal-title';
+  modalTitle.textContent = 'Login Information';
+  modalTitle.style.marginTop = '0';
+  modalTitle.appendChild(span_lgot);
+
+  /*addLongPressListener(modalTitle, function() {
+  if (confirm('Are you sure you want to log out?')) {
+  my1uzr = null;
+  localStorage.setItem('my1uzr', null);
+  location.reload();
+  }
+  }, 3000);*/
+
+  const infoContainer = document.createElement('div');
+  infoContainer.id = 'login-info-container';
+
+  modalContent.appendChild(closeButton);
+  modalContent.appendChild(modalTitle);
+  modalContent.appendChild(infoContainer);
+  loginInfoModal.appendChild(modalContent);
+
+  document.body.appendChild(loginInfoModal);
+ }
+
+ const infoContainer = document.getElementById('login-info-container');
+ infoContainer.innerHTML = '';
+
+ if (typeof my1uzr !== 'undefined' && my1uzr !== null && (my1uzr.jk || my1uzr.mk)) {
+  dontShoThisLoginModal = 0;
+  const userInfo = document.createElement('div');
+  userInfo.className = 'user-info';
+
+  const details = [
+   { label: 'Name: ', value: my1uzr.mn || 'Not provided' },
+   { label: 'Local nm: ', value: my1uzr.mu || 'Not provided' },
+   { label: 'Mobile: ', value: my1uzr.mo || 'Not provided' },
+   { label: 'Constraint: ', value: my1uzr.mc || 'Not selected' }
+  ];
+
+  details.forEach(detail => {
+   const detailRow = document.createElement('p');
+   detailRow.innerHTML = `<strong>${detail.label}:</strong> ${detail.value}`;
+   userInfo.appendChild(detailRow);
+  });
+  infoContainer.appendChild(userInfo);
+
+  const logoutButton = document.createElement('button');
+  logoutButton.className = 'logout-button';
+  logoutButton.textContent = 'Logout';
+  logoutButton.style.marginTop = '50px';
+  logoutButton.addEventListener('click', () => {
+   my1uzr = null;
+   localStorage.setItem('my1uzr', null);
+   location.reload();
+  });
+  if (shoLogOut === 1)
+   infoContainer.appendChild(logoutButton);
+
+  const b_tn_callShoMyCtr = document.createElement('button');
+  b_tn_callShoMyCtr.className = 'button';
+  b_tn_callShoMyCtr.textContent = 'my';
+  b_tn_callShoMyCtr.style.marginTop = '50px';
+  b_tn_callShoMyCtr.addEventListener('click', () => {
+   chkMyControlExists();
+  });
+  infoContainer.appendChild(b_tn_callShoMyCtr);
+ } else {
+  if (showLoginModalDirectly && showLoginModalDirectly == 1) {
+   chkLoadLoginExists(shoLoginByOas2orByPas1);
+  } else {
+   const loginMessage = document.createElement('p');
+   loginMessage.textContent = 'You are not logged in.';
+   loginMessage.style.marginBottom = '15px';
+
+   const loginButton = document.createElement('button');
+   loginButton.textContent = 'Login';
+   loginButton.style.padding = '8px 16px';
+   loginButton.style.backgroundColor = '#4CAF50';
+   loginButton.style.color = 'white';
+   loginButton.style.border = 'none';
+   loginButton.style.borderRadius = '4px';
+   loginButton.style.cursor = 'pointer';
+   loginButton.addEventListener('click', () => {
+    loginInfoModal.style.display = 'none';
+    chkLoadLoginExists(shoLoginByOas2orByPas1);
+   });
+
+   infoContainer.appendChild(loginMessage);
+   infoContainer.appendChild(loginButton);
+  }
+ }
+
+ if (dontShoThisLoginModal == 0)
+  loginInfoModal.style.display = 'flex';
+
+ loginInfoModal.addEventListener('click', (e) => {
+  if (e.target === loginInfoModal) {
+   loginInfoModal.style.display = 'none';
+  }
+ });
+}
+
+function chkMyControlExists() {
+ if (typeof showMyProxyModal !== 'function') {
+  loadScript("https://cdn.jsdelivr.net/gh/sifr-in/cdn@df5010e/cmn/my1ctr.js", () => {
+   if (typeof showMyProxyModal === 'function') {
+    showMyProxyModal();
+   } else {
+    reject(new Error("Login system loaded but required functions not found"));
+   }
+  });
+ } else {
+  showMyProxyModal();
+ }
+}
+
+function chkLoadLoginExists(shoLoginByOas2orByPas1) {
+ const existingModal = document.getElementById('loginModalBackdrop');
+
+ if (existingModal && existingModal.style.display !== 'none') {
+  return Promise.resolve({
+   __loginRequired: true,
+   ms: "Login modal already open and visible"
+  });
+ }
+
+ if (shoLoginByOas2orByPas1 === 2) {
+  if (typeof createLoginByOModal !== 'function') {
+   return loadLoginSystem(shoLoginByOas2orByPas1, "createLoginByOModal").then(() => {
+    createLoginByOModal();
+    return { __loginRequired: true, ms: "login-modal loaded;" };
+   }).catch(err => {
+    alert("Failed to load login system: " + err.message);
+    return { __loginRequired: true, __ignored: true };
+   });
+  } else {
+   createLoginByOModal();
+   return { __loginRequired: true, ms: "showing already loaded login-modal;" };
+  }
+ } else if (shoLoginByOas2orByPas1 === 1) {
+  if (typeof createLoginByPModal !== 'function') {
+   return loadLoginSystem(shoLoginByOas2orByPas1, "createLoginByPModal").then(() => {
+    createLoginByPModal();
+    return { __loginRequired: true, ms: "login-modal loaded;" };
+   }).catch(err => {
+    alert("Failed to load login system: " + err.message);
+    return { __loginRequired: true, __ignored: true };
+   });
+  } else {
+   createLoginByPModal();
+   return { __loginRequired: true, ms: "showing already loaded login-modal;" };
+  }
+ } else showToast("contact admin");
+}
+
+function isEven(number) {
+ return number % 2 === 0;
+}
+
+function isOdd(number) {
+ return number % 2 !== 0;
+}
+
+async function validateImageUrl(url) {
+ if (!url) return false;
+
+ try {
+  const response = await fetch(url, { method: 'HEAD' });
+  if (response.ok) {
+   const contentType = response.headers.get('Content-Type');
+   if (contentType && contentType.startsWith('image/')) {
+    return true;
+   }
+  }
+ } catch (e) {
+ }
+
+ const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+ const lowerUrl = url.toLowerCase();
+
+ return imageExtensions.some(ext => {
+  const extIndex = lowerUrl.indexOf(ext);
+  if (extIndex === -1) return false;
+  return extIndex === lowerUrl.length - ext.length ||
+   ['?', '#'].includes(lowerUrl.charAt(extIndex + ext.length));
+ });
+}
+
+function filterRecordsByDate(records, dateColumn, minDate, maxDate) {
+ if (!records || !Array.isArray(records)) return [];
+ if (!dateColumn) return records;
+
+ // Parse dates only once
+ const min = minDate ? new Date(minDate) : null;
+ const max = maxDate ? new Date(maxDate) : null;
+
+ // Validate dates
+ if ((minDate && isNaN(min.getTime())) || (maxDate && isNaN(max.getTime()))) {
+  console.error('Invalid date parameters');
+  return [];
+ }
+
+ return records.filter(record => {
+  if (!record[dateColumn]) return false;
+
+  try {
+   const recordDate = new Date(record[dateColumn]);
+   if (isNaN(recordDate.getTime())) return false;
+
+   // Check if record is within range
+   const afterMin = !min || recordDate >= min;
+   const beforeMax = !max || recordDate <= max;
+
+   return afterMin && beforeMax;
+  } catch {
+   return false;
+  }
+ });
+
+}
+
+function addLongPressListener(element, callback, duration = 500) {
+ let timer;
+
+ function startTimer() {
+  timer = setTimeout(callback, duration);
+ }
+
+ function clearTimer() {
+  clearTimeout(timer);
+ }
+
+ // Mouse events
+ element.addEventListener('mousedown', startTimer);
+ element.addEventListener('mouseup', clearTimer);
+ element.addEventListener('mouseleave', clearTimer);
+
+ // Touch events
+ element.addEventListener('touchstart', startTimer);
+ element.addEventListener('touchend', clearTimer);
+ element.addEventListener('touchcancel', clearTimer);
+
+ // Prevent context menu
+ element.addEventListener('contextmenu', (e) => e.preventDefault());
+}
+
+function createAdContainer() {
+ const adContainer = document.createElement('div');
+
+ // Create the ins element
+ const insElement = document.createElement('ins');
+ insElement.className = 'adsbygoogle';
+ insElement.style.display = 'inline-block';
+ insElement.style.width = '320px';
+ insElement.style.height = '50px';
+ insElement.dataset.adClient = 'ca-pub-5594579046538353';
+ insElement.dataset.adSlot = '1287000278';
+
+ adContainer.appendChild(insElement);
+
+ // Create and append the script if needed
+ if (!window.adsbygoogle) {
+  const script = document.createElement('script');
+  script.async = true;
+  script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+  adContainer.appendChild(script);
+ }
+
+ return adContainer;
+}
+const currentYearElement = document.getElementById('currentYear');
+if (currentYearElement) {
+ currentYearElement.textContent = new Date().getFullYear();
+}
+
+// ---- Global audio playing-state tracking (single source of truth) ----
+const mrPlayingAudios = new Set();
+function mrEmitAudioState() {
+ try {
+  document.dispatchEvent(new CustomEvent("mraudiostate", { detail: { playing: mrPlayingAudios.size > 0 } }));
+ } catch (e) { }
+}
+function mrTrackAudio(audio) {
+ if (!audio) return audio;
+ //never attach the listeners twice: callers (preload, OTP, playAud) may pass the
+ //same element more than once
+ if (audio.__mrTracked) return audio;
+ audio.__mrTracked = true;
+ const onPlay = () => { mrPlayingAudios.add(audio); mrEmitAudioState(); };
+ const onStop = () => { mrPlayingAudios.delete(audio); mrEmitAudioState(); };
+ audio.addEventListener("playing", onPlay);
+ audio.addEventListener("pause", onStop);
+ audio.addEventListener("ended", onStop);
+ audio.addEventListener("error", function () {
+  //invalidate the cache so the next play fetches a fresh, complete copy
+  //instead of reusing a partially-buffered/stale element (which skips parts)
+  try { mrAudioCache.delete(audio.src || ""); } catch (e) { }
+  onStop();
+  try {
+   const src = audio.src;
+   if (src) { audio.src = src; audio.load(); }
+  } catch (e2) { }
+ });
+ audio.addEventListener("stalled", function () {
+  //a playing element may still recover on its own; calling load() here resets the
+  //buffer and was cutting the sound off mid-play. Only refresh an idle/failed one.
+  try { if (audio.paused) { audio.load(); } } catch (e) { }
+ });
+ return audio;
+}
+
+// Start an audio element from the very beginning. A reused/streamed element (Drive proxy,
+// curl.php) can ignore "currentTime = 0" and resume where it was paused, which is what made
+// the same intro part go missing on repeated plays. Seek first and wait for "seeked"
+// (short fallback) before calling play().
+function mrStartAudioAtZero(a, onReady) {
+ if (!a || typeof onReady !== "function") return;
+ let done = false;
+ const fire = function () {
+  if (done) return;
+  done = true;
+  try { onReady(); } catch (e) { }
+ };
+ try {
+  if (a.readyState >= 3 && a.currentTime > 0.05) {
+   const onSeeked = function () {
+    a.removeEventListener("seeked", onSeeked);
+    fire();
+   };
+   a.addEventListener("seeked", onSeeked);
+   try {
+    a.currentTime = 0;
+   } catch (eSeek) {
+    a.removeEventListener("seeked", onSeeked);
+    fire();
+    return;
+   }
+   setTimeout(function () {
+    a.removeEventListener("seeked", onSeeked);
+    try { a.currentTime = 0; } catch (e2) { }
+    fire();
+   }, 300);
+   return;
+  }
+ } catch (e0) { }
+ try { a.currentTime = 0; } catch (e1) { }
+ fire();
+}
+
+// Resolve a raw value to a playable URL: a Google Drive URL or bare file id, a direct
+// http(s) URL, a local/test path (./ ../ / C:\ file://), or a plain filename are all
+// handled. mr.da wajiw entries carry their "e" here.
+function mrResolveAudioUrl(raw) {
+ if (raw == null) return "";
+ const s = String(raw).trim();
+ if (!s) return "";
+ // Google Drive URL: extract file ID
+ const driveId = extractGoogleDriveFileId(s);
+ if (driveId) return encodeURIComponent(driveId);
+ // Direct HTTP/HTTPS URL: preserve URL
+ if (/^https?:\/\//i.test(s)) return s;
+ // Local/test paths and relative file paths: preserve path
+ if (/^(?:\.{0,2}\/|\/|[A-Za-z]:[\\/]|file:\/\/)/i.test(s)) return s;
+ // Bare Google Drive ID or other file ID
+ if (/^[A-Za-z0-9_-]{10,}$/.test(s)) return `https://my1.in/curl.php?id=${encodeURIComponent(s)}`;
+ // Other filenames, e.g. git/pga.opus or git/pgf.mpeg
+ return s;
+}
+
+// ---- Shared audio element cache (preloaded in background, reused on play) ----
+const mrAudioCache = new Map();
+function mrGetAudio(raw) {
+ const src = mrResolveAudioUrl(raw);
+ if (!src) return null;
+ let audio = mrAudioCache.get(src);
+ if (audio) return audio;
+ audio = mrTrackAudio(new Audio(src));
+ audio.preload = "auto";
+ mrAudioCache.set(src, audio);
+ try { audio.load(); } catch (e) { }
+ return audio;
+}
+
+// Preload every wajiw sound in the background so playback is instant (never null).
+function preloadWajiwSounds(list) {
+ if (!Array.isArray(list)) return;
+ let bucket = null;
+ try {
+  if (typeof my1uzr !== "undefined" && my1uzr && my1uzr.worknOnPg && window[my1uzr.worknOnPg]) {
+   bucket = window[my1uzr.worknOnPg].wajiwSnds = window[my1uzr.worknOnPg].wajiwSnds || {};
+  }
+ } catch (e) { }
+ for (let i = 0; i < list.length; i++) {
+  const item = list[i];
+  if (!item || item.e === undefined || item.e === null || item.e === "") continue;
+  const audio = mrGetAudio(item.e);
+  if (audio && !audio.__mrSndKey) {
+   //remember which config entry this element belongs to, and say so if the file
+   //never downloads (a dead/unshared Drive id would otherwise just mean silence)
+   audio.__mrSndKey = String(item.a);
+   audio.__mrSndRaw = String(item.e);
+   audio.addEventListener("error", function () {
+    console.warn("[mr] sound failed to download:", audio.__mrSndKey,
+     "| id:", audio.__mrSndRaw, "|", audio.src,
+     "-> check the Drive file id and its link sharing");
+   });
+  }
+  if (audio && bucket) bucket[String(item.a)] = audio;
+ }
+}
+
+/* ---- Global "Play information sound" button ---------------------------------------
+ * Defined ONCE here and revealed/hidden by each context via window.mrSoundBtn.
+ * The sound table lives in mr.da ("wajiw"); mrSoundBtn.show(<entry>.e) shows the
+ * button and arms it with that entry. Playback is a toggle (tap starts/stops).
+ * The playing look is a full CSS experience (vibration + flip icon + darker gold). */
+(function mrSoundBtnInit() {
+ const CSS_ID = "mrSoundBtnCss";
+ const BTN_ID = "mrSoundBtnEl";
+ const ICON = '<i class="fa-solid fa-volume-high"></i>';
+ const CSS = [
+  "#" + BTN_ID + "{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:99999999999999999;",
+  "width:48px;height:48px;padding:0;border-radius:50%;border:1px solid rgba(201,164,92,.7);",
+  "display:none;align-items:center;justify-content:center;cursor:pointer;",
+  "background-image:linear-gradient(135deg,#e6cf9b,#c9a45c);color:#2a2010;font-size:19px;",
+  "box-shadow:0 10px 22px rgba(0,0,0,.3);transition:transform .18s ease,filter .2s ease;",
+  "-webkit-user-select:none;user-select:none;touch-action:manipulation;}",
+  "#" + BTN_ID + ".is-on{display:flex;}",
+  "#" + BTN_ID + ":hover{filter:brightness(1.07);}",
+  "#" + BTN_ID + ":active{transform:scale(.94);}",
+  "#" + BTN_ID + " i{pointer-events:none;}",
+  /*playing: darker shade of the same gold + vibration, icon flips front/back*/
+  "#" + BTN_ID + ".is-playing{background-image:linear-gradient(135deg,#b8933f,#8f6f2c);",
+  "color:#fff;border-color:#7d6024;box-shadow:0 10px 26px rgba(0,0,0,.45);",
+  "animation:mrSndVibe .42s linear infinite;}",
+  "#" + BTN_ID + ".is-playing i{animation:mrSndFlip 2.2s ease-in-out infinite;}",
+  "@keyframes mrSndVibe{0%{transform:translate(0,0) rotate(0);}",
+  "20%{transform:translate(-2.5px,1px) rotate(-7deg);}",
+  "40%{transform:translate(2.5px,-1px) rotate(7deg);}",
+  "60%{transform:translate(-2.5px,-1px) rotate(-5deg);}",
+  "80%{transform:translate(2.5px,1px) rotate(5deg);}",
+  "100%{transform:translate(0,0) rotate(0);}}",
+  "@keyframes mrSndFlip{0%,60%{transform:rotateY(0);}80%{transform:rotateY(180deg);}100%{transform:rotateY(360deg);}}"
+ ].join("");
+ /* currentRaw = the raw (config "e") that `last` was started with, so a USER pause
+ * can be reported with the exact key isAudioAutoOff() checks in regis.js. */
+ let btn = null, armed = "", last = null, currentRaw = "";
+
+ /* ---- global pause counter --------------------------------------------------------
+  * Every sound (welcome, plans, filter, profile modal, registration...) is counted
+  * separately, by its raw config "e". After mr.da "autoPlaySoundStopAfter" user
+  * pauses (default 2) that sound is no longer AUTO-played; a manual tap on the
+  * shared button always plays it. Counting lives here because this file always
+  * loads, unlike a single form script. */
+ function daCfg() {
+  try {
+   const P = (window.my1uzr && window.my1uzr.worknOnPg) ? window[window.my1uzr.worknOnPg] : null;
+   return window.da_mr || (P && P.clientConfig) || {};
+  } catch (e) { return {}; }
+ }
+ function pauseKey() { return ((window.appOwner && window.appOwner.tn) || "mr") + "_mrAudioPauseCountsV2"; }
+ function stopAfter() {
+  const n = parseInt(daCfg().autoPlaySoundStopAfter, 10);
+  return isNaN(n) ? 2 : n;
+ }
+ function loadPauses() {
+  try { const o = JSON.parse(localStorage.getItem(pauseKey()) || "{}"); return (o && typeof o === "object") ? o : {}; } catch (e) { return {}; }
+ }
+ function savePauses(o) { try { localStorage.setItem(pauseKey(), JSON.stringify(o)); } catch (e) { } }
+ function notePause(raw) {
+  if (!raw || !(stopAfter() > 0)) return;
+  const o = loadPauses(); const k = String(raw);
+  o[k] = (parseInt(o[k], 10) || 0) + 1;
+  savePauses(o);
+ }
+ function isAutoOff(raw) {
+  const lim = stopAfter();
+  if (!(lim > 0) || !raw) return false;
+  return (parseInt(loadPauses()[String(raw)], 10) || 0) >= lim;
+ }
+
+ function injectCss() {
+  if (document.getElementById(CSS_ID)) return;
+  const s = document.createElement("style");
+  s.id = CSS_ID;
+  s.textContent = CSS;
+  document.head.appendChild(s);
+ }
+ function audioFor(raw) {
+  if (!raw) return null;
+  try { const a = mrGetAudio(raw); if (a) return a; } catch (e) { }
+  try { return mrTrackAudio(new Audio(mrResolveAudioUrl(raw))); } catch (e2) { return null; }
+ }
+ //is this raw the SAME cached element as `el`? Two wajiw keys / a raw key vs its URL can
+ //map to one shared Audio element; switching context between them must not cut the sound.
+ function sameAudio(raw, el) {
+  if (!raw || !el) { return false; }
+  try { return audioFor(raw) === el; } catch (e) { return false; }
+ }
+ function play(raw) {
+  const a = audioFor(raw);
+  if (!a) return;
+  const r = raw || "";
+
+  //1. the exact element is already audible: a duplicate request coming from a concurrent
+  //UI event must NOT restart it from 0 (that restarted the same file mid-way and made the
+  //same part of the sound disappear). Re-arm the button on the newest context and stop.
+  if (a === last && !a.paused && !a.ended) {
+   currentRaw = r;
+   armed = r;
+   return;
+  }
+  //2. the same element is still loading/waiting for its start: only re-arm the button.
+  //A second load() aborts the first fetch and can resume from a byte offset, which is
+  //exactly why coinciding triggers skipped the beginning of the sound.
+  if (a.__mrStarting) {
+   currentRaw = r;
+   armed = r;
+   return;
+  }
+
+  //3. Serialise playback. mrPlayingAudios is filled by the async "playing" event, so an
+  //audio that is still loading is NOT in the Set yet; pause `last` explicitly and bump
+  //every other element's generation so a pending canplay/timeout from an earlier play
+  //can never restart it mid-way.
+  try {
+   mrPlayingAudios.forEach(function (other) {
+    if (other === a) { return; }
+    other.__playGen = (other.__playGen || 0) + 1;
+    other.__mrStarting = 0;
+    if (typeof other.pause === "function") { try { other.pause(); } catch (e) { } }
+    //an element that is still loading never fires "pause"; drop it explicitly so
+    //the "playing" state (and the button) can not stay on for a silent audio
+    mrPlayingAudios.delete(other);
+   });
+  } catch (e) { }
+  if (last && last !== a) {
+   last.__playGen = (last.__playGen || 0) + 1;
+   last.__mrStarting = 0;
+   if (typeof last.pause === "function") { try { last.pause(); } catch (e) { } }
+   mrPlayingAudios.delete(last);
+  }
+  const gen = (a.__playGen || 0) + 1;
+  a.__playGen = gen;
+  a.__mrStarting = gen;   //a start for this element is now in flight
+  last = a;
+  currentRaw = r;         //the sound that just started (its config "e")
+  armed = r;              //the button follows the sound that actually played
+  //mark it playing synchronously so the button and other callers see it immediately
+  mrPlayingAudios.add(a);
+  mrEmitAudioState();
+
+  let started = false;
+  const start = function () {
+   if (started) { return; }               //canplay and the timeout must start it once
+   if (a.__playGen !== gen) { return; }   //superseded by a newer play/stop
+   started = true;
+   //always begin at 0: seeking first (and waiting for it) stops a reused stream from
+   //resuming at its old position and skipping the intro
+   mrStartAudioAtZero(a, function () {
+    if (a.__playGen !== gen) { return; }
+    a.__mrStarting = 0;
+    Promise.resolve(a.play()).catch(function () {
+     if (a.__playGen !== gen) { return; }  //interrupted by a newer play: expected
+     mrPlayingAudios.delete(a);
+     mrEmitAudioState();
+    });
+   });
+  };
+  //if the cached element is not fully buffered, force a clean fetch before playing
+  //so we don't resume from a partial/stale buffer (which skips parts of the audio)
+  if (a.readyState >= 3) { //HAVE_FUTURE_DATA
+   start();
+  } else {
+   let fbTimer = 0;
+   const onCanPlay = function () {
+    a.removeEventListener("canplay", onCanPlay);
+    a.removeEventListener("canplaythrough", onCanPlay);
+    try { clearTimeout(fbTimer); } catch (eT) { }
+    if (a.__playGen !== gen) { return; }
+    start();
+   };
+   a.addEventListener("canplay", onCanPlay);
+   a.addEventListener("canplaythrough", onCanPlay);
+   try { a.load(); } catch (e) { }
+   //fallback: play anyway after a short wait if canplay never fires
+   fbTimer = setTimeout(function () {
+    a.removeEventListener("canplay", onCanPlay);
+    a.removeEventListener("canplaythrough", onCanPlay);
+    if (a.__playGen !== gen) { return; }
+    try { start(); } catch (e) { }
+   }, 2000);
+  }
+ }
+ function toggle() {
+  if (last && typeof last.pause === "function" && !last.ended && currentRaw === armed) {
+   if (last.paused) {
+    //a start is already queued for this element: let it play instead of doubling it
+    if (last.__mrStarting) { return; }
+    //resume: bump the generation so a stale canplay/timeout cannot fire twice
+    const g = (last.__playGen || 0) + 1;
+    last.__playGen = g;
+    try {
+     Promise.resolve(last.play()).catch(function () {
+      if (last && last.__playGen === g) { mrPlayingAudios.delete(last); mrEmitAudioState(); }
+     });
+    } catch (e) { }
+   }
+   else {
+    last.__playGen = (last.__playGen || 0) + 1;   //cancel a pending deferred start
+    last.__mrStarting = 0;
+    try { last.pause(); } catch (e) { }
+    /* a USER pause through the shared button counts toward mr.da
+     * "autoPlaySoundStopAfter" for this exact sound. stopAll()/pipeline stops
+     * never count (and never dispatch this event). */
+    try { notePause(currentRaw); } catch (eN) { }
+    try { document.dispatchEvent(new CustomEvent("mrsoundpause", { detail: { raw: currentRaw } })); } catch (e) { }
+   }
+   return;
+  }
+  if (armed) play(armed);
+ }
+ function onAudioState(ev) {
+  if (!btn) return;
+  btn.classList.toggle("is-playing", !!(ev && ev.detail && ev.detail.playing));
+ }
+ function ensure() {
+  if (btn && document.body.contains(btn)) return btn;
+  if (!document.getElementById(CSS_ID)) {
+   const s = document.createElement("style");
+   s.id = CSS_ID; s.textContent = CSS; document.head.appendChild(s);
+  }
+  btn = document.getElementById(BTN_ID);
+  if (!btn) {
+   btn = document.createElement("button");
+   btn.type = "button";
+   btn.id = BTN_ID;
+   btn.title = "Play information sound";
+   btn.setAttribute("aria-label", "Play information sound");
+   btn.innerHTML = ICON;
+   btn.addEventListener("click", toggle);
+   document.body.appendChild(btn);
+  }
+  document.removeEventListener("mraudiostate", onAudioState);
+  document.addEventListener("mraudiostate", onAudioState);
+  return btn;
+ }
+
+ /* stop every currently playing sound (and forget the shared "last") */
+ function stopAll() {
+  try {
+   mrPlayingAudios.forEach(function (a) {
+    if (!a) { return; }
+    a.__playGen = (a.__playGen || 0) + 1;   //cancel any pending canplay/timeout
+    a.__mrStarting = 0;
+    if (typeof a.pause === "function") { try { a.pause(); } catch (e) { } }
+   });
+  } catch (e) { }
+  if (last) {
+   last.__playGen = (last.__playGen || 0) + 1;
+   last.__mrStarting = 0;
+   try { last.pause(); } catch (eL) { }
+  }
+  try { mrPlayingAudios.clear(); mrEmitAudioState(); } catch (eC2) { }
+  last = null;
+  currentRaw = "";
+ }
+
+ /* public API */
+ window.mrSoundBtn = {
+  /* reveal the button and arm it with a sound (raw = signal/URL) */
+  show: function (raw) {
+   ensure();
+   const r = raw || "";
+   //context changed: release the old sound — unless the new raw resolves to the very
+   //same cached element, in which case it would cut the sound mid-way for no reason
+   if (r !== armed && last && !sameAudio(r, last)) stopAll();
+   armed = r;
+   btn.classList.add("is-on");
+  },
+  /* hide it and stop whatever sound is playing (single global pipeline) */
+  hide: function () {
+   if (btn) btn.classList.remove("is-on", "is-playing");
+   stopAll();
+  },
+  /* current visibility */
+  isShown: function () { return !!(btn && btn.classList.contains("is-on")); },
+  /* arm a sound without changing visibility */
+  setSound: function (raw) {
+   const r = raw || "";
+   //switching context drops the old sound, unless it is the same cached element
+   if (r !== armed && last && !sameAudio(r, last)) stopAll();
+   armed = r;
+   return armed;
+  },
+  /* AUTO play the armed (or given) sound through the shared button: skipped once
+   * that sound hit the configured pause limit (manual tap still plays it) */
+  play: function (raw) { const r = raw || armed; if (isAutoOff(r)) return; play(r); },
+  /* pause/resume whichever sound is currently playing */
+  toggle: function () { toggle(); }
+ };
+
+ /* global helpers used by every context (filter, profile modal, plans, forms) */
+ window.mrSoundAutoOff = isAutoOff;
+ window.mrSoundIsPlaying = function (raw) {
+  return !!(last && typeof last.pause === "function" && !last.ended && !last.paused &&
+   (!raw || currentRaw === raw));
+ };
+ window.__mrAudioPauseGlobal = 1;   // regis.js must not count pauses a second time
+
+ /* ---- single global audio pipeline ------------------------------------------------
+  * Every context (welcome, plans, registration field/form) plays and stops through
+  * these, so a new play always halts the previous one and the shared button's "last"
+  * stays in sync with the sound that is actually playing. */
+ window.mrPlaySound = function (raw) { const r = raw || armed; if (isAutoOff(r)) return; play(r); };
+ window.mrStopSound = stopAll;
+})();
+
+function playAud(audioUrl) {
+ //route through the shared pipeline so a new play stops the previous sound and
+ //the floating sound button stays in sync (single source of truth for playback)
+ try {
+  if (typeof window.mrPlaySound === "function" && window.mrSoundBtn) {
+   window.mrPlaySound(audioUrl);
+   return Promise.resolve(mrGetAudio(audioUrl));
+  }
+ } catch (eDeleg) { }
+ try {
+  const src = mrResolveAudioUrl(audioUrl);
+  if (!src) return Promise.reject(new Error("No audio source"));
+
+  const audio = mrGetAudio(audioUrl) || mrTrackAudio(new Audio(src));
+  //stop any other audio so a new play never overlaps the previous one; bump the
+  //generation too so an earlier pending canplay/timeout cannot restart it mid-way
+  Array.from(mrPlayingAudios).forEach((other) => {
+   if (other !== audio) {
+    other.__playGen = (other.__playGen || 0) + 1;
+    other.__mrStarting = 0;
+    if (typeof other.pause === "function") {
+     try { other.pause(); } catch (e) { }
+    }
+   }
+  });
+  //always start from 0, waiting for the seek when the element was reused mid-way
+  return new Promise((resolve, reject) => {
+   mrStartAudioAtZero(audio, () => {
+    audio.play().then(() => resolve(audio)).catch((err) => {
+     console.warn('Audio play failed:', src, err && err.message);
+     reject(err);
+    });
+   });
+  });
+
+ } catch (error) {
+  console.error('Error playing audio:', error);
+  return Promise.reject(error);
+ }
+}
+
+function extractGoogleDriveFileId(url) {
+ // Multiple patterns to extract file ID from different Google Drive URL formats
+ const patterns = [
+  /\/file\/d\/([^\/]+)/,           // Standard file URL
+  /\/d\/([^\/]+)/,                 // Shortened format
+  /id=([^&]+)/,                    // ID parameter format
+  /open\?id=([^&]+)/,              // Open format
+  /uc\?export=download&id=([^&]+)/ // Direct download format
+ ];
+
+ for (const pattern of patterns) {
+  const match = url.match(pattern);
+  if (match && match[1]) {
+   return match[1];
+  }
+ }
+ return null;
+}
+
+// ================= UNIVERSAL BACK BUTTON HANDLER =================
+
+let backButtonHandlerInitialized = false;
+
+function initializeUniversalBackButtonHandler() {
+ if (backButtonHandlerInitialized) return;
+
+
+ // Method 1: History API approach
+ initializeHistoryState();
+
+ // Method 2: Direct back button interception
+ window.addEventListener('popstate', function (event) {
+  handleUniversalBackButton();
+ });
+
+ // Method 3: Fallback for PWA direct launch
+ window.addEventListener('pagehide', function (event) {
+  if (areAnyModalsOpen()) {
+   event.preventDefault();
+   handleUniversalBackButton();
+
+   // Keep the page alive
+   setTimeout(() => {
+    window.history.pushState({ universalBackButton: true }, '');
+   }, 100);
+  }
+ });
+
+ // Method 4: Beforeunload as final safety net
+ window.addEventListener('beforeunload', function (event) {
+  if (typeof releaseWakeLock === 'function') {
+   releaseWakeLock();
+  }
+  //used in sho.html
+  if (typeof dontShowReloadConfirmation !== 'undefined' && dontShowReloadConfirmation === 1) {
+   return; // Exit without showing confirmation
+  }
+ });
+
+ backButtonHandlerInitialized = true;
+}
+
+function initializeHistoryState() {
+ // Ensure we have a managed state
+ if (!history.state || !history.state.universalBackButton) {
+  history.replaceState({ universalBackButton: true, modalCount: 0 }, '');
+ }
+
+ // Add an entry to prevent immediate exit
+ history.pushState({ universalBackButton: true, preventExit: true }, '');
+}
+
+function handleUniversalBackButton() {
+
+ // Clear existing timeout
+ if (backButtonTimeout) {
+  clearTimeout(backButtonTimeout);
+ }
+
+ // Increment press count
+ backButtonPressCount++;
+
+
+ // Set timeout to reset counter after 2 seconds
+ backButtonTimeout = setTimeout(() => {
+  backButtonPressCount = 0;
+ }, 500);
+
+ // Handle based on press count and modal stack
+ if (backButtonPressCount === 1) {
+  return handleFirstBackPress();
+ } else if (backButtonPressCount === 2) {
+  return handleSecondBackPress();
+ } else if (backButtonPressCount >= 3) {
+  return handleThirdBackPress();
+ }
+
+ return true;
+}
+
+function handleFirstBackPress() {
+ if (modalStack.length > 0) {
+  // Close top modal
+  const modalClosed = closeTopModalFromStack();
+
+  if (modalClosed) {
+   const remainingModals = modalStack.length;
+
+   if (remainingModals > 0) {
+    // Still more modals open
+    if (remainingModals >= 2) {
+     showToast(`2-close all modals, 3-exit`);
+    } else {
+     showToast(`2-close last, 3-exit`);
+    }
+   } else {
+    // All modals closed
+    showToast(`2-exit`);
+   }
+   return true;
+  }
+ } else {
+  // No modals open
+  showToast(`2-exit`);
+  return true;
+ }
+
+ return false;
+}
+
+function handleSecondBackPress() {
+ if (modalStack.length > 0) {
+  // Close all remaining modals
+  const modalsClosed = closeAllModalsUniversally();
+
+  if (modalsClosed > 0) {
+   showToast(`Closed all modals. Press back 3 times to exit`);
+   backButtonPressCount = 2; // Set to 2 so next press will be third
+   return true;
+  }
+ } else {
+  // No modals, prepare for exit
+  showToast(`Press back 3 times to exit`);
+  backButtonPressCount = 2; // Set to 2 so next press will be third
+  return true;
+ }
+
+ return false;
+}
+
+function handleThirdBackPress() {
+ // Reset counter
+ backButtonPressCount = 0;
+ if (backButtonTimeout) {
+  clearTimeout(backButtonTimeout);
+  backButtonTimeout = null;
+ }
+
+ // Allow exit
+ return false; // Don't handle, let browser exit
+}
+
+function closeTopModalFromStack() {
+ if (modalStack.length === 0) {
+  return false;
+ }
+
+ // Get the topmost modal (last in the stack - highest z-index)
+ const topModalId = modalStack[modalStack.length - 1];
+
+ const modalElement = document.getElementById(topModalId);
+
+ if (modalElement) {
+  return closeModalElement(modalElement);
+ } else {
+  // Modal element not found, remove from stack
+  console.warn(`Modal element with id ${topModalId} not found, removing from stack`);
+  modalStack.pop();
+  return false;
+ }
+}
+
+function closeAllModalsUniversally() {
+ let closedCount = 0;
+
+ // Close from top of stack to bottom (reverse order)
+ const modalsToClose = [...modalStack].reverse();
+
+ for (const modalId of modalsToClose) {
+  const modalElement = document.getElementById(modalId);
+  if (modalElement) {
+   if (closeModalElement(modalElement)) {
+    closedCount++;
+   }
+  }
+ }
+
+ // Force cleanup
+ cleanupModalArtifacts();
+ modalStack = [];
+ modalZIndexCounter = 1050;
+
+ return closedCount;
+}
+
+function closeModalElement(modal) {
+ try {
+  const modalId = modal.id || 'anonymous';
+
+  // Method 1: Try Bootstrap modal API first
+  if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+   const bsModal = bootstrap.Modal.getInstance(modal);
+   if (bsModal) {
+    bsModal.hide();
+    removeModalFromStack(modalId);
+    return true;
+   }
+  }
+
+  // Method 2: Trigger hide event for Bootstrap
+  const hideEvent = new Event('hide.bs.modal');
+  modal.dispatchEvent(hideEvent);
+
+  // Method 3: Direct Bootstrap class manipulation
+  if (modal.classList.contains('show')) {
+   modal.style.display = 'none';
+   modal.classList.remove('show');
+
+   // Remove backdrop if exists
+   const backdrops = document.querySelectorAll('.modal-backdrop');
+   if (backdrops.length > 0) {
+    backdrops[backdrops.length - 1].remove();
+   }
+
+   // Reset body styles
+   document.body.classList.remove('modal-open');
+   document.body.style.overflow = '';
+   document.body.style.paddingRight = '';
+
+   removeModalFromStack(modalId);
+   return true;
+  }
+
+  // Method 4: Generic hide for any modal-like element
+  modal.style.display = 'none';
+  removeModalFromStack(modalId);
+  return true;
+
+ } catch (error) {
+  console.error('Error closing modal:', error);
+  // Last resort: just hide it and remove from stack
+  modal.style.display = 'none';
+  removeModalFromStack(modal.id);
+  return true;
+ }
+}
+
+function cleanupModalArtifacts() {
+
+ // Remove modal backdrops
+ const backdrops = document.querySelectorAll('.modal-backdrop, .modal-backdrop.fade.show');
+ backdrops.forEach(backdrop => {
+  backdrop.remove();
+ });
+
+ // Remove body modal classes
+ document.body.classList.remove('modal-open');
+
+ // Reset body styles
+ document.body.style.overflow = '';
+ document.body.style.paddingRight = '';
+
+ // Remove any inline styles that might be blocking scroll
+ document.body.style.removeProperty('overflow');
+ document.body.style.removeProperty('padding-right');
+
+ // Remove any custom overlay styles
+ const overlays = document.querySelectorAll('body > div[style*="position: fixed"]');
+ overlays.forEach(overlay => {
+  if (overlay.style.backgroundColor === 'rgba(0, 0, 0, 0.5)' ||
+   overlay.style.background === 'rgba(0, 0, 0, 0.5)') {
+   overlay.remove();
+  }
+ });
+}
+
+function areAnyModalsOpen() {
+ const allElements = document.querySelectorAll('*');
+ for (let element of allElements) {
+  if (isModalElement(element)) {
+   return true;
+  }
+ }
+ return false;
+}
+
+function isModalElement(element) {
+ // Skip if element is not visible
+ const style = window.getComputedStyle(element);
+ const isVisible = style.display !== 'none' &&
+  element.offsetParent !== null &&
+  style.visibility !== 'hidden';
+
+ if (!isVisible) return false;
+
+ // Check for modal characteristics with z-index consideration
+ const hasModalClass = element.classList.contains('modal') ||
+  element.classList.contains('show') ||
+  element.getAttribute('role') === 'dialog';
+
+ const hasModalStyle = style.position === 'fixed' ||
+  style.position === 'absolute' ||
+  parseInt(style.zIndex) >= 1000; // Lowered threshold to catch more modals
+
+ const hasModalContent = element.textContent?.includes('modal') ||
+  element.innerHTML?.includes('modal') ||
+  element.id?.includes('modal') ||
+  element.id?.includes('Modal') ||
+  element.id?.includes('dialog') ||
+  element.id?.includes('Dialog');
+
+ const isOverlay = style.backgroundColor?.includes('rgba') ||
+  style.background?.includes('rgba') ||
+  element.style.backgroundColor === 'rgba(0, 0, 0, 0.5)' ||
+  element.style.background === 'rgba(0, 0, 0, 0.5)';
+
+ // Also consider elements with high z-index that might be overlays
+ const hasHighZIndex = parseInt(style.zIndex) >= 1000;
+
+ return hasModalClass || hasModalStyle || hasModalContent || isOverlay || hasHighZIndex;
+}
+
+function create_modal_dynamically(modalId = 'dynamicModal') {
+ // Remove existing modal if present
+ const existingModal = document.getElementById(modalId);
+ if (existingModal) {
+  existingModal.remove();
+  removeModalFromStack(modalId);
+ }
+
+ // Create modal element
+ const modal = document.createElement('div');
+ modal.className = 'modal fade';
+ modal.id = modalId;
+ modal.setAttribute('tabindex', '-1');
+ modal.setAttribute('aria-labelledby', `${modalId}Label`);
+ modal.setAttribute('aria-hidden', 'true');
+
+ // ✅ FIX: Set z-index for proper stacking (Bootstrap backdrop is 1040-1050)
+ modal.style.zIndex = modalZIndexCounter + 10; // Ensure modal is above backdrop
+
+ const modalContentId = `${modalId}_modal_content`;
+
+ // ✅ FIX: Add modal-body wrapper inside modal-content for proper scrolling
+ modal.innerHTML = `
+<div class="modal-dialog modal-dialog-scrollable">
+<div class="modal-content" id="${modalContentId}">
+<!-- Modal body wrapper for scrolling -->
+<div class="modal-body" id="${modalContentId}_body" style="max-height: 95vh; overflow-y: auto;">
+<!-- Dynamic content will be inserted here -->
+</div>
+</div>
+</div>
+`;
+
+ document.body.appendChild(modal);
+
+ // Set random border color for the modal
+ const modalContent = document.getElementById(modalContentId);
+ const randomColor = getRandomColor();
+ modalContent.style.border = `3px solid ${randomColor}`;
+
+ // Get the modal body element
+ const modalBody = document.getElementById(`${modalContentId}_body`);
+
+ // Initialize Bootstrap modal
+ const modalInstance = new bootstrap.Modal(modal, {
+  backdrop: true,
+  keyboard: true
+ });
+
+ // ✅ FIX: Manually handle backdrop z-index
+ modalInstance._config.backdrop = true;
+
+ // Manually add to stack since we're creating dynamically
+ if (!modalStack.includes(modalId)) {
+  modalStack.push(modalId);
+  history.pushState({
+   modalOpen: true,
+   modalId: modalId,
+   modalStack: [...modalStack]
+  }, '');
+ }
+
+ // Add event listener for when modal is actually shown
+ modal.addEventListener('show.bs.modal', function () {
+  if (!modalStack.includes(modalId)) {
+   modalStack.push(modalId);
+  }
+
+  // ✅ FIX: Ensure modal z-index is properly set when shown
+  modal.style.zIndex = modalZIndexCounter + 10;
+ });
+
+ // Add event listener for when modal is hidden
+ modal.addEventListener('hidden.bs.modal', function () {
+  removeModalFromStack(modalId);
+  // ✅ FIX: Reset z-index counter if this was the topmost modal
+  if (modalStack.length === 0) {
+   modalZIndexCounter = 1050;
+  }
+ });
+
+ // Return both content element and modal instance
+ return {
+  contentElement: modalBody, // ✅ FIX: Return modal body instead of modal-content
+  modalInstance: modalInstance,
+  modalElement: modal
+ };
+}
+
+function getRandomColor() {
+ const colors = [
+  '#0d6efd', '#6f42c1', '#198754', '#dc3545', '#fd7e14',
+  '#ffc107', '#20c997', '#0dcaf0', '#6610f2', '#d63384',
+  '#6c757d', '#0dcaf0', '#10b981', '#8b5cf6', '#ef4444',
+  '#f59e0b', '#84cc16', '#06b6d4', '#8b5cf6', '#ec4899'
+ ];
+ return colors[Math.floor(Math.random() * colors.length)];
+}
+
+function makeDraggable(element) {
+ let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+ let isDragging = false;
+
+ element.onmousedown = dragMouseDown;
+ element.ontouchstart = dragTouchStart;
+
+ function dragMouseDown(e) {
+  if (e.target.tagName === 'BUTTON' || e.target.tagName === 'I') {
+   return; // Don't drag if clicking on button or icon
+  }
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  isDragging = true;
+
+  // Get the initial mouse cursor position
+  pos3 = e.clientX;
+  pos4 = e.clientY;
+
+  // Change cursor to grabbing
+  element.style.cursor = 'grabbing';
+
+  // Call functions whenever the cursor moves
+  document.onmouseup = closeDragElement;
+  document.onmousemove = elementDrag;
+
+  // Prevent text selection while dragging
+  document.body.style.userSelect = 'none';
+ }
+
+ function dragTouchStart(e) {
+  if (e.target.tagName === 'BUTTON' || e.target.tagName === 'I') {
+   return; // Don't drag if touching on button or icon
+  }
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  isDragging = true;
+
+  const touch = e.touches[0];
+  pos3 = touch.clientX;
+  pos4 = touch.clientY;
+
+  element.style.cursor = 'grabbing';
+
+  document.ontouchend = closeDragElement;
+  document.ontouchmove = elementTouchDrag;
+
+  document.body.style.userSelect = 'none';
+ }
+
+ function elementDrag(e) {
+  if (!isDragging) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  // Calculate the new cursor position
+  pos1 = pos3 - e.clientX;
+  pos2 = pos4 - e.clientY;
+  pos3 = e.clientX;
+  pos4 = e.clientY;
+
+  updateElementPosition();
+ }
+
+ function elementTouchDrag(e) {
+  if (!isDragging) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  const touch = e.touches[0];
+  pos1 = pos3 - touch.clientX;
+  pos2 = pos4 - touch.clientY;
+  pos3 = touch.clientX;
+  pos4 = touch.clientY;
+
+  updateElementPosition();
+ }
+
+ function updateElementPosition() {
+  // Get current position
+  const currentTop = parseInt(element.style.top) || (window.innerHeight - element.offsetHeight - 20);
+  const currentLeft = parseInt(element.style.left) || (window.innerWidth - element.offsetWidth - 20);
+
+  // Calculate new position
+  const newTop = currentTop - pos2;
+  const newLeft = currentLeft - pos1;
+
+  // Keep within viewport bounds (accounting for scroll)
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+  const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+
+  const maxTop = scrollY + viewportHeight - element.offsetHeight - 5;
+  const minTop = scrollY + 5;
+  const maxLeft = scrollX + viewportWidth - element.offsetWidth - 5;
+  const minLeft = scrollX + 5;
+
+  element.style.top = Math.max(minTop, Math.min(newTop, maxTop)) + 'px';
+  element.style.left = Math.max(minLeft, Math.min(newLeft, maxLeft)) + 'px';
+  element.style.bottom = 'auto';
+  element.style.right = 'auto';
+ }
+
+ function closeDragElement() {
+  if (!isDragging) return;
+
+  isDragging = false;
+
+  // Stop moving when mouse button is released
+  document.onmouseup = null;
+  document.onmousemove = null;
+  document.ontouchend = null;
+  document.ontouchmove = null;
+
+  element.style.cursor = 'grab';
+
+  // Restore text selection
+  document.body.style.userSelect = '';
+ }
+
+ // Handle window resize to keep element in viewport
+ window.addEventListener('resize', () => {
+  const rect = element.getBoundingClientRect();
+  const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
+  const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+  const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+
+  // Check if element is outside viewport after resize
+  if (rect.bottom > viewportHeight || rect.right > viewportWidth || rect.top < 0 || rect.left < 0) {
+   // Reposition to bottom right if out of bounds
+   element.style.top = 'auto';
+   element.style.left = 'auto';
+   element.style.bottom = '20px';
+   element.style.right = '20px';
+  }
+ });
+
+ // Handle scroll to maintain position relative to viewport
+ let scrollTimeout;
+ window.addEventListener('scroll', () => {
+  if (!isDragging) {
+   // Debounce scroll events for performance
+   clearTimeout(scrollTimeout);
+   scrollTimeout = setTimeout(() => {
+    const rect = element.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+
+    // If element is fixed positioned, adjust for scroll
+    if (element.style.position === 'fixed') {
+     // For fixed elements, we don't need to adjust for scroll
+     return;
+    }
+
+    // Check if element needs repositioning due to scroll
+    if (rect.bottom > viewportHeight || rect.right > viewportWidth || rect.top < 0 || rect.left < 0) {
+     // Calculate new position relative to current viewport
+     const newTop = Math.max(5, Math.min(rect.top, viewportHeight - rect.height - 5));
+     const newLeft = Math.max(5, Math.min(rect.left, viewportWidth - rect.width - 5));
+
+     element.style.top = newTop + 'px';
+     element.style.left = newLeft + 'px';
+    }
+   }, 50);
+  }
+ });
+}
+
+// Replace the existing DOMContentLoaded handler
+document.addEventListener('DOMContentLoaded', function () {
+ initializeUniversalBackButtonHandler();
+ setupWakeLockVisibilityHandler();
+
+ // Also initialize when dynamic content loads
+ setTimeout(initializeUniversalBackButtonHandler, 1000);
+});
+
+// ==================== Shared datetime picker (Bootstrap - Tempus Dominus) ====================
+// Self-contained helpers attached to window so they never collide with b.js's local declarations
+// and so window.initDateTimePicker is usable dynamically in any project without b.js.
+window.PICKER_TD_VERSION = '6.10.4';
+window.PICKER_DATE_FORMAT = 'yyyy-MM-dd HH:mm';
+window.tdDepsPromise = null;
+
+window.loadDatePickerDependencies = function () {
+ if (typeof tempusDominus !== 'undefined') return Promise.resolve();
+ if (!window.tdDepsPromise) {
+  window.tdDepsPromise = new Promise((resolve, reject) => {
+   const link = document.createElement('link');
+   link.rel = 'stylesheet';
+   link.href = `https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@${window.PICKER_TD_VERSION}/dist/css/tempus-dominus.min.css`;
+   link.onerror = () => reject(new Error('Failed to load Tempus Dominus CSS'));
+   document.head.appendChild(link);
+
+   const popper = document.createElement('script');
+   popper.src = 'https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js';
+   popper.onerror = () => reject(new Error('Failed to load Popper.js'));
+   popper.onload = () => {
+    const script = document.createElement('script');
+    script.src = `https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@${window.PICKER_TD_VERSION}/dist/js/tempus-dominus.min.js`;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Tempus Dominus JS'));
+    document.head.appendChild(script);
+   };
+   document.head.appendChild(popper);
+  });
+  window.tdDepsPromise.catch(() => { window.tdDepsPromise = null; });
+ }
+ return window.tdDepsPromise;
+};
+
+// Format as "YYYY-MM-DD HH:mm" (the storage/validation format used everywhere)
+window.formatForPicker = function (date) {
+ const year = date.getFullYear();
+ const month = String(date.getMonth() + 1).padStart(2, '0');
+ const day = String(date.getDate()).padStart(2, '0');
+ const hours = String(date.getHours()).padStart(2, '0');
+ const minutes = String(date.getMinutes()).padStart(2, '0');
+ return `${year}-${month}-${day} ${hours}:${minutes}`;
+};
+
+window.parsePickerValue = function (val) {
+ if (!val) return null;
+ const parts = String(val).trim().split(/[\sT]+/);
+ const d = parts[0].split('-').map(Number);
+ const t = (parts[1] || '00:00').split(':').map(Number);
+ if (!d[0] || !d[1] || !d[2]) return null;
+ // Tempus Dominus DateTime extends native Date -> month is 0-based
+ return new tempusDominus.DateTime(d[0], d[1] - 1, d[2], t[0] || 0, t[1] || 0, t[2] || 0);
+};
+
+window.MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+window.MONTH_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+window.isDesktopView = function () {
+ return window.innerWidth > 768;
+};
+
+window.formatLongDisplay = function (val) {
+ if (!val) return '';
+ const parts = String(val).trim().split(/[\sT]+/);
+ const d = (parts[0] || '').split('-');
+ if (d.length < 3) return val;
+ const month = window.MONTH_FULL[Number(d[1]) - 1] || d[1];
+ const day = String(d[2]).padStart(2, '0');
+ const base = `${day}/${month}/${d[0]}`;
+ const t = (parts[1] || '').split(':').map(Number);
+ if (!t.length || isNaN(t[0])) return base;
+ let h = t[0] % 24;
+ const ampm = h >= 12 ? 'pm' : 'am';
+ h = h % 12;
+ if (h === 0) h = 12;
+ const min = String(t[1] || 0).padStart(2, '0');
+ return `${base} ${String(h).padStart(2, '0')}:${min}${ampm}`;
+};
+
+window.formatShortDisplay = function (val) {
+ if (!val) return '';
+ if (window.isDesktopView()) return window.formatLongDisplay(val);
+ const parts = String(val).trim().split(/[\sT]+/);
+ const d = (parts[0] || '').split('-');
+ if (d.length < 3) return val;
+ return String(d[2]).padStart(2, '0') + '/' + (window.MONTH_SHORT[Number(d[1]) - 1] || d[1]);
+};
+
+// Inject picker toolbar CSS (OK/Zero buttons + toolbar grid) once, so styling works without b.js/appcss
+window.injectTDPickerCss = function () {
+ if (document.getElementById('td-picker-self-contained-css')) return;
+ const styleEl = document.createElement('style');
+ styleEl.id = 'td-picker-self-contained-css';
+ styleEl.innerHTML = `
+ .tempus-dominus-widget { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif }
+ .tempus-dominus-widget *, .tempus-dominus-widget *::before, .tempus-dominus-widget *::after { box-sizing: border-box }
+ .tempus-dominus-widget.show { position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; margin: 0 !important; z-index: 9999 !important; max-width: 95vw; max-height: 85vh; overflow-y: auto; border-radius: 8px; box-shadow: 0 .5rem 1rem rgba(0,0,0,.35) }
+ .tempus-dominus-widget .arrow { display: none !important }
+ .tempus-dominus-widget .toolbar { display: flex !important; align-items: center !important; flex-wrap: wrap !important; gap: .4rem !important; padding: .5rem .6rem !important }
+ .tempus-dominus-widget .toolbar > * { order: 0; position: static !important; transform: none !important; width: auto !important; height: auto !important; min-height: 2.4rem; margin: 0 !important; padding: .35rem .7rem !important; gap: .35rem; font-size: .8rem !important; line-height: 1.1 !important; border: 1px solid transparent; border-radius: .375rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; background: transparent; color: #333 }
+ .tempus-dominus-widget .toolbar > *:hover, .tempus-dominus-widget .toolbar > *:focus { filter: brightness(1.06) }
+ .tempus-dominus-widget .toolbar [data-action="today"] { order: 0 !important; margin-right: auto !important; border-color: rgba(0,0,0,.15) !important; color: #333 !important }
+ .tempus-dominus-widget .toolbar .td-zero-btn { order: 1 !important; background: #6c757d !important; border-color: #6c757d !important; color: #fff !important }
+ .tempus-dominus-widget .toolbar .td-clear-btn { order: 2 !important; background: #6c757d !important; border-color: #6c757d !important; color: #fff !important }
+ .tempus-dominus-widget .toolbar .td-ok-btn { order: 3 !important; background: #0d6efd !important; border-color: #0d6efd !important; color: #fff !important }
+ .tempus-dominus-widget .toolbar [data-action="togglePicker"] { order: 4 !important; border-color: rgba(0,0,0,.15) !important; color: #333 !important }
+ .tempus-dominus-widget .date-container-days { grid-auto-rows: 48px }
+ .tempus-dominus-widget .time-container-hour, .tempus-dominus-widget .time-container-minute, .tempus-dominus-widget .time-container-clock { grid-auto-rows: 48px }
+ .tempus-dominus-widget.show.date-container { min-height: 380px }
+ .tempus-dominus-widget.show.time-container { min-height: 250px }
+ `;
+ document.head.appendChild(styleEl);
+};
+
+window.initDateTimePicker = async function (inputId, options) {
+ options = options || {};
+ const el = document.getElementById(inputId);
+ if (!el) return null;
+ await window.loadDatePickerDependencies();
+ window.injectTDPickerCss();
+
+ // mode: 'datetime' (default) | 'date' (date-only) | 'time' (time-only)
+ const mode = options.mode === 'date' || options.mode === 'time' ? options.mode : 'datetime';
+ const PICKER_FORMAT = mode === 'date' ? 'yyyy-MM-dd' : mode === 'time' ? 'HH:mm' : window.PICKER_DATE_FORMAT;
+
+ const dispEl = document.getElementById(el.id + '_disp');
+ const dispFormatter = options.displayFormatter || window.formatShortDisplay;
+ function updateDisp() {
+  if (dispEl) dispEl.textContent = dispFormatter(committed);
+  const w = el.closest('.bm-date-wrap');
+  if (w) w.classList.toggle('has-val', !!committed);
+ }
+
+ function nowForMode() {
+  const full = window.formatForPicker(new Date());
+  if (mode === 'date') return full.split(' ')[0];
+  if (mode === 'time') return full.split(' ')[1];
+  return full;
+ }
+
+ const autoNow = options.autoNow !== false;
+ let committed = options.initialValue || el.value || (autoNow ? nowForMode() : '');
+ el.type = 'text'; // Tempus Dominus owns the UI
+ // options.readonly: pick-only input (user cannot type, must use the calendar)
+ if (options.readonly) el.readOnly = true;
+ el.value = committed;
+ updateDisp();
+
+ // If this input was initialized before (e.g. modal reopened), drop the old instance
+ if (el._tdPicker && typeof el._tdPicker.dispose === 'function') {
+  el._tdPicker.dispose();
+ }
+
+ const tdOptions = {
+  container: document.body, // mount widget at body level so fixed centering works (even inside Bootstrap modals)
+  localization: {
+   locale: 'en',
+   format: PICKER_FORMAT,
+   hourCycle: 'h23'
+  },
+  display: {
+   theme: 'light',
+   components: {
+    decades: false,
+    year: mode !== 'time',
+    month: mode !== 'time',
+    date: mode !== 'time',
+    hours: mode !== 'date',
+    minutes: mode !== 'date',
+    seconds: false
+   },
+   buttons: { today: options.hideTodayButton !== true, clear: false, close: true }
+  }
+ };
+ //optional caller-supplied bounds / first view (e.g. a birth date must fall in a
+ //min/max window and the calendar should open on a usable month). Only forwarded
+ //when given so existing callers keep the previous behaviour.
+ if (options.restrictions && (options.restrictions.minDate || options.restrictions.maxDate)) {
+  tdOptions.restrictions = options.restrictions;
+ }
+ if (options.viewDate) tdOptions.viewDate = options.viewDate;
+ if (options.useCurrent !== undefined) tdOptions.useCurrent = options.useCurrent;
+ const instance = new tempusDominus.TempusDominus(el, tdOptions);
+
+ // Tempus Dominus writes the input using our format - keep state in sync
+ // NOTE: TD sets el.value itself and never fires the native DOM 'change'
+ // event, so callers must use options.onChange to react to a selection.
+ instance.subscribe(tempusDominus.Namespace.events.change, () => {
+  committed = el.value || '';
+  updateDisp();
+  if (typeof options.onChange === 'function') options.onChange(committed);
+ });
+
+ // View-switch state for the toolbar clock/calendar toggle
+ let pickerShowingTime = false;
+ const setToggleIcon = (pickerToggle) => {
+  pickerToggle.innerHTML = pickerShowingTime ? '<i class="fa-solid fa-calendar"></i>' : '<i class="fa-solid fa-clock"></i>';
+  pickerToggle.title = pickerShowingTime ? 'Select Date' : 'Select Time';
+ };
+
+ instance.subscribe(tempusDominus.Namespace.events.show, () => {
+  const widget = document.querySelector('.tempus-dominus-widget.show');
+  if (!widget) return;
+
+  // Turn the toolbar close (x) action into a Bootstrap-primary OK button
+  const closeAction = widget.querySelector('[data-action="close"]');
+  if (closeAction && !closeAction.dataset.tdOk) {
+   closeAction.classList.add('td-ok-btn');
+   closeAction.innerHTML = '<i class="fa-solid fa-check"></i>OK';
+   closeAction.title = 'OK';
+   closeAction.dataset.tdOk = '1';
+  }
+
+  // Zero button: keep the same date but set time to 00:00 (picker stays open).
+  // Only meaningful in combined datetime mode.
+  if (mode === 'datetime' && !widget.querySelector('.td-zero-btn')) {
+   const zeroAction = document.createElement('button');
+   zeroAction.type = 'button';
+   zeroAction.className = 'td-zero-btn';
+   zeroAction.innerHTML = '<i class="fa-solid fa-bolt"></i>Zero';
+   zeroAction.title = 'Set time to 00:00 (same date)';
+   zeroAction.addEventListener('click', () => {
+    const base = committed || el.value || window.formatForPicker(new Date());
+    const parts = String(base).trim().split(/[\sT]+/);
+    const datePart = parts[0];
+    if (!datePart) return;
+    applyValue(datePart + ' 00:00');
+   });
+   const toolbar = widget.querySelector('.toolbar');
+   const okAction = widget.querySelector('[data-action="close"]');
+   if (toolbar && okAction && okAction.parentNode === toolbar) {
+    toolbar.insertBefore(zeroAction, okAction);
+   } else if (toolbar) {
+    toolbar.appendChild(zeroAction);
+   }
+  }
+
+  // Clear button: reset the picker to empty (input + state cleared) and close
+  if (!widget.querySelector('.td-clear-btn')) {
+   const clearAction = document.createElement('button');
+   clearAction.type = 'button';
+   clearAction.className = 'td-clear-btn';
+   clearAction.innerHTML = '<i class="fa-solid fa-eraser"></i>Clear';
+   clearAction.title = 'Clear the selected value';
+   clearAction.addEventListener('click', () => {
+    clearValue();
+    if (instance) instance.dates.clear();
+    if (instance) instance.hide();
+    window.dispatchEvent(new Event('clearDateTimePicker'));
+   });
+   const toolbar = widget.querySelector('.toolbar');
+   const okAction = widget.querySelector('[data-action="close"]');
+   if (toolbar && okAction && okAction.parentNode === toolbar) {
+    toolbar.insertBefore(clearAction, okAction);
+   } else if (toolbar) {
+    toolbar.appendChild(clearAction);
+   }
+  }
+
+  // Clock/calendar button acts as a switch between the two panes.
+  // In date-only / time-only modes there is no other pane to switch to.
+  const pickerToggle = widget.querySelector('[data-action="togglePicker"]');
+  if (pickerToggle) {
+   if (mode === 'date' || mode === 'time') {
+    pickerToggle.style.display = 'none';
+   } else {
+    if (!pickerToggle.dataset.tdSwitchInit) {
+     pickerToggle.dataset.tdSwitchInit = '1';
+     pickerToggle.addEventListener('click', () => {
+      pickerShowingTime = !pickerShowingTime;
+      setToggleIcon(pickerToggle);
+     });
+    }
+    setToggleIcon(pickerToggle);
+   }
+  }
+
+  if (options.scrollable) {
+   widget.style.maxHeight = '80vh';
+   widget.style.overflowY = 'auto';
+  }
+ });
+
+ function applyValue(v) {
+  if (v instanceof Date) v = window.formatForPicker(v);
+  if (mode === 'date' && v) v = String(v).trim().split(/[\sT]+/)[0] || v;
+  if (mode === 'time' && v) {
+   const t = String(v).trim().split(/[\sT]+/);
+   v = t.length > 1 ? (t[1] || t[0]) : (t[0] || '');
+  }
+  committed = v || '';
+  el.value = committed;
+  updateDisp();
+  const dt = window.parsePickerValue(
+   mode === 'date' && committed ? committed + ' 00:00' :
+    mode === 'time' && committed ? '2000-01-01 ' + committed :
+     committed
+  );
+  if (dt) {
+   instance.dates.setValue(dt);
+  } else {
+   instance.dates.clear();
+  }
+ }
+
+ // Clear the committed value (input + state) without triggering a picker
+ // change event, so callers that read the input see it emptied.
+ function clearValue() {
+  committed = '';
+  el.value = '';
+  updateDisp();
+ }
+
+ const api = {
+  getCommitted: function () { return committed; },
+  setCommitted: applyValue,
+  setDate: applyValue,
+  clear: function () {
+   clearValue();
+   if (instance) {
+    instance.dates.clear();
+    instance.hide();
+   }
+  },
+  getDate: function () {
+   if (!committed) return null;
+   return new Date(committed.replace(' ', 'T'));
+  },
+  instance: instance
+ };
+ el._tdPicker = instance;
+ return api;
+};
+
+function pageLoader(on = true) {
+ // Create loader only once
+ let loader = document.getElementById("commonPageLoader");
+
+ if (!loader) {
+  loader = document.createElement("div");
+  loader.id = "commonPageLoader";
+
+  loader.innerHTML = `
+            <div style="
+                width:45px;
+                height:45px;
+                border:5px solid #ddd;
+                border-top:5px solid #333;
+                border-radius:50%;
+                animation:commonLoaderSpin .8s linear infinite;
+            "></div>
+        `;
+
+  loader.style.cssText = `
+            position:fixed;
+            inset:0;
+            display:none;
+            align-items:center;
+            justify-content:center;
+            background:rgba(148, 148, 148, 0.75);
+            z-index:9999999;
+        `;
+
+  const style = document.createElement("style");
+  style.textContent = `
+            @keyframes commonLoaderSpin {
+                to { transform:rotate(360deg); }
+            }
+        `;
+
+  document.head.appendChild(style);
+  document.body.appendChild(loader);
+ }
+
+ // ON / OFF
+ loader.style.display = on ? "flex" : "none";
+}
+
+function pushCsh(u, c, r, a) {
+  const pg = window[my1uzr.worknOnPg];
+  if (!pg) return null;
+  if (!Array.isArray(pg.csh)) pg.csh = [];
+  const csh = pg.csh;
+  const norm = s => String(s).replace(/\.min(?=\.js$)/i, "");
+  const key = norm(u);
+
+  const hasA = a !== undefined && a !== null && a !== '' && !isNaN(Number(a));
+  const wantA = hasA ? Number(a) : null;
+
+  if (hasA) {
+    const byA = csh.find(x => Number(x.a) === wantA);
+    if (byA && typeof byA.u === 'string' && norm(byA.u) === key) {
+      if (c !== undefined) byA.c = c;
+      if (r !== undefined) byA.r = r;
+      return byA.a;
+    }
+    const byUrl = csh.find(x => typeof x.u === 'string' && norm(x.u) === key);
+    if (byUrl) {
+      byUrl.a = wantA;
+      if (c !== undefined) byUrl.c = c;
+      if (r !== undefined) byUrl.r = r;
+      return byUrl.a;
+    }
+    csh.push({ a: wantA, u, c, r });
+    return wantA;
+  }
+
+  const existing = csh.find(x => typeof x.u === 'string' && norm(x.u) === key);
+  if (existing) {
+    if (c !== undefined) existing.c = c;
+    if (r !== undefined) existing.r = r;
+    return existing.a;
+  }
+  const nextA = Math.max(0, ...csh.map(x => Number(x.a) || 0)) + 1;
+  csh.push({ a: nextA, u, c, r });
+  return nextA;
+}
+
+// Export for global access
+window.my1PageLoader = pageLoader;
+window.pushCsh = pushCsh;
+window.showToast = showToast;
+window.handleUniversalBackButton = handleUniversalBackButton;
+window.closeAllModalsUniversally = closeAllModalsUniversally;
+window.set_owner = set_owner;
+window.chkModuLstAgainstFNF = chkModuLstAgainstFNF;
+window.clearPayload0 = clearPayload0;
+window.preloadWajiwSounds = preloadWajiwSounds;
+
+(async function bootLoadAppScr() {
+ const src = document.currentScript ? document.currentScript.src : '';
+ let __chkLgIn = '';
+ try {
+  const u = new URL(src, (window.location && window.location.href) || 'http://x/');
+  __chkLgIn = u.searchParams.get('chkLgIn') || '';
+  if (!__chkLgIn) {
+   const v = u.searchParams.get('v') || '';
+   const m = v.match(/[?&]chkLgIn=([^&]+)/);
+   if (m) __chkLgIn = m[1];
+  }
+ } catch (e) { }
+ if (!__chkLgIn) {
+  const m = src.match(/[?&]chkLgIn=([^&]+)/);
+  if (m) __chkLgIn = m[1];
+ }
+ window.__chkLgIn = __chkLgIn;
+
+ let __adInBodyNotModal = '';
+ try {
+  const u2 = new URL(src, (window.location && window.location.href) || 'http://x/');
+  __adInBodyNotModal = u2.searchParams.get('adInBodyNotModal') || '';
+  if (!__adInBodyNotModal) {
+   const v2 = u2.searchParams.get('v') || '';
+   const m2 = v2.match(/[?&]adInBodyNotModal=([^&]+)/);
+   if (m2) __adInBodyNotModal = decodeURIComponent(m2[1]);
+  }
+ } catch (e) { }
+ if (!__adInBodyNotModal) {
+  const m2 = src.match(/[?&]adInBodyNotModal=([^&]+)/);
+  if (m2) __adInBodyNotModal = decodeURIComponent(m2[1]);
+ }
+ window.__adInBodyNotModal = __adInBodyNotModal;
+
+ const vMatch = src.match(/[?&]v=([^&]+)/);
+ if (!vMatch) {
+  showOKmodal('No ?v= script path in:' + src);
+  return;
+ }
+
+ const appPath = vMatch[1].replace(/\.js$/, '.min.js');
+ const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + appPath;
+ //const url = 'my1ctr.js';
+ set_owner();
+ window[my1uzr.worknOnPg].csh = [
+  { a: 1, u: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" },
+  { a: 2, u: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" },
+  { a: 3, u: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.1.0/css/all.min.css" },
+  { a: 4, u: "https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js" },
+  { a: 5, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7b214f5/cmn/my1xi.min.js" },
+  { a: 6, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7b214f5/cmn/my1ap.min.js" },
+  { a: 7, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/clrChe.min.js", c: "showClearCacheModal", r: "showClearCacheModal" },
+  { a: 8, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7b214f5/cmn/my1ctr.min.js", c: "open_my1ctr", r: "open_my1ctr" },
+  { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/cmn/my1jo.min.js", c: "open_shoJgnO", r: "open_shoJgnO" },
+  { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7b214f5/cmn/my1jp.min.js", c: "open_shoJgnP", r: "open_shoJgnP" },
+  { a: 11, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@60f8540/cmn/my1img.min.js", c: "open_addimage", r: "open_addimage" }
+ ];
+ try {
+  let result1 = null;
+
+  result1 = await loadCshScriptsSequentially(1, 2, 3, 4, 5, 6);
+
+  if (!result1.success) {
+   throw new Error("Failed to load required scripts: " + result1.error);
+  } else {
+   const createResult = await dbDexieManager.handleNwTables("loader", dbnm, ["f", "fp", "c"]);
+   tblFailureCount = createResult.failureCount;
+   if(tblFailureCount > 0)
+    showToast(tblFailureCount+" Table Creation Failure - contact admin");
+  }
+ } catch (e) { throw new Error("Failed to load required scripts: " + e); }
+ loadPromiseScript(url);
+})();
+
+// === Invalid-input red glow helpers (shared across all modules) ===
+(function () {
+ function injectCss() {
+  if (document.getElementById('invalid-glow-css')) return;
+  const st = document.createElement('style');
+  st.id = 'invalid-glow-css';
+  st.innerHTML = `
+      .is-invalid-glow, .exp-invalid {
+        border: 2px solid #dc3545 !important;
+        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.4) !important;
+        animation: invalidGlow 1.1s ease-in-out infinite alternate;
+      }
+      @keyframes invalidGlow {
+        from { box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25); }
+        to   { box-shadow: 0 0 0 0.45rem rgba(220, 53, 69, 0.5); }
+      }
+    `;
+  (document.head || document.documentElement).appendChild(st);
+ }
+
+ window.markInvalid = function (el) {
+  if (!el) return;
+  injectCss();
+  el.classList.add('is-invalid-glow');
+  try { el.focus(); } catch (e) { }
+ };
+
+ window.clearInvalid = function (el) {
+  if (!el) return;
+  el.classList.remove('is-invalid-glow');
+ };
+
+ // Auto-clear the red glow as soon as the user edits the field.
+ if (!window.__invalidGlowBound) {
+  window.__invalidGlowBound = true;
+  const clear = function (e) {
+   const t = e && e.target;
+   if (t && t.classList && t.classList.contains('is-invalid-glow')) {
+    t.classList.remove('is-invalid-glow');
+   }
+  };
+  document.addEventListener('input', clear, true);
+  document.addEventListener('change', clear, true);
+ }
+})();
