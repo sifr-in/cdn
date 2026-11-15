@@ -10,6 +10,7 @@ window.switch_my1ctr_create_nw_modal = undefined;
 window.swtch_0nothing_1flex_2block_my1ctr = undefined;
 if (typeof swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn === "undefined") { var swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn = 0; }
 window.confirmMoNo = 1;
+let swtch_2showMy1ctrOnLogin_1showOtherDynamicly_0normalNoOpenAny = 2;
 
 // Shared date-time picker helpers (fall back to native input when b.js picker is unavailable)
 function admPpUseSharedPicker() {
@@ -335,21 +336,70 @@ function AdmPpThemeForceReload() {
 function admPpInjectMenuCss() {
   if (document.getElementById('admPpMenuCss')) return;
   var st = document.createElement('style');
-  st.id = 'admPpMenuCss';
-  st.textContent = '#admPpModMenu{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;}'
-    + '@media(min-width:768px){#admPpModMenu{grid-template-columns:repeat(auto-fill,minmax(90px,1fr));}}'
-    + '#admPpModMenu button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px 8px;border-radius:12px;border:1px solid #6c757d;background:#fff;cursor:pointer;min-width:0;transition:transform .15s,box-shadow .15s;font-family:inherit;}'
-    + '#admPpModMenu button:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.12);}'
-    + '#admPpModMenu button .mt-ic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--mc,#6c757d);background:#ceffda;border:1px solid rgba(108,117,125,.25);}'
-    + '#admPpModMenu button .mt-lb{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;letter-spacing:.2px;line-height:1;color:#212529;}';
-  document.head.appendChild(st);
+st.id = 'admPpMenuCss';
+st.textContent = '#admPpModMenu{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;}'
+  + '@media(min-width:768px){#admPpModMenu{grid-template-columns:repeat(auto-fill,minmax(90px,1fr));}}'
+  + '#admPpModMenu button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px 8px;border-radius:12px;border:1px solid #6c757d;background:#fff;cursor:pointer;min-width:0;transition:transform .15s,box-shadow .15s;font-family:inherit;}'
+  + '#admPpModMenu button:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.12);}'
+  + '#admPpModMenu button .mt-ic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--mc,#6c757d);background:#ceffda;border:1px solid rgba(108,117,125,.25);}'
+  + '#admPpModMenu button .mt-lb{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;letter-spacing:.2px;line-height:1;color:#212529;}'
+  + '#admPpRefreshBtn{transition:color .2s ease;}'
+  + '#admPpRefreshBtn:hover i{color:#0a58ca;}';
+document.head.appendChild(st);
 }
 
-function admPpRenderModMenu() {
+function AdmPpF1HasPrjKeys(f1) {
+  var obj = f1;
+  if (typeof obj === 'string') {
+    var s = obj.trim();
+    if (!s) return false;
+    if (s.charAt(0) === '{' || s.charAt(0) === '[') {
+      try { obj = JSON.parse(s); } catch (e) { obj = null; }
+    } else {
+      return /(^|[;"',{\s])prj\d+\s*:/.test(s);
+    }
+  }
+  if (!obj || typeof obj !== 'object') return false;
+  return Object.keys(obj).some(function (k) { return /^prj\d+$/i.test(String(k).trim()); });
+}
+
+async function admPpRenderModMenu() {
   var menuEl = document.getElementById('admPpModMenu');
   if (!menuEl) return;
-  var mods = (window[my1uzr && my1uzr.worknOnPg] && window[my1uzr.worknOnPg].allowedModulesMenuItems)
-    || [];
+  if (!(window[my1uzr && my1uzr.worknOnPg] && window[my1uzr.worknOnPg].admPp_f)) {
+    try { await AdmPpLoadPermData(); } catch (e) { console.warn('admPp: perm data load failed', e); }
+  }
+  var fRecs = (window[my1uzr && my1uzr.worknOnPg] && window[my1uzr.worknOnPg].admPp_f) || [];
+  var appModuLst = (window[my1uzr && my1uzr.worknOnPg] && window[my1uzr.worknOnPg].moduLst) || window.moduLst;
+  if (!appModuLst || !Array.isArray(appModuLst)) {
+    appModuLst = [{ a: ",125", b: "Manage Tables", c: "fa-table", d: "manageTables", e: "#0d6efd" }];
+  }
+  var allowed = appModuLst.filter(function (module) {
+    var moduleIds = String(module.a || '').split(',').filter(function (id) { return id !== ''; });
+    return fRecs.some(function (record) { return moduleIds.indexOf(String(record.h)) !== -1; });
+  }).map(function (module) {
+    var copy = {};
+    for (var k in module) { if (module.hasOwnProperty(k) && k !== 'a') copy[k] = module[k]; }
+    return copy;
+  });
+  // Manage Tables is driven by f records whose f1 contains prj# objects;
+  // h is not fixed at 125, so build one menu entry per matching record.
+  allowed = allowed.filter(function (m) { return m.d !== 'manageTables'; });
+  fRecs.forEach(function (record) {
+    if (!AdmPpF1HasPrjKeys(record.f1)) return;
+    if (record.h == null || record.h === '') return;
+    var hVal = String(record.h);
+    if (allowed.some(function (m) { return m.d === 'manageTables' && String(m.h) === hVal; })) return;
+    allowed.push({
+      b: 'Manage Tables ' + hVal,
+      c: 'fa-table',
+      d: 'manageTables',
+      e: '#0d6efd',
+      h: hVal
+    });
+  });
+  if (window[my1uzr && my1uzr.worknOnPg]) window[my1uzr.worknOnPg].allowedModulesMenuItems = allowed;
+  var mods = allowed;
   if (!mods.length) { menuEl.innerHTML = ''; return; }
   var shortMap = { hm:'home', rm:'rooms', ar:'addRoom', bs:'booking', rt:'restaurant', rw:'reviews', st:'settings', pl:'policies' };
   var hCols = ((window[my1uzr && my1uzr.worknOnPg] && window[my1uzr.worknOnPg].colsToHideMenu) || '')
@@ -357,49 +407,91 @@ function admPpRenderModMenu() {
   var visible = mods.filter(function (m) { return hCols.indexOf(m.d) === -1; });
   menuEl.innerHTML = visible.map(function (m) {
     var iconColor = m.e && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(m.e) ? m.e : 'var(--mc,#6c757d)';
-    return '<button type="button" data-action="' + AdmPpEsc(m.d) + '" style="--mc:' + AdmPpEsc(iconColor) + ';">'
+    var hAttr = (m.h != null && m.h !== '') ? ' data-h="' + AdmPpEsc(m.h) + '"' : '';
+    return '<button type="button" data-action="' + AdmPpEsc(m.d) + '"' + hAttr + ' style="--mc:' + AdmPpEsc(iconColor) + ';">'
       + '<span class="mt-ic"><i class="fa-solid ' + AdmPpEsc(m.c || 'fa-cube') + '"></i></span>'
       + '<span class="mt-lb">' + AdmPpEsc(m.b || 'Module') + '</span></button>';
   }).join('');
   menuEl.querySelectorAll('button').forEach(function (btn) {
-    btn.addEventListener('click', function () {
+    btn.addEventListener('click', async function () {
       var action = btn.dataset.action;
       if (admPpModalRefs.instance) admPpModalRefs.instance.hide();
+      if (action === 'manageTables') {
+        if (!(window[my1uzr && my1uzr.worknOnPg] && window[my1uzr.worknOnPg].admPp_f) ||
+            !(window[my1uzr && my1uzr.worknOnPg] && window[my1uzr.worknOnPg].admPp_fp)) await AdmPpLoadPermData();
+        var fRecs = (window[my1uzr && my1uzr.worknOnPg] && window[my1uzr.worknOnPg].admPp_f) || [];
+        var fpRecs = (window[my1uzr && my1uzr.worknOnPg] && window[my1uzr.worknOnPg].admPp_fp) || [];
+        var pickedH = btn.getAttribute('data-h');
+        var targetH = (pickedH != null && pickedH !== '') ? Number(pickedH) : null;
+        var mtRow = (targetH != null)
+          ? fRecs.find(function (r) { return Number(r.h) === targetH; })
+          : fRecs.find(function (r) { return AdmPpF1HasPrjKeys(r.f1); });
+        if (!mtRow && targetH != null) mtRow = fRecs.find(function (r) { return AdmPpF1HasPrjKeys(r.f1); });
+        if (!mtRow) mtRow = fRecs.find(function (r) { return Number(r.h) === 125; });
+        var mtFpRow = mtRow
+          ? fpRecs.find(function (r) { return String(r.h) === String(mtRow.h); })
+          : null;
+        var f1 = mtRow ? mtRow.f1 : null;
+        var fp1 = (mtRow && mtRow.fp1 != null) ? mtRow.fp1
+          : (mtFpRow ? (mtFpRow.fp1 != null ? mtFpRow.fp1 : mtFpRow.f1) : null);
+        window.manageTablesH = mtRow ? Number(mtRow.h) : null;
+        window.manageTablesF1 = f1;
+        window.manageTablesFp1 = fp1;
+        if (typeof window.pushCsh === 'function' && typeof loadExe2Fn === 'function') {
+          var mtId = window.pushCsh('cst.js', 'initManageTables', 'initManageTables');
+          loadExe2Fn(mtId, [window.manageTablesH], [1]);
+        }
+        return;
+      }
       if (typeof openAdminFromMenu === 'function') openAdminFromMenu(action);
     });
   });
 }
 
- function showUserInfoModal() {
+ async function showUserInfoModal() {
   if (!my1uzr) return;
 
   const theme = AdmPpTheme();
-  const { contentElement, modalInstance, modalElement } = create_modal_dynamically('user_info');
-
- // Card-style dialog (card look taken from b copy.js .bm-card)
- const dlg = modalElement.querySelector('.modal-dialog');
- dlg.style.maxWidth = 'min(94vw, 640px)';
- dlg.style.marginTop = '14px';
- dlg.style.marginLeft = 'auto';
- dlg.style.marginRight = 'auto';
-
- const mContent = modalElement.querySelector('.modal-content');
- if (mContent) {
-   mContent.style.background = theme.bodyBg;
-   mContent.style.border = '2px solid gray';
-  mContent.style.borderRadius = '14px';
-  mContent.style.boxShadow = '0 2px 12px rgba(36,27,69,.07)';
-  mContent.style.height = 'auto';
-  mContent.style.marginTop = '35px'
-  mContent.style.minHeight = '620px';
-  mContent.style.maxHeight = '94vh';
-  mContent.style.display = 'flex';
-  mContent.style.flexDirection = 'column';
- }
- contentElement.style.padding = '0';
+  const pageTargetId = window.__adInBodyNotModal || '';
+  const pageTarget = pageTargetId ? document.getElementById(pageTargetId) : null;
+  let contentElement, modalInstance, modalElement, mContent;
+  if (pageTarget) {
+    pageTarget.innerHTML = '';
+    contentElement = pageTarget;
+    modalInstance = null;
+    modalElement = pageTarget;
+    mContent = pageTarget;
+  } else {
+    const created = create_modal_dynamically('user_info');
+    contentElement = created.contentElement;
+    modalInstance = created.modalInstance;
+    modalElement = created.modalElement;
+    const dlg = modalElement.querySelector('.modal-dialog');
+    if (dlg) {
+      dlg.style.maxWidth = '95vw';
+      dlg.style.width = '95vw';
+      dlg.style.marginTop = '14px';
+      dlg.style.marginLeft = 'auto';
+      dlg.style.marginRight = 'auto';
+    }
+    mContent = modalElement.querySelector('.modal-content');
+    if (mContent) {
+      mContent.style.background = theme.bodyBg;
+      mContent.style.border = '2px solid gray';
+      mContent.style.borderRadius = '14px';
+      mContent.style.boxShadow = '0 2px 12px rgba(36,27,69,.07)';
+      mContent.style.height = 'auto';
+      mContent.style.marginTop = '35px';
+      mContent.style.minHeight = '620px';
+      mContent.style.maxHeight = '94vh';
+      mContent.style.display = 'flex';
+      mContent.style.flexDirection = 'column';
+    }
+  }
+  contentElement.style.padding = '0';
  contentElement.style.flex = '1 1 auto';
  contentElement.style.overflowY = 'auto';
- contentElement.style.background = theme.profileBg;
+ contentElement.style.background = theme.surface;
 
  const avatarInner = my1uzr.ml ?
   `<img src="${my1uzr.ml}" alt="Profile Picture" style="width:100%; height:100%; object-fit:cover;">` :
@@ -410,12 +502,12 @@ function admPpRenderModMenu() {
 <div class="ms-3 mt-1">
   <button type="button" id="admPpBtnProxy" class="btn btn-outline-success btn-sm">Proxy</button>
   <button type="button" id="admPpBtnPermissions" class="btn btn-outline-primary btn-sm ms-1">Permissions</button>
-  <span onclick="logPout()" title="Logout" style="color:red; cursor:pointer; margin-left:4px;">_</span>
+  <button type="button" class="btn btn-outline-danger btn-sm ms-1 bg-white" onclick="logPout()">Logout</button>
 </div>
  <!--h5 class="modal-title mb-0">User  Information</h5-->
  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
-<div id="admPp_view_profile" class="px-3 pb-2 pt-2" style="background:${theme.profileBg};">
+<div id="admPp_view_profile" class="px-3 pb-2 pt-2" style="background:${theme.headerBg};">
  <div style="background:#fff; border:1px solid #6c757d; border-radius:14px; box-shadow:0 2px 12px rgba(36,27,69,.07); padding:16px; min-height:96px; display:flex; align-items:center;">
   <div style="display:flex; align-items:center; gap:16px; width:100%;">
    <div class="d-flex flex-column align-items-center justify-content-center flex-shrink-0" style="gap:4px;">
@@ -439,7 +531,7 @@ function admPpRenderModMenu() {
  </div>
 </div>
 </div>
-<div id="admPpModMenu" class="mt-3" style="background:${theme.surface};border:1px solid #6c757d;border-radius:14px;box-shadow:0 2px 12px rgba(36,27,69,.07);margin:0 10px 14px;"></div>
+<div id="admPpModMenu" class="mt-3" style="background:${theme.profileBg};border:1px solid #6c757d;border-radius:14px;box-shadow:0 2px 12px rgba(36,27,69,.07);margin:0 10px 14px;"></div>
 <div id="admPp_view_proxy" class="px-2 pb-2 pt-2 d-none" style="background:${theme.surface};border:1px solid #6c757d;border-radius:14px;box-shadow:0 2px 12px rgba(36,27,69,.07);padding: 16px 6px;margin:0 10px 14px;"></div>
 <div id="admPp_view_permits" class="px-2 pb-2 pt-2 d-none" style="background:${theme.surface};border:1px solid #6c757d;border-radius:14px;box-shadow:0 2px 12px rgba(36,27,69,.07);padding: 16px 6px;margin:0 10px 14px;"></div>
 `;
@@ -464,9 +556,23 @@ admPpState.view = 'profile';
   if (btEl) btEl.addEventListener('click', () => { if (admPpState.view !== 'permits') AdmPpSetView('permits'); });
 
  AdmPpSetView('profile');
- modalInstance.show();
+ if (modalInstance) modalInstance.show();
  admPpInjectMenuCss();
- admPpRenderModMenu();
+ try {
+   const appModuLst = (window[my1uzr && my1uzr.worknOnPg] && window[my1uzr.worknOnPg].moduLst) || window.moduLst;
+   if (appModuLst && typeof window.chkModuLstAgainstFNF === 'function') {
+     window.suppressModals = true;
+     let allowedModules;
+     try { allowedModules = await window.chkModuLstAgainstFNF(appModuLst); }
+     finally { window.suppressModals = false; }
+     if (allowedModules) {
+       const hookName = allowedModules.hook || 'onModuLstAllowed';
+       const hook = window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg][hookName];
+       if (typeof hook === 'function') hook(allowedModules);
+     }
+   }
+ } catch (e) { console.warn('admPp: module-menu populate failed', e); }
+ await admPpRenderModMenu();
 }
 
 // ===================== Proxy & Permissions management =====================
@@ -652,7 +758,7 @@ async function AdmPpShowPermittedUsers(h) {
   const seen = {};
   granted.forEach(function (r) {
     const user = nameOf(r.e);
-    const label = user && user.h ? user.h : (r.e || 'Unknown user');
+    const label = 'No Name';//user && user.h ? user.h : (r.e || 'Unknown user');
     const key = String(r.e || label);
     const till = r.j && !isNaN(new Date(r.j).getTime()) ? AdmPpFormatDateTime(r.j) : 'N/A';
     if (seen[key]) {
@@ -680,7 +786,8 @@ async function AdmPpShowPermittedUsers(h) {
   const dlg = modalElement.querySelector('.modal-dialog');
   if (dlg) {
     dlg.style.maxWidth = 'min(94vw, 520px)';
-    dlg.style.marginTop = '14px';
+    dlg.style.minHeight = 'max(50vh, 320px)';
+    dlg.style.marginTop = '20vh';
     dlg.style.marginLeft = 'auto';
     dlg.style.marginRight = 'auto';
   }
@@ -688,7 +795,7 @@ async function AdmPpShowPermittedUsers(h) {
   if (mContent) {
     mContent.style.background = theme.bodyBg;
     mContent.style.border = '2px solid gray';
-    mContent.style.borderRadius = '14px';
+    mContent.style.borderRadius = '5%';
     mContent.style.boxShadow = '0 2px 12px rgba(36,27,69,.07)';
   }
   contentElement.innerHTML = `
@@ -1124,18 +1231,22 @@ async function AdmPpOpenPermits() {
     }
     var mob = admPpState.selectedUser.e;
     if (typeof payload0 === 'undefined') return;
+    if (typeof window.clearPayload0 !== 'function') clearPayload0();
     admPpState.isGranting = true;
     allowBtn.disabled = true;
     payload0.fn = 97;
     payload0.vw = 1;
     payload0.b = mob;
     payload0.p = pArr;
+    payload0.ul = "3/0b.php";
+    payload0.gt = 3; 
     var _ldDiv = document.createElement('div');
     _ldDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10500;display:flex;justify-content:center;align-items:center;';
     _ldDiv.innerHTML = '<div class="spinner-border text-light" role="status"></div>';
     document.body.appendChild(_ldDiv);
     try {
-      var response = await fnj3('https://my1.in/3/b.php', payload0, 1, true, null, 20000, 0, 2, 1);
+      var response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
+      //var response = await fnj3('https://my1.in/3/b.php', payload0, 1, true, null, 20000, 0, 2, 1);
       _ldDiv.remove();
       if (response && response.su == 1) {
         window.showsuccessmodal('Permissions granted successfully');
@@ -1260,12 +1371,16 @@ window.commonFnToRunAfter_AdmPpGvPrmUserSelect = async function (obj, swtch) {
 
 async function AdmPpRefreshPerms(btn) {
   const doRefresh = async () => {
+    if (typeof window.clearPayload0 !== 'function') clearPayload0();
     payload0.fn = 95;
     payload0.vw = 1;
+    payload0.ul = "3/0b.php";
+    payload0.gt = 3; 
     payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: 'fp' }, { tb: 'f' }]);
     const loader = AdmPpShowLoader();
     try {
-      const response = await fnj3('https://my1.in/3/b.php', payload0, 1, true, null, 20000, 0, 2, 1);
+      const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
+      //const response = await fnj3('https://my1.in/3/b.php', payload0, 1, true, null, 20000, 0, 2, 1);
       if (response.su == 1) {
           if (response.f && response.f.l) {
             await dbDexieManager.insertToDexie(dbnm, "f", response.f.l, true, ["a"]);
@@ -1277,8 +1392,19 @@ async function AdmPpRefreshPerms(btn) {
         await AdmPpLoadPermData();
         if (admPpState.view === 'permits') await AdmPpOpenPermits();
         else if (admPpState.view === 'proxy') await AdmPpOpenProxy();
+        await admPpRenderModMenu();
         showsuccessmodal("Permissions refreshed successfully!");
-        setTimeout(() => { location.reload() }, 400);
+        setTimeout(async () => {
+          const previousView = admPpState.view;
+          if (admPpModalRefs.instance) {
+            try { admPpModalRefs.instance.hide(); } catch (e) { }
+          }
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          await showUserInfoModal();
+          if (previousView === 'permits' || previousView === 'proxy') {
+            AdmPpSetView(previousView);
+          }
+        }, 400);
       } else {
         showelsemodal(response.m || "Failed to refresh permissions");
       }
@@ -1302,18 +1428,22 @@ async function open_my1ctr(...args) {
   switch_my1ctr_create_nw_modal = args[1] || 0;
   swtch_0nothing_1flex_2block_my1ctr = args[2] || 0;
   swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn = args[3] || 0;
+  swtch_2showMy1ctrOnLogin_1showOtherDynamicly_0normalNoOpenAny = args[4] || 0;
 
   if (swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn === 2) {
     if (isLoggedIn()) {
-      showUserInfoModal();
+      await showUserInfoModal();
     } else{
       const t987 = getCacheId("my1jp.js");
-    await loadExe2Fn(t987, [], [1]);
+    await loadExe2Fn(t987, ['dv_to_set_open_shoJgnP_processed', 0, 1, 2, swtch_2showMy1ctrOnLogin_1showOtherDynamicly_0normalNoOpenAny], [1]);
     }
   }
 }
 
-function logPout() {
+async function logPout() {
+  if (typeof window.showConfirmModal !== "function") { showMsg("err", "Confirmation dialog unavailable."); return; }
+  var ok = await window.showConfirmModal("Are you sure you want to Log-Out your profile?", 1);
+  if (!ok) return;
   my1uzr = null;
   localStorage.setItem("my1uzr", null);
   setTimeout(() => {
@@ -1333,3 +1463,40 @@ function initLoginSystem() {
 document.addEventListener('DOMContentLoaded', function () {
   initLoginSystem();
 });
+
+// Gated auto-open: only when the loader script src carries ?chkLgIn=1
+// (my1e3.js parses it from its own src and sets window.__chkLgIn).
+// Kept classic-script-safe (no top-level await) and inert when chkLgIn is absent,
+// so other projects that share my1e3.js keep working unchanged.
+(async function autoOpenMy1ctrIfRequested() {
+  try {
+    if (window.__chkLgIn !== '1') return;
+
+    // Make sure the body exists before appending a modal (this file may load from <head>).
+    if (!document.body) {
+      await new Promise(function (resolve) {
+        document.addEventListener('DOMContentLoaded', resolve, { once: true });
+      });
+    }
+
+    var loggedIn = typeof my1uzr !== 'undefined' && my1uzr != null && my1uzr.jk != null;
+    if (loggedIn) {
+      if (typeof open_my1ctr === 'function') {
+        await open_my1ctr('dv_to_set_open_my1ctr_processed', 0, 1, 2);
+      }
+      return;
+    }
+
+    var loginArgs = ['dv_to_set_open_shoJgnP_processed', 0, 1, 2, swtch_2showMy1ctrOnLogin_1showOtherDynamicly_0normalNoOpenAny];
+    var loginId = null;
+    try { loginId = getCacheId('my1jp.js'); } catch (e) { loginId = null; }
+    if (loginId != null && typeof loadExe2Fn === 'function') {
+      window.__my1jpCaller = 'my1ctr';
+      await loadExe2Fn(loginId, loginArgs, [1]);
+    } else{
+      console.warn('login auto-open failed:');
+    }
+  } catch (e) {
+    console.warn('my1ctr auto-open failed:', e);
+  }
+})();

@@ -8,7 +8,7 @@ let swtch_0nothing_1flex_2block_shoLgnP;
 if (typeof swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn === "undefined") { var swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn = 0; }
 if (typeof isOtpSuppressed === "undefined") { var isOtpSuppressed = false; }
 if (typeof swtch_2showMy1ctrOnLogin_1showOtherDynamicly_0normalNoOpenAny === 'undefined') {
-  window.swtch_2showMy1ctrOnLogin_1showOtherDynamicly_0normalNoOpenAny = null;
+ window.swtch_2showMy1ctrOnLogin_1showOtherDynamicly_0normalNoOpenAny = null;
 }
 
 // Resend timer functionality
@@ -432,7 +432,7 @@ function my1lpXtraRender() {
   out += '<label class="form-label m-0 fw-bold mb-1" style="font-size:12.5px;color:#343a40;">' + lbl + reqMark + "</label>";
   if (ftype === "file") {
    out += '<div class="my1lpXph-img-box" data-path="' + path + '" style="border:2px dashed #6c757d;border-radius:.5rem;text-align:center;padding:14px 8px;cursor:pointer;background:#f8f9fa;"><i class="fas fa-image mb-1 d-block" style="font-size:1.6rem;color:' + p.brand + ';"></i><span class="fw-bold">' + lbl + "</span></div>";
-   out += '<div class="my1lpXph-img-prev" data-path="' + path + '" style="display:none;margin-top:6px;border:2px solid #6c757d;border-radius:.5rem;padding:6px;text-align:center;"><img class="my1lpXph-img-prev-img" data-path="' + path + '" src="" alt="' + lbl + '" style="max-width:100%;height:auto;max-height:150px;display:block;margin:auto;"><div class="mt-1"><span class="small text-muted my1lpXph-img-prev-name" data-path="' + path + '"></span><button type="button" class="btn btn-sm btn-outline-danger my1lpXph-img-remove" data-path="' + path + '" style="padding:0 6px;margin-left:6px;"><i class="fas fa-times"></i> Remove</button></div></div>';
+   out += '<div class="my1lpXph-img-prev" data-path="' + path + '" style="display:none;margin-top:6px;border:2px solid #6c757d;border-radius:.5rem;padding:6px;text-align:center;"><img class="my1lpXph-img-prev-img" data-path="' + path + '" src="" alt="' + lbl + '" referrerpolicy="no-referrer" loading="lazy" style="max-width:100%;height:auto;max-height:150px;display:block;margin:auto;"><div class="mt-1"><span class="small text-muted my1lpXph-img-prev-name" data-path="' + path + '"></span><button type="button" class="btn btn-sm btn-outline-danger my1lpXph-img-remove" data-path="' + path + '" style="padding:0 6px;margin-left:6px;"><i class="fas fa-times"></i> Remove</button></div></div>';
    out += '<input type="hidden" class="my1lpXph-val" data-path="' + path + '">';
   } else if (ftype === "textarea") {
    out += '<textarea class="my1lpXph-val" data-path="' + path + '" rows="2" placeholder="' + ph + '" style="font-size:14px;' + inpDyn + 'resize:vertical;min-height:40px;"></textarea>';
@@ -766,7 +766,7 @@ async function open_shoJgnP(...args) {
  swtch_2showMy1ctrOnLogin_1showOtherDynamicly_0normalNoOpenAny = args[4] || 0;
 
  if (isLoggedInLP()) {
-  if (swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn === 2) { }
+  //if (swtch_2shoInfoInsteadOfLogot_1shoLogout_0shoYouAreAlreadyLoggedIn == 2) { }
   return;
  }
 
@@ -1857,51 +1857,27 @@ async function performLogin(countryCode, mobileNumber, password) {
         }
         setTimeout(async () => {
          if (typeof dbDexieManager !== 'undefined' && typeof dbDexieManager.handleNwTables === 'function') {
-          if (result.fnf != null) {
-           await dbDexieManager.insertToDexie(
-            dbnm,
-            "f",
-            result.fnf,
-            true,
-            ["a"]
-           );
-          }
-          if (result.fnp != null) {
-           await dbDexieManager.insertToDexie(
-            dbnm,
-            "fp",
-            result.fnp,
-            true,
-            ["a"]
-           );
-          }
+          if (result.fnf != null) await dbDexieManager.insertToDexie(dbnm, "f", result.fnf, true, ["a"]);
+          if (result.fnp != null) await dbDexieManager.insertToDexie(dbnm, "fp", result.fnp, true, ["a"]);
          }
          const appModuLst = (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].moduLst) || window.moduLst;
          if (appModuLst && typeof chkModuLstAgainstFNF === 'function') {
           window.suppressModals = true;
           let allowedModules;
           const hookName = appModuLst.hook;
-          try {
-           allowedModules = await chkModuLstAgainstFNF(appModuLst);
-          } finally {
-           window.suppressModals = false;
-          }
+          try { allowedModules = await chkModuLstAgainstFNF(appModuLst); }
+          finally { window.suppressModals = false; }
           if (allowedModules && allowedModules.length > 0) {
            const hook = window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg][hookName];
-           if (typeof hook === 'function') {
-            hook(allowedModules);
-           } else {
-            console.warn(hookName + " hook not defined; allowed modules not shown in menu");
-           }
+           if (typeof hook === 'function') hook(allowedModules);
+           else console.warn(hookName + " hook not defined; allowed modules not shown in menu");
           }
-          // Full re-render only when my1jp was triggered by my1ctr; otherwise refresh in place if open.
           if (window.__my1jpCaller === "my1ctr") {
            try {
             delete window.__my1jpCaller;
             if (typeof showUserInfoModal === "function") await showUserInfoModal();
             else if (typeof open_my1ctr === "function") await open_my1ctr("dv_to_set_open_my1ctr_processed", 0, 1, 2);
-           }
-           catch (e) { console.warn('my1ctr re-render failed:', e); }
+           } catch (e) { console.warn('my1ctr re-render failed:', e); }
           } else {
            var my1ctrOpen = (typeof admPpModalRefs !== 'undefined' && admPpModalRefs && admPpModalRefs.instance && document.getElementById('admPpModMenu'));
            if (my1ctrOpen && typeof admPpRenderModMenu === 'function') {
@@ -1911,17 +1887,14 @@ async function performLogin(countryCode, mobileNumber, password) {
           }
          }
          try {
-          var my1ctrArgs = ['dv_to_set_open_my1ctr_processed', 0, 1, 2, swtch_2showMy1ctrOnLogin_1showOtherDynamicly_0normalNoOpenAny];
-          var my1ctrId = null;
-          try { my1ctrId = getCacheId('my1ctr.js'); } catch (e) { my1ctrId = null; }
-          if (my1ctrId != null && typeof loadExe2Fn === 'function') {
-           await loadExe2Fn(my1ctrId, my1ctrArgs, [1]);
-          } else {
-           console.warn('my1ctr auto-open failed:');
+          if (swtch_2showMy1ctrOnLogin_1showOtherDynamicly_0normalNoOpenAny && swtch_2showMy1ctrOnLogin_1showOtherDynamicly_0normalNoOpenAny == 2) {
+           var my1ctrArgs = ['dv_to_set_open_my1ctr_processed', 0, 1, 2, swtch_2showMy1ctrOnLogin_1showOtherDynamicly_0normalNoOpenAny];
+           var my1ctrId = null;
+           try { my1ctrId = getCacheId('my1ctr.js'); } catch (e) { my1ctrId = null; }
+           if (my1ctrId != null && typeof loadExe2Fn === 'function') await loadExe2Fn(my1ctrId, my1ctrArgs, [1]);
+           else console.warn('my1ctr auto-open failed:');
           }
-         } catch (e) {
-          console.warn('my1ctr auto-open failed:', e);
-         }
+         } catch (e) { console.warn('my1ctr auto-open failed:', e); }
         }, 800);
        } else {
         showAlertModal(result.ms || 'Login failed');
