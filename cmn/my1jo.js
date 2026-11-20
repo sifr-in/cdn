@@ -880,7 +880,7 @@ function set_innerHTML_of_shoLgnO() {
                 <div class="card-header text-center d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Login with <span id="lo-otpTextToggle" class=".card-title" style="cursor: pointer; padding: 2px 5px; border-radius: 3px; transition: all 0.3s;">OTP</span></h5>
                     <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-sm lo-pw-login" onclick="openLoginWithPassFromLoginWith()" title="Login with Password">🔑 Password</button>
+                        <span id="loPwLoginBtn" class="lo-pw-login" onclick="openLoginWithPassFromLoginWith()" title="Login with Password" style="cursor:pointer;color:#6c757d;">&emsp;&emsp;</span>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                 </div>
