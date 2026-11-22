@@ -3498,7 +3498,7 @@ var reqStar = {};
     return;
    }
    pickerOpen = true;
-   Promise.resolve(loadExe2Fn(9, [onImgPicked, window.imgObjDimensRqd || [], defnTabsToUs, '',
+   Promise.resolve(loadExe2Fn(11, [onImgPicked, window.imgObjDimensRqd || [], defnTabsToUs, '',
     imageServerFlag], [1]))
     .then(function () {
      fixPickerZ();
@@ -3614,7 +3614,7 @@ var reqStar = {};
    }
    pickerOpen = true;
    galReplaceIdx = rep;
-   Promise.resolve(loadExe2Fn(9, [onGalPicked, window.imgObjDimensRqd || [], defnTabsToUs, '',
+   Promise.resolve(loadExe2Fn(11, [onGalPicked, window.imgObjDimensRqd || [], defnTabsToUs, '',
     imageServerFlag], [1]))
     .then(function () {
      fixPickerZ();

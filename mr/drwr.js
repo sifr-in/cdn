@@ -6,7 +6,7 @@ function getDrawerUser() {
  try {
   const my1uzr1 = JSON.parse(localStorage.getItem("my1uzr"));
   if (my1uzr1 && typeof my1uzr1 === 'object') return my1uzr1;
- } catch (e) {}
+ } catch (e) { }
  return {};
 }
 
@@ -29,7 +29,7 @@ function getSelfProfile() {
    const o = JSON.parse(s);
    if (o && o.a) return o;
   }
- } catch (e) {}
+ } catch (e) { }
  return null;
 }
 
@@ -259,82 +259,82 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
 
  const defaultMenuItems = [
   {
-    title: getSelfProfile() ? 'Update Profile' : 'Register Profile',
-    icon: 'fas fa-user-cog',
-    color: '#6c757d',
-    onClick: () => {
-      const self = getSelfProfile();
+   title: getSelfProfile() ? 'Update Profile' : 'Register Profile',
+   icon: 'fas fa-user-cog',
+   color: '#6c757d',
+   onClick: () => {
+    const self = getSelfProfile();
 
-      if (!self) {
-        const poseTill = window[my1uzr.worknOnPg]?.clientConfig?.registrationPoseTill;
+    if (!self) {
+     const poseTill = window[my1uzr.worknOnPg]?.clientConfig?.registrationPoseTill;
 
-        // ❌ If registrationPoseTill has content (not empty) → BLOCK
-        if (poseTill !== undefined && poseTill !== null && String(poseTill).trim().length > 0) {
-          // Show the message (e.g., "Coming soon")
-          window.showConfirmModal(String(poseTill));
-          return; // 🚫 Stop — do NOT proceed
-        }
+     // ❌ If registrationPoseTill has content (not empty) → BLOCK
+     if (poseTill !== undefined && poseTill !== null && String(poseTill).trim().length > 0) {
+      // Show the message (e.g., "Coming soon")
+      window.showConfirmModal(String(poseTill));
+      return; // 🚫 Stop — do NOT proceed
+     }
 
-        // ✅ Empty or missing → proceed with registration
-        (async () => {
-          await loadExe2Fn(14, [0], [1]);
-        })();
-        return;
-      }
-
-      // ✅ Profile exists → "Update Profile" always proceeds as-is
-      const recordId = self.a;
-      (async () => {
-        await loadExe2Fn(14, [recordId], [1]);
-      })();
+     // ✅ Empty or missing → proceed with registration
+     (async () => {
+      await loadExe2Fn(14, [0], [1]);
+     })();
+     return;
     }
+
+    // ✅ Profile exists → "Update Profile" always proceeds as-is
+    const recordId = self.a;
+    (async () => {
+     await loadExe2Fn(14, [recordId], [1]);
+    })();
+   }
   },
   ...((!((window.my1uzr && window.my1uzr.jk) || (window.payload0 && window.payload0.jk))) ? [{
-    title: 'Already Registered - Login',
-    icon: 'fas fa-user-cog',
-    color: '#6c757d',
-    onClick: async () => {
-      const poseTill = window[my1uzr.worknOnPg]?.clientConfig?.registrationPoseTill;
-      if (poseTill !== undefined && poseTill !== null && String(poseTill).trim().length > 0) {
-        window.showConfirmModal(String(poseTill));
-        return;
-      }
-      // Refresh the stored profile only: run fn 70 (chkMyCount) -> hndlRspo70,
-      // without opening or reopening the registration modal.
-      if (typeof window.handleAlreadyRegistered === 'function') {
-        await window.handleAlreadyRegistered({ reopen: false });
-        return;
-      }
-      // Fallback: call the refresh endpoint directly.
-      try {
-        if (typeof clearPayload0 === 'function') clearPayload0();
-        const p0 = window.payload0 || (window.payload0 = {});
-        p0.fn = 70;
-        p0.ul = '3/0d.php';
-        p0.gt = 3;
-        const resp = await fnj4(null, p0, 1, 1, null, 20000, 2, 1);
-        if (resp && resp.su == 1 && typeof window.hndlRspo70 === 'function') {
-          await window.hndlRspo70(resp);
-        }
-      } catch (err) {
-        console.warn('Profile refresh failed:', err);
-      } finally {
-        try {
-          const p0 = window.payload0;
-          if (p0) { delete p0.x1; delete p0.x2; delete p0.la; delete p0.drml; }
-        } catch (e) {}
-      }
+   title: 'Already Registered - Login',
+   icon: 'fas fa-user-cog',
+   color: '#6c757d',
+   onClick: async () => {
+    const poseTill = window[my1uzr.worknOnPg]?.clientConfig?.registrationPoseTill;
+    if (poseTill !== undefined && poseTill !== null && String(poseTill).trim().length > 0) {
+     window.showConfirmModal(String(poseTill));
+     return;
     }
+    // Refresh the stored profile only: run fn 70 (chkMyCount) -> hndlRspo70,
+    // without opening or reopening the registration modal.
+    if (typeof window.handleAlreadyRegistered === 'function') {
+     await window.handleAlreadyRegistered({ reopen: false });
+     return;
+    }
+    // Fallback: call the refresh endpoint directly.
+    try {
+     if (typeof clearPayload0 === 'function') clearPayload0();
+     const p0 = window.payload0 || (window.payload0 = {});
+     p0.fn = 70;
+     p0.ul = '3/0d.php';
+     p0.gt = 3;
+     const resp = await fnj4(null, p0, 1, 1, null, 20000, 2, 1);
+     if (resp && resp.su == 1 && typeof window.hndlRspo70 === 'function') {
+      await window.hndlRspo70(resp);
+     }
+    } catch (err) {
+     console.warn('Profile refresh failed:', err);
+    } finally {
+     try {
+      const p0 = window.payload0;
+      if (p0) { delete p0.x1; delete p0.x2; delete p0.la; delete p0.drml; }
+     } catch (e) { }
+    }
+   }
   }] : []),
   {
-      title: 'Membership Plans',
-      icon: 'fas fa-gem',
-      color: '#6c757d', // Grey color
-      onClick: () => {
-          (async () => { 
-              await loadExe2Fn(17, [], [1]); 
-          })();
-      }
+   title: 'Membership Plans',
+   icon: 'fas fa-gem',
+   color: '#6c757d', // Grey color
+   onClick: () => {
+    (async () => {
+     await loadExe2Fn(17, [], [1]);
+    })();
+   }
   },
   {
    title: 'About Us',
@@ -373,11 +373,19 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
    }
   },
   {
+   title: 'Contact us',
+   icon: 'fas fa-envelope-open-text',
+   color: '#6c757d',
+   onClick: () => {
+    if (typeof showContactModal === 'function') showContactModal();
+   }
+  },
+  {
    title: 'Share App',
    icon: 'fas fa-share-alt',
    color: '#6c757d', // Grey color
    onClick: () => {
-    shareApp();
+    if (typeof shareApp === 'function') shareApp();
    }
   },
   {
@@ -386,10 +394,10 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
    color: '#43bb33ea',
    onClick: () => {
     (async () => {
-     await loadExe2Fn(23, [window[my1uzr.worknOnPg].clientConfig?.unlockWitchKey,window[my1uzr.worknOnPg].clientConfig?.unlockMsg], [1]);
+     await loadExe2Fn(23, [window[my1uzr.worknOnPg].clientConfig?.unlockWitchKey, window[my1uzr.worknOnPg].clientConfig?.unlockMsg], [1]);
     })();
    }
-},
+  },
   {
    title: 'Clear Cache',
    icon: 'fas fa-trash',
@@ -399,7 +407,7 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
      await showClearCacheModal();
     })();
    }
-}
+  }
  ];
 
  // Use provided menu items or default ones
@@ -638,10 +646,10 @@ function shareApp(opts) {
  var text = opts.text || 'Check out this profile!';
  if (typeof Android !== 'undefined' && Android) {
   if (typeof Android.shareApp === 'function') {
-   try { Android.shareApp(url, title, text); return; } catch (e) {}
-   try { Android.shareApp(); return; } catch (e) {}
+   try { Android.shareApp(url, title, text); return; } catch (e) { }
+   try { Android.shareApp(); return; } catch (e) { }
   }
-  if (typeof Android.shareUrl === 'function') { try { Android.shareUrl(url); return; } catch (e) {} }
+  if (typeof Android.shareUrl === 'function') { try { Android.shareUrl(url); return; } catch (e) { } }
  }
  if (navigator.share) {
   navigator.share({ title: title, text: text, url: url }).catch(function () { fallbackShare(url); });
@@ -652,7 +660,7 @@ function shareApp(opts) {
 
 function fallbackShare(url) {
  url = url || window.location.href;
- try { prompt('Copy this link:', url); } catch (e) {}
+ try { prompt('Copy this link:', url); } catch (e) { }
 }
 
 // Updated toggle button function with profile
@@ -709,4 +717,4 @@ function createDrawerToggleButton(menuItems = [], title = 'Menu', position = 'le
  });
 
  return toggleButton;
-}0
+}
