@@ -38,7 +38,7 @@
   return "\u20b9" + (isNaN(n) ? v : n);
  }
  function gatewayOn() {
-  var cc = cfg().cust_da_const || {};
+  var cc = (window[my1uzr.worknOnPg]?.clientConfigByAdm?.cust_da_const) || (cfg().cust_da_const || {});
   return Number(cc.paymentGatewayIntegrated) === 1;
  }
 
@@ -179,7 +179,7 @@
   }
   //which info sound the plans modal offers: free plan not added vs already added
   function freePlanSoundRaw() {
-    var freeCnt = Number(cfg().cust_da_const?.freeCnt) || 0;
+    var freeCnt = Number((window[my1uzr.worknOnPg]?.clientConfigByAdm?.cust_da_const || cfg().cust_da_const || {}).freeCnt) || 0;
     if (freeAlreadyAdded()) return soundRawOf(freeCnt > 0 ? "pga" : "pgaNoFree");
     return soundRawOf(freeCnt > 0 ? "pgf" : "pgfNoFree");
   }
@@ -304,15 +304,36 @@
   try {
    var amount = Number(snap.paymentPhonePayGT != null ? snap.paymentPhonePayGT : snap.grandTotal) || 0;
    var paymentBookingId = orderId;   // <mr.a>_<Date.now()> passed in by mrPayForPlan
-   var resp = await fetch("phonepe/request.php", {
+   console.info("[plans] payment.request", {
+    flow: paymentBookingId,
+    amountRupees: amount,
+    mp: (snap.plan && snap.plan.e != null) ? Number(snap.plan.e) : 0,
+    planId: (snap.plan && snap.plan.a != null) ? Number(snap.plan.a) : 0,
+    eo: (window.appOwner && window.appOwner.eo) || "",
+    ec: (window.appOwner && window.appOwner.ec) || "",
+   });
+   var resp = await fetch("https://zariya.vip/phonepe/request.php", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(paymentBookingId
-     ? { amountRupees: amount, bookingId: paymentBookingId }
-     : { amountRupees: amount }),
+    body: JSON.stringify({
+     amountRupees: amount,
+     bookingId: paymentBookingId,
+     // planIDs in fp 104 are keyed by the amount (50/200/350), not the UI id (1/2/3)
+     mp: (snap.plan && snap.plan.e != null) ? Number(snap.plan.e) : 0,
+     planId: (snap.plan && snap.plan.a != null) ? Number(snap.plan.a) : 0,
+     jk: (window.my1uzr && window.my1uzr.jk) || '',
+     eo: (window.appOwner && window.appOwner.eo) || '',
+     ec: (window.appOwner && window.appOwner.ec) || '',
+    }),
    });
    var data = await resp.json();
    if (typeof window.my1PageLoader === "function") window.my1PageLoader(false);
+   console.info("[plans] payment.response", {
+    flow: paymentBookingId,
+    http: resp.status,
+    orderId: data.orderId || "",
+    error: data.error || "",
+   });
 
    if (!data.orderId || !data.redirectUrl) {
     window.showelsemodal(data.error || "Payment could not be started. Please try again.");
@@ -327,17 +348,54 @@
   }
  }
 
- /* Return leg: PhonePe redirects back with ?pp=OK|ERR. The purchased count is credited by
-  * showPhonePePostData() (git/mr.js) on init when window.ppPostData is present. */
- function handlePhonePeReturn() {
+ /* Return leg: PhonePe redirects back with ?pp=OK|ERR. The mp ledger row is
+  * credited server-side in phonepe/redirect.php before the browser lands here;
+  * planResult=OK|FAIL says whether that call succeeded. On OK we refresh the
+  * member row with beCheckPlan_fn(0) so the paid unlock count reaches the UI. */
+ var handledPhonePeReturn = false;
+ async function handlePhonePeReturn() {
+  if (handledPhonePeReturn) return;
   var params = new URLSearchParams(window.location.search);
   var pp = params.get("pp");
   if (!pp) return;
+  handledPhonePeReturn = true;
 
-  history.replaceState({}, "", window.location.pathname + window.location.hash);
+  var planResult = params.get("planResult") || "";
+  var planMsg = params.get("planMsg") || "";
+  var oid = params.get("oid") || "";
+  console.info("[plans] payment.return", { pp: pp, oid: oid, planResult: planResult, planMsg: planMsg });
+
+  try {
+   history.replaceState({}, "", window.location.pathname + window.location.hash);
+  } catch (eH) { }
 
   if (pp === "OK") {
-   window.showsuccessmodal("Payment done! Now you can unlock more profiles.");
+   if (planResult !== "OK") {
+    window.showelsemodal(
+     "Payment verified but plan update failed. " +
+     (planMsg ? "Reason: " + planMsg : "Please contact support.")
+    );
+    return;
+   }
+
+   // Wait for mr.js to finish booting so hndlRspo70 / mrRenderList are ready.
+   try {
+    if (window.__mrInitPromise && typeof window.__mrInitPromise.then === "function") {
+     await window.__mrInitPromise;
+    }
+   } catch (eInit) {
+    console.warn("[plans] mr init wait failed", eInit);
+   }
+
+   try {
+    console.info("[plans] refresh.call", { fn: 70, pid: 0, flow: oid });
+    await window.beCheckPlan_fn(0);
+    console.info("[plans] refresh.done", { fn: 70, pid: 0, flow: oid });
+   } catch (eRefresh) {
+    console.warn("[plans] refresh.failed", eRefresh);
+   }
+
+   window.showsuccessmodal("Payment done! Now you can unlock profile/s.");
   } else {
    window.showelsemodal(
     "Payment Pending: " +
@@ -351,20 +409,29 @@
 
  async function beCheckPlan_fn(plan) {
   try {
+   var checkPid = (plan && plan.a != null) ? plan.a : 0;
+   console.info("[plans] fn70.start", { fn: 70, cd: 2, pid: checkPid });
    if (typeof clearPayload0 === "function") clearPayload0();
    payload0.fn = 70;
    payload0.cd = 2;
-   payload0.pid = plan.a;
+   payload0.pid = checkPid;
    payload0.ul = "3/0d.php";
    payload0.gt = 3;
    var resp = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
+   console.info("[plans] fn70.response", { fn: 70, pid: checkPid, su: resp && resp.su, ms: (resp && (resp.ms || resp.m)) || "" });
    //var resp = await fnj3("https://my1.in/3/d.php", payload0, 1, true, null, 20000, 0, 2, 1, 1);
    //hndlRspo70 (git/mr.js) normalises both response shapes, stores the row and returns it.
    var myRow = null;
    if (typeof window.hndlRspo70 === "function") {
     myRow = await window.hndlRspo70(resp);
-   } else if (resp && resp.su == 1) {
-    myRow = (resp.mr && resp.mr.l && resp.mr.l[0]) || (Array.isArray(resp.l) && resp.l[0]) || null;
+   }
+  //  else if (resp && resp.su == 1) {
+  //   myRow = (resp.mr && resp.mr.l && resp.mr.l[0]) || (Array.isArray(resp.l) && resp.l[0]) || null;
+  //  }
+   //yza can be absent: do NOT guess from mr.l[0] (it may be an unlocked other). Use the
+   //member's own persisted row only, so the success/plan flow is not aborted silently.
+   if (!myRow && resp && resp.su == 1 && window.myEinMR && window.myEinMR.a != null) {
+    myRow = window.myEinMR;
    }
    if (!myRow) {
     //no own row came back (or the handler already showed the error)
@@ -398,8 +465,8 @@
   //  paymentRequiresProfile = 1 -> ask them to log in/register and stop
   //  paymentRequiresProfile = 0 -> continue with an empty id part ("_<time>")
   var me = (typeof window.myEinMR !== "undefined" && window.myEinMR) || {};
-  var mrA = (me && me.a != null && me.a !== "") ? String(me.a) : "";
-  var needsProfile = Number((cfg().cust_da_const || {}).paymentRequiresProfile) === 1;
+  var mrA = (me && me.a != null && me.a !== "") ? String(me.a) : "0";
+  var needsProfile = Number((window[my1uzr.worknOnPg]?.clientConfigByAdm?.cust_da_const || cfg().cust_da_const || {}).paymentRequiresProfile) === 1;
   if (!mrA && needsProfile) {
    var ask = "Please log in or register your profile before buying a plan.";
    if (typeof window.showConfirmModal === "function") { await window.showConfirmModal(ask); }
@@ -415,4 +482,13 @@
  //modal can be the origin of a login/"Get Free" flow and is stale once it succeeds
  window.mrCloseMarriagePlans = close;
  window.showMarriagePlans = showMarriagePlans;
+
+ /* PhonePe returns the browser here with ?pp=OK&planResult=... .
+  * The mp ledger row is credited server-side by phonepe/redirect.php; this
+  * only shows the right message once the page/UI scripts are ready. */
+ if (document.readyState === 'complete') {
+  setTimeout(handlePhonePeReturn, 0);
+ } else {
+  window.addEventListener('load', function () { setTimeout(handlePhonePeReturn, 0); });
+ }
 })();

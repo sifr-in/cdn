@@ -380,16 +380,6 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
     shareApp();
    }
   },
-//   {
-//    title: 'upload file',
-//    icon: 'fas fa-upload',
-//    color: '#337cbb',
-//    onClick: () => {
-//     (async () => {
-//      await loadExe2Fn(101, [], [1]);
-//     })();
-//    }
-// },
   {
    title: 'After unlock',
    icon: 'fas fa-unlock',
@@ -401,7 +391,7 @@ function showDrawer(menuItems = [], title = 'Menu', position = 'left') {
    }
 },
   {
-   title: 'Clear All Data',
+   title: 'Clear Cache',
    icon: 'fas fa-trash',
    color: '#e63119',
    onClick: () => {
@@ -719,4 +709,4 @@ function createDrawerToggleButton(menuItems = [], title = 'Menu', position = 'le
  });
 
  return toggleButton;
-}
+}0

@@ -1159,6 +1159,8 @@ Object.keys(BUILTIN_SEL_FIELDS).forEach(function (k) {
    if (raw === "") return "";
    if (key === "g") return fmtDdMmYyyy(raw) || raw;
    if (key === "l") return toDisplayPhone(raw);
+   //height: show the same feet.inches form the form/pattern uses ("5.50" -> "5.5")
+   if (key === "h") return rgNormalizeHeight(raw);
    var cfg = selCfg(key);
    if (!cfg) return raw;
    if (isTreeField(key)) {
@@ -1406,12 +1408,17 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
   el.value = el.value.replace(/[^A-Za-z.]/g, "");
  }
 
- function maskDecimal(el, intMax) {
+ function maskDecimal(el, intMax, maxDec) {
   var v = el.value.replace(/[^\d.]/g, "");
   var dot = v.indexOf(".");
   var i = dot >= 0 ? v.slice(0, dot) : v;
   var d = dot >= 0 ? v.slice(dot + 1).replace(/\./g, "").slice(0, 2) : "";
   if (intMax > 0) i = i.slice(0, intMax);
+  //height inches are only 0..11 (12 inches = 1 foot): drop a stray second digit
+  //instead of letting "5.30" / "5.50" through, which then fail the .patn check
+  if (maxDec != null && d !== "" && parseInt(d, 10) > maxDec && d.length >= 2) {
+   d = d.slice(0, 1);
+  }
   el.value = i + (dot >= 0 ? "." + d : "");
  }
 
@@ -1420,6 +1427,24 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
   }
 
  function normalizeDecimal2(el) {
+  var name = el.getAttribute ? el.getAttribute("data-name") : "";
+  //height (h) is feet.inches, inches written as a plain 0..11 integer. Padding it
+  //with toFixed(2) produced "5.50", which the .patn ^[3-9](\.(0?[0-9]|1[01]))?$ rejects.
+  if (name === "h") {
+   var hv = (el.value || "").trim();
+   if (hv === "" || hv === ".") { el.value = ""; return; }
+   var hParts = hv.split(".");
+   var hFeet = parseInt(hParts[0], 10);
+   if (!isFinite(hFeet)) { el.value = ""; return; }
+   var hInches = 0;
+   if (hParts.length > 1 && hParts[1] !== "") {
+    hInches = parseInt(hParts[1], 10);
+    if (!isFinite(hInches) || hInches < 0) hInches = 0;
+    if (hInches > 11) hInches = Math.floor(hInches / 10);   //30 -> 3, 50 -> 5
+   }
+   el.value = hFeet + (hParts.length > 1 ? "." + hInches : "");
+   return;
+  }
   if (el.value === "" || el.value === ".") { el.value = ""; return; }
   var n = parseFloat(el.value);
   if (!isNaN(n)) el.value = n.toFixed(2);
@@ -1429,10 +1454,27 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
   el.value = el.value.replace(/\D/g, "").slice(0, 2);
  }
 
+ //normalize a stored/typed height to feet.inches with inches a plain 0..11
+ //integer: "5.50" -> "5.5", "5.30" -> "5.3", "5.10" stays "5.10", "5" stays "5"
+ function rgNormalizeHeight(v) {
+  var s = String(v == null ? "" : v).trim();
+  if (!s) return "";
+  var pp = s.split(".");
+  var ft = parseInt(pp[0], 10);
+  if (!isFinite(ft)) return s;
+  if (pp.length === 1) return String(ft);
+  var inc = parseInt(pp[1], 10);
+  if (!isFinite(inc) || inc < 0) inc = 0;
+  if (inc > 11) inc = Math.floor(inc / 10);
+  return ft + "." + inc;
+ }
+
  function fieldHtml(key, map, base, P, reqSet, lockSet) {
   var type = selCfg(key) ? "sel" : fieldTypeOf(key);
   var label = esc(labelText(map, key)) + (reqSet && reqSet[key] ? '<span class="rg-req">*</span>' : "");
   var val = baseVal(base, key);
+  //height: keep stored/legacy values in the feet.inches form the .patn accepts
+  if (key === "h") val = rgNormalizeHeight(val);
   //religion "k" carries the picked chain as one path; the depth picker / box read it
   if (key === "k") val = kPathFromBase(base);
   //address picker roots (a2/b2/c3) carry the whole place as one path; its five
@@ -1777,11 +1819,25 @@ function mrRenderProfileReadonly(profile, hiddenKeys, galleryHtmlStr) {
   var str = String(value).toLowerCase().trim();
   if (propertyKey === "h") {
    var feetInchMatch = str.match(/(\d+)\s*feet\s*(\d+)\s*inch/);
-   if (feetInchMatch) { return (parseInt(feetInchMatch[1], 10) + parseInt(feetInchMatch[2], 10) / 12).toFixed(2); }
+   if (feetInchMatch) {
+    var hFt = parseInt(feetInchMatch[1], 10);
+    var hInc = parseInt(feetInchMatch[2], 10);
+    if (hInc > 11) hInc = Math.floor(hInc / 10);
+    return hFt + "." + hInc;
+   }
    var feetMatch = str.match(/(\d+\.?\d*)\s*feet/);
-   if (feetMatch) { return parseFloat(feetMatch[1]).toFixed(2); }
+   if (feetMatch) { return feetMatch[1]; }
    var numMatch = str.match(/(\d+\.?\d*)/);
-   if (numMatch) { return parseFloat(numMatch[1]).toFixed(2); }
+   if (numMatch) {
+    var hStr = numMatch[1];
+    var hPp = hStr.split(".");
+    if (hPp.length > 1) {
+     var hN = parseInt(hPp[1], 10);
+     if (isFinite(hN) && hN > 11) hN = Math.floor(hN / 10);
+     hStr = hPp[0] + "." + hN;
+    }
+    return hStr;
+   }
   }
   if (propertyKey === "i") {
    var lakhThousandMatch = str.match(/(\d+)\s*lakhs?\s*(\d+)\s*thousand/);
@@ -2286,6 +2342,9 @@ var reqStar = {};
   ov.setAttribute("role", "dialog");
   ov.setAttribute("aria-modal", "true");
   ov.setAttribute("aria-label", sendLabel);
+  //which record this modal is bound to; lets the shared fn-70 handler tell whether the
+  //open modal already shows the member's own row before rebuilding it
+  ov.setAttribute("data-rg-record", (recordId != null && recordId !== "") ? String(recordId) : "");
 
   var fieldsHtml = "";
   function morePaneHtml(tr, keys) {
@@ -2416,7 +2475,7 @@ var reqStar = {};
   //number, then store it in the Dexie "mr" table and in localStorage "<tn>_myEinMR".
   var handleAlreadyRegistered = async function (opts) {
     if (sending) return;
-    if (typeof fnj3 !== "function") { showMsg("err", "Network helper unavailable."); return; }
+    if (typeof fnj4 !== "function") { showMsg("err", "Network helper unavailable."); return; }
     hideMsg();
     setSending(true);
     var p0 = null;
@@ -2440,6 +2499,9 @@ var reqStar = {};
       //picker, image and hidden "a" re-renders (instead of keeping stale values) and
       //the button/remove/deleted state matches the fresh row.
       if (myRow && myRow.a != null) reopenId = myRow.a;
+      //yza may be missing/unknown: fall back to the member's own persisted row (not an
+      //unlocked other) so the modal can still be rebuilt in UPDATE mode
+      else if (window.myEinMR && window.myEinMR.a != null) reopenId = window.myEinMR.a;
      } else {
       showMsg("err", (resp && (resp.ms || resp.m)) || "No registered profile found for this number.");
       if (typeof window.showelsemodal === "function") {
@@ -2454,17 +2516,22 @@ var reqStar = {};
      if (opts && opts.reopen === false) {
       //refresh-only callers (e.g. the drawer menu) do not want the modal reopened
      } else if (reopenId != null && typeof window.showRegistrationModal === "function") {
-      //hndlRspo70 is in mr.js and cannot see this module's private activeClose, so the
-      //modal is still open here: tear it down cleanly, then rebuild from the fresh row
-      try { if (typeof close === 'function') close(); } catch (eC) { }
-      try {
-       var _ov = document.getElementById(MODAL_ID);
-       if (_ov && _ov.parentNode) _ov.parentNode.removeChild(_ov);
-      } catch (eC2) { }
-      try { document.body.style.overflow = ''; } catch (eC3) { }
-      try {
-       await window.showRegistrationModal(reopenId, adminMode ? { admin: true } : undefined);
-      } catch (eRe) { console.error(eRe); }
+      //hndlRspo70 may already have rebuilt this modal from that row via
+      //window.mrRegisRefresh; only rebuild manually if the open modal is not it yet
+      var _cur = document.getElementById(MODAL_ID);
+      var _already = !!(_cur && _cur.getAttribute("data-rg-record") === String(reopenId));
+      if (!_already) {
+       //tear the stale modal down cleanly, then rebuild from the fresh row
+       try { if (typeof close === 'function') close(); } catch (eC) { }
+       try {
+        var _ov = document.getElementById(MODAL_ID);
+        if (_ov && _ov.parentNode) _ov.parentNode.removeChild(_ov);
+       } catch (eC2) { }
+       try { document.body.style.overflow = ''; } catch (eC3) { }
+       try {
+        await window.showRegistrationModal(reopenId, adminMode ? { admin: true } : undefined);
+       } catch (eRe) { console.error(eRe); }
+      }
      }
     }
   };
@@ -3261,6 +3328,9 @@ var reqStar = {};
 
   function close() {
    activeClose = null;
+   //clear the shared hooks so mr.js hndlRspo70 does not call into a dead closure
+   if (window.mrRegisClose === close) { try { window.mrRegisClose = null; } catch (eHk) { } }
+   if (window.mrRegisRefresh === refreshWithRow) { try { window.mrRegisRefresh = null; } catch (eHk2) { } }
    rgAdmOpen = 0;
    if (dateApi && dateApi.instance && typeof dateApi.instance.dispose === "function") {
     try { dateApi.instance.dispose(); } catch (eD) { }
@@ -3287,7 +3357,26 @@ var reqStar = {};
    document.removeEventListener("keydown", onKey);
    if (lastFocus && lastFocus.focus) { try { lastFocus.focus(); } catch (e) { } }
   }
+  //rebuild this modal from the member's own row (called by mr.js hndlRspo70 after a
+  //login / fn-70 refresh). Tearing down first guarantees every field, select, place
+  //picker, image and the hidden "a" come from the fresh row, not stale values.
+  async function refreshWithRow(row) {
+   if (!row || row.a == null) return false;
+   try { close(); } catch (eRf) { }
+   try {
+    await window.showRegistrationModal(row.a, adminMode ? { admin: true } : undefined);
+    return true;
+   } catch (eRf2) {
+    console.error(eRf2);
+    return false;
+   }
+  }
   activeClose = close;
+  //hndlRspo70 (git/mr.js) is shared with other flows (login / plans) and cannot see this
+  //module's private activeClose; expose close + refresh so that handler can update this
+  //modal instead of leaving a stale rgRegistrationModal on screen
+  window.mrRegisClose = close;
+  window.mrRegisRefresh = refreshWithRow;
 
   function onKey(e) {
    if (e.key === "Escape" && !pickerOpen && !selOverlayOpen && !reasonOpen && document.getElementById(MODAL_ID) === ov) close();
@@ -3658,7 +3747,7 @@ var reqStar = {};
    var name = t.getAttribute ? t.getAttribute("data-name") : "";
    if (name === "l") sanitizeTel(t);
    else if (name === "m") maskAlphaDot(t);
-   else if (name === "h") maskDecimal(t, 1);
+   else if (name === "h") maskDecimal(t, 1, 11);
    else if (name === "i") maskDecimal(t, 2);
    else if (name === "r") maskEducation(t);
    else if (name === "d1") maskDigits2(t);
@@ -3680,6 +3769,11 @@ var reqStar = {};
    hideMsg();
    clearBad();
    var out = collectData();
+   //canonicalize height before cmnVldet so a trailing dot / legacy padded value
+   //is checked against .patn in its feet.inches form ("5." -> "5.0", "5.50" -> "5.5")
+   if (out.h !== undefined && out.h !== null && String(out.h).trim() !== "") {
+    out.h = rgNormalizeHeight(out.h);
+   }
    if (rules) {
     var vr = cmnVldet(out, rules);
     if (vr.su !== 1) {

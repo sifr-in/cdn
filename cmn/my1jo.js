@@ -878,7 +878,7 @@ function set_innerHTML_of_shoLgnO() {
         <div class="container p-0">
             <div class="card">
                 <div class="card-header text-center d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Login with <span id="lo-otpTextToggle" class=".card-title" style="cursor: pointer; padding: 2px 5px; border-radius: 3px; transition: all 0.3s;">OTP</span></h5>
+                    <h5 class="card-title mb-0">Login with <span id="lo-otpTextToggle">OTP</span></h5>
                     <div class="d-flex align-items-center gap-2">
                         <span id="loPwLoginBtn" class="lo-pw-login" onclick="openLoginWithPassFromLoginWith()" title="Login with Password" style="cursor:pointer;color:#6c757d;">&emsp;&emsp;</span>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -957,9 +957,10 @@ function setupOtpTextToggleLO() {
   updateOtpTextAppearanceLO();
   otpTextToggle.addEventListener("click", function () {
    if (isOtpSuppressed) {
-    if (confirm("Do you want to enable OTP?")) { isOtpSuppressed = false; updateOtpTextAppearanceLO(); }
+    //keep this both massages as is;
+    if (confirm("Do you want to enable?")) { isOtpSuppressed = false; updateOtpTextAppearanceLO(); }
    } else {
-    if (confirm("Do you want to disable OTP?")) { isOtpSuppressed = true; updateOtpTextAppearanceLO(); }
+    if (confirm("Do you want to disable?")) { isOtpSuppressed = true; updateOtpTextAppearanceLO(); }
    }
   });
  }
