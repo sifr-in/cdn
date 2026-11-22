@@ -55,7 +55,6 @@ window[my1uzr.worknOnPg].onModuLstAllowed2 = function (allowedModules) {
 
 window.imgObjDimensRqd = [];
 const sho_da_tkLimit = 1;
-let appData = {};
 const ids_of_views = [3];
 let tblFailureCount = 1;
 const cacheVersion = 1763390987;
@@ -74,25 +73,26 @@ window[my1uzr.worknOnPg].defaFieldVals = ['k1~9'];
 window[my1uzr.worknOnPg].seqnce = "u,ut,u1,c8,l,a7,m,n";
 window[my1uzr.worknOnPg].bdayFormat = "dd-mm-yyyy";
 
-window[my1uzr.worknOnPg].csh = [
- { a: 1, u: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" },
- { a: 2, u: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" },
- { a: 3, u: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" },
- { a: 4, u: "https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js" },
- { a: 5, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/my1xi.min.js" },
- { a: 6, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/cmn/my1jp.min.js", c: "open_shoJgnP", r: "open_shoJgnP" },
- { a: 7, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/cmn/my1jo.min.js", c: "open_shoJgnO", r: "open_shoJgnO" },
- { a: 8, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/conta.min.js", c: "showContactModal", r: "showContactModal" },
- { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@60f8540/cmn/my1img.min.js", c: "open_addimage", r: "open_addimage" },
- { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1ctr.min.js", c: "open_my1ctr", r: "open_my1ctr" },
- { a: 12, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/mr/fltr.js", c: "showFilterBox", r: "showFilterBox" },
- { a: 13, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/mr/drwr.min.js", c: "showDrawer", r: "showDrawer" },
- { a: 14, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/mr/regis.min.js", c: "showRegistrationModal", r: "showRegistrationModal" },
- { a: 17, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/mr/plans.js", c: "showMarriagePlans", r: "showMarriagePlans" },
+// window[my1uzr.worknOnPg].csh = [
+//  { a: 1, u: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" },
+//  { a: 2, u: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" },
+//  { a: 3, u: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" },
+//  { a: 4, u: "https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js" },
+//  { a: 5, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/my1xi.min.js" },
+//  { a: 6, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/cmn/my1jp.min.js", c: "open_shoJgnP", r: "open_shoJgnP" },
+//  { a: 7, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/cmn/my1jo.min.js", c: "open_shoJgnO", r: "open_shoJgnO" },
+//  { a: 8, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/conta.min.js", c: "showContactModal", r: "showContactModal" },
+//  { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@60f8540/cmn/my1img.min.js", c: "open_addimage", r: "open_addimage" },
+//  { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1ctr.min.js", c: "open_my1ctr", r: "open_my1ctr" },
+const CSH_PUSH = [
+ { a: 13, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8bfbe40/mr/drwr.min.js", c: "showDrawer", r: "showDrawer" },
+ { a: 14, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8bfbe40/mr/regis.min.js", c: "showRegistrationModal", r: "showRegistrationModal" },
+ { a: 15, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/mr/fltr.min.js", c: "showFilterBox", r: "showFilterBox" },
+ { a: 17, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8bfbe40/mr/plans.min.js", c: "showMarriagePlans", r: "showMarriagePlans" },
  { a: 55, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/mr/prfl.min.js", c: "mrPrflReady", r: "mrShowProfileDtlsLazy" },
  { a: 15, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/ei.min.js", c: "open_entind_crud", r: "open_entind_crud" },
  { a: 39, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/slRlgn.min.js", c: "openCommonSelectionModal", r: "openCommonSelectionModal" },
- { a: 47, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/mr/slCoTal.js", c: "setValByPrprtyDepthToElm", r: "setValByPrprtyDepthToElm" },
+ { a: 47, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/mr/slCoTal.min.js", c: "setValByPrprtyDepthToElm", r: "setValByPrprtyDepthToElm" },
  { a: 48, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/admr.min.js", c: "openMrAdmin", r: "openMrAdmin" },
  { a: 18, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/caste.da" },
  { a: 19, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/ctco.da" },
@@ -101,48 +101,43 @@ window[my1uzr.worknOnPg].csh = [
  { a: 23, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/unlkInf.min.js", c: "mrUnlockInfoModal", r: "mrUnlockInfoModal" },
  { a: 31, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@666354f/cmn/degs.da" },
  { a: 33, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@0208362/cmn/occu.da" },
- { a: 45, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/intal.da" },
- { a: 22, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/my1ap.js" },
- { a: 25, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/clrChe.min.js", c: "showClearCacheModal", r: "showClearCacheModal" }
+ { a: 45, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/intal.da" }
+ //{ a: 22, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/my1ap.min.js" },
+ //{ a: 25, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/clrChe.min.js", c: "showClearCacheModal", r: "showClearCacheModal" }
 ];
 
+ const cshIds = {};
+ if (typeof pushCsh === 'function') {
+  for (let i = 0; i < CSH_PUSH.length; i++) {
+   const it = CSH_PUSH[i];
+   cshIds[it.r || it.c || it.u] = pushCsh(it.u, it.c, it.r, it.a);
+  }
+ }
+
+/* The mp ledger is credited server-side by phonepe/redirect.php via
+ * 0.php -> g3() -> 3/0f.php (fn 127). Kept as a compatibility hook for older
+ * callers: it only surfaces the result carried back in the return payload. */
 async function showPhonePePostData() {
  var data = window.ppPostData;
  if (!data) return false;
  window.ppPostData = null;
  try {
   history.replaceState({}, "", window.location.pathname + window.location.hash);
-  if (typeof clearPayload0 === "function") clearPayload0();
-  if (!window.payload0) window.payload0 = {};
-  var p = window.payload0;
-  p.fn = 70;
-  p.x1 = data.orderId;
-  p.ul = "2/c.php";
-  p.gt = 2;
-  if (typeof dbDexieManager !== "undefined" && dbDexieManager &&
-   typeof dbDexieManager.getMaxDateRecords === "function") {
-   try { p.la = await dbDexieManager.getMaxDateRecords(window.dbnm, [{ tb: "mr" }]); } catch (eL) { }
-  }
-  var resp = await fnj4(null, p, 1, 1, null, 20000, 2, 1);
-  if (resp && resp.su == 1) {
-   if (typeof handl_mr_rspons === "function") { await handl_mr_rspons(resp); }
-   if (typeof window.showelsemodal === "function") {
-    window.showelsemodal("Payment successful! Your profile unlock count has been added.");
-   }
-  } else if (typeof window.showelsemodal === "function") {
-   window.showelsemodal((resp && (resp.ms || resp.m)) || "Could not confirm your payment. Please contact support.");
-  }
-  return true;
- } catch (err) {
-  if (typeof window.showelsemodal === "function") {
-   window.showelsemodal("Error: " + ((err && err.message) || err));
-  }
-  return false;
+ } catch (e) { }
+ var ok = data.planResult === "OK" || Number(data.credited) === 1;
+ var fn = ok ? "showsuccessmodal" : "showelsemodal";
+ if (typeof window[fn] === "function") {
+  window[fn](ok
+   ? "Payment successful! Your plan has been added."
+   : "Payment verified but plan update failed. Please contact support.");
  }
+ return ok;
 }
 window.showPhonePePostData = showPhonePePostData;
 
-(async function initMr() {
+//Exposed so git/plans.js can wait for tables/config/handlers before refreshing
+//the member row after a successful PhonePe return (beCheckPlan_fn(0)).
+window.__mrInitPromise = (async function initMr() {
  //Start the config fetch right away so the Logo can be warmed into the image
  //cache while the boot loader is still on screen. The result is reused below.
  var __cfgPromise = null;
@@ -154,7 +149,7 @@ window.showPhonePePostData = showPhonePePostData;
   __cfgPromise.catch(function () { });
  } catch (eCf) { __cfgPromise = null; }
  try {
-  let result1 = await loadCshScriptsSequentially(1, 2, 3, 4, 5, 17, 22, 25);
+  let result1 = await loadCshScriptsSequentially(17);
   if (!result1.success) throw new Error("Failed to load required scripts: " + result1.error);
 
   const createResult = await dbDexieManager.handleNwTables("loader", dbnm, tblsRequired);
@@ -173,6 +168,20 @@ window.showPhonePePostData = showPhonePePostData;
 
   try { window.da_mr = cfg; } catch (e) { }
   try { if (!window[my1uzr.worknOnPg]) window[my1uzr.worknOnPg] = {}; window[my1uzr.worknOnPg].clientConfig = cfg; } catch (e) { }
+  //load super-admin-controlled config independently from 0.da
+  try {
+   const admCfg = await fetch('0.da').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+   if (admCfg && typeof admCfg === 'object') {
+    if (!window[my1uzr.worknOnPg]) window[my1uzr.worknOnPg] = {};
+    window[my1uzr.worknOnPg].clientConfigByAdm = admCfg;
+    //backward compat: keep cust_da_const in clientConfig too, so CDN readers
+    //(e.g. regis.min.js) that haven't been updated yet still get the value
+    if (admCfg.cust_da_const) {
+     if (!window[my1uzr.worknOnPg].clientConfig) window[my1uzr.worknOnPg].clientConfig = {};
+     window[my1uzr.worknOnPg].clientConfig.cust_da_const = admCfg.cust_da_const;
+    }
+   }
+  } catch (eAdm) { }
   window.imgObjDimensRqd = cfg?.imgObjDimensRqd;
 
   //Warm the Logo into Cache Storage + the mrImg memory cache immediately,
@@ -232,6 +241,11 @@ window.showPhonePePostData = showPhonePePostData;
  }
  try {
   var __cfg = window[my1uzr.worknOnPg].clientConfig || {};
+  var __cfgByAdm = window[my1uzr.worknOnPg]?.clientConfigByAdm || {};
+  var __prsnl = __cfgByAdm?.cust_da_const?.prsnlCSS ?? __cfg?.cust_da_const?.prsnlCSS;
+  if (__prsnl !== undefined && __prsnl !== null && __prsnl !== '') {
+   appcss = `@import url("${__prsnl}");`;
+  }else{ appcss = myappcss; }
   __mrApplyCardConfig(__cfg);
   __mrInjectAppCss();
   __mrRenderShell();
@@ -254,7 +268,12 @@ window.showPhonePePostData = showPhonePePostData;
   try { await __mrWaitLogoReady(6000); } catch (eLw) { }
   __mrWelcomeModal();
  } catch (eW) { }
+ window.__mrReady = true;
+ console.info("[mr] init.ready");
 })();
+if (window.__mrInitPromise && typeof window.__mrInitPromise.catch === "function") {
+ window.__mrInitPromise.catch(function (e) { console.warn("[mr] init.failed", e); });
+}
 
 function __mrLogoUrlFromCfg(cfg) {
  var raw = (cfg && cfg.Logo) || '';
@@ -463,7 +482,7 @@ function createNavigationBar(cfg) {
             </div>
             <div class="app-nav__right">
                 <button class="app-nav__icon app-nav__filter" type="button" title="Filters" aria-label="Filters"
-                        onclick="(async () => { await loadExe2Fn(12, [], [1]); })()">
+                        onclick="(async () => { await loadExe2Fn(15, [], [1]); })()">
                     <i class="fa-solid fa-sliders"></i>
                 </button>
             </div>
@@ -758,6 +777,9 @@ function handl_mr_rspons(response) {
     if (response.mr != null && response.mr.l != null) {
      await dbDexieManager.insertToDexie(dbnm, "mr", response.mr.l, true, ["a"]);
     }
+    if (response.mr_othr != null && response.mr_othr.l != null) {
+     await dbDexieManager.insertToDexie(dbnm, "mr", response.mr_othr.l, true, ["a"]);
+    }
     if (response.c != null && response.c.l != null) {
      await dbDexieManager.insertToDexie(dbnm, "c", response.c.l, true, ["a"]);
     }
@@ -813,6 +835,8 @@ async function hndlRspo70(resp) {
  if (typeof handl_mr_rspons === "function") {
   try { await handl_mr_rspons(resp); } catch (eH) { }
  }
+ // fn 70 returns the user's own profile at mr.l[0] (followed by unlocked others),
+ // so store/reopen [0] as the member's own row
  const myRow = (resp.mr && Array.isArray(resp.mr.l) && resp.mr.l.length) ? resp.mr.l[0] : null;
  if (myRow && myRow.a != null && typeof window.mrPersistMyEinMR === "function") {
   try { window.mrPersistMyEinMR(myRow); } catch (eP) { }
@@ -827,7 +851,14 @@ async function hndlRspo70(resp) {
  if (!topShape && typeof showToast === "function") {
   showToast((myRow && myRow.a != null) ? "Welcome back!" : "Updated successfully", { type: "success", duration: 3000, position: "top" });
  }
- if (typeof activeClose === "function") { try { activeClose(); } catch (eC) { } }
+ //if the registration modal is open, rebuild it from the member's own row so the form
+ //shows fresh data; otherwise just close it when regis.js has one open (activeClose is
+ //private to that module, so it registers global hooks for this shared fn 70 handler)
+ if (myRow && typeof window.mrRegisRefresh === "function") {
+  try { await window.mrRegisRefresh(myRow); } catch (eRf) { }
+ } else if (typeof window.mrRegisClose === "function") {
+  try { window.mrRegisClose(); } catch (eC) { }
+ }
  if (typeof mrRenderList === "function") { try { await mrRenderList(true); } catch (eR) { } }
  return myRow;
 }
@@ -1100,7 +1131,7 @@ window.mrImg = (function () {
  }
 
  function load(url) {
-  if (url == null) return Promise.resolve(url);
+  if (url == null) return Promise.resolve("https://ui-avatars.com/api/?name=User&background=8B1E3F&color=fff&size=100");
   url = String(url);
   if (!url || url.indexOf("data:") === 0 || url.indexOf("blob:") === 0) return Promise.resolve(url);
   if (mem[url]) return Promise.resolve(mem[url]);
@@ -1167,15 +1198,23 @@ function calculateAge(value) {
 }
 
 function formatHeight(height) {
- //Height is stored as feet.inches (e.g. 5.89 -> 5' 89"), the same way the
- //profile details view shows it. Do not convert the fraction as feet, that
- //turned 5.89 into 5' 11".
+ //Height is stored as feet.inches, e.g. 5.6 = 5 ft 6 in, 5.10 = 5 ft 10 in,
+ //5.11 = 5 ft 11 in. The decimal is the inch count written as a plain
+ //integer (no padding, no unit marks): 0 to 11 only, because 12 inches
+ //would be the next foot. Legacy values carrying a stray trailing digit
+ //(5.30, 5.20, 5.89) are folded back into a single inch digit: 3, 2, 8.
  const s = String(height == null ? '' : height).trim();
  if (!s) return '';
  const parts = s.split('.');
- const feet = parts[0] || '0';
- const inches = parts.length > 1 && parts[1] !== '' ? parts[1] : '0';
- return feet + "' " + inches + '"';
+ const feet = parseInt(parts[0], 10);
+ if (!isFinite(feet)) return '';
+ let inches = 0;
+ if (parts.length > 1 && parts[1] !== '') {
+  inches = parseInt(parts[1], 10);
+  if (!isFinite(inches) || inches < 0) { inches = 0; }
+  if (inches > 11) { inches = Math.floor(inches / 10); }
+ }
+ return feet + '.' + inches;
 }
 
 function formatPackage(packageValue) {
@@ -1540,10 +1579,17 @@ function createProfileCard(profile) {
  if (height) inlineParts.push(`<span class="app-card__meta-item"><i class="fas fa-${__mrMetaIcon('h')}"></i>${__mrEscHtml(height)}</span>`);
  const inlineMeta = inlineParts.join('');
  const isUnlocked = !!window.__mrUnlockedIds[String(profileId)];
- const badgeStyle = isUnlocked
-  ? 'background-image:linear-gradient(135deg,#2e7d5b,#1f7a4d 55%,#155f3c);background-color:#2e7d5b;'
-  : 'background-image:linear-gradient(135deg,var(--mr-primary),var(--mr-primary-600) 55%,var(--mr-primary-700));background-color:var(--mr-primary);';
- const viewBadge = `<button type="button" class="app-card__view-badge${isUnlocked ? ' app-card__view-badge--unlocked' : ''}" title="View Profile"
+ //own profile gets a neutral gray badge; "unlocked" is only for other members' rows
+ const ownId = __mrOwnProfileId();
+ const isOwn = ownId !== null && String(profileId) === ownId;
+ const badgeStyle = isOwn
+  ? 'background-image:linear-gradient(135deg,#9e9e9e,#757575 55%,#616161);background-color:#9e9e9e;'
+  : (isUnlocked
+   ? 'background-image:linear-gradient(135deg,#2e7d5b,#1f7a4d 55%,#155f3c);background-color:#2e7d5b;'
+   : 'background-image:linear-gradient(135deg,var(--mr-primary),var(--mr-primary-600) 55%,var(--mr-primary-700));background-color:var(--mr-primary);');
+ const badgeClass = 'app-card__view-badge' +
+  (isOwn ? ' app-card__view-badge--own' : (isUnlocked ? ' app-card__view-badge--unlocked' : ''));
+ const viewBadge = `<button type="button" class="${badgeClass}" title="View Profile"
             style="${badgeStyle}"
             onclick="event.stopPropagation(); showProfileDtls(${profileId})"><i class="fas fa-eye"></i></button>`;
  const degreeText = degreeTxt ? `<span class="app-card__degree-text"><i class="fas fa-${__mrMetaIcon('s')}"></i> ${__mrEscHtml(degreeTxt)}</span>` : '';
@@ -1593,6 +1639,9 @@ function createProfileCard(profile) {
 
 window.__mrMarkUnlocked = function (id) {
  if (id == null) return;
+ //own profile stays gray; only other members' rows get the success badge
+ var ownId = __mrOwnProfileId();
+ if (ownId !== null && String(id) === ownId) return;
  if (!window.__mrUnlockedIds) window.__mrUnlockedIds = Object.create(null);
  window.__mrUnlockedIds[String(id)] = 1;
  var badge = null;
@@ -1679,6 +1728,24 @@ function __mrPersistMyRow(row) {
  } catch (e2) { }
 }
 window.mrPersistMyEinMR = __mrPersistMyRow;
+
+//own profile id: live row first, then the "<tn>_myEinMR" copy written by __mrPersistMyRow.
+//Used by the cards (own = gray badge) and by the unlock set (own is not "unlocked").
+function __mrOwnProfileId() {
+ try {
+  if (window.myEinMR && window.myEinMR.a != null) return String(window.myEinMR.a);
+ } catch (e) { }
+ try {
+  var tn = window.appOwner && window.appOwner.tn;
+  var s = tn ? localStorage.getItem(tn + "_myEinMR") : null;
+  if (s && s !== "undefined" && s !== "null") {
+   var o = JSON.parse(s);
+   if (o && o.a != null) return String(o.a);
+  }
+ } catch (e2) { }
+ return null;
+}
+
 
 async function __mrOpenRegistration(explicitId) {
  var tn = window.appOwner && window.appOwner.tn;
@@ -1896,7 +1963,10 @@ function mrRenderMain(ok) {
  const container = main.querySelector('#profiles-container');
  const loaderContainer = main.querySelector('#loader-container');
  if (container) {
-  container.appendChild(createEmptyProfileCard());
+  //own profile is first; show the "create" card only when the member has no profile yet
+  const ownId = __mrOwnProfileId();
+  const hasOwn = !!ownId && profilesData.some(function (p) { return p && String(p.a) === ownId; });
+  if (!hasOwn) container.appendChild(createEmptyProfileCard());
   profilesData.forEach(profile => container.appendChild(createProfileCard(profile)));
   if (hasMore && loaderContainer) loaderContainer.appendChild(createLoader());
   if (window.mrImg) window.mrImg.hydrate(container);
@@ -1918,9 +1988,19 @@ async function mrRenderList(forceReset) {
 
  try {
   if (typeof dbDexieManager !== 'undefined' && typeof dbDexieManager.getAllRecords === 'function' && dbnm) {
-   const muRows = await dbDexieManager.getAllRecords(dbnm, 'mu');
+   //badge state comes from the "mr" table only: fn 70 stores the member's own profile plus
+   //the ones they unlocked there. Own row is excluded (it renders gray, not success green).
    window.__mrUnlockedIds = Object.create(null);
-   (muRows || []).forEach(function (r) { if (r && r.f != null) window.__mrUnlockedIds[String(r.f)] = 1; });
+   const ownId = __mrOwnProfileId();
+   //always populate from the mr rows so the success badge actually shows; skip the own
+   //row only when its id is known (own renders gray, never green)
+   const mrRows = await dbDexieManager.getAllRecords(dbnm, 'mr');
+   (mrRows || []).forEach(function (r) {
+    if (!r || r.a == null) return;
+    const id = String(r.a);
+    if (ownId && id === ownId) return;
+    window.__mrUnlockedIds[id] = 1;
+   });
   }
  } catch (eU) { }
 
@@ -1945,6 +2025,24 @@ async function mrRenderList(forceReset) {
     }
    }
   } catch (e) { }
+ }
+
+ //own profile must be the first card
+ const ownIdForOrder = __mrOwnProfileId();
+ if (ownIdForOrder) {
+  const idx = profilesData.findIndex(function (p) { return p && String(p.a) === ownIdForOrder; });
+  if (idx > 0) {
+   const ownRow = profilesData.splice(idx, 1)[0];
+   profilesData.unshift(ownRow);
+  } else if (idx === -1) {
+   try {
+    if (typeof dbDexieManager !== 'undefined' && typeof dbDexieManager.getAllRecords === 'function' && dbnm) {
+     const mrRows = await dbDexieManager.getAllRecords(dbnm, 'mr');
+     const ownRow = (mrRows || []).find(function (r) { return r && String(r.a) === ownIdForOrder; });
+     if (ownRow) profilesData.unshift(applyProfileImageData(ownRow));
+    }
+   } catch (eOwn) { }
+  }
  }
 
  mrRenderMain(result.ok);
@@ -2006,8 +2104,8 @@ async function loadMoreProfiles() {
   isFetching = false;
  }
 }
-
-appcss = `
+//prsnlCSS is resolved at init time (after clientConfig is loaded); see below.
+const myappcss = `
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&display=swap');
 
 :root{
@@ -2357,11 +2455,6 @@ input.form-control.is-invalid:focus{ box-shadow:0 0 0 3px rgba(163,49,32,.2); }
   color:#ffffff !important;
 }
 #forgotPassword{ font-weight:600; }
-#lp-otpTextToggle,#lo-otpTextToggle{
-  color:var(--mr-primary);
-  font-weight:700;
-  border-radius:999px;
-}
 .blink-text{ color:var(--mr-primary) !important; }
 
 .badge{
@@ -2743,12 +2836,25 @@ input.form-control.is-invalid:focus{ box-shadow:0 0 0 3px rgba(163,49,32,.2); }
 }
 .app-card__view-badge--unlocked{
   background-image:linear-gradient(135deg,#2e7d5b,#1f7a4d 55%,#155f3c) !important;
+  background-color:#2e7d5b !important;
   color:#ffffff;
   box-shadow:0 8px 20px rgba(31,122,77,.28);
 }
 .app-card__view-badge--unlocked:hover{
   background-image:linear-gradient(135deg,#256a4c,#1a6a45 55%,#114f31) !important;
+  background-color:#256a4c !important;
   box-shadow:0 10px 26px rgba(31,122,77,.36);
+}
+.app-card__view-badge--own{
+  background-image:linear-gradient(135deg,#9e9e9e,#757575 55%,#616161) !important;
+  background-color:#9e9e9e !important;
+  color:#ffffff;
+  box-shadow:0 8px 20px rgba(90,90,90,.26);
+}
+.app-card__view-badge--own:hover{
+  background-image:linear-gradient(135deg,#8a8a8a,#666 55%,#4f4f4f) !important;
+  background-color:#8a8a8a !important;
+  box-shadow:0 10px 26px rgba(90,90,90,.34);
 }
 .app-card__degree--solo{ justify-content:flex-end; }
 .app-card__row{ display:flex; align-items:center; justify-content:space-between; gap:1rem; margin:.35rem 0; }

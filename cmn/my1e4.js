@@ -1,8 +1,22 @@
-window.appcss = null;
-let xtraj_payload = null;
-let appData = {};
-let tblFailureCount = 1;
-const cacheStrategy = 1;
+if (typeof window.appcss === 'undefined' || window.appcss === null) {
+ window.appcss = null;
+}
+
+if (typeof xtraj_payload === 'undefined' || xtraj_payload === null) {
+ xtraj_payload = null;
+}
+
+if (typeof appData === 'undefined' || appData === null) {
+ appData = {};
+}
+
+if (typeof tblFailureCount === 'undefined' || tblFailureCount === null) {
+ tblFailureCount = 1;
+}
+
+if (typeof cacheStrategy === 'undefined' || cacheStrategy === null) {
+ cacheStrategy = 1;
+}
 async function set_owner() {
  const pathParts = window.location.pathname.split('/').filter(p => p);
  const eo = window.ownr_eo = window.ownr_eo || pathParts[0];
@@ -190,11 +204,11 @@ window.showConfirmModal = function (message, isDanger = 0) {
    contentElement.innerHTML = `
 <div class="p-4">
 <div class="text-center mb-3">
-<i class="fas fa-question-circle text-${isDanger==0 ? 'warning' : 'danger'}" style="font-size:48px;"></i>
+<i class="fas fa-question-circle text-${isDanger == 0 ? 'warning' : 'danger'}" style="font-size:48px;"></i>
 </div>
-<p class="text-center mb-4 ${isDanger==0 ? '' : 'fw-bold'}" style="white-space: pre-line;">${message}</p>
+<p class="text-center mb-4 ${isDanger == 0 ? '' : 'fw-bold'}" style="white-space: pre-line;">${message}</p>
 <div class="d-flex justify-content-center gap-2">
-<button type="button" class="btn btn-${isDanger==0 ? 'success' : 'danger'}" id="${modalId}_confirm"><i class="fas fa-check me-1"></i>Confirm</button>
+<button type="button" class="btn btn-${isDanger == 0 ? 'success' : 'danger'}" id="${modalId}_confirm"><i class="fas fa-check me-1"></i>Confirm</button>
 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Cancel</button>
 </div>
 </div>`;
@@ -260,19 +274,16 @@ async function chkModuLstAgainstFNF(moduLst) {
  return temp11;
 }
 
-const monthFullNms = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const monthShortNms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// Arrays — guard by mutating only if missing
+if (typeof monthFullNms === 'undefined') var monthFullNms = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+if (typeof monthShortNms === 'undefined') var monthShortNms = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-let modalStack = [];
-let modalZIndexCounter = 1050;
-
-// Add these with your other global variables at the top
-let wakeLock = null;
-let isWakeLockSupported = 'wakeLock' in navigator;
-
-// Back button press counter
-let backButtonPressCount = 0;
-let backButtonTimeout = null;
+var modalStack = (typeof modalStack !== 'undefined' && modalStack !== null) ? modalStack : [];
+var modalZIndexCounter = (typeof modalZIndexCounter !== 'undefined' && modalZIndexCounter !== null) ? modalZIndexCounter : 1050;
+var wakeLock = (typeof wakeLock !== 'undefined') ? wakeLock : null;
+var isWakeLockSupported = (typeof isWakeLockSupported !== 'undefined') ? isWakeLockSupported : ('wakeLock' in navigator);
+var backButtonPressCount = (typeof backButtonPressCount !== 'undefined' && backButtonPressCount !== null) ? backButtonPressCount : 0;
+var backButtonTimeout = (typeof backButtonTimeout !== 'undefined') ? backButtonTimeout : null;
 
 // Screen Wake Lock functions - Common utility for all scripts
 async function requestWakeLock() {
@@ -510,7 +521,7 @@ function loadPromiseScript(url) {
    link.rel = "stylesheet";
    link.href = url;
    link.onload = resolve;
-   link.onerror = reject;
+   link.onerror = () => reject(new Error('Failed to load stylesheet: ' + url));
    document.head.appendChild(link);
   } else {
    // It's a JS file
@@ -532,7 +543,7 @@ function loadPromiseScript(url) {
     if (tag) tag.dataset.htLoaded = "1";
     resolve();
    };
-   script.onerror = reject;
+   script.onerror = () => reject(new Error('Failed to load script: ' + url));
    script.src = url;
    document.head.appendChild(script);
   }
@@ -542,8 +553,22 @@ async function loadCshScriptsSequentially(...scriptIds) {
  // Get the cache array
  const csheArray = window[my1uzr.worknOnPg]?.csh || [];
 
- // Filter scripts by the provided "a" values
- const scriptsToLoad = csheArray.filter(script => scriptIds.includes(script.a));
+ // Honor dontLoad=1,2,3 passed via the my1e4.js script URL.
+ // The arguments are treated as sequence positions (csh "a" IDs), and the
+ // remaining ones are loaded in ascending sequence order.
+ const skip = new Set(String(window.__dontLoad || '').split(',').map(function (s) { return Number(String(s).trim()); }).filter(function (n) { return !isNaN(n); }));
+ const orderedIds = scriptIds
+  .map(function (id) { return Number(id); })
+  .filter(function (id) { return !skip.has(id); })
+  .sort(function (a, b) { return a - b; });
+
+ // Filter scripts by the ordered "a" values
+ const scriptsToLoad = csheArray.filter(function (script) { return orderedIds.includes(Number(script.a)); });
+
+ if (orderedIds.length === 0) {
+  console.log('[my1e4] all requested scripts skipped via dontLoad');
+  return { success: true, loadedCount: 0, totalScripts: 0 };
+ }
 
  if (scriptsToLoad.length === 0) {
   console.warn('No scripts found with the provided IDs:', scriptIds);
@@ -728,7 +753,10 @@ function getNextCshId() {
  const maxA = Math.max(...window[my1uzr.worknOnPg].cach.map(item => item.a));
  return maxA + 1;
 }
-const __loadExe2FnInflight = {};
+var __loadExe2FnInflight =
+ (typeof __loadExe2FnInflight !== 'undefined' && __loadExe2FnInflight !== null)
+  ? __loadExe2FnInflight
+  : {};
 async function loadExe2Fn(id_as_a, pFNarams = [], pSCRParams = []) {
  const key = String(id_as_a);
  if (__loadExe2FnInflight[key]) return __loadExe2FnInflight[key];
@@ -755,7 +783,11 @@ async function loadExe2Fn(id_as_a, pFNarams = [], pSCRParams = []) {
    }
 
    // Find the configuration by id
-   const config = window[my1uzr.worknOnPg].csh.find(item => item.a === id_as_a);
+   let config = window[my1uzr.worknOnPg].csh.find(item => Number(item.a) === Number(id_as_a));
+   if (!config && (id_as_a === null || id_as_a === undefined)) {
+    const candidates = window[my1uzr.worknOnPg].csh.filter(item => /my1ctr/i.test(String(item.u || '')));
+    if (candidates.length === 1) config = candidates[0];
+   }
    if (!config) {
     throw new Error(`Configuration with id ${id_as_a} not found in csh array.`);
    }
@@ -870,8 +902,9 @@ async function loadExe2Fn(id_as_a, pFNarams = [], pSCRParams = []) {
    }
   } catch (e) {
    console.error('loadExe2Fn params:', { id_as_a, pFNarams, pSCRParams });
-   console.error('Error:', e.message);
-   alert(`Error: ${e.message}. Please retry or contact support.`);
+   console.error('Error:', e);
+   const msg = (e && e.message) ? e.message : String(e);
+   alert(`Error: ${msg}. Please retry or contact support.`);
   } finally {
    // Hide loader
    if (pSCRParams[0] === 1 && loader) {
@@ -1009,9 +1042,10 @@ function addInitialsColumn(item, sourceCol, colToAdd) {
 }
 
 //https://stackoverflow.com/a/19539548/2173890
-let longPressDelay = 1500; // Duration in milliseconds of how long you have to hold click.
-let isLongPressActive = false;
-let longPressTimer;
+// Duration in milliseconds of how long you have to hold click.
+var longPressDelay = (typeof longPressDelay !== 'undefined' && longPressDelay !== null) ? longPressDelay : 1500;
+var isLongPressActive = (typeof isLongPressActive !== 'undefined') ? isLongPressActive : false;
+var longPressTimer = (typeof longPressTimer !== 'undefined') ? longPressTimer : null;
 
 function fn_start_LongClk(e, strFnNm) {
  isLongPressActive = true;
@@ -1406,11 +1440,17 @@ function getCacheId(fileName) {
  const item = (window[my1uzr.worknOnPg].csh || []).find(function (obj) {
   if (!obj.u) return false;
 
-  const file = obj.u.split("/").pop().replace(".min.js", ".js");
-  return file === target;
+  const file = String(obj.u).split("/").pop().toLowerCase().replace(/\.min\.js$/, ".js");
+  return file === target.toLowerCase();
  });
 
- return item ? item.a : null;
+ if (item) return item.a;
+
+ if (typeof pushCsh === 'function') {
+  const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/' + target.replace('.js', '.min.js');
+  return pushCsh(url, 'open_' + target.replace('.js', ''), 'open_' + target.replace('.js', ''), null);
+ }
+ return null;
 }
 async function fnj4(url, jsonPayload, loginRequired_0_1, async_1 = 1, loaderId = null, timeout = 20000, shoLoginByOas2orByPas1 = 0, loaderSho1Hide0 = 1) {
  try {
@@ -1452,7 +1492,7 @@ async function fnj4(url, jsonPayload, loginRequired_0_1, async_1 = 1, loaderId =
 
    // 3) Build the URL
    if (isLocal) {
-    url = 'https://my1.in' + path + '0.php';
+    url = 'https://my1.in/' + path + '0.php';
    } else
     url = location.origin + path + '0.php';
   }
@@ -1787,16 +1827,15 @@ function showLoginInfo(shoLogOut, showLoginModalDirectly, shoLoginByOas2orByPas1
 }
 
 function chkMyControlExists() {
- if (typeof showMyProxyModal !== 'function') {
-  loadScript("https://cdn.jsdelivr.net/gh/sifr-in/cdn@df5010e/cmn/my1ctr.js", () => {
-   if (typeof showMyProxyModal === 'function') {
-    showMyProxyModal();
-   } else {
-    reject(new Error("Login system loaded but required functions not found"));
-   }
-  });
+ if (typeof open_my1ctr !== 'function') {
+  const getid = getCacheId('my1ctr.js');
+  if (getid) {
+   loadExe2Fn(getid, ['dv_to_set_open_my1ctr_processed', 0, 1, 2], [1]);
+  } else {
+   loadExecFn('open_my1ctr', 'open_my1ctr', ['dv_to_set_open_my1ctr_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1ctr.min.js', []);
+  }
  } else {
-  showMyProxyModal();
+  open_my1ctr('dv_to_set_open_my1ctr_processed', 0, 1, 2);
  }
 }
 
@@ -1954,13 +1993,19 @@ function createAdContainer() {
 
  return adContainer;
 }
-const currentYearElement = document.getElementById('currentYear');
+var currentYearElement =
+ (typeof currentYearElement !== 'undefined' && currentYearElement !== null)
+  ? currentYearElement
+  : document.getElementById('currentYear');
 if (currentYearElement) {
  currentYearElement.textContent = new Date().getFullYear();
 }
 
 // ---- Global audio playing-state tracking (single source of truth) ----
-const mrPlayingAudios = new Set();
+var mrPlayingAudios =
+ (typeof mrPlayingAudios !== 'undefined' && mrPlayingAudios instanceof Set)
+  ? mrPlayingAudios
+  : new Set();
 function mrEmitAudioState() {
  try {
   document.dispatchEvent(new CustomEvent("mraudiostate", { detail: { playing: mrPlayingAudios.size > 0 } }));
@@ -1982,10 +2027,8 @@ function mrTrackAudio(audio) {
   //instead of reusing a partially-buffered/stale element (which skips parts)
   try { mrAudioCache.delete(audio.src || ""); } catch (e) { }
   onStop();
-  try {
-   const src = audio.src;
-   if (src) { audio.src = src; audio.load(); }
-  } catch (e2) { }
+  //do NOT reload here: setting src/load() on error just fires "error" again and
+  //creates an endless download loop. The next play re-fetches a fresh element.
  });
  audio.addEventListener("stalled", function () {
   //a playing element may still recover on its own; calling load() here resets the
@@ -2038,23 +2081,40 @@ function mrStartAudioAtZero(a, onReady) {
 // handled. mr.da wajiw entries carry their "e" here.
 function mrResolveAudioUrl(raw) {
  if (raw == null) return "";
- const s = String(raw).trim();
- if (!s) return "";
- // Google Drive URL: extract file ID
- const driveId = extractGoogleDriveFileId(s);
- if (driveId) return encodeURIComponent(driveId);
- // Direct HTTP/HTTPS URL: preserve URL
- if (/^https?:\/\//i.test(s)) return s;
+ const orig = String(raw).trim();
+ if (!orig) return "";
+ //already resolved through our proxy: leave it untouched
+ if (/curl\.php\?id=/i.test(orig)) return orig;
+ // Google Drive URL: extract the file id and resolve it through curl.php below
+ // (returning a bare encoded id is not a playable URL and caused endless errors)
+ const driveId = extractGoogleDriveFileId(orig);
+ const s = driveId || orig;
+ // Direct HTTP/HTTPS URL: preserve URL (a Drive URL was already reduced to its id)
+ if (!driveId && /^https?:\/\//i.test(orig)) return orig;
  // Local/test paths and relative file paths: preserve path
- if (/^(?:\.{0,2}\/|\/|[A-Za-z]:[\\/]|file:\/\/)/i.test(s)) return s;
+ if (/^(?:\.{0,2}\/|\/|[A-Za-z]:[\\/]|file:\/\/)/i.test(orig)) return orig;
  // Bare Google Drive ID or other file ID
- if (/^[A-Za-z0-9_-]{10,}$/.test(s)) return `https://my1.in/curl.php?id=${encodeURIComponent(s)}`;
+ if (/^[A-Za-z0-9_-]{10,}$/.test(s)) {
+  let _p = location.pathname;
+  const _last = _p.split('/').pop();
+  if (_last && /\.[a-z0-9]+$/i.test(_last)) _p = _p.slice(0, _p.length - _last.length);
+  else if (!_p.endsWith('/')) _p += '/';
+  const _host = location.hostname;
+  const _isLocal = _host === 'localhost' || _host === '127.0.0.1' || _host === '0.0.0.0' ||
+   _host === '::1' || _host.endsWith('.local') ||
+   /^192\.168\./.test(_host) || /^10\./.test(_host) ||
+   /^172\.(1[6-9]|2\d|3[01])\./.test(_host);
+  const _origin = _isLocal ? 'https://my1.in' : location.origin;
+  return `${_origin}${_p}curl.php?id=${encodeURIComponent(s)}`;
+ }
  // Other filenames, e.g. git/pga.opus or git/pgf.mpeg
  return s;
 }
 
 // ---- Shared audio element cache (preloaded in background, reused on play) ----
-const mrAudioCache = new Map();
+if (!(window.mrAudioCache instanceof Map)) {
+ window.mrAudioCache = new Map();
+}
 function mrGetAudio(raw) {
  const src = mrResolveAudioUrl(raw);
  if (!src) return null;
@@ -2462,9 +2522,103 @@ function extractGoogleDriveFileId(url) {
  return null;
 }
 
+// ================= fnf4: FormData twin of fnj4 =================
+async function fnf4(url, dfpayload, loginRequired_0_1 = 0, async_1 = 1, loaderId = null, timeout = 20000, shoLoginByOas2orByPas1 = 0, loaderSho1Hide0 = 1) {
+ try {
+  let dfpayloadCheck = null;
+  try {
+   dfpayloadCheck = (typeof dfpayload === 'string') ? JSON.parse(dfpayload) : dfpayload;
+  } catch (e) { dfpayloadCheck = null; }
+  if (dfpayload instanceof FormData) {
+   if (!dfpayload.get('ul')) {
+    return Promise.reject(new Error("Payload and .ul & .gt are required for fnf4"));
+   }
+  } else {
+   if (!dfpayloadCheck || !dfpayloadCheck.ul || !dfpayloadCheck.gt) {
+    return Promise.reject(new Error("Payload and .ul & .gt are required for fnf4"));
+   }
+  }
+  if (!url || (typeof url === 'string' && url.trim() === '')) {
+   let path = location.pathname;
+   const last = path.split('/').pop();
+   if (last && /\.[a-z0-9]+$/i.test(last)) {
+    path = path.slice(0, path.length - last.length);
+   } else if (!path.endsWith('/')) {
+    path = path + '/';
+   }
+   const host = location.hostname;
+   const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' ||
+    host === '::1' || host.endsWith('.local') ||
+    /^192\.168\./.test(host) || /^10\./.test(host) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(host);
+   const origin = isLocal ? 'https://my1.in' : location.origin;
+   url = origin + path + '1.php';
+  }
+  if (!navigator.onLine) {
+   return Promise.reject(new Error("Connect to network"));
+  }
+  if (typeof checkInternetConnection === 'function') {
+   const isConnected = await checkInternetConnection();
+   if (!isConnected) return Promise.reject(new Error("No stable internet connection"));
+  }
+  if (loginRequired_0_1 == 1 && typeof chkIfLoggedIn === 'function') {
+   const t343mp = await chkIfLoggedIn();
+   if (t343mp && t343mp.su == 2) {
+    return Promise.reject(new Error("first accept login"));
+   } else if (t343mp && t343mp.su == 0) {
+    if (shoLoginByOas2orByPas1 > 0) {
+     if (shoLoginByOas2orByPas1 == 2) {
+      const t1170 = getCacheId("my1jo.js");
+      if (t1170)
+       await loadExe2Fn(t1170, [], [1]);
+      else
+       await loadExecFn('open_shoLgnO', 'open_shoLgnO', ['dv_to_set_open_shoLgnO_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/cmn/my1lo.js', []);
+     } else {
+      const t1176 = getCacheId("my1jp.js");
+      if (t1176)
+       await loadExe2Fn(t1176, [], [1]);
+      else
+       await loadExecFn('open_shoLgnP', 'open_shoLgnP', ['dv_to_set_open_shoLgnP_processed', 0, 1, 2], 'loader', 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@fbf62ad/cmn/my1lp.js', []);
+     }
+     window.suppressModals = true;
+     return;
+    }
+    return Promise.reject(new Error(JSON.stringify(t343mp)));
+   }
+  }
+  let fd = (dfpayload instanceof FormData) ? dfpayload : new FormData();
+  if (!(dfpayload instanceof FormData)) {
+   Object.keys(dfpayload || {}).forEach(function (k) {
+    if (dfpayload[k] != null) fd.append(k, dfpayload[k]);
+   });
+  }
+  // fallback XHR (no my1fnd dependency)
+  return new Promise(function (resolve, reject) {
+   const xhr = new XMLHttpRequest();
+   xhr.open('POST', url, async_1 == 1);
+   xhr.timeout = timeout;
+   xhr.onload = function () {
+    try {
+     const response = JSON.parse(xhr.responseText);
+     if (response) resolve(response); else reject(new Error('API call was not successful'));
+    } catch (e) { reject(new Error('Failed to parse response: ' + e.message)); }
+   };
+   xhr.onerror = function () { reject(new Error('Network error - request failed to complete')); };
+   xhr.ontimeout = function () { reject(new Error('Request timed out')); };
+   try { xhr.send(fd); } catch (e) { reject(new Error('Failed to send request: ' + e.message)); }
+  });
+ } catch (error) {
+  return Promise.reject(error);
+ }
+}
+window.fnf4 = fnf4;
+
 // ================= UNIVERSAL BACK BUTTON HANDLER =================
 
-let backButtonHandlerInitialized = false;
+var backButtonHandlerInitialized =
+ (typeof backButtonHandlerInitialized !== 'undefined')
+  ? backButtonHandlerInitialized
+  : false;
 
 function initializeUniversalBackButtonHandler() {
  if (backButtonHandlerInitialized) return;
@@ -2739,6 +2893,39 @@ function areAnyModalsOpen() {
  return false;
 }
 
+function cleanupOrphanModalBackdrops() {
+ try {
+  var openModal = document.querySelector('.modal.show');
+  if (!openModal) {
+   document.querySelectorAll('.modal-backdrop').forEach(function (el) { el.remove(); });
+   document.body.classList.remove('modal-open');
+   document.body.style.removeProperty('overflow');
+   document.body.style.removeProperty('padding-right');
+  }
+ } catch (e) { /* ignore */ }
+}
+window.cleanupOrphanModalBackdrops = cleanupOrphanModalBackdrops;
+if (typeof document !== 'undefined' && !window.__orphanBackdropListenerSet) {
+ window.__orphanBackdropListenerSet = true;
+ document.addEventListener('hidden.bs.modal', function () {
+  setTimeout(cleanupOrphanModalBackdrops, 0);
+ }, true);
+ if (typeof MutationObserver === 'function') {
+  var __backdropObserver = new MutationObserver(function () {
+   if (!document.querySelector('.modal.show')) cleanupOrphanModalBackdrops();
+  });
+  // This file is loaded in <head>, so document.body may still be null here.
+  var __attachBackdropObserver = function () {
+   if (document.body) {
+    __backdropObserver.observe(document.body, { childList: true, subtree: false });
+   } else {
+    document.addEventListener('DOMContentLoaded', __attachBackdropObserver, { once: true });
+   }
+  };
+  __attachBackdropObserver();
+ }
+}
+
 function isModalElement(element) {
  // Skip if element is not visible
  const style = window.getComputedStyle(element);
@@ -2854,6 +3041,7 @@ function create_modal_dynamically(modalId = 'dynamicModal') {
   if (modalStack.length === 0) {
    modalZIndexCounter = 1050;
   }
+  cleanupOrphanModalBackdrops();
  });
 
  // Return both content element and modal instance
@@ -3438,43 +3626,43 @@ function pageLoader(on = true) {
 }
 
 function pushCsh(u, c, r, a) {
-  const pg = window[my1uzr.worknOnPg];
-  if (!pg) return null;
-  if (!Array.isArray(pg.csh)) pg.csh = [];
-  const csh = pg.csh;
-  const norm = s => String(s).replace(/\.min(?=\.js$)/i, "");
-  const key = norm(u);
+ const pg = window[my1uzr.worknOnPg];
+ if (!pg) return null;
+ if (!Array.isArray(pg.csh)) pg.csh = [];
+ const csh = pg.csh;
+ const norm = s => String(s).replace(/\.min(?=\.js$)/i, "");
+ const key = norm(u);
 
-  const hasA = a !== undefined && a !== null && a !== '' && !isNaN(Number(a));
-  const wantA = hasA ? Number(a) : null;
+ const hasA = a !== undefined && a !== null && a !== '' && !isNaN(Number(a));
+ const wantA = hasA ? Number(a) : null;
 
-  if (hasA) {
-    const byA = csh.find(x => Number(x.a) === wantA);
-    if (byA && typeof byA.u === 'string' && norm(byA.u) === key) {
-      if (c !== undefined) byA.c = c;
-      if (r !== undefined) byA.r = r;
-      return byA.a;
-    }
-    const byUrl = csh.find(x => typeof x.u === 'string' && norm(x.u) === key);
-    if (byUrl) {
-      byUrl.a = wantA;
-      if (c !== undefined) byUrl.c = c;
-      if (r !== undefined) byUrl.r = r;
-      return byUrl.a;
-    }
-    csh.push({ a: wantA, u, c, r });
-    return wantA;
+ if (hasA) {
+  const byA = csh.find(x => Number(x.a) === wantA);
+  if (byA && typeof byA.u === 'string' && norm(byA.u) === key) {
+   if (c !== undefined) byA.c = c;
+   if (r !== undefined) byA.r = r;
+   return byA.a;
   }
-
-  const existing = csh.find(x => typeof x.u === 'string' && norm(x.u) === key);
-  if (existing) {
-    if (c !== undefined) existing.c = c;
-    if (r !== undefined) existing.r = r;
-    return existing.a;
+  const byUrl = csh.find(x => typeof x.u === 'string' && norm(x.u) === key);
+  if (byUrl) {
+   byUrl.a = wantA;
+   if (c !== undefined) byUrl.c = c;
+   if (r !== undefined) byUrl.r = r;
+   return byUrl.a;
   }
-  const nextA = Math.max(0, ...csh.map(x => Number(x.a) || 0)) + 1;
-  csh.push({ a: nextA, u, c, r });
-  return nextA;
+  csh.push({ a: wantA, u, c, r });
+  return wantA;
+ }
+
+ const existing = csh.find(x => typeof x.u === 'string' && norm(x.u) === key);
+ if (existing) {
+  if (c !== undefined) existing.c = c;
+  if (r !== undefined) existing.r = r;
+  return existing.a;
+ }
+ const nextA = Math.max(0, ...csh.map(x => Number(x.a) || 0)) + 1;
+ csh.push({ a: nextA, u, c, r });
+ return nextA;
 }
 
 // Export for global access
@@ -3522,6 +3710,22 @@ window.preloadWajiwSounds = preloadWajiwSounds;
  }
  window.__adInBodyNotModal = __adInBodyNotModal;
 
+ let __dontLoad = '';
+ try {
+  const u3 = new URL(src, (window.location && window.location.href) || 'http://x/');
+  __dontLoad = u3.searchParams.get('dontLoad') || '';
+  if (!__dontLoad) {
+   const v3 = u3.searchParams.get('v') || '';
+   const m3 = v3.match(/[?&]dontLoad=([^&]+)/);
+   if (m3) __dontLoad = m3[1];
+  }
+ } catch (e) { }
+ if (!__dontLoad) {
+  const m3 = src.match(/[?&]dontLoad=([^&]+)/);
+  if (m3) __dontLoad = m3[1];
+ }
+ window.__dontLoad = __dontLoad;
+
  const vMatch = src.match(/[?&]v=([^&]+)/);
  if (!vMatch) {
   showOKmodal('No ?v= script path in:' + src);
@@ -3530,7 +3734,7 @@ window.preloadWajiwSounds = preloadWajiwSounds;
 
  const appPath = vMatch[1].replace(/\.js$/, '.min.js');
  const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + appPath;
- //const url = 'my1ctr.js';
+ //const url = 'git/mr.js';
  set_owner();
  window[my1uzr.worknOnPg].csh = [
   { a: 1, u: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" },
@@ -3540,23 +3744,24 @@ window.preloadWajiwSounds = preloadWajiwSounds;
   { a: 5, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7b214f5/cmn/my1xi.min.js" },
   { a: 6, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7b214f5/cmn/my1ap.min.js" },
   { a: 7, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/clrChe.min.js", c: "showClearCacheModal", r: "showClearCacheModal" },
-  { a: 8, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7b214f5/cmn/my1ctr.min.js", c: "open_my1ctr", r: "open_my1ctr" },
-  { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/cmn/my1jo.min.js", c: "open_shoJgnO", r: "open_shoJgnO" },
+  { a: 8, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1ctr.min.js", c: "open_my1ctr", r: "open_my1ctr" },
+  { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8bfbe40/cmn/my1jo.min.js", c: "open_shoJgnO", r: "open_shoJgnO" },
   { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7b214f5/cmn/my1jp.min.js", c: "open_shoJgnP", r: "open_shoJgnP" },
-  { a: 11, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@60f8540/cmn/my1img.min.js", c: "open_addimage", r: "open_addimage" }
+  { a: 11, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@60f8540/cmn/my1img.min.js", c: "open_addimage", r: "open_addimage" },
+  { a: 12, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@6af4e48/cmn/my1fl.min.js", c: "open_my1gall", r: "open_my1gall" }
  ];
  try {
   let result1 = null;
 
-  result1 = await loadCshScriptsSequentially(1, 2, 3, 4, 5, 6);
+  result1 = await loadCshScriptsSequentially(1, 2, 3, 4, 5, 6, 7);
 
   if (!result1.success) {
    throw new Error("Failed to load required scripts: " + result1.error);
   } else {
    const createResult = await dbDexieManager.handleNwTables("loader", dbnm, ["f", "fp", "c"]);
    tblFailureCount = createResult.failureCount;
-   if(tblFailureCount > 0)
-    showToast(tblFailureCount+" Table Creation Failure - contact admin");
+   if (tblFailureCount > 0)
+    showToast(tblFailureCount + " Table Creation Failure - contact admin");
   }
  } catch (e) { throw new Error("Failed to load required scripts: " + e); }
  loadPromiseScript(url);
