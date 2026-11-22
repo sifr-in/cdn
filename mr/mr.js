@@ -85,9 +85,10 @@ window[my1uzr.worknOnPg].bdayFormat = "dd-mm-yyyy";
 //  { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@60f8540/cmn/my1img.min.js", c: "open_addimage", r: "open_addimage" },
 //  { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1ctr.min.js", c: "open_my1ctr", r: "open_my1ctr" },
 const CSH_PUSH = [
- { a: 13, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8bfbe40/mr/drwr.min.js", c: "showDrawer", r: "showDrawer" },
- { a: 14, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8bfbe40/mr/regis.min.js", c: "showRegistrationModal", r: "showRegistrationModal" },
+ { a: 13, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@0dd4fc7/mr/drwr.min.js", c: "showDrawer", r: "showDrawer" },
+ { a: 14, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@0dd4fc7/mr/regis.min.js", c: "showRegistrationModal", r: "showRegistrationModal" },
  { a: 15, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/mr/fltr.min.js", c: "showFilterBox", r: "showFilterBox" },
+ { a: 16, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/conta.min.js", c: "showContactModal", r: "showContactModal" },
  { a: 17, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8bfbe40/mr/plans.min.js", c: "showMarriagePlans", r: "showMarriagePlans" },
  { a: 55, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/mr/prfl.min.js", c: "mrPrflReady", r: "mrShowProfileDtlsLazy" },
  { a: 15, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/ei.min.js", c: "open_entind_crud", r: "open_entind_crud" },
@@ -149,7 +150,7 @@ window.__mrInitPromise = (async function initMr() {
   __cfgPromise.catch(function () { });
  } catch (eCf) { __cfgPromise = null; }
  try {
-  let result1 = await loadCshScriptsSequentially(17);
+  let result1 = await loadCshScriptsSequentially(16,17);
   if (!result1.success) throw new Error("Failed to load required scripts: " + result1.error);
 
   const createResult = await dbDexieManager.handleNwTables("loader", dbnm, tblsRequired);
