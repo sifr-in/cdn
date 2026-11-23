@@ -3812,8 +3812,8 @@ window.preloadWajiwSounds = preloadWajiwSounds;
   { a: 6, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7b214f5/cmn/my1ap.min.js" },
   { a: 7, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/clrChe.min.js", c: "showClearCacheModal", r: "showClearCacheModal" },
   { a: 8, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1ctr.min.js", c: "open_my1ctr", r: "open_my1ctr" },
-  { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@f7134b3/cmn/my1jo.min.js", c: "open_shoJgnO", r: "open_shoJgnO" },
-  { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@f7134b3/cmn/my1jp.min.js", c: "open_shoJgnP", r: "open_shoJgnP" },
+  { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e22c03d/cmn/my1jo.min.js", c: "open_shoJgnO", r: "open_shoJgnO" },
+  { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e22c03d/cmn/my1jp.min.js", c: "open_shoJgnP", r: "open_shoJgnP" },
   { a: 11, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@60f8540/cmn/my1img.min.js", c: "open_addimage", r: "open_addimage" },
   { a: 12, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@6af4e48/cmn/my1fl.min.js", c: "open_my1gall", r: "open_my1gall" }
  ];
