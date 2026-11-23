@@ -1,4 +1,5 @@
 // Global variables
+
 if (typeof nameOfLoggedInPage === "undefined") { var nameOfLoggedInPage = ""; }
 if (typeof originalBodyStyles === "undefined") { var originalBodyStyles = ""; }
 let id_of_dv_shoJgnP_to_set_processed_dom_object;
@@ -1832,11 +1833,13 @@ async function performLogin(countryCode, mobileNumber, password) {
         if (typeof releaseWakeLock === 'function') {
          releaseWakeLock();
         }
+        let dbnm = null;
         if (my1uzr.mo && my1uzr.mc) {
-         const dbnm = "my1_in_" + window.appOwner.tn + "_" + my1uzr.mo.replace(/\./g, "_") + "_" + my1uzr.mc + "_" + payload0.fi + "_" + payload0.fk;
+         dbnm = "my1_in_" + window.appOwner.tn + "_" + my1uzr.mo.replace(/\./g, "_") + "_" + my1uzr.mc + "_" + payload0.fi + "_" + payload0.fk;
          window.dbnm = dbnm;
          if (typeof dbDexieManager !== 'undefined' && typeof dbDexieManager.handleNwTables === 'function') {
-          await dbDexieManager.handleNwTables(null, dbnm, typeof tblsRequired !== 'undefined' ? tblsRequired : ["f", "fp"]);
+          //await dbDexieManager.handleNwTables(null, dbnm, typeof tblsRequired !== 'undefined' ? tblsRequired : null);
+          await dbDexieManager.handleNwTables("loader", dbnm, await window.getTableNamesRequiredForPrj(response.fnf, response.fnp));
          }
         }
         if (typeof function2runAfter_P_Login !== 'undefined') {
@@ -1856,9 +1859,11 @@ async function performLogin(countryCode, mobileNumber, password) {
          } else { console.log("No success to xtra"); }
         }
         setTimeout(async () => {
+         const activeDb = dbnm || window.dbnm;
+         if (!activeDb) return;
          if (typeof dbDexieManager !== 'undefined' && typeof dbDexieManager.handleNwTables === 'function') {
-          if (result.fnf != null) await dbDexieManager.insertToDexie(dbnm, "f", result.fnf, true, ["a"]);
-          if (result.fnp != null) await dbDexieManager.insertToDexie(dbnm, "fp", result.fnp, true, ["a"]);
+          if (result.fnf != null) await dbDexieManager.insertToDexie(activeDb, "f", result.fnf, true, ["a"]);
+          if (result.fnp != null) await dbDexieManager.insertToDexie(activeDb, "fp", result.fnp, true, ["a"]);
          }
          const appModuLst = (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].moduLst) || window.moduLst;
          if (appModuLst && typeof chkModuLstAgainstFNF === 'function') {

@@ -467,7 +467,7 @@ function setupL3EventListeners() {
          }
      });
  }
-
+ 
  if (loginName) {
      loginName.addEventListener("input", validateGetOtpForm);
      loginName.addEventListener("blur", function () {
@@ -483,7 +483,7 @@ function setupL3EventListeners() {
          }
      });
  }
-
+ 
  if (localName) {
      localName.addEventListener("blur", function () {
          const errorElement = document.getElementById("localNameError");
@@ -796,11 +796,13 @@ async function verifyOTP_LO(otp) {
    const tmp741 = `${appOwner.tn}_${payload0.fi}_${payload0.fk}_${my1uzr.mo}_${my1uzr.mc}_${appOwner.pg}`;
    localStorage.setItem(tmp741, true);
 
+   let dbnm = null;
    if (my1uzr.mo && my1uzr.mc) {
-    const dbnm = "my1_in_" + window.appOwner.tn + "_" + my1uzr.mo.replace(/\./g, "_") + "_" + my1uzr.mc + "_" + payload0.fi + "_" + payload0.fk;
+    dbnm = "my1_in_" + window.appOwner.tn + "_" + my1uzr.mo.replace(/\./g, "_") + "_" + my1uzr.mc + "_" + payload0.fi + "_" + payload0.fk;
     window.dbnm = dbnm;
     if (typeof dbDexieManager !== 'undefined' && typeof dbDexieManager.handleNwTables === 'function') {
-     await dbDexieManager.handleNwTables(null, dbnm, typeof tblsRequired !== 'undefined' ? tblsRequired : ["f", "fp"]);
+     //await dbDexieManager.handleNwTables(null, dbnm, typeof tblsRequired !== 'undefined' ? tblsRequired : null);
+     await dbDexieManager.handleNwTables("loader", dbnm, await window.getTableNamesRequiredForPrj(response.fnf, response.fnp));
     }
    }
    if (typeof releaseWakeLock === 'function') { releaseWakeLock(); }
@@ -822,10 +824,12 @@ async function verifyOTP_LO(otp) {
     } else { console.log("No success to xtra"); }
    }
    setTimeout(async () => {
+    const activeDb = dbnm || window.dbnm;
+    if (!activeDb) return;
     if (typeof dbDexieManager !== 'undefined' && typeof dbDexieManager.handleNwTables === 'function') {
      if (response.fnf != null) {
       await dbDexieManager.insertToDexie(
-       dbnm,
+       activeDb,
        "f",
        response.fnf,
        true,
@@ -834,7 +838,7 @@ async function verifyOTP_LO(otp) {
      }
      if (response.fnp != null) {
       await dbDexieManager.insertToDexie(
-       dbnm,
+       activeDb,
        "fp",
        response.fnp,
        true,
