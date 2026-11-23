@@ -795,14 +795,16 @@ async function verifyOTP_LO(otp) {
    localStorage.setItem(nameOfLoggedInPage, 1);
    const tmp741 = `${appOwner.tn}_${payload0.fi}_${payload0.fk}_${my1uzr.mo}_${my1uzr.mc}_${appOwner.pg}`;
    localStorage.setItem(tmp741, true);
-
    let dbnm = null;
    if (my1uzr.mo && my1uzr.mc) {
     dbnm = "my1_in_" + window.appOwner.tn + "_" + my1uzr.mo.replace(/\./g, "_") + "_" + my1uzr.mc + "_" + payload0.fi + "_" + payload0.fk;
     window.dbnm = dbnm;
     if (typeof dbDexieManager !== 'undefined' && typeof dbDexieManager.handleNwTables === 'function') {
-     //await dbDexieManager.handleNwTables(null, dbnm, typeof tblsRequired !== 'undefined' ? tblsRequired : null);
-     await dbDexieManager.handleNwTables("loader", dbnm, await window.getTableNamesRequiredForPrj(response.fnf, response.fnp));
+     const allTblsRequired = [
+      ...(typeof tblsRequired !== 'undefined' && Array.isArray(tblsRequired) ? tblsRequired : []),
+      ...(await window.getTableNamesRequiredForPrj(response.fnf, response.fnp))
+     ];
+     await dbDexieManager.handleNwTables(null, dbnm, allTblsRequired);
     }
    }
    if (typeof releaseWakeLock === 'function') { releaseWakeLock(); }
