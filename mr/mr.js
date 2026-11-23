@@ -248,6 +248,13 @@ window.__mrInitPromise = (async function initMr() {
    appcss = `@import url("${__prsnl}");`;
   }else{ appcss = myappcss; }
   __mrApplyCardConfig(__cfg);
+  //no wajiw configured (undefined/null/empty): keep the global sound button hidden everywhere
+  try {
+   var __wjCfg = __cfg.wajiw;
+   if (!Array.isArray(__wjCfg) || __wjCfg.length === 0) {
+    if (window.mrSoundBtn && typeof window.mrSoundBtn.hide === "function") window.mrSoundBtn.hide();
+   }
+  } catch (eWjHide) { }
   __mrInjectAppCss();
   __mrRenderShell();
  } catch (e2) {
@@ -477,7 +484,7 @@ function createNavigationBar(cfg) {
             </div>
             <div class="app-nav">
                 <button class="app-nav__brand" type="button" title="Account"
-                        onclick="(async () => { await loadExe2Fn(10, ['dv_to_set_open_my1ctr_processed', 0, 1, 2], [1]); })()">
+                        onclick="(async () => { await loadExe2Fn(8, ['dv_to_set_open_my1ctr_processed', 0, 1, 2], [1]); })()">
                     <span id="navbarBusinessName"></span>
                 </button>
             </div>
@@ -529,11 +536,70 @@ function createFooter(cfg) {
  return footer;
 }
 
+// Hide the navbar while scrolling down; show it again on the first upward scroll,
+// no matter how far down the list the user is (previously it only came back near the top).
+function __mrNavScrollInit() {
+ if (window.__mrNavScrollBound) return;
+ var nav = document.getElementById('mr-navbar');
+ if (!nav) return;
+ window.__mrNavScrollBound = true;
+ var lastY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+ var goingUp = false;
+ var ticking = false;
+ function reveal() { nav.classList.remove('nav-hidden'); }
+ window.addEventListener('scroll', function () {
+  if (ticking) return;
+  ticking = true;
+  requestAnimationFrame(function () {
+   ticking = false;
+   var y = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+   goingUp = (y < lastY);
+   if (y <= 0 || goingUp) {
+    //upward scroll (or back at the top): reveal at once
+    reveal();
+   } else if (y > lastY + 8) {
+    //small down threshold so tiny jitters don't flicker the bar
+    nav.classList.add('nav-hidden');
+   }
+   lastY = y;
+  });
+ }, { passive: true });
+
+ //safety net: while scrolling up past profile cards, reveal the bar even if the
+ //scroll listener was throttled during a fast fling. Newly loaded cards are picked
+ //up by the MutationObserver so pagination doesn't leave the bar hidden.
+ try {
+  var cardObserver = new IntersectionObserver(function (entries) {
+   if (!goingUp) return;
+   for (var i = 0; i < entries.length; i++) {
+    if (entries[i].isIntersecting && entries[i].boundingClientRect.top >= 0) {
+     reveal();
+     break;
+    }
+   }
+  }, { threshold: 0 });
+  function observeCards(root) {
+   var cards = (root || document).querySelectorAll('.app-card');
+   for (var i = 0; i < cards.length; i++) {
+    if (!cards[i].__mrNavObserved) {
+     cards[i].__mrNavObserved = true;
+     cardObserver.observe(cards[i]);
+    }
+   }
+  }
+  observeCards(document);
+  //cards don't exist yet when the shell is built, so watch the whole body subtree
+  new MutationObserver(function () { observeCards(document); })
+   .observe(document.body, { childList: true, subtree: true });
+ } catch (eObs) { }
+}
+
 async function __mrRenderShell() {
  function render() {
   if (!document.body || document.getElementById('mr-navbar')) return;
   var cfg = window[my1uzr.worknOnPg].clientConfig || {};
   document.body.appendChild(createNavigationBar(cfg));
+  __mrNavScrollInit();
   var main = document.createElement('div');
   main.id = 'main-content';
   document.body.appendChild(main);
@@ -1645,27 +1711,36 @@ window.__mrMarkUnlocked = function (id) {
  if (ownId !== null && String(id) === ownId) return;
  if (!window.__mrUnlockedIds) window.__mrUnlockedIds = Object.create(null);
  window.__mrUnlockedIds[String(id)] = 1;
- var badge = null;
+ //rebuild just that card through createProfileCard so the badge (and everything
+ //else) is produced by the same render path as the initial list; patching the
+ //badge DOM in place lost the race with the card CSS and was not reliable
+ var card = null;
  try {
-  var card = document.querySelector('.app-card[data-profile-id="' + String(id) + '"]');
-  if (card) badge = card.querySelector('.app-card__view-badge');
- } catch (e) { }
- if (!badge) {
-  try {
+  card = document.querySelector('.app-card[data-profile-id="' + String(id) + '"]');
+  if (!card) {
    var cards = document.querySelectorAll('.app-card');
    for (var i = 0; i < cards.length; i++) {
     if (String(cards[i].dataset && cards[i].dataset.profileId) === String(id)) {
-     badge = cards[i].querySelector('.app-card__view-badge');
+     card = cards[i];
      break;
     }
    }
-  } catch (e2) { }
+  }
+ } catch (e) { }
+ var profile = null;
+ try {
+  profile = (profilesData || []).find(function (p) { return p && String(p.a) === String(id); }) || null;
+ } catch (eF) { }
+ if (card && card.parentNode && profile && typeof createProfileCard === 'function') {
+  try {
+   var fresh = createProfileCard(profile);
+   card.parentNode.replaceChild(fresh, card);
+   if (window.mrImg) { try { window.mrImg.hydrate(fresh); } catch (eH) { } }
+   return;
+  } catch (eR) { }
  }
- if (badge) {
-  badge.classList.add('app-card__view-badge--unlocked');
-  badge.style.backgroundImage = 'linear-gradient(135deg,#2e7d5b,#1f7a4d 55%,#155f3c)';
-  badge.style.backgroundColor = '#2e7d5b';
- } else if (typeof mrRenderList === "function") {
+ //card not in the list (or no profile data): full rebuild keeps the badge correct
+ if (typeof mrRenderList === "function") {
   try { mrRenderList(true); } catch (e3) { }
  }
 };
@@ -2573,10 +2648,13 @@ input.form-control.is-invalid:focus{ box-shadow:0 0 0 3px rgba(163,49,32,.2); }
 .drawer-menu-item:hover{ background:var(--mr-primary-050) !important; }
 
 #mr-navbar{
-  flex-shrink:0;
-  position:sticky; top:0; z-index:1030;
+  position:fixed; top:0; left:0; right:0; z-index:1030;
   padding:.55rem 1rem;
+  transition:transform .2s ease;
+  will-change:transform;
 }
+#mr-navbar.nav-hidden{ transform:translateY(-100%); }
+body{ padding-top:64px; }
 .app-nav{ display:flex; align-items:flex-start; justify-content:space-between; gap:0; }
 .container-fluid.app-nav{ padding-left:0; padding-right:0; }
 .app-nav__icon{ margin-top:.2rem; }

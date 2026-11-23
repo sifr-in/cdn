@@ -1,22 +1,8 @@
-if (typeof window.appcss === 'undefined' || window.appcss === null) {
- window.appcss = null;
-}
-
-if (typeof xtraj_payload === 'undefined' || xtraj_payload === null) {
- xtraj_payload = null;
-}
-
-if (typeof appData === 'undefined' || appData === null) {
- appData = {};
-}
-
-if (typeof tblFailureCount === 'undefined' || tblFailureCount === null) {
- tblFailureCount = 1;
-}
-
-if (typeof cacheStrategy === 'undefined' || cacheStrategy === null) {
- cacheStrategy = 1;
-}
+if (typeof window.appcss === 'undefined' || window.appcss === null) { window.appcss = null; }
+if (typeof xtraj_payload === 'undefined' || xtraj_payload === null) { xtraj_payload = null; }
+if (typeof appData === 'undefined' || appData === null) { appData = {}; }
+if (typeof tblFailureCount === 'undefined' || tblFailureCount === null) { tblFailureCount = 1; }
+if (typeof cacheStrategy === 'undefined' || cacheStrategy === null) { cacheStrategy = 1; }
 async function set_owner() {
  const pathParts = window.location.pathname.split('/').filter(p => p);
  const eo = window.ownr_eo = window.ownr_eo || pathParts[0];
@@ -2086,29 +2072,34 @@ function mrResolveAudioUrl(raw) {
  //already resolved through our proxy: leave it untouched
  if (/curl\.php\?id=/i.test(orig)) return orig;
  // Google Drive URL: extract the file id and resolve it through curl.php below
- // (returning a bare encoded id is not a playable URL and caused endless errors)
  const driveId = extractGoogleDriveFileId(orig);
- const s = driveId || orig;
- // Direct HTTP/HTTPS URL: preserve URL (a Drive URL was already reduced to its id)
+ // Direct HTTP/HTTPS URL (that is not a Drive URL): call it directly, no curl.php
  if (!driveId && /^https?:\/\//i.test(orig)) return orig;
- // Local/test paths and relative file paths: preserve path
- if (/^(?:\.{0,2}\/|\/|[A-Za-z]:[\\/]|file:\/\/)/i.test(orig)) return orig;
- // Bare Google Drive ID or other file ID
+
+ //App base (origin + directory of the current page), used for both self-server
+ //paths and the Drive-id proxy.
+ let _p = location.pathname;
+ const _last = _p.split('/').pop();
+ if (_last && /\.[a-z0-9]+$/i.test(_last)) _p = _p.slice(0, _p.length - _last.length);
+ else if (!_p.endsWith('/')) _p += '/';
+ const _host = location.hostname;
+ const _isLocal = _host === 'localhost' || _host === '127.0.0.1' || _host === '0.0.0.0' ||
+  _host === '::1' || _host.endsWith('.local') ||
+  /^192\.168\./.test(_host) || /^10\./.test(_host) ||
+  /^172\.(1[6-9]|2\d|3[01])\./.test(_host);
+ const _origin = _isLocal ? 'https://my1.in' : location.origin;
+
+ //Bare Google Drive ID (or id extracted from a Drive URL) -> proxy
+ const s = driveId || orig;
  if (/^[A-Za-z0-9_-]{10,}$/.test(s)) {
-  let _p = location.pathname;
-  const _last = _p.split('/').pop();
-  if (_last && /\.[a-z0-9]+$/i.test(_last)) _p = _p.slice(0, _p.length - _last.length);
-  else if (!_p.endsWith('/')) _p += '/';
-  const _host = location.hostname;
-  const _isLocal = _host === 'localhost' || _host === '127.0.0.1' || _host === '0.0.0.0' ||
-   _host === '::1' || _host.endsWith('.local') ||
-   /^192\.168\./.test(_host) || /^10\./.test(_host) ||
-   /^172\.(1[6-9]|2\d|3[01])\./.test(_host);
-  const _origin = _isLocal ? 'https://my1.in' : location.origin;
   return `${_origin}${_p}curl.php?id=${encodeURIComponent(s)}`;
  }
- // Other filenames, e.g. git/pga.opus or git/pgf.mpeg
- return s;
+ //file:// and Windows drive paths are already absolute: keep as-is
+ if (/^(?:[A-Za-z]:[\\/]|file:\/\/)/i.test(orig)) return orig;
+ //Local / app-relative path (e.g. /aud/jsdkfhlsad.oop, ./pga.opus, git/pga.opus):
+ //resolve against the app base so a leading "/" does not become a site-root call.
+ let rel = orig.replace(/^\.{1,2}\//, '').replace(/^\/+/, '');
+ return `${_origin}${_p}${rel}`;
 }
 
 // ---- Shared audio element cache (preloaded in background, reused on play) ----
@@ -2416,6 +2407,13 @@ function preloadWajiwSounds(list) {
  window.mrSoundBtn = {
   /* reveal the button and arm it with a sound (raw = signal/URL) */
   show: function (raw) {
+   //When the config has no wajiw (undefined/null/empty), the sound button must
+   //stay hidden in every view: never even create it.
+   const wjCfg = daCfg().wajiw;
+   if (!Array.isArray(wjCfg) || wjCfg.length === 0) {
+    if (btn) btn.classList.remove("is-on", "is-playing");
+    return;
+   }
    ensure();
    const r = raw || "";
    //context changed: release the old sound — unless the new raw resolves to the very
@@ -2441,7 +2439,11 @@ function preloadWajiwSounds(list) {
   },
   /* AUTO play the armed (or given) sound through the shared button: skipped once
    * that sound hit the configured pause limit (manual tap still plays it) */
-  play: function (raw) { const r = raw || armed; if (isAutoOff(r)) return; play(r); },
+  play: function (raw) {
+   const wjCfg = daCfg().wajiw;
+   if (!Array.isArray(wjCfg) || wjCfg.length === 0) return;
+   const r = raw || armed; if (isAutoOff(r)) return; play(r);
+  },
   /* pause/resume whichever sound is currently playing */
   toggle: function () { toggle(); }
  };
@@ -3665,6 +3667,71 @@ function pushCsh(u, c, r, a) {
  return nextA;
 }
 
+window.getTableNamesRequiredForPrj = async function (fData, fpData) {
+ try {
+  const asArray = function (v) {
+   if (v == null) return [];
+   if (Array.isArray(v)) return v;
+   if (typeof v === 'string') {
+    try { const p = JSON.parse(v); return Array.isArray(p) ? p : [p]; } catch (e) { return []; }
+   }
+   return [v];
+  };
+  const parseJson = function (v) {
+   if (v == null) return null;
+   if (typeof v === 'object') return v;
+   if (typeof v === 'string') { try { return JSON.parse(v); } catch (e) { return null; } }
+   return null;
+  };
+  const isPlainObject = function (v) {
+   return !!v && typeof v === 'object' && !Array.isArray(v);
+  };
+  const metaKeys = { lb: 1, seq: 1, hideCellVals: 1, clk: 1, defa: 1, uniq: 1, rqrd: 1 };
+  const normalizeTableName = function (key) {
+   if (typeof key !== 'string') return null;
+   const name = key.indexOf('@') >= 0 ? key.split('@').pop() : key;
+   return /^[a-z][a-z0-9_]*$/i.test(name) ? name : null;
+  };
+  const collectTableNames = function (proj, out) {
+   if (!isPlainObject(proj)) return;
+   Object.keys(proj).forEach(function (key) {
+    if (metaKeys[key]) return;
+    if (!isPlainObject(proj[key])) return;
+    const name = normalizeTableName(key);
+    if (name) out[name] = 1;
+   });
+  };
+  const allowed = Object.create(null);
+  asArray(fData).forEach(function (row) {
+   const f1 = parseJson(row && (row.f1 != null ? row.f1 : row.F1));
+   if (!isPlainObject(f1)) return;
+   Object.keys(f1).forEach(function (k) { if (/^prj\d+$/i.test(k)) allowed[k] = 1; });
+  });
+  const allowedKeys = Object.keys(allowed);
+  if (!allowedKeys.length) return [];
+  const extra = Object.create(null);
+  asArray(fData).forEach(function (row) {
+   const f1 = parseJson(row && (row.f1 != null ? row.f1 : row.F1));
+   if (!isPlainObject(f1)) return;
+   allowedKeys.forEach(function (prj) { collectTableNames(f1[prj], extra); });
+  });
+  asArray(fpData).forEach(function (row) {
+   const fp1 = parseJson(row && (row.fp1 != null ? row.fp1 : row.FP1));
+   if (!isPlainObject(fp1)) return;
+   allowedKeys.forEach(function (prj) { collectTableNames(fp1[prj], extra); });
+  });
+  const extraNames = Object.keys(extra);
+  if (!extraNames.length) return [];
+  const base = (typeof tblsRequired !== 'undefined' && Array.isArray(tblsRequired)) ? tblsRequired : ['v'];
+  const all = base.concat(extraNames).filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+  console.debug('Allowed project tables:', all.join(', '));
+  return all;
+ } catch (e) {
+  console.warn('Could not create allowed project tables:', e);
+  return [];
+ }
+};
+
 // Export for global access
 window.my1PageLoader = pageLoader;
 window.pushCsh = pushCsh;
@@ -3745,8 +3812,8 @@ window.preloadWajiwSounds = preloadWajiwSounds;
   { a: 6, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7b214f5/cmn/my1ap.min.js" },
   { a: 7, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/clrChe.min.js", c: "showClearCacheModal", r: "showClearCacheModal" },
   { a: 8, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1ctr.min.js", c: "open_my1ctr", r: "open_my1ctr" },
-  { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8bfbe40/cmn/my1jo.min.js", c: "open_shoJgnO", r: "open_shoJgnO" },
-  { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7b214f5/cmn/my1jp.min.js", c: "open_shoJgnP", r: "open_shoJgnP" },
+  { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@f7134b3/cmn/my1jo.min.js", c: "open_shoJgnO", r: "open_shoJgnO" },
+  { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@f7134b3/cmn/my1jp.min.js", c: "open_shoJgnP", r: "open_shoJgnP" },
   { a: 11, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@60f8540/cmn/my1img.min.js", c: "open_addimage", r: "open_addimage" },
   { a: 12, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@6af4e48/cmn/my1fl.min.js", c: "open_my1gall", r: "open_my1gall" }
  ];
@@ -3764,6 +3831,7 @@ window.preloadWajiwSounds = preloadWajiwSounds;
     showToast(tblFailureCount + " Table Creation Failure - contact admin");
   }
  } catch (e) { throw new Error("Failed to load required scripts: " + e); }
+
  loadPromiseScript(url);
 })();
 
