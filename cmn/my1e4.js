@@ -61,18 +61,21 @@ window.getGoogleDriveImageUrl = function getGoogleDriveImageUrl(value, thumbnail
 }
 
 // Vanilla JS modal functions - no Bootstrap required
-window.showelsemodal = function (errorMsg) {
+window.showelsemodal = function (errorMsg, isDanger = 0) {
  if (window.suppressModals) { window.suppressModals = false; return false; }
  // Create overlay
  var overlay = document.createElement('div');
  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2147483647;display:flex;align-items:flex-start;justify-content:center;';
 
- // Create modal
  var modal = document.createElement('div');
  modal.style.cssText = 'background:white;border-radius:8px;margin-top:120px;max-width:400px;width:90%;box-shadow:0 4px 20px rgba(0,0,0,0.3);animation:fadeIn 0.3s ease;';
  modal.innerHTML = '<div style="padding:24px;text-align:center;">' +
-  '<div style="margin-bottom:16px;"><i style="font-size:48px;color:#dc3545;">&#9888;</i></div>' +
-  '<h5 style="color:#dc3545;margin-bottom:8px;font-size:18px;">No Success</h5>' +
+  '<div style="margin-bottom:16px;">' +
+  '<i style="font-size:48px;color:#dc3545;">' +
+  (isDanger == 0 ? '&#9888;' : '&#8987;') +
+  '</i>' +
+  '</div>' +
+  '<h5 style="color:' + (isDanger == 0 ? '#dc3545' : '#000000') + ';margin-bottom:8px;font-size:18px;">No Success</h5>' +
   '<p style="color:#6c757d;margin-bottom:16px;font-size:14px;">' + (typeof window.escapeHTML === 'function' ? window.escapeHTML(errorMsg) : errorMsg) + '</p>' +
   '<button style="background:#0d6efd;color:white;border:none;padding:6px 16px;border-radius:4px;cursor:pointer;font-size:14px;" id="errorOkBtn">&#10003; OK</button>' +
   '</div>';
@@ -3801,7 +3804,7 @@ window.preloadWajiwSounds = preloadWajiwSounds;
 
  const appPath = vMatch[1].replace(/\.js$/, '.min.js');
  const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + appPath;
- //const url = 'git/mr.js';
+ //const url = 'b.js';
  set_owner();
  window[my1uzr.worknOnPg].csh = [
   { a: 1, u: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" },
@@ -3815,7 +3818,8 @@ window.preloadWajiwSounds = preloadWajiwSounds;
   { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e22c03d/cmn/my1jo.min.js", c: "open_shoJgnO", r: "open_shoJgnO" },
   { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e22c03d/cmn/my1jp.min.js", c: "open_shoJgnP", r: "open_shoJgnP" },
   { a: 11, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@60f8540/cmn/my1img.min.js", c: "open_addimage", r: "open_addimage" },
-  { a: 12, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@6af4e48/cmn/my1fl.min.js", c: "open_my1gall", r: "open_my1gall" }
+  { a: 12, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@31b1598/cmn/my1fl.min.js", c: "open_my1fileFn", r: "open_my1fileFn" },
+  { a: 13, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@31b1598/cmn/ei.min.js", c: "open_entind_crud", r: "open_entind_crud" }
  ];
  try {
   let result1 = null;

@@ -23,6 +23,11 @@
  var muRows_ = [];      // local "mu" table (unlock records): used count = rows where mu.e == mr.e
  var cardsView_ = 1;    // admin profile list: 1 = card view, 0 = table view (persisted); default = cards
 
+ //filter-only option: rows with no mr.u are visible under "All statuses" and
+ //here, but hidden for every specific real status. Never sent to the server.
+ var NO_PROFILE_FILTER = "__mr_no_profile__";
+ var NO_PROFILE_LABEL = "Registerd without profile";
+
  function statusList() {
   var out = [];
   try {
@@ -51,6 +56,28 @@
   }
   return key;
  }
+
+ //mr.u holds the profile payload. Empty/missing means the customer registered
+ //but never made a profile; keep those rows out of the normal admin list.
+ function hasProfile(p) {
+  if (!p || p.u === undefined || p.u === null) { return false; }
+  if (typeof p.u === "string") { return p.u.trim() !== ""; }
+  if (Array.isArray(p.u)) { return p.u.length > 0; }
+  if (typeof p.u === "object") {
+   try { return Object.keys(p.u).length > 0; } catch (eU) { return true; }
+  }
+  return true;
+ }
+ function isNoProfileFilter(v) { return String(v == null ? "" : v) === NO_PROFILE_FILTER; }
+ function statusFilterList() {
+  var list = statusList();
+  for (var i = 0; i < list.length; i++) {
+   if (list[i] && String(list[i].a) === NO_PROFILE_FILTER) { return list; }
+  }
+  return list.concat([{ a: NO_PROFILE_FILTER, e: NO_PROFILE_LABEL }]);
+ }
+ function filterStatusName(v) { return isNoProfileFilter(v) ? NO_PROFILE_LABEL : statusName(v); }
+ function shownStatusName(p) { return isNoProfileFilter(status_) ? NO_PROFILE_LABEL : statusName(p && p.d); }
 
  //action -> status value, always read from mr.da.statusMapingAllFromOne (never
  //hardcode the numbers): accept matches "Accepted", reject "Denied By Admin",
@@ -268,6 +295,7 @@
    ".adm-chip-s2{background:#fde6d3;color:#8a4a12;border-color:#f0c7a3;}" +
    ".adm-chip-s-1{background:#f6d9d4;color:#92261a;border-color:#e6b3aa;}" +
    ".adm-chip-s-2,.adm-chip-s-3{background:#f3c9c3;color:#7a1c12;border-color:#d9a49b;}" +
+   ".adm-chip-noprof{background:#efe9dc;color:#57503f;border-color:#d8cfba;}" +
    //red "block this profile" checkbox inside the reject confirmation dialog
    ".adm-block{display:flex;align-items:flex-start;gap:9px;margin:2px 0 12px;padding:10px 12px;border:1px solid #e6b3aa;border-radius:10px;background:#fdf1ef;color:#92261a;font-size:13px;font-weight:600;line-height:1.35;cursor:pointer;}" +
    ".adm-block input{width:16px;height:16px;margin:1px 0 0;accent-color:#92261a;flex:0 0 auto;cursor:pointer;}" +
@@ -509,8 +537,17 @@
 
  function filteredRows() {
   var s = search_.toLowerCase();
+  var noProfileOnly = isNoProfileFilter(status_);
   return rows_.filter(function (p) {
-   if (status_ !== "" && String(p.d) !== String(status_)) { return false; }
+   var noProfile = !hasProfile(p);
+   if (noProfileOnly) {
+    if (!noProfile) { return false; }
+   } else {
+    //"All statuses" includes registered-without-profile rows; specific real
+    //statuses keep them hidden.
+    if (noProfile && status_ !== "" && status_ != null) { return false; }
+    if (status_ !== "" && status_ != null && String(p.d) !== String(status_)) { return false; }
+   }
    if (!s) { return true; }
    return String(p.m || "").toLowerCase().indexOf(s) >= 0 ||
     String(p.n || "").toLowerCase().indexOf(s) >= 0 ||
@@ -534,7 +571,7 @@
    return;
   }
   if (!list.length) {
-   var stName = (status_ === "" || status_ == null) ? "" : statusName(status_);
+   var stName = (status_ === "" || status_ == null) ? "" : filterStatusName(status_);
    if (state) {
     state.innerHTML = '<div class="adm-ico" style="font-size:44px;"><i class="fa-solid fa-magnifying-glass"></i></div>' +
      '<div style="font-size:20px;font-weight:700;margin-top:10px;">No ' + (stName ? esc(stName) + ' ' : '') + 'profiles</div>' +
@@ -570,8 +607,8 @@
  function rowHtml(p) {
   var av = thumbOf(p);
   var photo = av ? '<img data-lazy="' + esc(av) + '" alt="" loading="lazy" decoding="async">' : '<div class="adm-av">' + esc(((p && p.m) || "?").charAt(0).toUpperCase()) + '</div>';
-  var chip = "adm-chip-s" + String(p.d == null ? "" : p.d);
-  var stNm = statusName(p.d);
+  var chip = isNoProfileFilter(status_) ? "adm-chip-noprof" : "adm-chip-s" + String(p.d == null ? "" : p.d);
+  var stNm = shownStatusName(p);
   var city = cityOf(placePathOf(p, "b2"));
   var added = ((function(){ var rawAdded = (p.rd != null && String(p.rd).trim() !== "") ? p.rd : ""; return rawAdded ? fmtDate(rawAdded) : "-"; })());
   return "<tr>" +
@@ -595,8 +632,8 @@
  function profileCardHtml(p) {
   var av = thumbOf(p);
   var photo = av ? '<img data-lazy="' + esc(av) + '" alt="" loading="lazy" decoding="async">' : '<div class="adm-av">' + esc(((p && p.m) || "?").charAt(0).toUpperCase()) + '</div>';
-  var chip = "adm-chip-s" + String(p.d == null ? "" : p.d);
-  var stNm = statusName(p.d);
+  var chip = isNoProfileFilter(status_) ? "adm-chip-noprof" : "adm-chip-s" + String(p.d == null ? "" : p.d);
+  var stNm = shownStatusName(p);
   
   // Mobile from table "c" where c.a = mr.e
   var mobVal = mobileOfProfile(p);
@@ -731,7 +768,7 @@
   document.body.appendChild(root);
 
   var sEl = root.querySelector("#admStatus");
-  var list = statusList();
+  var list = statusFilterList();
   sEl.innerHTML = '<option value="">All statuses</option>' + list.map(function (s) {
    return '<option value="' + esc(s.a) + '"' + (String(s.a) === "0" ? " selected" : "") + '>' + esc(s.e) + "</option>";
   }).join("");
@@ -937,10 +974,13 @@
    okLabel: "Delete",
    cancelLabel: "Keep profile",
    onOk: function () {
-    var reason = (ctl.q("#admDelReason") ? ctl.q("#admDelReason").value : "").trim();
+    var reasonEl = ctl.q("#admDelReason");
+    var reason = reasonEl ? reasonEl.value.trim() : "";
     if (!reason) {
      var errEl = ctl.q("#admDelErr");
      if (errEl) { errEl.style.display = "block"; errEl.textContent = "A reason is required."; }
+     if (typeof window.markInvalid === "function") { window.markInvalid(reasonEl); }
+     else if (reasonEl) { reasonEl.focus(); reasonEl.classList.add("is-invalid-glow"); }
      return;
     }
     ctl.close();
