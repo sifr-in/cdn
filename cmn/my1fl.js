@@ -1,7 +1,7 @@
 // my1gal.js — shared/common file uploader + gallery (usable in ANY project)
 //
 // WHAT IT DOES
-//   - open_my1gall(callback, opts): a self-contained modal (no framework required) that
+//   - open_my1fileFn(callback, opts): a self-contained modal (no framework required) that
 //     uploads ANY file via multipart FormData, shows the uploaded files in a
 //     gallery grid with an icon chosen by the file extension (or a real thumbnail
 //     for images), and hands the results back through a hidden field and/or a
@@ -21,10 +21,10 @@
 //     getGoogleDriveImageUrl) are used only when they happen to exist.
 //
 // USAGE
-//   open_my1gall({
+//   open_my1fileFn({
 //     endpoint: "https://example.com/upload.php",  // caller-provided
 //     fn: -1,                                      // server function number
-//     maxSize: 25 * 1024 * 1024,                   // max bytes per file
+//     maxSize: 1 * 1024 * 1024,                   // max bytes per file
 //     fieldId: "u1",                               // optional: persist items JSON here
 //     callback: function (items) { ... },          // optional
 //     accept: "*", multiple: true,
@@ -278,17 +278,33 @@
   return null;
  }
 
- window.open_my1gall = function (_getFilesFN,opts) {
-  // Allow open_my1gall(opts) as well as open_my1gall(callback, opts).
+ window.open_my1fileFn = function (_getFilesFN,opts) {
+  // Allow open_my1fileFn(opts) as well as open_my1fileFn(callback, opts).
   if (_getFilesFN && typeof _getFilesFN === 'object' && !Array.isArray(_getFilesFN) && (opts == null)) {
    opts = _getFilesFN;
    _getFilesFN = null;
   }
   if (typeof opts === 'string') opts = { accept: opts };
   opts = opts || {};
-  var getFilesCallback = (typeof _getFilesFN === 'function') ? _getFilesFN
-   : (typeof _getFilesFN === 'string' ? window[_getFilesFN] : null);
-  if (typeof getFilesCallback !== 'function') getFilesCallback = null;
+  function resolveFilesCallback() {
+   var fn = (typeof _getFilesFN === 'function') ? _getFilesFN
+    : (typeof _getFilesFN === 'string') ? window[_getFilesFN] : null;
+   return (typeof fn === 'function') ? fn : null;
+  }
+  var getFilesCallback = resolveFilesCallback();
+  var callbackWarned = false;
+  function ensureFilesCallback() {
+   getFilesCallback = resolveFilesCallback();
+   if (!getFilesCallback) {
+    if (!callbackWarned) {
+     callbackWarned = true;
+     notify('err', 'Upload callback function not found');
+    }
+    return false;
+   }
+   callbackWarned = false;
+   return true;
+  }
   // Convert a comma-separated extension list (e.g. "pdf,docx") into an accept attribute.
   if (opts.accept && opts.accept !== '*' && String(opts.accept).indexOf('.') === -1 && String(opts.accept).indexOf('/') === -1) {
    opts.accept = String(opts.accept).split(',').map(function (e) { e = e.trim(); return e ? ('.' + e.replace(/^\.+/, '')) : ''; }).filter(Boolean).join(',');
@@ -321,9 +337,9 @@
     uc = (daConst.my1fl_config && typeof daConst.my1fl_config === 'object') ? daConst.my1fl_config : {};
    } catch (e) { }
    var size = parseSizeToBytes(uc.size || uc.maxSize || uc.maxBytes, 25 * 1024 * 1024);
-   var countRaw = uc.cunt != null ? uc.cunt : (uc.count != null ? uc.count : (uc.maxFiles != null ? uc.maxFiles : 2));
+   var countRaw = uc.cunt != null ? uc.cunt : (uc.count != null ? uc.count : (uc.maxFiles != null ? uc.maxFiles : 1));
    var count = parseInt(countRaw, 10);
-   if (!isFinite(count) || count <= 0) count = 2;
+   if (!isFinite(count) || count <= 0) count = 1;
    return { size: size, count: count };
   }
   function my1Endpoint(file) {
@@ -393,6 +409,27 @@
   var items = [];
   var batchResults = [];
   var batchPending = 0;
+
+  function collectUploadedResults() {
+   if (Array.isArray(batchResults) && batchResults.length) return batchResults.slice();
+   return items.filter(function (it) { return it && it.id; }).map(function (it) {
+    return {
+     su: 1,
+     id: it.id,
+     file_id: it.id,
+     name: it.name,
+     file_name: it.name,
+     mime: it.mime,
+     size: it.size,
+     ext: it.ext,
+     url: it.url
+    };
+   });
+  }
+
+  function completeBatchPending() {
+   if (batchPending > 0) batchPending--;
+  }
   (Array.isArray(opts.existing) ? opts.existing : []).forEach(function (it) {
    if (!it) return;
    var name = it.name || it.n || '';
@@ -444,7 +481,8 @@
    '</div>' +
    '<div class="my1gal-footer">' +
    //'<button type="button" class="my1gal-btn" data-act="close">' + escapeHtml(cfg.labels.close) + '</button>' +
-   '<button type="button" class="my1gal-btn my1gal-btn-success" data-act="use-files">' + escapeHtml('Use this files') + '</button>' +
+   '<button type="button" class="my1gal-btn my1gal-btn-success" data-act="upload-files">' + escapeHtml('Upload') + '</button>' +
+   '<button type="button" class="my1gal-btn my1gal-btn-primary" data-act="use-files">' + escapeHtml('Use this files') + '</button>' +
    '</div>';
 
   var html;
@@ -609,13 +647,13 @@
 
   function uploadOne(file, idx, done) {
    function finish() {
-    if (batchPending > 0) {
-     batchPending--;
-     if (batchPending === 0 && getFilesCallback) {
-      setTimeout(function () { try { getFilesCallback(batchResults.slice()); } catch (e) { console.error('my1gal callback error:', e); } batchResults = []; }, 0);
-     }
-    }
+    completeBatchPending();
     if (done) done();
+   }
+   if (!ensureFilesCallback()) {
+    completeBatchPending();
+    if (typeof done === 'function') done();
+    return;
    }
 
    var fd = new FormData();
@@ -634,12 +672,7 @@
    fd.append('file', file, file.name);
    if (!fd.get('file')) {
     notify('err', file.name + ': Upload payload is empty');
-    if (batchPending > 0) {
-     batchPending--;
-     if (batchPending === 0 && getFilesCallback) {
-      setTimeout(function () { try { getFilesCallback(batchResults.slice()); } catch (e) { console.error('my1gal callback error:', e); } batchResults = []; }, 0);
-     }
-    }
+    completeBatchPending();
     if (typeof done === 'function') done();
     return;
    }
@@ -665,7 +698,12 @@
      if (getFilesCallback) {
       var _upName = resp.file_name || resp.name || resp.n || file.name;
       var _upId = resp.file_id || resp.id || resp.g1 || resp.url || resp.d || id || '';
-      batchResults.push(String(_upName) + ':' + String(_upId));
+      var uploaded = (resp && typeof resp === 'object') ? Object.assign({}, resp) : { response: resp };
+      uploaded.file_name = uploaded.file_name || _upName;
+      uploaded.file_id = uploaded.file_id || _upId;
+      uploaded.name = uploaded.file_name;
+      uploaded.id = uploaded.file_id;
+      batchResults.push(uploaded);
      }
      render();
      persist();
@@ -745,9 +783,10 @@
    var closeBtn = e.target.closest('[data-act="close"]');
    if (closeBtn) { close(); return; }
 
-   var useBtn = e.target.closest('[data-act="use-files"]');
-   if (useBtn) {
+   var uploadBtn = e.target.closest('[data-act="upload-files"]');
+   if (uploadBtn) {
     if (busy) return;
+    if (!ensureFilesCallback()) return;
     var pending = items.filter(function (it) { return it && it.status === 'pending'; });
     if (!pending.length) { notify('err', 'No files selected'); return; }
     batchResults = [];
@@ -765,6 +804,15 @@
     return;
    }
 
+   var useFilesBtn = e.target.closest('[data-act="use-files"]');
+   if (useFilesBtn) {
+    if (!ensureFilesCallback()) return;
+    var result = collectUploadedResults();
+    if (!result.length) { notify('err', 'No uploaded files'); return; }
+    getFilesCallback(result);
+    return;
+   }
+
    var btn = e.target.closest('button[data-act]');
    var card = e.target.closest('.my1gal-card');
    if (!card) return;
@@ -774,6 +822,7 @@
 
    if (it.status === 'error' && (!btn || btn.getAttribute('data-act') === 'retry')) {
     if (it.file) {
+     if (!ensureFilesCallback()) return;
      if (batchPending <= 0) batchResults = [];
      batchPending++;
      it.status = 'uploading';
