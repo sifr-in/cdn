@@ -95,7 +95,7 @@ const CSH_PUSH = [
  { a: 39, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/slRlgn.min.js", c: "openCommonSelectionModal", r: "openCommonSelectionModal" },
  { a: 47, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/mr/slCoTal.min.js", c: "setValByPrprtyDepthToElm", r: "setValByPrprtyDepthToElm" },
  { a: 48, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9321738/mr/admr.min.js", c: "openMrAdmin", r: "openMrAdmin" },
- { a: 18, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/caste.da" },
+ { a: 118, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/caste.da" },
  { a: 19, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/ctco.da" },
  { a: 20, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/abot.min.js", c: "set_abot_us_innerHTML", r: "set_abot_us_innerHTML" },
  { a: 24, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/chldpol.min.js", c: "set_child_safety_pol_innerHTML", r: "set_child_safety_pol_innerHTML" },
@@ -734,7 +734,7 @@ window.cmn_prep_data_set_to_var = cmn_prep_data_set_to_var;
 async function __mrPrepLookups() {
  try {
   await Promise.all([
-   cmn_prep_data_set_to_var('var_caste_rlgns', 1, 18, null, false, { useStorage: false }),
+   cmn_prep_data_set_to_var('var_caste_rlgns', 1, 118, null, false, { useStorage: false }),
    cmn_prep_data_set_to_var('var_degres', 1, 31, null, false, { useStorage: false }),
    cmn_prep_data_set_to_var('var_ctco', 1, 19, null, false, { useStorage: false }),
    cmn_prep_data_set_to_var('mr_desig_posis', 1, 33, null, false, { useStorage: false }),
