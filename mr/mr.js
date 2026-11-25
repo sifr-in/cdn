@@ -85,16 +85,16 @@ window[my1uzr.worknOnPg].bdayFormat = "dd-mm-yyyy";
 //  { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@60f8540/cmn/my1img.min.js", c: "open_addimage", r: "open_addimage" },
 //  { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1ctr.min.js", c: "open_my1ctr", r: "open_my1ctr" },
 const CSH_PUSH = [
- { a: 13, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@0dd4fc7/mr/drwr.min.js", c: "showDrawer", r: "showDrawer" },
  { a: 14, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@0dd4fc7/mr/regis.min.js", c: "showRegistrationModal", r: "showRegistrationModal" },
  { a: 15, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/mr/fltr.min.js", c: "showFilterBox", r: "showFilterBox" },
  { a: 16, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/conta.min.js", c: "showContactModal", r: "showContactModal" },
  { a: 17, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8bfbe40/mr/plans.min.js", c: "showMarriagePlans", r: "showMarriagePlans" },
+ { a: 18, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@0dd4fc7/mr/drwr.min.js", c: "showDrawer", r: "showDrawer" },
  { a: 55, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/mr/prfl.min.js", c: "mrPrflReady", r: "mrShowProfileDtlsLazy" },
  { a: 15, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/ei.min.js", c: "open_entind_crud", r: "open_entind_crud" },
  { a: 39, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/slRlgn.min.js", c: "openCommonSelectionModal", r: "openCommonSelectionModal" },
  { a: 47, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1fb51f0/mr/slCoTal.min.js", c: "setValByPrprtyDepthToElm", r: "setValByPrprtyDepthToElm" },
- { a: 48, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/admr.min.js", c: "openMrAdmin", r: "openMrAdmin" },
+ { a: 48, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9321738/mr/admr.min.js", c: "openMrAdmin", r: "openMrAdmin" },
  { a: 18, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/caste.da" },
  { a: 19, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/ctco.da" },
  { a: 20, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mr/abot.min.js", c: "set_abot_us_innerHTML", r: "set_abot_us_innerHTML" },
@@ -478,7 +478,7 @@ function createNavigationBar(cfg) {
             <div class="app-nav__left">
                 <button class="app-nav__icon app-nav__menu" type="button" title="Menu"
                         aria-label="Open menu"
-                        onclick="(async () => { await loadExe2Fn(13, [], [1]); })()">
+                        onclick="(async () => { await loadExe2Fn(18, [], [1]); })()">
                     <i class="fas fa-bars fa-lg"></i>
                 </button>
             </div>
@@ -1023,7 +1023,7 @@ async function pullProfiles(whr, reset) {
   if (response.su == 1) {
    const rows = (response.mr && response.mr.l) ? response.mr.l : [];
    const profiles = rows.map(applyProfileImageData).filter(function (p) {
-    return Number(p && p.d) >= 1;
+    return Number(p && p.d) >= 0;
    });
    if (profiles.length === 0) {
    }
@@ -1143,7 +1143,7 @@ function applyProfileImageData(profile) {
   profile.thumbnail = profile.ut;
   profile.originalImage = profile.ut;
  } else {
-  profile.thumbnail = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNFMEUwRTAiLz48dGV4dCB4PSIxNTAiIHk9IjEwNSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM5RTlFOUUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkltYWdlIE5vdDwvdGV4dD48dGV4dCB4PSIxNTAiIHk9IjEyNSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM5RTlFOUUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkF2YWlsYWJsZTwvdGV4dD48L3N2Zz4=';
+  profile.thumbnail = "";
   profile.originalImage = null;
  }
  return profile;
