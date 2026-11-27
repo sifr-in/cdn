@@ -1,4 +1,4 @@
-const tblsRequired = ["f", "fp", "mi", "r", "mb", "c"];//mb:milk Prices, mi:Milk collection, r: payments
+const tblsRequired = ["f","fp","c","mi", "r", "mb"];//mb:milk Prices, mi:Milk collection, r: payments
 const moduLst = [
  { a: ",89,", b: "Dashboard", c: "fa-chart-line", d: "window.toggleAdminPanel()", e: "#0d6efd" },
  { a: ",23,", b: "Milk Payment Form", c: "fa-money-bill-wave", d: "window.toggleAdminPanel(7)", e: "#0d6efd" },
@@ -8,19 +8,18 @@ const moduLst = [
  { a: ",75,87,", b: "History", c: "fa-clock-rotate-left", d: "window.toggleAdminPanel(3)", e: "#6c757d" },
  { a: ",-11,-12,", b: "Milk Sangha Form", c: "fa-users", d: "window.toggleAdminPanel(9)", e: "#6f42c1" }
 ];
-const inTbls = ["dontCret:", "public:76", "2/b-23~r", "2/h-71~mb", "2/h-72~", "2/h-73~mi", "2/h-74~mb", "2/j-75~mi", "3/a-76~mi,mb,r", "2/l-87~r", "2/m-89~mb"];
-//fn:72 must be re check to 2/h because not found
+const inTbls = ["dontCret:", "public:76", "2/0b-23~r", "2/0h-71~mb", "2/0h-72~", "2/0h-73~mi", "2/0h-74~mb", "2/0j-75~mi", "3/0a-76~mi,mb,c,r", "2/0j-79~c", "2/0j-80~c", "2/0l-87~r", "2/0m-89~mb"];
 const cust_const = [
- {"a": "milkReportModule", "b": 0, "c": "more customiztaion", "d": "if 0 then show suppiler records as normal source and if 1 then show suppiler records as clinet provided source c.c1", "u": "url-explaining-video"},
- {"a": "showClntReckonInTbl", "b": 1, "c": "more customiztaion", "d": "show milk reckonning to milker in table view", "u": "url-explaining-video"},
- {"a": "milkDeci", "b": 2, "c": "more custom", "d": "show milk collection in given digits", "u": "url"},
- {"a": "fatDeci", "b": 1, "c": "", "d": "show fat in given digits", "u": "url"},
- {"a": "snfDeci", "b": 1, "c": "", "d": "show snf in given digits", "u": "url"},
- {"a": "rfrshAfternoonTT", "b": 15, "c": "", "d": "restriction to refresh collection afternoon-data after given time", "u": "url"},
- {"a": "rfrshNightTT", "b": 21, "c": "", "d": "restriction to refresh collection night-data after given time", "u": "url"},
- {"a": "reptsDrpdnOrFT", "b": 1, "c": "", "d": "at bill/reports modal show dropdown or From-To fillter", "u": "url"},
- {"a": "reptsTB", "b": 31, "c": "", "d": "at bill/reports dropdown condition for tb by ", "u": "url"},
- {"a": "seprateIdCowBuffelo", "b": 1, "c": "", "d": "when adding a party if his cow & bufellow code is separate, this is used; 2 unique ids can be created", "u": "url"}
+ {"76":[{ "a": "milkReportModule", "b": 0, "c": "more customiztaion", "d": "if 0 then show suppiler records as normal source and if 1 then show suppiler records as clinet provided source c.c1", "u": "url-explaining-video" },
+ { "a": "showClntReckonInTbl", "b": 1, "c": "more customiztaion", "d": "if 1 then show milk records to milker in table view on reports and if 0 then only print", "u": "url-explaining-video" },
+ { "a": "milkDeci", "b": 2, "c": "more custom", "d": "show milk collection in given digits", "u": "url" },
+ { "a": "fatDeci", "b": 1, "c": "", "d": "show fat in given digits", "u": "url" },
+ { "a": "snfDeci", "b": 1, "c": "", "d": "show snf in given digits", "u": "url" },
+ { "a": "rfrshAfternoonTT", "b": 15, "c": "", "d": "restriction to refresh collection afternoon-data after given time", "u": "url" },
+ { "a": "rfrshNightTT", "b": 21, "c": "", "d": "restriction to refresh collection night-data after given time", "u": "url" },
+ { "a": "reptsDrpdnOrFT", "b": 1, "c": "", "d": "at reports(bill table) modal date range show dropdown_1 or From-To_0 in fillter", "u": "url" },
+ { "a": "reptsTB", "b": 31, "c": "", "d": "at reports(bill table) dropdown condition for by tb", "u": "url" }]},
+ {"73":[{ "a": "seprateIdCowBuffelo", "b": 1, "c": "", "d": "when adding a party if his cow & bufellow code is separate, this is used; 2 unique ids can be created", "u": "url" }]}
 ];
 if (typeof window.closeModal !== "function") {
  window.closeModal = function (modalId) {
@@ -213,7 +212,7 @@ window.formatDateDisplay = formatDateDisplay;
 // CONFIG-DRIVEN DECIMALS - milk qty / fat / snf
 // ============================================================
 function _custDeci(key, dflt) {
- var cfg = window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].clientConfig;
+ var cfg = window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].clientConfigByAdm;
  var v = cfg && cfg.cust_da_const && cfg.cust_da_const[key];
  return isFinite(Number(v)) ? Number(v) : dflt;
 }
@@ -269,145 +268,30 @@ window.openSupplierList = function (callbackName, xtraFlds) {
 };
 
 (async function () {
- // Initialize csh array with only required scripts
- if (!window[my1uzr.worknOnPg].csh) {
-  window[my1uzr.worknOnPg].csh = [
-   {
-    a: 1,
-    u: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
-   },
-   {
-    a: 2,
-    u: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
-   },
-   {
-    a: 3,
-    u: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
-   },
-   {
-    a: 4,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/cmn/my1lo.min.js",
-    c: "open_shoLgnO",
-    r: "open_shoLgnO"
-   },
-   { a: 5, u: "https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js" },
-   { a: 6, u: "https://code.jquery.com/jquery-3.6.0.min.js" },
-   {
-    a: 7,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1ap.min.js"
-   },
-   {
-    a: 8,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7353e60/cmn/my1xi.min.js"
-   },
-   {
-    a: 9,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/mr/andro.min.js"
-   },
-   {
-    a: 24,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mi_hr.min.js"
-   },
-   { a: 25 },
-   {
-    a: 26,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/clrChe.min.js",
-    c: "showClearCacheModal",
-    r: "showClearCacheModal"
-   },
-   {
-    a: 27,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@a813e1f/cmn/my1ctr.min.js",
-    c: "open_my1ctr",
-    r: "open_my1ctr"
-   },
-   {
-    a: 28,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fbf62ad/cmn/my1lp.min.js",
-    c: "open_shoLgnP",
-    r: "open_shoLgnP"
-   },
-   { a: 29 },
-   {
-    a: 30,
-    u: "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
-   },
-   {
-    a: 31,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/mr/noti.min.js",
-    c: "showNotifications",
-    r: "showNotifications"
-   },
-   {
-    a: 32,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/admn_hst.min.js",
-    c: "showCollectionHistory,editCollectionRecord,editPaymentRecord",
-    r: "admnHistoryReady"
-   },
-   {
-    a: 33,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mlkPrsnLst.min.js",
-    c: "showPersonList,initPersonList,filterPersonsByCategory,showSupplierPaymentModal,submitSupplierPayment",
-    r: "initPersonList"
-   },
-   {
-    a: 34,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mlkCltFrm.min.js",
-    c: "showMilkCollectionForm,initMilkCollectionForm,calculateTotal",
-    r: "initMilkCollectionForm"
-   },
-   {
-    a: 35,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mlkPricg.min.js",
-    c: "showMilkPricing,initMilkPricing,submitMilkPricing",
-    r: "initMilkPricing"
-   },
-   {
-    a: 36,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/imptPricg.min.js",
-    c: "showImportPricing,initImportPricing",
-    r: "initImportPricing"
-   },
-   {
-    a: 37,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/cmn/ei.min.js",
-    c: "open_entind_crud",
-    r: "open_entind_crud"
-   },
-   {
-    a: 38,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mlkPaymtFrm.min.js",
-    c: "showMilkPaymentForm,initMilkPaymentForm,loadPaymentFormFields,addTempPayment,submitAllPayments",
-    r: "initMilkPaymentForm"
-   },
-   {
-    a: 39,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/daryRgstr.min.js",
-    c: "showDairyRegister,applyDairyRegisterFilter,printDairyRegister,initDairyRegister",
-    r: "initDairyRegister"
-   },
-   {
-    a: 40,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mlkShgFrm.min.js",
-    c: "showSangh,initSangh,submitSanghEntry,updateSanghEntry,viewSanghHistory",
-    r: "initSangh"
-   },
-   {
-    a: 41,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1jo.min.js",
-    c: "open_shoJgnO",
-    r: "open_shoJgnO"
-   },
-   {
-    a: 42,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1jp.min.js",
-    c: "open_shoJgnP",
-    r: "open_shoJgnP"
-   }
-  ];
- }
 
- // csh entries for 25/29 patched after config loads (see below)
+const CSH_PUSH = [
+  { a: 24, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mi_hr.min.js" },
+  { a: 26, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/mr/andro.min.js" },
+  { a: 27, u: "https://code.jquery.com/jquery-3.7.1.min.js" },
+  { a: 30, u: "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" },
+  { a: 31, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/mr/noti.min.js", c: "showNotifications", r: "showNotifications" },
+  { a: 32, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@894dbdf/mi/admn_hst.min.js", c: "showCollectionHistory,editCollectionRecord,editPaymentRecord", r: "admnHistoryReady" },
+  { a: 33, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mlkPrsnLst.min.js", c: "showPersonList,initPersonList,filterPersonsByCategory,showSupplierPaymentModal,submitSupplierPayment", r: "initPersonList" },
+  { a: 34, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@894dbdf/mi/mlkCltFrm.min.js", c: "showMilkCollectionForm,initMilkCollectionForm,calculateTotal", r: "initMilkCollectionForm" },
+  { a: 35, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@894dbdf/mi/mlkPricg.min.js", c: "showMilkPricing,initMilkPricing,submitMilkPricing", r: "initMilkPricing" },
+  { a: 36, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@894dbdf/mi/imptPricg.min.js", c: "showImportPricing,initImportPricing", r: "initImportPricing" },
+  { a: 38, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@894dbdf/mi/mlkPaymtFrm.min.js", c: "showMilkPaymentForm,initMilkPaymentForm,loadPaymentFormFields,addTempPayment,submitAllPayments", r: "initMilkPaymentForm" },
+  { a: 39, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/daryRgstr.min.js", c: "showDairyRegister,applyDairyRegisterFilter,printDairyRegister,initDairyRegister", r: "initDairyRegister" },
+  { a: 40, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/mlkShgFrm.min.js", c: "showSangh,initSangh,submitSanghEntry,updateSanghEntry,viewSanghHistory", r: "initSangh" }
+];
+
+ const cshIds = {};
+ if (typeof pushCsh === 'function') {
+  for (let i = 0; i < CSH_PUSH.length; i++) {
+   const it = CSH_PUSH[i];
+   cshIds[it.r || it.c || it.u] = pushCsh(it.u, it.c, it.r, it.a);
+  }
+ }
 
  if (!window.milk_categories || !window.milk_categories.length) {
   window.milk_categories = [
@@ -433,13 +317,28 @@ window.openSupplierList = function (callbackName, xtraFlds) {
   }
  };
 
+ // Admin-controlled config lives separately in 0.da so the super admin can
+ // update it independently from the per-project mi.da.
+ window.loadAdminConfig = async function () {
+  try {
+   var resp = await fetch("0.da");
+   if (!resp.ok) throw new Error("HTTP " + resp.status);
+   var cfg = await resp.json();
+   if (!cfg || typeof cfg !== "object") throw new Error("bad config");
+   window[my1uzr.worknOnPg].clientConfigByAdm = cfg;
+  } catch (err) {
+   console.error("Failed to load 0.da:", err);
+   window[my1uzr.worknOnPg].clientConfigByAdm = {};
+  }
+ };
+
  try {
   let result1 = null;
 
   if (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].usdInAndroWv === 1)
-   result1 = await loadCshScriptsSequentially(1, 2, 3, 5, 6, 8, 24, 30);
+   result1 = await loadCshScriptsSequentially(24, 27, 30);
   else
-   result1 = await loadCshScriptsSequentially(1, 2, 3, 5, 6, 8, 9, 24, 30);
+   result1 = await loadCshScriptsSequentially(24, 26, 27, 30);
 
   if (!result1.success) {
    throw new Error("Failed to load required scripts: " + result1.error);
@@ -476,16 +375,17 @@ window.openSupplierList = function (callbackName, xtraFlds) {
 
 
   await loadMilkCollectConfig();
-  seprateIdCowBuffelo = window[my1uzr.worknOnPg].clientConfig?.cust_da_const?.seprateIdCowBuffelo;
-  const isC1Now = window[my1uzr.worknOnPg].clientConfig?.cust_da_const?.milkReportModule === 1;
-  const csh1Now = window[my1uzr.worknOnPg].csh;
+  await loadAdminConfig();
+  seprateIdCowBuffelo = window[my1uzr.worknOnPg].clientConfigByAdm?.cust_da_const?.seprateIdCowBuffelo;
+  const isC1Now = window[my1uzr.worknOnPg].clientConfigByAdm?.cust_da_const?.milkReportModule === 1;
+  if (typeof pushCsh === 'function') {
   [
-   [29, isC1Now ? "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mi/supRpC1.js" : "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/suplr_repts.js", "showCollectionReports"],
-   [25, isC1Now ? "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mi/supHsC1.js" : "https://cdn.jsdelivr.net/gh/sifr-in/cdn@12258e0/mi/suplr_hst.js", "showSupplierCollectionHistory"]
+   [29, isC1Now ? "https://cdn.jsdelivr.net/gh/sifr-in/cdn@894dbdf/mi/supRpC1.js" : "https://cdn.jsdelivr.net/gh/sifr-in/cdn@894dbdf/mi/suplr_repts.js", "showCollectionReports"],
+   [25, isC1Now ? "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/mi/supHsC1.js" : "https://cdn.jsdelivr.net/gh/sifr-in/cdn@894dbdf/mi/suplr_hst.js", "showSupplierCollectionHistory"]
   ].forEach(([a, u, c]) => {
-   const item = csh1Now?.find(x => x.a === a);
-   if (item) Object.assign(item, { u, c, r: c });
+   pushCsh(u, c, c, a);
   });
+ }
   await recomputeAllowedModules();
 
   // ✅ Self-contained "Clear All Data" modal (replaces CDN clrChe.js modal
@@ -658,9 +558,7 @@ window.openSupplierList = function (callbackName, xtraFlds) {
   <div class="topnav">
     <div class="shopname">
     <div class="brand-logo"
-    onclick="(async () => {
-         await loadExe2Fn(27, ['dv_to_set_open_my1ctr_processed', 0, 1, 2], [1]);
-     })();"> <i class="fas fa-glass-whiskey"></i> </div>
+    onclick="(async () => { await loadExe2Fn(8, ['dv_to_set_open_my1ctr_processed', 0, 1, 2, 2], [1]); })()"> <i class="fas fa-glass-whiskey"></i> </div>
       ${window.shopName || "Supplier Portal"}
     </div>
     <div class="nav-icons">
@@ -922,7 +820,7 @@ async function showSupplierPortal() {
  html +=
   '<button class="action-btn action-primary" onclick="window.openSupplierHistory()" style="flex:1; margin-bottom:0; min-width:0;">';
  html += '<i class="fas fa-history"></i> History</button>';
- if (window[my1uzr.worknOnPg].clientConfig?.cust_da_const?.showClntReckonInTbl == 1) {
+ if (window[my1uzr.worknOnPg].clientConfigByAdm?.cust_da_const?.showClntReckonInTbl == 1) {
   html += '<button class="action-btn action-primary" onclick="(async () => { await loadExe2Fn(29, [], [1]); })();" style="flex:1; margin-bottom:0; min-width:0;">';
   html += '<i class="fas fa-chart-line"></i> Report</button>';
  } else {
@@ -974,7 +872,7 @@ async function showSupplierPortal() {
 // ============================================================
 
 window.checkAndLoadSupplierData = async function () {
- var isC1 = window[my1uzr.worknOnPg]?.clientConfig?.cust_da_const?.milkReportModule === 1;
+ var isC1 = window[my1uzr.worknOnPg]?.clientConfigByAdm?.cust_da_const?.milkReportModule === 1;
 
  // ✅ Get all mi records (not required in c1 mode; records live in c.c1)
  var allRecords = isC1
@@ -1092,7 +990,7 @@ async function updateSupplierInfo() {
  if (detailsEl) detailsEl.textContent = "📱 " + (supplier.e || "");
  if (detailsEml) {
   var c1 = await resolveSupplierC1(supplier);
-  var isC1 = window[my1uzr.worknOnPg]?.clientConfig?.cust_da_const?.milkReportModule === 1;
+  var isC1 = window[my1uzr.worknOnPg]?.clientConfigByAdm?.cust_da_const?.milkReportModule === 1;
   var eml = c1 ? c1.eml || "" : "";
   detailsEml.textContent = (isC1 || eml) && eml ? "✉️ " + eml : "";
  }
@@ -1170,7 +1068,7 @@ window.loadSupplierHistory = async function (preFetchedMiRecords, supplierOverri
   return;
  }
 
- var isC1 = window[my1uzr.worknOnPg]?.clientConfig?.cust_da_const?.milkReportModule === 1;
+ var isC1 = window[my1uzr.worknOnPg]?.clientConfigByAdm?.cust_da_const?.milkReportModule === 1;
  if (isC1) {
   await window.loadSupplierDashboardC1(supplier);
   return;
@@ -1485,10 +1383,10 @@ function shiftDateBackOneDay(dateStr) {
 async function buildRefreshDelta(dbName) {
  var rows =
   (await dbDexieManager.getMaxDateRecords(dbName, [
-   { tb: "mi"},
-   { tb: "c"},
-   { tb: "r"},
-   { tb: "mb"},
+   { tb: "mi" },
+   { tb: "c" },
+   { tb: "r" },
+   { tb: "mb" },
   ])) || [];
  return rows.map(function (row) {
   if (!row || typeof row.la !== "string") return row;
@@ -1531,21 +1429,22 @@ window.refreshSupplierData = async function (opts) {
  }
  try {
   clearPayload0();
-  payload0.vw = 1;
   payload0.fn = 76;
   payload0.la = await buildRefreshDelta(dbnm);
-  var response = await fnj3(
-   "https://my1.in/3/a.php",
-   payload0,
-   1,
-   true,
-   null,
-   20000,
-   0,
-   2,
-   1,
-  );
-
+  payload0.ul = '3/0a.php';
+  payload0.gt = 3;
+  var response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
+  // var response = await fnj3(
+  //  "https://my1.in/3/a.php",
+  //  payload0,
+  //  1,
+  //  true,
+  //  null,
+  //  20000,
+  //  0,
+  //  2,
+  //  1,
+  // );
 
   if (response && response.su == 1) {
    await window.hndlRspo76(response);
@@ -1620,7 +1519,7 @@ window.hndlRspo76 = async function (response) {
 
 // ============================================================
 // AUTO REFRESH - Twice daily (afternoon + night) data sync.
-// Times come from mi.da -> cust_da_const.rfrshAfternoonTT /
+// Times come from 0.da -> cust_da_const.rfrshAfternoonTT /
 // rfrshNightTT (24h hour-of-day, e.g. 15 = 3 PM, 21 = 9 PM).
 //
 // The scheduled refresh fires when the clock actually crosses one
@@ -1637,7 +1536,7 @@ const AUTO_REFRESH_STORAGE_KEY = "mi_auto_rfrsh";
 
 function getAutoRefreshConfig() {
  var ws = window[my1uzr.worknOnPg] || {};
- var cust = (ws.clientConfig && ws.clientConfig.cust_da_const) || {};
+ var cust = (ws.clientConfigByAdm && ws.clientConfigByAdm.cust_da_const) || {};
  return {
   aftHour: parseInt(cust.rfrshAfternoonTT, 10) || 15,
   ngtHour: parseInt(cust.rfrshNightTT, 10) || 21,
@@ -2588,20 +2487,22 @@ window.fetchPricingData = async function () {
 
   payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "mb" }]);
   payload0.fn = 89;
-  payload0.p = {};
+  //payload0.p = {};
+  payload0.ul = '2/0m.php';
+  payload0.gt = 2;
+  var response = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
 
-  var response = await fnj3(
-   "https://my1.in/2/m.php",
-   payload0,
-   1,
-   true,
-   null,
-   20000,
-   0,
-   1,
-   1,
-  );
-
+  // var response = await fnj3(
+  //  "https://my1.in/2/m.php",
+  //  payload0,
+  //  1,
+  //  true,
+  //  null,
+  //  20000,
+  //  0,
+  //  1,
+  //  1,
+  // );
 
   if (response && response.su == 1) {
    var hasRecords = response.mb && response.mb.l && response.mb.l.length > 0;
@@ -2854,7 +2755,7 @@ window.showAdminPanel = async function (catA) {
   // Load the merged admin modules once (csh ids 33-40).
   if (!_adminPanelModulesStarted) {
    _adminPanelModulesStarted = true;
-   var adminModuleIds = [32, 34, 33, 35, 37, 38, 39, 40, 36];
+   var adminModuleIds = [32, 34, 33, 35, 13, 38, 39, 40, 36];
    for (var mi = 0; mi < adminModuleIds.length; mi++) {
     try {
      await loadExe2Fn(adminModuleIds[mi], [], [1]);

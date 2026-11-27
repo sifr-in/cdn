@@ -56,11 +56,11 @@ const dontRestartAfterLogin = 1;
  const CSH_PUSH = [
   { a: 21, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@aa6cfeb/ks/ks_h.js" },
   { a: 22, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@aa6cfeb/ks/messageModal.js" },
-  { a: 23, u: "git/nextDate.js", c: "openNextHearingModal,saveNextHearing,updateNextDateRecord", r: " " },
+  { a: 23, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@894dbdf/cs/nextDate.js", c: "openNextHearingModal,saveNextHearing,updateNextDateRecord", r: " " },
   { a: 24, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@794889f/ks/printRecords.js" },
-  { a: 25, u: "git/addNewCase.js", c: "showAddCaseModal", r: "showAddCaseModal" },
-  { a: 26, u: "git/allCases.js", c: "showAllCases", r: "showAllCases" },
-  { a: 27, u: "git/cs_da.js", c: "showPrintSettings", r: "showPrintSettings" }
+  { a: 25, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@894dbdf/cs/addNewCase.js", c: "showAddCaseModal", r: "showAddCaseModal" },
+  { a: 26, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@894dbdf/cs/allCases.js", c: "showAllCases", r: "showAllCases" },
+  { a: 27, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@894dbdf/cs/cs_da.js", c: "showPrintSettings", r: "showPrintSettings" }
  ];
 
  const cshIds = {};
