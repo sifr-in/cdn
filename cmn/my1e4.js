@@ -1669,7 +1669,8 @@ function showLoginInfo(shoLogOut, showLoginModalDirectly, shoLoginByOas2orByPas1
   loginInfoModal.className = 'modal';
   loginInfoModal.style.display = 'none';
   loginInfoModal.style.position = 'fixed';
-  loginInfoModal.style.zIndex = '1000';
+  loginInfoModal.style.zIndex = '2147483647';
+  loginInfoModal.style.setProperty('z-index', '2147483647', 'important');
   loginInfoModal.style.left = '0';
   loginInfoModal.style.top = '0';
   loginInfoModal.style.width = '100%';
@@ -2527,8 +2528,8 @@ function extractGoogleDriveFileId(url) {
  return null;
 }
 
-// ================= fnf4: FormData twin of fnj4 =================
 async function fnf4(url, dfpayload, loginRequired_0_1 = 0, async_1 = 1, loaderId = null, timeout = 20000, shoLoginByOas2orByPas1 = 0, loaderSho1Hide0 = 1) {
+ //extra can be send from fnf4, if user is not loged-in, he must first log-in;
  try {
   let dfpayloadCheck = null;
   try {
@@ -2591,26 +2592,70 @@ async function fnf4(url, dfpayload, loginRequired_0_1 = 0, async_1 = 1, loaderId
     return Promise.reject(new Error(JSON.stringify(t343mp)));
    }
   }
+  try {
+   var _fnVal = (dfpayload instanceof FormData) ? (dfpayload.get ? dfpayload.get("fn") : null) : (dfpayload && dfpayload.fn);
+   if (String(_fnVal) === "128") {
+    if (typeof window.usHasFnPerm === "function") {
+     if (!window.usHasFnPerm(128) && typeof window.loadUsFnPerms === "function") {
+      await window.loadUsFnPerms();
+     }
+     if (!window.usHasFnPerm(128)) {
+      return Promise.reject(new Error(JSON.stringify({ su: 0, ms: "Your not allowed to use this upload option" })));
+     }
+    }
+   }
+  } catch (e) { }
   let fd = (dfpayload instanceof FormData) ? dfpayload : new FormData();
   if (!(dfpayload instanceof FormData)) {
    Object.keys(dfpayload || {}).forEach(function (k) {
     if (dfpayload[k] != null) fd.append(k, dfpayload[k]);
    });
   }
-  // fallback XHR (no my1fnd dependency)
+  let dynamicLoaderId = null;
+  const cleanupLoader = function () {
+   if (loaderSho1Hide0 != 1) return;
+   if (dynamicLoaderId) {
+    const loaderElement = document.getElementById(dynamicLoaderId);
+    if (loaderElement) loaderElement.remove();
+    dynamicLoaderId = null;
+   } else if (loaderId) {
+    const existingLoader = document.getElementById(loaderId);
+    if (existingLoader) existingLoader.style.display = "none";
+   }
+  };
+  const showLoader = function () {
+   if (loaderSho1Hide0 != 1) return;
+   if (loaderId === null) {
+    dynamicLoaderId = 'loader-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    const loaderHtml = `
+<div id="${dynamicLoaderId}" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(43,22,14,0.5); backdrop-filter: blur(4px); z-index: 2147483647;">
+<div class="spinner-border text-light" role="status">
+<span class="visually-hidden">Loading...</span>
+</div>
+</div>
+`;
+    document.body.insertAdjacentHTML('beforeend', loaderHtml);
+   } else if (loaderId) {
+    const existingLoader = document.getElementById(loaderId);
+    if (existingLoader) existingLoader.style.display = "flex";
+   }
+  };
   return new Promise(function (resolve, reject) {
-   const xhr = new XMLHttpRequest();
+   try { showLoader(); } catch (e) { }
+   let xhr;
+   try { xhr = new XMLHttpRequest(); } catch (e) { cleanupLoader(); reject(new Error('Failed to create request: ' + e.message)); return; }
    xhr.open('POST', url, async_1 == 1);
    xhr.timeout = timeout;
    xhr.onload = function () {
+    cleanupLoader();
     try {
      const response = JSON.parse(xhr.responseText);
      if (response) resolve(response); else reject(new Error('API call was not successful'));
     } catch (e) { reject(new Error('Failed to parse response: ' + e.message)); }
    };
-   xhr.onerror = function () { reject(new Error('Network error - request failed to complete')); };
-   xhr.ontimeout = function () { reject(new Error('Request timed out')); };
-   try { xhr.send(fd); } catch (e) { reject(new Error('Failed to send request: ' + e.message)); }
+   xhr.onerror = function () { cleanupLoader(); reject(new Error('Network error - request failed to complete')); };
+   xhr.ontimeout = function () { cleanupLoader(); reject(new Error('Request timed out')); };
+   try { xhr.send(fd); } catch (e) { cleanupLoader(); reject(new Error('Failed to send request: ' + e.message)); }
   });
  } catch (error) {
   return Promise.reject(error);
@@ -3426,9 +3471,6 @@ window.initDateTimePicker = async function (inputId, options) {
    buttons: { today: options.hideTodayButton !== true, clear: false, close: true }
   }
  };
- //optional caller-supplied bounds / first view (e.g. a birth date must fall in a
- //min/max window and the calendar should open on a usable month). Only forwarded
- //when given so existing callers keep the previous behaviour.
  if (options.restrictions && (options.restrictions.minDate || options.restrictions.maxDate)) {
   tdOptions.restrictions = options.restrictions;
  }
@@ -3436,9 +3478,6 @@ window.initDateTimePicker = async function (inputId, options) {
  if (options.useCurrent !== undefined) tdOptions.useCurrent = options.useCurrent;
  const instance = new tempusDominus.TempusDominus(el, tdOptions);
 
- // Tempus Dominus writes the input using our format - keep state in sync
- // NOTE: TD sets el.value itself and never fires the native DOM 'change'
- // event, so callers must use options.onChange to react to a selection.
  instance.subscribe(tempusDominus.Namespace.events.change, () => {
   committed = el.value || '';
   updateDisp();
@@ -3804,7 +3843,7 @@ window.preloadWajiwSounds = preloadWajiwSounds;
 
  const appPath = vMatch[1].replace(/\.js$/, '.min.js');
  const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + appPath;
- //const url = 'b.js';
+ //const url = 'git/cs.js';
  set_owner();
  window[my1uzr.worknOnPg].csh = [
   { a: 1, u: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" },
@@ -3814,12 +3853,12 @@ window.preloadWajiwSounds = preloadWajiwSounds;
   { a: 5, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7b214f5/cmn/my1xi.min.js" },
   { a: 6, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7b214f5/cmn/my1ap.min.js" },
   { a: 7, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/clrChe.min.js", c: "showClearCacheModal", r: "showClearCacheModal" },
-  { a: 8, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8d9bf3e/cmn/my1ctr.min.js", c: "open_my1ctr", r: "open_my1ctr" },
+  { a: 8, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7b214f5/cmn/my1ctr.min.js", c: "open_my1ctr", r: "open_my1ctr" },
   { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e22c03d/cmn/my1jo.min.js", c: "open_shoJgnO", r: "open_shoJgnO" },
   { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e22c03d/cmn/my1jp.min.js", c: "open_shoJgnP", r: "open_shoJgnP" },
   { a: 11, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@60f8540/cmn/my1img.min.js", c: "open_addimage", r: "open_addimage" },
-  { a: 12, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@31b1598/cmn/my1fl.min.js", c: "open_my1fileFn", r: "open_my1fileFn" },
-  { a: 13, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@31b1598/cmn/ei.min.js", c: "open_entind_crud", r: "open_entind_crud" }
+  { a: 12, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@4d0640f/cmn/my1fl.min.js", c: "open_my1fileFn", r: "open_my1fileFn" },
+  { a: 13, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@4d0640f/cmn/ei.min.js", c: "open_entind_crud", r: "open_entind_crud" }
  ];
  try {
   let result1 = null;
@@ -3884,3 +3923,23 @@ window.preloadWajiwSounds = preloadWajiwSounds;
   document.addEventListener('change', clear, true);
  }
 })();
+// Common permission helpers. Keep aliases for compatibility.
+if (typeof window.usHasFnPerm !== 'function') {
+ var _usFnPermSet = null;
+ async function loadUsFnPerms() {
+  try {
+   var dbn = (typeof window.dbnm !== 'undefined' && window.dbnm) ? window.dbnm : (typeof dbnm !== 'undefined' ? dbnm : '');
+   var rows = await dbDexieManager.getAllRecords(dbn, "f");
+   var set = {};
+   for (var i = 0; i < rows.length; i++) set[String(rows[i].h)] = true;
+   _usFnPermSet = set;
+  } catch (e) { _usFnPermSet = {}; }
+  return _usFnPermSet;
+ }
+ function usHasFnPerm(code) {
+  if (!_usFnPermSet) return false;
+  return !!_usFnPermSet[String(code)];
+ }
+ window.loadUsFnPerms = loadUsFnPerms;
+ window.usHasFnPerm = usHasFnPerm;
+}

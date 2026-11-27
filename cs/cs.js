@@ -1,0 +1,1665 @@
+// cs.js - Court Case Register
+const tblsRequired = ["f", "fp", "cs", "c", "a", "cs91"];
+const inTbls = ["dontCret:cs91", "pubilc:", "2/0t-72~cs", "2/0j-79~c", "2/0j-80~c", "2/0m-91~a", "2/0m-92~cs,a,c91,c", "2/0n-96~cs,a,c91,c", "2/0n-98~cs,a,c91,c", "2/0o-99~a", "2/0o-101~cs,a", "2/0r-107~cs,a,c91,c", "2/0r-108~cs,a,c91,c", "2/0u-128~cs"];
+const cust_const = [
+ { "92": [{ "a": "maxNoOfAdvOnBoard", "b": 9, "c": "more customiztaion", "d": "if value is 1 driver will be able to take photo of delivary and upload", "u": "url-explaining-video" }]},
+ { "128": [{ "a": "my1fl_config", "b": { "size": 1, "cn": 1 }, "c": "", "d": "here if 'size'(size limit of uploading files) & 'cunt'(count limit of uploading files at one time)", "u": "url-explaining-video" }]}
+];
+const moduLst = [
+ { a: ",108,107,98,92,101,", b: "Add New Case", c: "fa-plus-circle", d: "addNew", e: "#20c997" },
+ { a: ",92,   ,72,91,99,96,", b: "All Cases", c: "fa-list-ul", d: "allCases", e: "#0d6efd" }, // 96 k.js refresh, 99 nextDate.js updateNhEntry/updateNextDateRecord, 91 nextDate.js save next Hearing
+ { a: ",92,", b: "Check New Data", c: "fa-sync-alt", d: "checkNewData", e: "#fd7e14" },
+ { a: ",92,", b: "Clear All Data", c: "fa-trash", d: "clearAllData", e: "#dc3545" },
+ { a: ",119,", b: "Rest Close CS91", c: "fa-clock", d: "restClsCS91", e: "#4b96d8ec" },
+ { a: ",92,", b: "Settings", c: "fa-cog", d: "settings", e: "#6c757d" }
+];
+moduLst.hook = "onModuLstAllowed";
+window[my1uzr.worknOnPg].moduLst = moduLst;
+window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
+ window[my1uzr.worknOnPg].allowedModulesMenuItems = allowedModules || [];
+};
+
+const sho_da_tkLimit = 1;
+const ids_of_views = [3];
+const dontShoLoginConfirmation = 1;
+const dontRestartAfterLogin = 1;
+
+(async function () {
+ window[my1uzr.worknOnPg].appInfo = {
+  business: "Court Case Register",
+  owner: "",
+  city: "",
+  tagline: "Case Management System",
+  mail: "",
+  mob: "",
+  experience: "",
+  focus: "Case management",
+  verified: "",
+  privacy: "",
+  comparison: "",
+  family_meeting: "",
+  styles: "",
+  premium: "",
+  emailEndPoint: "",
+ };
+
+ window[my1uzr.worknOnPg].flsht = 3;
+ window[my1uzr.worknOnPg].flshu = "";
+ window[my1uzr.worknOnPg].lodErrMs = "press back & open the app again;";
+ window[my1uzr.worknOnPg].emptBodyMs = "Welcome to Court Case Register;";
+ window[my1uzr.worknOnPg].colsToHide = "n,";
+ window[my1uzr.worknOnPg].colsToHidePartyDetails = "ad";
+ window[my1uzr.worknOnPg].colsToHideCases =
+  "nd, bn, bf, cy, ct, cn, dd, jn, fpn, rpn, fr, rp, np, more,";
+ window[my1uzr.worknOnPg].dtFormat = "dd-mm-yyyy";
+
+ const CSH_PUSH = [
+  { a: 21, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@aa6cfeb/ks/ks_h.js" },
+  { a: 22, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@aa6cfeb/ks/messageModal.js" },
+  { a: 23, u: "git/nextDate.js", c: "openNextHearingModal,saveNextHearing,updateNextDateRecord", r: " " },
+  { a: 24, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@794889f/ks/printRecords.js" },
+  { a: 25, u: "git/addNewCase.js", c: "showAddCaseModal", r: "showAddCaseModal" },
+  { a: 26, u: "git/allCases.js", c: "showAllCases", r: "showAllCases" },
+  { a: 27, u: "git/cs_da.js", c: "showPrintSettings", r: "showPrintSettings" }
+ ];
+
+ const cshIds = {};
+ if (typeof pushCsh === 'function') {
+  for (let i = 0; i < CSH_PUSH.length; i++) {
+   const it = CSH_PUSH[i];
+   cshIds[it.r || it.c || it.u] = pushCsh(it.u, it.c, it.r, it.a);
+  }
+ }
+
+ try {
+  let result1 = await loadCshScriptsSequentially(8, 21, 22, 23, 24, 25, 26, 27);
+  if (!result1.success)
+   throw new Error("Failed to load required scripts: " + result1.error);
+
+  try {
+   const createResult = await dbDexieManager.handleNwTables("loader", dbnm, tblsRequired);
+   tblFailureCount = createResult.failureCount;
+  } catch (dbError) {
+   console.error("Ãƒâ€ÃƒËœÃƒÂ® Database error:", dbError);
+  }
+  try {
+   var resp = await fetch("cs.da");
+   if (!resp.ok) throw new Error("HTTP " + resp.status);
+   var cfg = await resp.json();
+   if (!cfg || typeof cfg !== "object") throw new Error("bad config");
+
+   window[my1uzr.worknOnPg].clientConfig = cfg;
+  } catch (err) {
+   console.error("Failed to load cs.da:", err);
+   window[my1uzr.worknOnPg].clientConfig = {};
+  }
+  // Independent super-admin config (0.da) -> clientConfigByAdm
+  try {
+   var resp0 = await fetch("0.da");
+   if (!resp0.ok) throw new Error("HTTP " + resp0.status);
+   var cfg0 = await resp0.json();
+   if (!cfg0 || typeof cfg0 !== "object") throw new Error("bad config");
+   window[my1uzr.worknOnPg].clientConfigByAdm = cfg0;
+   // my1fl reads clientConfig.cust_da_const.my1fl_config, so expose 0.da's
+   // upload config there (count/size limits come from 0.da, not cs.js).
+   try {
+    var cfgMy1fl =
+     cfg0.my1fl_config ||
+     (cfg0.cust_da_const && cfg0.cust_da_const.my1fl_config);
+    if (cfgMy1fl && typeof cfgMy1fl === "object") {
+     var cc = window[my1uzr.worknOnPg].clientConfig || {};
+     cc.cust_da_const = cc.cust_da_const || {};
+     cc.cust_da_const.my1fl_config = cfgMy1fl;
+     window[my1uzr.worknOnPg].clientConfig = cc;
+    }
+   } catch (e) {
+    console.warn("Failed to apply 0.da my1fl_config:", e);
+   }
+  } catch (err) {
+   console.error("Failed to load 0.da:", err);
+   window[my1uzr.worknOnPg].clientConfigByAdm = {};
+  }
+
+
+  await recomputeAllowedModules();
+
+  window.toggleSidebar = toggleSidebar;
+  window.handleMenuAction = function (action) {
+   var skipSidebar = window._skipSidebarOnMenu;
+   window._skipSidebarOnMenu = false;
+
+   if (skipSidebar) {
+    if (action === "settings") {
+     setTimeout(function () {
+      loadExe2Fn(27);
+     }, 0);
+     return;
+    }
+    if (action === "addNew")
+     setTimeout(function () { showAddCaseModal(); }, 0);
+    else if (action === "allCases")
+     setTimeout(function () { showAllCases(); }, 0);
+    else if (action === "checkNewData")
+     setTimeout(function () { refreshFromServer(); }, 0);
+    else if (action === "clearAllData")
+     setTimeout(function () { showClearCacheModal(); }, 0);
+    else if (action === "restClsCS91")
+     setTimeout(window.showelsemodal("This funtion is allowed on closed case row."), 0);
+    return;
+   }
+
+   // Normal clicks: toggle sidebar as before
+   if (typeof toggleSidebar === "function") toggleSidebar();
+   if (action === "settings") {
+    setTimeout(function () {
+     loadExe2Fn(27);
+    }, 300);
+    return;
+   }
+   if (action === "addNew")
+    setTimeout(function () { showAddCaseModal(); }, 300);
+   else if (action === "allCases")
+    setTimeout(function () { showAllCases(); }, 300);
+   else if (action === "checkNewData")
+    setTimeout(function () { refreshFromServer(); }, 300);
+   else if (action === "clearAllData")
+    setTimeout(function () { showClearCacheModal(); }, 300);
+  };
+
+  injectCsStyles();
+
+  await loadDataFromDB();
+  await loadUsFnPerms();
+
+  renderAppUI();
+ } catch (e) {
+  console.error("Ãƒâ€ÃƒËœÃƒÂ® App initialization error:", e);
+  document.getElementById("main_body").innerHTML =
+   '<div class="d-flex justify-content-center align-items-center" style="min-height:100vh;">' +
+   '<div class="card-premium p-4 text-center" style="max-width:400px;">' +
+   '<i class="fas fa-exclamation-triangle text-gold mb-3" style="font-size:48px;"></i>' +
+   '<h5 class="text-navy">Error Loading App</h5>' +
+   '<p class="text-gray">' +
+   (e.message || e) +
+   "</p>" +
+   '<button onclick="location.reload()" class="btn-premium btn-premium-primary mt-3">Retry</button>' +
+   "</div></div>";
+ }
+})();
+
+appcss =
+ "/* ============================================\n   CS - Court Case Management System\n   Design System & Reusable Classes\n   Classic Authority Theme\n   ============================================ */\n\n/* CSS Variables */\n:root {\n  /* Navy Palette (60%) */\n  --navy-dark: #0D1B36;\n  --navy: #1B2A4A;\n  --navy-light: #2A3F6E;\n  \n  /* Gold Palette (10% Accent) */\n  --gold: #C9A84C;\n  --gold-light: #D4B96A;\n  --gold-dark: #B8942E;\n  --gold-bg: #FDF8EE;\n  --gold-rgb: 201, 168, 76;\n  \n  /* Gray Palette (30%) */\n  --gray-dark: #555555;\n  --gray: #7A7A7A;\n  --gray-light: #B0B0B0;\n  --gray-bg: #E8E8E8;\n  --gray-surface: #F5F5F5;\n  \n  /* Section Colors */\n  --section-nd-bg: #D0ECEE;\n  --section-nd-border: #4AADAD;\n  --section-ecourt-bg: #D5E2F2;\n  --section-ecourt-border: #87c1ff;\n  --section-manual-bg: #F8EDD5;\n  --section-manual-border: #C9A84C;\n  --section-csv-bg: #E9F4E3;\n  --section-csv-border: #6FBF4A;\n  \n  /* Spacing */\n  --spacing-xs: 4px;\n  --spacing-sm: 8px;\n  --spacing-md: 12px;\n  --spacing-lg: 16px;\n  --spacing-xl: 20px;\n  --spacing-2xl: 24px;\n  --spacing-3xl: 32px;\n  \n  /* Border Radius */\n  --radius-sm: 6px;\n  --radius-md: 8px;\n  --radius-lg: 12px;\n  --radius-xl: 16px;\n  --radius-full: 9999px;\n  \n  /* Shadows */\n  --shadow-sm: 0 1px 3px rgba(13, 27, 54, 0.06);\n  --shadow-md: 0 4px 12px rgba(13, 27, 54, 0.08);\n  --shadow-lg: 0 8px 24px rgba(13, 27, 54, 0.12);\n  --shadow-xl: 0 12px 32px rgba(13, 27, 54, 0.16);\n  \n  /* Transitions */\n  --transition-fast: 150ms ease;\n  --transition-base: 200ms ease;\n  --transition-slow: 300ms ease;\n  \n  /* Typography */\n  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n  --font-size-xs: 10px;\n  --font-size-sm: 12px;\n  --font-size-base: 14px;\n  --font-size-lg: 16px;\n  --font-size-xl: 18px;\n  --font-size-2xl: 22px;\n  --font-weight-normal: 400;\n  --font-weight-medium: 500;\n  --font-weight-semibold: 600;\n  --font-weight-bold: 700;\n}\n\n/* ============================================\n   BASE STYLES\n   ============================================ */\n*,\n*::before,\n*::after {\n  box-sizing: border-box;\n}\n\nbody {\n  margin: 0;\n  padding: 0;\n  background:\n    radial-gradient(circle at 20% 20%, rgba(var(--gold-rgb), 0.06), transparent 30%),\n    radial-gradient(circle at 80% 70%, rgba(13, 27, 54, 0.05), transparent 35%),\n    var(--gray-surface);\n  background-size: 200% 200%;\n  animation: floatBlob 40s ease-in-out infinite alternate,\n             floatBlob 50s ease-in-out infinite alternate-reverse;\n  font-family: var(--font-family);\n  min-height: 100vh;\n  color: var(--navy);\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale;\n}\n\n/* ============================================\n   TYPOGRAPHY\n   ============================================ */\n.text-navy { color: var(--navy) !important; }\n.text-navy-dark { color: var(--navy-dark) !important; }\n.text-gold { color: var(--gold) !important; }\n.text-gray { color: var(--gray) !important; }\n.text-gray-dark { color: var(--gray-dark) !important; }\n.text-gray-light { color: var(--gray-light) !important; }\n\n.font-serif { font-family: Georgia, 'Times New Roman', serif; }\n.font-mono { font-family: 'Courier New', monospace; }\n\n.fw-medium { font-weight: var(--font-weight-medium) !important; }\n.fw-semibold { font-weight: var(--font-weight-semibold) !important; }\n\n.text-xs { font-size: var(--font-size-xs); }\n.text-sm { font-size: var(--font-size-sm); }\n.text-base { font-size: var(--font-size-base); }\n.text-lg { font-size: var(--font-size-lg); }\n\n/* ============================================\n   BACKGROUNDS\n   ============================================ */\n.bg-navy { background: var(--navy) !important; }\n.bg-navy-dark { background: var(--navy-dark) !important; }\n.bg-navy-gradient {\n  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 100%) !important;\n}\n.bg-gold { background: var(--gold) !important; }\n.bg-gold-light { background: var(--gold-bg) !important; }\n.bg-gray-surface { background: var(--gray-surface) !important; }\n.bg-white { background: #ffffff !important; }\n\n/* ============================================\n   BORDERS\n   ============================================ */\n.border-navy { border-color: var(--navy) !important; }\n.border-gold { border-color: var(--gold) !important; }\n.border-gray { border-color: var(--gray-light) !important; }\n.border-gray-light { border-color: var(--gray-bg) !important; }\n\n.border-2 { border-width: 2px !important; }\n.border-3 { border-width: 3px !important; }\n\n.border-bottom-gold {\n  border-bottom: 3px solid var(--gold) !important;\n}\n\n/* ============================================\n   BORDER RADIUS\n   ============================================ */\n.rounded-md { border-radius: var(--radius-md) !important; }\n.rounded-lg { border-radius: var(--radius-lg) !important; }\n.rounded-xl { border-radius: var(--radius-xl) !important; }\n.rounded-full { border-radius: var(--radius-full) !important; }\n\n/* ============================================\n   SHADOWS\n   ============================================ */\n.shadow-sm { box-shadow: var(--shadow-sm) !important; }\n.shadow-md { box-shadow: var(--shadow-md) !important; }\n.shadow-lg { box-shadow: var(--shadow-lg) !important; }\n.shadow-xl { box-shadow: var(--shadow-xl) !important; }\n\n.shadow-hover {\n  transition: box-shadow var(--transition-base), transform var(--transition-base);\n}\n.shadow-hover:hover {\n  box-shadow: var(--shadow-lg);\n  transform: translateY(-1px);\n}\n\n/* ============================================\n   CARDS (Bootstrap Extension)\n   ============================================ */\n.card-premium {\n  background: #fff;\n  border: 1px solid var(--gray-bg);\n  border-radius: var(--radius-lg);\n  box-shadow: var(--shadow-sm);\n  transition: box-shadow var(--transition-base);\n  overflow: hidden;\n}\n.card-premium:hover {\n  box-shadow: var(--shadow-md);\n}\n\n.card-premium .card-header-premium {\n  background: var(--navy);\n  color: var(--gold);\n  padding: var(--spacing-lg);\n  border-bottom: 3px solid var(--gold);\n  font-weight: var(--font-weight-bold);\n  font-size: var(--font-size-base);\n  display: flex;\n  align-items: center;\n  gap: var(--spacing-sm);\n}\n\n/* ============================================\n   BUTTONS (Bootstrap Extension)\n   ============================================ */\n.btn-premium {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  gap: var(--spacing-xs);\n  padding: 10px 24px;\n  border-radius: var(--radius-md);\n  font-weight: var(--font-weight-semibold);\n  font-size: var(--font-size-base);\n  cursor: pointer;\n  transition: all var(--transition-base);\n  border: 2px solid transparent;\n  position: relative;\n  overflow: hidden;\n}\n\n.btn-premium-primary {\n  background: linear-gradient(135deg, var(--navy-dark), var(--navy));\n  color: var(--gold);\n  border-color: var(--gold);\n}\n.btn-premium-primary:hover {\n  background: var(--gold);\n  color: var(--navy-dark);\n  box-shadow: var(--shadow-md);\n  transform: translateY(-1px);\n}\n.btn-premium-primary:active {\n  transform: translateY(0);\n  box-shadow: var(--shadow-sm);\n}\n\n.btn-premium-secondary {\n  background: var(--gray-surface);\n  color: var(--gray-dark);\n  border-color: var(--gray-light);\n}\n.btn-premium-secondary:hover {\n  background: var(--gray-bg);\n  border-color: var(--gray);\n}\n\n.btn-premium-danger {\n  background: #dc3545;\n  color: #fff;\n  border-color: #dc3545;\n}\n.btn-premium-danger:hover {\n  background: #c82333;\n  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);\n}\n\n.btn-premium-sm {\n  padding: 6px 16px;\n  font-size: var(--font-size-sm);\n}\n\n.btn-premium-lg {\n  padding: 12px 32px;\n  font-size: var(--font-size-lg);\n}\n\n.btn-premium-icon {\n  width: 38px;\n  height: 38px;\n  padding: 0;\n  border-radius: var(--radius-full);\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  background: rgba(255, 255, 255, 0.08);\n  border: 1px solid rgba(var(--gold-rgb), 0.2);\n  color: #fff;\n  font-size: 18px;\n  transition: all var(--transition-base);\n}\n.btn-premium-icon:hover {\n  background: rgba(var(--gold-rgb), 0.25);\n  border-color: var(--gold);\n  transform: scale(1.1);\n}\n\n.btn-premium:disabled,\n.btn-premium.loading {\n  opacity: 0.6;\n  cursor: not-allowed;\n  pointer-events: none;\n}\n\n.btn-premium .spinner {\n  width: 16px;\n  height: 16px;\n  border: 2px solid currentColor;\n  border-top-color: transparent;\n  border-radius: 50%;\n  animation: spin 0.6s linear infinite;\n}\n\n/* ============================================\n   FORMS (Bootstrap Extension)\n   ============================================ */\n.form-control-premium {\n  width: 100%;\n  padding: 10px 14px;\n  border: 2px solid var(--gray-light);\n  border-radius: var(--radius-md);\n  font-size: var(--font-size-base);\n  font-family: var(--font-family);\n  color: var(--navy);\n  background: #fff;\n  transition: all var(--transition-base);\n  outline: none;\n}\n.form-control-premium:focus {\n  border-color: var(--gold);\n  box-shadow: 0 0 0 3px rgba(var(--gold-rgb), 0.15);\n}\n.form-control-premium::placeholder {\n  color: var(--gray-light);\n  opacity: 0.7;\n}\n.form-control-premium.is-invalid {\n  border-color: #dc3545;\n}\n.form-control-premium.is-invalid:focus {\n  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);\n}\n\n.form-select-premium {\n  width: 100%;\n  padding: 10px 14px;\n  border: 2px solid var(--gray-light);\n  border-radius: var(--radius-md);\n  font-size: var(--font-size-base);\n  font-family: var(--font-family);\n  color: var(--navy);\n  background: #fff;\n  transition: all var(--transition-base);\n  outline: none;\n  appearance: none;\n  background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237A7A7A' d='M6 8L1 3h10z'/%3E%3C/svg%3E\");\n  background-repeat: no-repeat;\n  background-position: right 12px center;\n  padding-right: 36px;\n}\n.form-select-premium:focus {\n  border-color: var(--gold);\n  box-shadow: 0 0 0 3px rgba(var(--gold-rgb), 0.15);\n}\n\n.form-label-premium {\n  font-weight: var(--font-weight-semibold);\n  font-size: var(--font-size-sm);\n  color: var(--gray-dark);\n  margin-bottom: 4px;\n  display: block;\n}\n\n.form-label-premium .required {\n  color: #dc3545;\n}\n\n.form-hint {\n  font-size: var(--font-size-xs);\n  color: var(--gray);\n  margin-top: 3px;\n  font-style: italic;\n}\n\n.form-group-premium {\n  margin-bottom: var(--spacing-md);\n}\n\n.form-row-premium {\n  display: flex;\n  gap: var(--spacing-md);\n}\n.form-row-premium > * {\n  flex: 1;\n}\n\n.form-hint {\n  font-size: 11px;\n  color: var(--gray);\n  margin-top: 4px;\n}\n\n/* Floating Label */\n.form-floating-premium {\n  position: relative;\n}\n.form-floating-premium .form-control-premium {\n  padding: 14px 14px 6px 14px;\n}\n.form-floating-premium label {\n  position: absolute;\n  top: 50%;\n  left: 14px;\n  transform: translateY(-50%);\n  font-size: var(--font-size-base);\n  color: var(--gray-light);\n  transition: all var(--transition-base);\n  pointer-events: none;\n}\n.form-floating-premium .form-control-premium:focus ~ label,\n.form-floating-premium .form-control-premium:not(:placeholder-shown) ~ label {\n  top: 8px;\n  font-size: 11px;\n  color: var(--navy);\n  font-weight: var(--font-weight-semibold);\n}\n\n/* ============================================\n   TABLES (Bootstrap Extension)\n   ============================================ */\n.table-premium {\n  width: 100%;\n  border-collapse: collapse;\n}\n.table-premium thead {\n  position: sticky;\n  top: 0;\n  z-index: 10;\n}\n.table-premium thead th {\n  background: var(--navy);\n  color: var(--gold);\n  font-size: var(--font-size-xs);\n  text-transform: uppercase;\n  letter-spacing: 0.6px;\n  padding: 14px 8px;\n  border: none;\n  white-space: nowrap;\n  text-align: center;\n  font-weight: var(--font-weight-bold);\n  border-bottom: 3px solid var(--gold);\n}\n.table-premium tbody td {\n  padding: 10px 8px;\n  font-size: var(--font-size-sm);\n  vertical-align: middle;\n  border-color: #eee;\n  text-align: center;\n  color: var(--gray-dark);\n  transition: background var(--transition-fast);\n}\n.table-premium tbody tr {\n  transition: background var(--transition-fast);\n}\n.table-premium tbody tr:hover {\n  background: var(--gold-bg);\n}\n.table-premium tbody tr:nth-child(even) {\n  background: #fafafa;\n}\n.table-premium tbody tr:nth-child(even):hover {\n  background: var(--gold-bg);\n}\n.table-premium tbody tr.row-selected {\n  background: var(--gold-bg);\n  border-left: 3px solid var(--gold);\n}\n\n.table-container-premium {\n  background: #fff;\n  border-radius: var(--radius-lg);\n  box-shadow: var(--shadow-sm);\n  overflow: hidden;\n  border: 1px solid var(--gray-bg);\n  margin: var(--spacing-lg);\n}\n\n.table-scroll-premium {\n  max-height: calc(100vh - 210px);\n  overflow-y: auto;\n  overflow-x: auto;\n}\n\n.table-scroll-premium table {\n  min-width: 1100px;\n}\n\n/* ============================================\n   SIDEBAR\n   ============================================ */\n.sidebar-overlay-premium {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  background: rgba(13, 27, 54, 0.6);\n  z-index: 10000;\n  opacity: 0;\n  visibility: hidden;\n  transition: opacity var(--transition-slow), visibility var(--transition-slow);\n  backdrop-filter: blur(2px);\n}\n.sidebar-overlay-premium.visible {\n  opacity: 1;\n  visibility: visible;\n}\n\n.sidebar-premium {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 260px;\n  height: 100%;\n  background: #fff;\n  z-index: 10001;\n  box-shadow: var(--shadow-xl);\n  transform: translateX(-100%);\n  transition: transform var(--transition-slow);\n  display: flex;\n  flex-direction: column;\n}\n.sidebar-premium.open {\n  transform: translateX(0);\n}\n\n.sidebar-premium .sidebar-header {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: var(--spacing-lg);\n  background: linear-gradient(135deg, var(--navy-dark), var(--navy));\n  border-bottom: 3px solid var(--gold);\n  color: #fff;\n}\n\n.sidebar-premium .sidebar-menu {\n  padding: var(--spacing-sm) 0;\n  flex: 1;\n  overflow-y: auto;\n}\n\n.sidebar-premium .sidebar-item {\n  display: flex;\n  align-items: center;\n  gap: var(--spacing-md);\n  padding: var(--spacing-md) var(--spacing-lg);\n  font-size: var(--font-size-base);\n  color: var(--gray-dark);\n  cursor: pointer;\n  transition: all var(--transition-fast);\n  text-decoration: none;\n  border-bottom: 1px solid var(--gray-bg);\n  position: relative;\n}\n.sidebar-premium .sidebar-item:hover {\n  background: var(--gold-bg);\n  color: var(--navy);\n}\n.sidebar-premium .sidebar-item.active {\n  background: var(--gold-bg);\n  color: var(--navy);\n  border-left: 3px solid var(--gold);\n  font-weight: var(--font-weight-semibold);\n}\n.sidebar-premium .sidebar-item i {\n  font-size: var(--font-size-lg);\n  width: 20px;\n  text-align: center;\n  color: var(--navy);\n  transition: transform var(--transition-fast);\n}\n.sidebar-premium .sidebar-item:hover i {\n  transform: translateX(2px);\n}\n\n/* ============================================\n   MODALS (Bootstrap Extension)\n   ============================================ */\n.modal-premium .modal-content {\n  border: 3px solid var(--navy);\n  border-radius: var(--radius-lg);\n  overflow: hidden;\n  box-shadow: var(--shadow-xl);\n}\n\n.modal-premium .modal-header {\n  background: linear-gradient(135deg, var(--navy-dark), var(--navy));\n  color: var(--gold);\n  padding: var(--spacing-lg);\n  border-bottom: 3px solid var(--gold);\n}\n\n.modal-premium .modal-body {\n  padding: 0;\n  overflow-y: auto;\n}\n\n.modal-premium .modal-footer {\n  padding: var(--spacing-lg);\n  border-top: 2px solid var(--gray-bg);\n  display: flex;\n  justify-content: flex-end;\n  gap: var(--spacing-sm);\n}\n\n.modal-backdrop-premium {\n  backdrop-filter: blur(4px);\n}\n\n/* ============================================\n   HEADER / NAVBAR\n   ============================================ */\n.header-premium {\n  position: sticky;\n  top: 0;\n  z-index: 9999;\n  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 100%);\n  height: 64px;\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 var(--spacing-xl);\n  box-shadow: var(--shadow-lg);\n  border-bottom: 3px solid var(--gold);\n}\n\n.header-premium .header-title {\n  font-size: var(--font-size-2xl);\n  font-weight: var(--font-weight-bold);\n  color: #fff;\n  display: flex;\n  align-items: center;\n  gap: var(--spacing-sm);\n  font-family: Georgia, 'Times New Roman', serif;\n  letter-spacing: 0.5px;\n}\n\n.header-premium .header-title .icon {\n  font-size: 26px;\n  color: var(--gold);\n}\n\n.header-premium .header-actions {\n  display: flex;\n  gap: var(--spacing-sm);\n}\n\n/* ============================================\n   SUMMARY BAR\n   ============================================ */\n.summary-bar-premium {\n  background: #fff;\n  padding: var(--spacing-md) var(--spacing-lg);\n  display: flex;\n  align-items: center;\n  flex-wrap: wrap;\n  gap: var(--spacing-sm) var(--spacing-lg);\n  border-bottom: 1px solid var(--gray-bg);\n  box-shadow: var(--shadow-sm);\n}\n\n/* ============================================\n   BADGES\n   ============================================ */\n.badge-premium {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  padding: 5px 14px;\n  border-radius: var(--radius-full);\n  font-weight: var(--font-weight-bold);\n  font-size: var(--font-size-sm);\n  white-space: nowrap;\n}\n\n.badge-premium-navy {\n  background: var(--navy);\n  color: var(--gold);\n  border: 1px solid rgba(var(--gold-rgb), 0.4);\n}\n\n.badge-premium-gold {\n  background: var(--gold);\n  color: var(--navy-dark);\n  font-weight: var(--font-weight-bold);\n}\n\n.badge-premium-outline {\n  background: transparent;\n  border: 1px solid currentColor;\n}\n\n/* ============================================\n   SCROLLBAR\n   ============================================ */\n::-webkit-scrollbar {\n  width: 8px;\n  height: 8px;\n}\n::-webkit-scrollbar-track {\n  background: var(--gray-surface);\n  border-radius: 4px;\n}\n::-webkit-scrollbar-thumb {\n  background: var(--navy);\n  border-radius: 4px;\n}\n::-webkit-scrollbar-thumb:hover {\n  background: var(--navy-dark);\n}\n\n/* ============================================\n   ANIMATIONS\n   ============================================ */\n@keyframes fadeIn {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}\n@keyframes fadeInUp {\n  from { opacity: 0; transform: translateY(8px); }\n  to { opacity: 1; transform: translateY(0); }\n}\n@keyframes fadeInDown {\n  from { opacity: 0; transform: translateY(-8px); }\n  to { opacity: 1; transform: translateY(0); }\n}\n@keyframes slideInLeft {\n  from { transform: translateX(-100%); }\n  to { transform: translateX(0); }\n}\n@keyframes slideInRight {\n  from { transform: translateX(100%); }\n  to { transform: translateX(0); }\n}\n@keyframes scaleIn {\n  from { opacity: 0; transform: scale(0.95); }\n  to { opacity: 1; transform: scale(1); }\n}\n@keyframes spin {\n  to { transform: rotate(360deg); }\n}\n@keyframes shimmer {\n  0% { background-position: -200px 0; }\n  100% { background-position: 200px 0; }\n}\n@keyframes floatBlob {\n  0%   { background-position: 0% 0%, 100% 100%; }\n  50%  { background-position: 100% 100%, 0% 0%; }\n  100% { background-position: 0% 0%, 100% 100%; }\n}\n\n.animate-fade-in { animation: fadeIn var(--transition-slow) ease; }\n.animate-fade-in-up { animation: fadeInUp var(--transition-slow) ease; }\n.animate-scale-in { animation: scaleIn var(--transition-base) ease; }\n.animate-slide-in-left { animation: slideInLeft var(--transition-slow) ease; }\n\n/* Skeleton Loading */\n.skeleton {\n  background: linear-gradient(90deg, var(--gray-bg) 25%, var(--gray-surface) 50%, var(--gray-bg) 75%);\n  background-size: 200px 100%;\n  animation: shimmer 1.5s infinite;\n  border-radius: var(--radius-sm);\n}\n\n/* Reduced Motion */\n@media (prefers-reduced-motion: reduce) {\n  *,\n  *::before,\n  *::after {\n    animation-duration: 0.01ms !important;\n    animation-iteration-count: 1 !important;\n    transition-duration: 0.01ms !important;\n  }\n}\n\n/* Column visibility dropdowns */\n.col-vis-panel {\n  position: absolute;\n  right: 0;\n  top: 100%;\n  margin-top: 6px;\n  background: #fff;\n  border: 2px solid var(--navy);\n  border-top: 3px solid var(--gold);\n  border-radius: var(--radius-lg);\n  padding: var(--spacing-md);\n  box-shadow: var(--shadow-xl);\n  z-index: 1000;\n  max-width: calc(100vw - 16px);\n  max-height: min(75vh, 560px);\n  overflow-y: auto;\n  overflow-x: hidden;\n  -webkit-overflow-scrolling: touch;\n}\n.print-col-vis-panel  { width: 320px; }\n.screen-col-vis-panel { min-width: 200px; }\n\n/* ============================================\n   RESPONSIVE\n   ============================================ */\n@media (max-width: 600px) {\n  .header-premium {\n    height: auto;\n    min-height: 52px;\n    padding: 6px 12px;\n  }\n  .header-premium .header-title {\n    font-size: var(--font-size-lg);\n    gap: 6px;\n  }\n  \n  .form-row-premium {\n    flex-direction: column;\n    gap: var(--spacing-sm);\n  }\n  \n  .summary-bar-premium {\n    padding: var(--spacing-sm) var(--spacing-md);\n    flex-direction: column;\n    align-items: stretch;\n    gap: var(--spacing-sm);\n  }\n  \n  .table-container-premium {\n    margin: var(--spacing-sm);\n    border-radius: var(--radius-md);\n  }\n  .cs-radio-label {\n    flex: 1;\n    justify-content: center;\n    font-size: 11px;\n    padding: 6px 10px;\n  }\n  \n  .col-vis-panel {\n    position: fixed;\n    left: 8px;\n    right: 8px;\n    top: 10vh;\n    bottom: 8px;\n    margin-top: 0;\n    width: auto;\n    min-width: 0;\n    max-width: none;\n    max-height: 80vh;\n    z-index: 10050;\n  }\n}\n\n/* ============================================\n   PRINT STYLES\n   ============================================ */\n@media print {\n  body { background: #fff; }\n  .header-premium {\n    background: var(--navy) !important;\n    -webkit-print-color-adjust: exact;\n    print-color-adjust: exact;\n  }\n  .btn-premium-icon { display: none !important; }\n  .table-container-premium {\n    max-height: none;\n    overflow: visible;\n    box-shadow: none;\n    margin: 0;\n    border-radius: 0;\n    border: none;\n  }\n  @page { margin: 8mm; }\n}\n\n/* ============================================\n   UTILITY CLASSES\n   ============================================ */\n.gap-xs { gap: var(--spacing-xs); }\n.gap-sm { gap: var(--spacing-sm); }\n.gap-md { gap: var(--spacing-md); }\n.gap-lg { gap: var(--spacing-lg); }\n\n.truncate {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.cursor-pointer { cursor: pointer; }\n.select-none { user-select: none; }\n\n.opacity-0 { opacity: 0; }\n.opacity-50 { opacity: 0.5; }\n.opacity-100 { opacity: 1; }\n\n.transition-all { transition: all var(--transition-base); }\n.transition-transform { transition: transform var(--transition-base); }\n\n@keyframes cs-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }\n\n.transition-opacity { transition: opacity var(--transition-base); }\n\n/* ============================================\n   RADIO OPTION CARDS\n   ============================================ */\n.cs-radio-label {\n  display: inline-flex;\n  align-items: center;\n  gap: 8px;\n  padding: 8px 16px;\n  border-radius: var(--radius-md);\n  border: 2px solid var(--gray-bg);\n  cursor: pointer;\n  transition: all var(--transition-base);\n  font-size: var(--font-size-sm);\n  color: var(--gray-dark);\n  user-select: none;\n  background: #fff;\n}\n.cs-radio-label:hover {\n  border-color: var(--gold);\n  background: var(--gold-bg);\n  box-shadow: 0 2px 8px rgba(var(--gold-rgb), 0.15);\n  transform: translateY(-1px);\}\n.cs-radio-label.cs-active-ecourt {\n  border-color: var(--section-ecourt-border);\n  background: var(--section-ecourt-bg);\n  box-shadow: 0 2px 8px rgba(94, 138, 184, 0.2);\n}\n.cs-radio-label.cs-active-manual {\n  border-color: var(--section-manual-border);\n  background: var(--section-manual-bg);\n  box-shadow: 0 2px 8px rgba(201, 168, 76, 0.2);\n}\n.cs-radio-label.cs-active-csv {\n  border-color: var(--section-csv-border);\n  background: var(--section-csv-bg);\n  box-shadow: 0 2px 8px rgba(111, 191, 74, 0.2);\n}\n.cs-radio-label input[type=radio] {\n  accent-color: var(--gold);\n  margin: 0;\n}\n\n/* ============================================\n   SEARCHABLE CASE TYPE\n   ============================================ */\n.cs-type-custom {\n  font-size: var(--font-size-xs);\n  color: #dc3545;\n  margin-top: 4px;\n  font-style: italic;\n  padding: 3px 8px;\n  background: rgba(220, 53, 69, 0.06);\n  border-radius: var(--radius-sm);\n  border-left: 3px solid #dc3545;\n}\n.cs-type-custom::before {\n  content: '\\u201C';\n  font-weight: bold;\n  font-size: 14px;\n}\n.cs-type-custom::after {\n  content: '\\u201D';\n  font-weight: bold;\n  font-size: 14px;\n}\n";
+
+function getClosedRowColor() {
+ var cfg = (window[my1uzr.worknOnPg] || {}).clientConfig || {};
+ var c = String(cfg.closedCaseColor || "").trim();
+ return /^#[0-9a-f]{3,8}$/i.test(c) ? c : "#9EADBF";
+}
+
+function injectCsStyles() {
+ var st = document.createElement("style");
+ st.id = "cs-custom-styles";
+ st.innerHTML = appcss;
+ document.head.appendChild(st);
+ var stCs91 = document.createElement("style");
+ stCs91.id = "cs-cs91-styles";
+ var closedColor = getClosedRowColor();
+ stCs91.innerHTML =
+  "tr.cs91-date-row{background:#D5E2F2!important;}" +
+  "tr.cs91-date-row:hover{background:#C4D6EC!important;}" +
+  "tr.row-closed,tr.cs91-date-row.row-closed{background:" + closedColor + "!important;}" +
+  "tr.row-closed>td,tr.cs91-date-row.row-closed>td{background-color:" + closedColor + "!important;}" +
+  "tr.row-closed:hover,tr.cs91-date-row.row-closed:hover{background:" + closedColor + "!important;}" +
+  "tr.row-closed:hover>td,tr.cs91-date-row.row-closed:hover>td{background-color:" + closedColor + "!important;}" +
+  ".db-date-badge{display:inline-block;padding:1px 5px;border-radius:3px;font-size:10px;margin:0 1px;white-space:nowrap;}" +
+  ".db-date-primary{background:#FDF8EE;border:1px solid #C9A84C;color:#1B2A4A;}" +
+  ".db-date-prev{background:#FDE8E8;border:1px solid #E57373;color:#C62828;}" +
+  ".db-date-next{background:#E8F5E9;border:1px solid #81C784;color:#2E7D32;}" +
+  "tr.adv-label-row td{background:#FDF8EE;color:#1B2A4A;font-weight:700;font-size:11px;letter-spacing:.5px;text-transform:uppercase;padding:6px 8px;border-top:2px solid #C9A84C;border-bottom:1px solid #C9A84C;text-align:left;}";
+ document.head.appendChild(stCs91);
+}
+
+var currentView = "home";
+
+var sidebarItems = [
+ { act: "addNew", lb: "Add New Case", ic: "fa-plus-circle", mod: "addNew" },
+ { act: "allCases", lb: "All Cases", ic: "fa-list-ul", mod: "allCases" },
+ { act: "checkNewData", lb: "Check New Data", ic: "fa-sync-alt", mod: "checkNewData" },
+ { act: "settings", lb: "Settings", ic: "fa-cog", mod: "settings" },
+];
+
+function isModuleAllowed(code) {
+ var mods =
+  (window[my1uzr] &&
+   window[my1uzr.worknOnPg] &&
+   window[my1uzr.worknOnPg].allowedModulesMenuItems) ||
+  [];
+ if (!mods.length) return true;
+ return mods.some(function (m) {
+  return String(m.d || "").toLowerCase() === String(code).toLowerCase();
+ });
+}
+
+// Fail-closed cache of the function codes present in IndexedDB table "f" (column "h").
+// Used to gate features by exact permission code (e.g. 119).
+var _usFnPermSet = null; // null = not loaded yet
+async function loadUsFnPerms() {
+ try {
+  var rows = await dbDexieManager.getAllRecords(dbnm, "f");
+  var set = {};
+  for (var i = 0; i < rows.length; i++) set[String(rows[i].h)] = true;
+  _usFnPermSet = set;
+ } catch (e) {
+  _usFnPermSet = {};
+ }
+ return _usFnPermSet;
+}
+function usHasFnPerm(code) {
+ if (!_usFnPermSet) return false; // not loaded -> deny
+ return !!_usFnPermSet[String(code)];
+}
+window.loadUsFnPerms = loadUsFnPerms;
+window.usHasFnPerm = usHasFnPerm;
+
+function toggleSidebar() {
+ var sidebar = document.getElementById("appSidebar");
+ var overlay = document.getElementById("sidebarOverlay");
+ if (sidebar) sidebar.classList.toggle("open");
+ if (overlay) overlay.classList.toggle("visible");
+}
+window.toggleSidebar = toggleSidebar;
+
+function renderSidebarMenu() {
+ var nav = document.querySelector("#appSidebar .sidebar-menu");
+ if (!nav) return;
+ nav.innerHTML = sidebarItems
+  .filter(function (it) {
+   return isModuleAllowed(it.mod);
+  })
+  .map(function (it) {
+   return (
+    '<a class="sidebar-item" onclick="handleMenuAction(\'' +
+    it.act +
+    '\')" role="button"><i class="fas ' +
+    it.ic +
+    '"></i> ' +
+    it.lb +
+    "</a>"
+   );
+  })
+  .join("");
+}
+
+async function recomputeAllowedModules() {
+ await loadUsFnPerms();
+ var hook = window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg][moduLst.hook];
+ var existing = window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].allowedModulesMenuItems;
+ var missing =
+  typeof existing === "undefined" ||
+  existing === null ||
+  existing === "" ||
+  (Array.isArray(existing) && existing.length === 0);
+ if (typeof hook === "function" && missing) {
+  try {
+   var permitted = await chkModuLstAgainstFNF(moduLst);
+   hook(permitted);
+  } catch (e) {
+   console.warn("failed to resolve allowed modules menu items", e);
+  }
+ }
+}
+
+async function openAdminFromMenu(action) {
+ window._skipSidebarOnMenu = true;
+ await handleMenuAction(action);
+}
+
+function getHeaderTitle() {
+ if (currentView === "allCases") {
+  return '<span class="icon" style="cursor:pointer;" onclick="showHome()">&#x2190;</span> All Cases';
+ }
+ return (
+  '<span class="icon" style="cursor:pointer;" onclick="(async () => { await loadExe2Fn(8, [\'dv_to_set_open_my1ctr_processed\', 0, 1, 2, 0], [1]); })()" title="Open My Court">&#x2696;</span>' + (window.shopName || "CS")
+ );
+}
+
+var defaultVisibleCols = {
+ sr: true,
+ menu: true,
+ pdate: true,
+ court: true,
+ adv: true,
+ brief: true,
+ caseType: true,
+ caseNo: true,
+ stg: true,
+ ndate: true,
+ filer: true,
+ answerer: true,
+ edit: true,
+ del: true,
+};
+var CS_COLS_PREF_V = 2;
+function loadVisibleCols() {
+ var stored = null;
+ try {
+  stored = JSON.parse(localStorage.getItem("cs_visibleCols") || "null");
+ } catch (e) {
+  stored = null;
+ }
+ if (!stored || stored.v !== CS_COLS_PREF_V || !stored.cols) {
+  stored = { cols: {} };
+ }
+ var cols = {};
+ for (var k in defaultVisibleCols) {
+  cols[k] = stored.cols[k] !== false;
+ }
+ return cols;
+}
+function saveVisibleCols() {
+ localStorage.setItem(
+  "cs_visibleCols",
+  JSON.stringify({ v: CS_COLS_PREF_V, cols: visibleCols }),
+ );
+}
+var visibleCols = loadVisibleCols();
+function isColVisible(id) {
+ return visibleCols[id] !== false;
+}
+function toggleCol(id) {
+ visibleCols[id] = !isColVisible(id);
+ saveVisibleCols();
+ renderTable();
+}
+
+var defaultPrintCols = {
+ sr: true,
+ pdate: true,
+ court: true,
+ adv: true,
+ brief: true,
+ caseType: true,
+ caseNo: true,
+ stg: true,
+ ndate: true,
+ filer: true,
+ answerer: true,
+};
+var CS_PRINT_COLS_PREF_V = 2;
+// Web-safe font options for the print column font selector (no CDN needed).
+var CS_PRINT_FONT_OPTIONS = [
+ { v: "", l: "Default (Inter)" },
+ { v: "Arial, Helvetica, sans-serif", l: "Arial" },
+ { v: "Helvetica, Arial, sans-serif", l: "Helvetica" },
+ { v: "Georgia, serif", l: "Georgia" },
+ { v: '"Times New Roman", Times, serif', l: "Times New Roman" },
+ { v: '"Courier New", Courier, monospace', l: "Courier New" },
+ { v: "Verdana, Geneva, sans-serif", l: "Verdana" },
+ { v: "Tahoma, Geneva, sans-serif", l: "Tahoma" },
+ { v: '"Segoe UI", Tahoma, sans-serif', l: "Segoe UI" },
+ { v: '"Trebuchet MS", Helvetica, sans-serif', l: "Trebuchet MS" },
+ { v: "Garamond, Georgia, serif", l: "Garamond" },
+ { v: "serif", l: "serif" },
+ { v: "sans-serif", l: "sans-serif" },
+ { v: "monospace", l: "monospace" },
+];
+var CS_PRINT_COL_LABELS = {
+ sr: "ID",
+ pdate: "PDate",
+ court: "Court",
+ adv: "Adv",
+ brief: "Brief",
+ caseType: "Case Type",
+ caseNo: "Case No.",
+ stg: "STG",
+ ndate: "NDate",
+ filer: "Filer",
+ answerer: "Answerer",
+};
+function defaultPrintColCfg() {
+ var cfg = {};
+ for (var k in defaultPrintCols) cfg[k] = { w: 0, ff: "", fs: 0, hide: false };
+ return cfg;
+}
+function clampPrintColWidth(v) {
+ var n = parseFloat(v);
+ if (!isFinite(n) || n <= 0) return 0;
+ if (n > 100) n = 100;
+ return Math.round(n * 100) / 100;
+}
+function clampPrintColSize(v) {
+ var n = parseFloat(v);
+ if (!isFinite(n) || n <= 0) return 0;
+ if (n < 6) n = 6;
+ if (n > 24) n = 24;
+ return Math.round(n * 10) / 10;
+}
+function normPrintColFont(v) {
+ var s = String(v == null ? "" : v);
+ for (var i = 0; i < CS_PRINT_FONT_OPTIONS.length; i++) {
+  if (CS_PRINT_FONT_OPTIONS[i].v === s) return s;
+ }
+ return "";
+}
+function loadPrintCols() {
+ var stored = null;
+ try {
+  stored = JSON.parse(localStorage.getItem("cs_printCols") || "null");
+ } catch (e) {
+  stored = null;
+ }
+ if (!stored || !stored.cols) stored = { cols: {} };
+ var cols = {};
+ for (var k in defaultPrintCols) {
+  cols[k] = stored.cols[k] !== false;
+ }
+ return cols;
+}
+function loadPrintColCfg() {
+ var stored = null;
+ try {
+  stored = JSON.parse(localStorage.getItem("cs_printCols") || "null");
+ } catch (e) {
+  stored = null;
+ }
+ var saved = (stored && stored.cfg) || {};
+ var cfg = defaultPrintColCfg();
+ for (var k in cfg) {
+  var s = saved[k];
+  if (!s || typeof s !== "object") continue;
+  cfg[k].w = clampPrintColWidth(s.w);
+  cfg[k].ff = normPrintColFont(s.ff);
+  cfg[k].fs = clampPrintColSize(s.fs);
+  cfg[k].hide = !!s.hide;
+ }
+ return cfg;
+}
+function savePrintCols() {
+ localStorage.setItem(
+  "cs_printCols",
+  JSON.stringify({
+   v: CS_PRINT_COLS_PREF_V,
+   cols: printVisibleCols,
+   cfg: printColSettings,
+  }),
+ );
+}
+var printVisibleCols = loadPrintCols();
+var printColSettings = loadPrintColCfg();
+function isPrintColVisible(id) {
+ return printVisibleCols[id] !== false;
+}
+function togglePrintCol(id) {
+ printVisibleCols[id] = !isPrintColVisible(id);
+ savePrintCols();
+ renderPrintColVisPanel();
+}
+function getPrintColSettings(id) {
+ return printColSettings[id] || { w: 0, ff: "", fs: 0, hide: false };
+}
+function setPrintColWidth(id, v) {
+ if (!printColSettings[id]) return;
+ printColSettings[id].w = clampPrintColWidth(v);
+ savePrintCols();
+}
+function setPrintColHide(id, v) {
+ if (!printColSettings[id]) return;
+ printColSettings[id].hide = !!v;
+ savePrintCols();
+}
+function setPrintColFont(id, family, size) {
+ if (!printColSettings[id]) return;
+ printColSettings[id].ff = normPrintColFont(family);
+ if (size !== undefined) printColSettings[id].fs = clampPrintColSize(size);
+ savePrintCols();
+}
+function resetPrintColSettings() {
+ printColSettings = defaultPrintColCfg();
+ for (var k in defaultPrintCols) printVisibleCols[k] = true;
+ savePrintCols();
+ renderPrintColVisPanel();
+}
+function printColVisRowsHtml() {
+ var rows = "";
+ for (var k in defaultPrintCols) {
+  var s = getPrintColSettings(k);
+  var opts = CS_PRINT_FONT_OPTIONS.map(function (o) {
+   return (
+    '<option value="' +
+    escHtml(o.v) +
+    '"' +
+    (o.v === s.ff ? " selected" : "") +
+    ">" +
+    escHtml(o.l) +
+    "</option>"
+   );
+  }).join("");
+  rows +=
+   '<div style="padding:6px;border-bottom:1px solid #f0f0f0;">' +
+   '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:600;color:var(--navy);">' +
+   '<input type="checkbox" ' +
+   (isPrintColVisible(k) ? "checked" : "") +
+   " onchange=\"togglePrintCol('" +
+   k +
+   "')\">" +
+   escHtml(CS_PRINT_COL_LABELS[k] || k) +
+   "</label>" +
+   '<div style="display:flex;align-items:center;gap:6px;margin:4px 0 0 22px;flex-wrap:wrap;">' +
+   '<span style="font-size:11px;color:var(--gray);">Width</span>' +
+   '<input type="number" min="0" max="100" step="0.5" value="' +
+   (s.w || "") +
+   '" placeholder="auto" onchange="setPrintColWidth(\'' +
+   k +
+   '\', this.value)" style="width:54px;padding:2px 4px;border:1px solid var(--gray-light);border-radius:4px;font-size:12px;">' +
+   '<span style="font-size:11px;color:var(--gray);">%</span>' +
+   '<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--gray-dark);cursor:pointer;">' +
+   '<input type="checkbox" ' +
+   (s.hide ? "checked" : "") +
+   " onchange=\"setPrintColHide('" +
+   k +
+   "', this.checked)\">Hide extra text</label>" +
+   "</div>" +
+   '<div style="display:flex;align-items:center;gap:6px;margin:4px 0 0 22px;flex-wrap:wrap;">' +
+   '<span style="font-size:11px;color:var(--gray);">Font</span>' +
+   '<select onchange="setPrintColFont(\'' +
+   k +
+   '\', this.value, getPrintColSettings(\'' +
+   k +
+   '\').fs)" style="padding:2px 4px;border:1px solid var(--gray-light);border-radius:4px;font-size:12px;max-width:150px;">' +
+   opts +
+   "</select>" +
+   '<span style="font-size:11px;color:var(--gray);">Size</span>' +
+   '<input type="number" min="0" max="24" step="0.5" value="' +
+   (s.fs || "") +
+   '" placeholder="auto" onchange="setPrintColFont(\'' +
+   k +
+   '\', getPrintColSettings(\'' +
+   k +
+   '\').ff, this.value)" style="width:50px;padding:2px 4px;border:1px solid var(--gray-light);border-radius:4px;font-size:12px;">' +
+   '<span style="font-size:11px;color:var(--gray);">px</span>' +
+   "</div>" +
+   "</div>";
+ }
+ return rows;
+}
+function printColVisPanelInnerHtml() {
+ return (
+  '<div class="fw-bold text-navy" style="font-size:13px;border-bottom:1px solid #eee;padding-bottom:6px;display:flex;justify-content:space-between;align-items:center;">' +
+  '<span class="fs-5"><i class="fas fa-table-list me-1"></i>Changes will be shown on Print</span>' +
+  '<a href="javascript:void(0)" onclick="resetPrintColSettings()" style="font-size:11px;color:var(--gold-dark);">Reset</a>' +
+  "</div>" +
+  printColVisRowsHtml()
+ );
+}
+function renderPrintColVisPanel() {
+ var panel = document.getElementById("printColVisPanel");
+ if (panel) panel.innerHTML = printColVisPanelInnerHtml();
+}
+window.getPrintColSettings = getPrintColSettings;
+
+// cs.r indicator: 1 -> emphasize Filer cell, 2 -> emphasize Answerer cell.
+// dv is a display record (getCaseDisplayRecord result) whose .r mirrors the cs record's .r.
+function csCasePartyEmph(dv, which) {
+ var r = dv && dv.r != null ? String(dv.r).trim() : "";
+ if (which === "filer") return r === "1";
+ if (which === "answerer") return r === "2";
+ return false;
+}
+function csCasePartyEmphStyle(dv, which) {
+ return csCasePartyEmph(dv, which)
+  ? "font-weight:700;font-size:var(--font-size-base);"
+  : "";
+}
+window.csCasePartyEmph = csCasePartyEmph;
+window.csCasePartyEmphStyle = csCasePartyEmphStyle;
+
+function renderAppUI() {
+ var mainBody = document.getElementById("main_body");
+ if (!mainBody) return;
+ var today = getLocalToday();
+
+ mainBody.innerHTML =
+  '<header class="header-premium">' +
+  '<div class="header-title" id="headerTitle">' +
+  '<button class="btn-premium-icon" id="menuBtn" onclick="toggleSidebar()" aria-label="Open menu">' +
+  '<i class="fas fa-bars"></i>' +
+  "</button>" +
+  getHeaderTitle() +
+  "</div>" +
+  '<div class="header-actions">' +
+  '<div class="print-col-vis-dropdown" style="position:relative;display:inline-block;">' +
+  '<button class="btn-premium-icon" id="printColVisToggle" title="Print Columns" aria-label="Print Columns" onclick="togglePrintColVisPanel()">' +
+  '<i class="fas fa-table-list"></i>' +
+  "</button>" +
+  '<div id="printColVisPanel" class="col-vis-panel print-col-vis-panel" style="display:none;">' +
+  printColVisPanelInnerHtml() +
+  "</div>" +
+  "</div>" +
+  '<button class="btn-premium-icon" title="Print" onclick="printDashboard()" aria-label="Print">' +
+  '<i class="fas fa-print"></i>' +
+  "</button>" +
+  '<div class="col-vis-dropdown" style="position:relative;display:inline-block;">' +
+  '<button class="btn-premium-icon" id="colVisToggle" title="Toggle Columns" aria-label="Toggle Columns" onclick="toggleColVisPanel()">' +
+  '<i class="fas fa-columns"></i>' +
+  "</button>" +
+  '<div id="colVisPanel" class="col-vis-panel screen-col-vis-panel" style="display:none;">' +
+  '<div class="fw-bold mb-2 text-navy" style="font-size:13px;border-bottom:1px solid #eee;padding-bottom:6px;">Show/Hide Columns</div>' +
+  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
+  (isColVisible("sr") ? "checked" : "") +
+  ' onchange="toggleCol(\'sr\')" style="margin-right:6px;">ID</label>' +
+  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
+  (isColVisible("pdate") ? "checked" : "") +
+  ' onchange="toggleCol(\'pdate\')" style="margin-right:6px;">PDate</label>' +
+  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
+  (isColVisible("court") ? "checked" : "") +
+  ' onchange="toggleCol(\'court\')" style="margin-right:6px;">Court</label>' +
+  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
+  (isColVisible("adv") ? "checked" : "") +
+  ' onchange="toggleCol(\'adv\')" style="margin-right:6px;">Adv</label>' +
+  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
+  (isColVisible("brief") ? "checked" : "") +
+  ' onchange="toggleCol(\'brief\')" style="margin-right:6px;">Brief</label>' +
+  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
+  (isColVisible("caseType") ? "checked" : "") +
+  ' onchange="toggleCol(\'caseType\')" style="margin-right:6px;">Case Type</label>' +
+  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
+  (isColVisible("caseNo") ? "checked" : "") +
+  ' onchange="toggleCol(\'caseNo\')" style="margin-right:6px;">Case No.</label>' +
+  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
+  (isColVisible("stg") ? "checked" : "") +
+  ' onchange="toggleCol(\'stg\')" style="margin-right:6px;">STG</label>' +
+  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
+  (isColVisible("ndate") ? "checked" : "") +
+  ' onchange="toggleCol(\'ndate\')" style="margin-right:6px;">NDate</label>' +
+  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
+  (isColVisible("filer") ? "checked" : "") +
+  ' onchange="toggleCol(\'filer\')" style="margin-right:6px;">Filer</label>' +
+  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
+  (isColVisible("answerer") ? "checked" : "") +
+  ' onchange="toggleCol(\'answerer\')" style="margin-right:6px;">Answerer</label>' +
+  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
+  (isColVisible("menu") ? "checked" : "") +
+  ' onchange="toggleCol(\'menu\')" style="margin-right:6px;">Actions</label>' +
+  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
+  (isColVisible("edit") ? "checked" : "") +
+  ' onchange="toggleCol(\'edit\')" style="margin-right:6px;">Edit</label>' +
+  '<label style="display:block;padding:4px 6px;cursor:pointer;font-size:13px;"><input type="checkbox" ' +
+  (isColVisible("del") ? "checked" : "") +
+  ' onchange="toggleCol(\'del\')" style="margin-right:6px;">Del</label>' +
+  "</div>" +
+  "</div>" +
+  "</div>" +
+  "</header>" +
+  '<div id="sidebarOverlay" class="sidebar-overlay-premium" onclick="toggleSidebar()"></div>' +
+  '<aside id="appSidebar" class="sidebar-premium">' +
+  '<div class="sidebar-header">' +
+  '<span class="fw-bold"><i class="fas fa-bars me-2 text-gold"></i>Menu</span>' +
+  '<button class="btn-close btn-close-white" onclick="toggleSidebar()" aria-label="Close menu"></button>' +
+  "</div>" +
+  '<nav class="sidebar-menu">' +
+  sidebarItems
+   .filter(function (it) {
+    return isModuleAllowed(it.mod);
+   })
+   .map(function (it) {
+    return (
+     '<a class="sidebar-item" onclick="handleMenuAction(\'' +
+     it.act +
+     '\')" role="button"><i class="fas ' +
+     it.ic +
+     '"></i> ' +
+     it.lb +
+     "</a>"
+    );
+   })
+   .join("") +
+  "</nav>" +
+  "</aside>" +
+  '<div class="summary-bar-premium">' +
+  '<div class="d-flex align-items-center gap-md flex-grow-1">' +
+  '<span class="badge-premium badge-premium-navy" id="totalBadge">0</span>' +
+  '<input type="text" id="searchBox" class="form-control-premium" placeholder="Search cases..." style="flex:1; min-width:150px;">' +
+  "</div>" +
+  '<div class="d-flex align-items-center gap-sm mt-2 mt-md-0">' +
+  '<div class="form-group-premium mb-0">' +
+  '<label class="form-label-premium mb-1" for="dateFrom">From</label>' +
+  '<input type="date" id="dateFrom" value="' +
+  today +
+  '" class="form-control-premium" style="width:118px;min-width:0;">' +
+  "</div>" +
+  '<div class="form-group-premium mb-0">' +
+  '<label class="form-label-premium mb-1" for="dateTo">To</label>' +
+  '<input type="date" id="dateTo" value="" class="form-control-premium" style="width:118px;min-width:0;">' +
+  "</div>" +
+  '<div class="form-group-premium mb-0" style="position:relative;">' +
+  '<label class="form-label-premium mb-1">Adv</label>' +
+  '<button type="button" id="advFilterBtn" onclick="toggleAdvFilterMenu()" title="All Advocates" aria-label="Filter by advocate" class="form-control-premium" style="cursor:pointer;display:flex;align-items:center;justify-content:center;width:38px;height:38px;padding:0;background:#FFFFFF;border-width:1px;">' +
+  '<i class="fas fa-user-tie" style="color:var(--gold);"></i>' +
+  "</button>" +
+  '<div id="advFilterMenu" style="display:none;position:absolute;top:100%;right:0;z-index:1060;background:#FFFFFF;border:1px solid var(--gray-light);border-radius:8px;box-shadow:var(--shadow-lg);min-width:230px;max-height:260px;overflow-y:auto;margin-top:4px;"></div>' +
+  "</div>" +
+  "</div>" +
+  "</div>" +
+  '<div id="casesContainer" class="animate-fade-in-up"></div>' +
+  '<div id="rowActionsMenu" style="display:none;position:absolute;z-index:1080;background:#FFFFFF;border:1px solid var(--gray-light);border-radius:8px;box-shadow:var(--shadow-lg);min-width:212px;padding:4px 0;">' +
+  '<button type="button" onclick="handleRowAction(\'changeJuzeName\')" style="display:flex;width:100%;align-items:center;gap:10px;padding:9px 14px;background:none;border:none;text-align:left;font-size:13px;color:var(--gray-dark);cursor:pointer;" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="this.style.background=\'\'">' +
+  '<i class="fas fa-user-tie" style="color:var(--gold);width:14px;"></i>Change Judge name - only this case' +
+  "</button>" +
+  '<button type="button" onclick="handleRowAction(\'changeAllJuzesName\')" style="display:flex;width:100%;align-items:center;gap:10px;padding:9px 14px;background:none;border:none;text-align:left;font-size:13px;color:var(--gray-dark);cursor:pointer;" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="this.style.background=\'\'">' +
+  '<i class="fas fa-users" style="color:var(--gold);width:14px;"></i>Change Judge name - all cases' +
+  "</button>" +
+  '<button type="button" onclick="handleRowAction(\'setOurParty\')" style="display:flex;width:100%;align-items:center;gap:10px;padding:9px 14px;background:none;border:none;text-align:left;font-size:13px;color:var(--gray-dark);cursor:pointer;" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="this.style.background=\'\'">' +
+  '<i class="fas fa-user-check" style="color:var(--gold);width:14px;"></i>Set our party' +
+  "</button>" +
+  '<button type="button" id="rowActionRecheck" onclick="handleRowAction(\'recheckCase\')" style="display:none;width:100%;align-items:center;gap:10px;padding:9px 14px;background:none;border:none;text-align:left;font-size:13px;color:var(--gray-dark);cursor:pointer;" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="this.style.background=\'\'">' +
+  '<i class="fas fa-sync-alt" style="color:var(--gold);width:14px;"></i>re-check this case' +
+  "</button>" +
+  '<button type="button" id="rowActionViewDocs" onclick="handleRowAction(\'viewAttachedDocs\')" style="display:none;width:100%;align-items:center;gap:10px;padding:9px 14px;background:none;border:none;text-align:left;font-size:13px;color:var(--gray-dark);cursor:pointer;" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="this.style.background=\'\'">' +
+  '<i class="fas fa-paperclip" style="color:var(--gold);width:14px;"></i>View Attached Documents' +
+  "</button>" +
+  //   '<button type="button" onclick="" style="display:flex;width:100%;align-items:center;gap:10px;padding:9px 14px;background:none;border:none;text-align:left;font-size:13px;color:var(--gray-dark);cursor:pointer;" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="this.style.background=\'\'">' +
+  // '<i class="fas fa-users" style="color:var(--gold);width:14px;"></i>Transfer' +
+  // "</button>" +
+  //   '<button type="button" onclick="" style="display:flex;width:100%;align-items:center;gap:10px;padding:9px 14px;background:none;border:none;text-align:left;font-size:13px;color:var(--gray-dark);cursor:pointer;" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="this.style.background=\'\'">' +
+  // '<i class="fas fa-users" style="color:var(--gold);width:14px;"></i>Pull Serials' +
+  // "</button>" +
+  //   '<button type="button" onclick="" style="display:flex;width:100%;align-items:center;gap:10px;padding:9px 14px;background:none;border:none;text-align:left;font-size:13px;color:var(--gray-dark);cursor:pointer;" onmouseover="this.style.background=\'var(--gold-bg)\'" onmouseout="this.style.background=\'\'">' +
+  // '<i class="fas fa-users" style="color:var(--gold);width:14px;"></i>Attach Files' +
+  // "</button>" +
+  "</div>";
+
+ var searchInput = document.getElementById("searchBox");
+ if (searchInput) {
+  document.getElementById("dateFrom").addEventListener("change", function () {
+   renderTable();
+   searchInput.value = "";
+  });
+  document.getElementById("dateTo").addEventListener("change", function () {
+   renderTable();
+   searchInput.value = "";
+  });
+  searchInput.addEventListener("input", function () {
+   renderTable();
+  });
+ }
+ renderTable();
+}
+
+var caseRecords = [];
+var caseRecords91 = [];
+var caseDates = [];
+
+async function loadDataFromDB() {
+ try {
+  var allCases = [];
+  var dbCases = await dbDexieManager.getAllRecords(dbnm, "cs");
+  if (dbCases && dbCases.length > 0) allCases = allCases.concat(dbCases);
+  var dbCases91 = await dbDexieManager.getAllRecords(dbnm, "cs91");
+  if (dbCases91 && dbCases91.length > 0) {
+   caseRecords91 = dbCases91;
+   allCases = allCases.concat(dbCases91);
+  }
+  if (allCases.length > 0) caseRecords = allCases;
+
+  var dbDates = await dbDexieManager.getAllRecords(dbnm, "a");
+  if (dbDates && dbDates.length > 0) caseDates = dbDates;
+
+  var dbPersons = await dbDexieManager.getAllRecords(dbnm, "c");
+  if (dbPersons && dbPersons.length > 0) window.csPersons = dbPersons;
+ } catch (e) {
+  console.warn("Failed to load from DB:", e);
+ }
+}
+
+function escHtml(s) {
+ if (!s) return "";
+ return String(s)
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;");
+}
+
+function escAttr(s) {
+ if (!s) return "";
+ return String(s).replace(/"/g, "&quot;").replace(/&/g, "&amp;");
+}
+
+window.refreshFromServer = async function () {
+ var btn = document.querySelector('[aria-label="Refresh"]');
+ if (btn) {
+  btn.disabled = true;
+  btn.querySelector("i").style.animation = "cs-spin 1s linear infinite";
+ }
+ try {
+  clearPayload0();
+  payload0.fn = 96;
+  payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [
+   { tb: "cs" },
+   { tb: "cs91" },
+   { tb: "c" },
+   { tb: "a" },
+  ]);
+  payload0.ul = '2/0n.php';
+  payload0.gt = 2;
+  var response = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
+  // var response = await fnj3(
+  //  "https://my1.in/2/n.php",
+  //  payload0,
+  //  1,
+  //  true,
+  //  null,
+  //  360000,
+  //  0,
+  //  1,
+  //  1,
+  // );
+  if (response && response.su == 1) {
+   hndlRspo96(response);
+  } else {
+   showMessageModal("Error", response?.ms || "Refresh failed", true);
+  }
+ } catch (err) {
+  showMessageModal("Info", "Error: " + err.message, false);
+ } finally {
+  if (btn) {
+   btn.disabled = false;
+   btn.querySelector("i").style.animation = "";
+  }
+ }
+};
+
+window.hndlRspo96 = async function (response) {
+ await handl_ks_rspons(response);
+ await recomputeAllowedModules();
+ await loadDataFromDB();
+ renderTable();
+};
+
+window.toggleColVisPanel = function () {
+ var panel = document.getElementById("colVisPanel");
+ if (panel) {
+  panel.style.display = panel.style.display === "block" ? "none" : "block";
+ }
+};
+
+window.togglePrintColVisPanel = function () {
+ var panel = document.getElementById("printColVisPanel");
+ if (panel) {
+  panel.style.display = panel.style.display === "block" ? "none" : "block";
+ }
+};
+
+var _csRowMenuContext = null;
+function openRowMenu(event, rec, dv, cdCur) {
+ event.stopPropagation();
+ var menu = document.getElementById("rowActionsMenu");
+ if (!menu) return;
+ _csRowMenuContext = { rec: rec, dv: dv, cdCur: cdCur };
+ var recheckBtn = document.getElementById("rowActionRecheck");
+ if (recheckBtn) {
+  // Show re-check option only when permission 119 is granted AND linked cs91.d < 0.
+  var showRecheck = !!rec && usHasFnPerm(119);
+  if (showRecheck) {
+   try {
+    var cr = (rec && rec.cs91) ? rec.cs91 : null;
+    if (!cr && typeof getCaseCs91Fallback === "function") cr = getCaseCs91Fallback(rec);
+    if (!cr && typeof getCaseCs91Record === "function") cr = getCaseCs91Record(rec);
+    if (!cr && rec && rec.f != null) {
+     var recs91 = (typeof caseRecords91 !== "undefined" && caseRecords91) || window.caseRecords91 || [];
+     for (var i = 0; i < recs91.length; i++) {
+      if (recs91[i].a == rec.f) { cr = recs91[i]; break; }
+     }
+    }
+    if (!cr || !(Number(cr.d) === 127)) showRecheck = false;
+   } catch (e) {
+    showRecheck = false;
+   }
+  }
+  recheckBtn.style.display = showRecheck ? "flex" : "none";
+ }
+ var docsBtn = document.getElementById("rowActionViewDocs");
+ if (docsBtn) {
+  // Show only when the case has attached documents stored in cs.j.
+  docsBtn.style.display = getCaseDocsString(rec) ? "flex" : "none";
+ }
+ menu.style.display = "block";
+ var btn = event.currentTarget || event.target;
+ var rect = btn.getBoundingClientRect();
+ var below = rect.bottom + 4;
+ var above = rect.top - menu.offsetHeight - 4;
+ var top =
+  below + menu.offsetHeight > window.innerHeight && above > 0 ? above : below;
+ menu.style.top = top + window.scrollY + "px";
+ var left = rect.right - menu.offsetWidth;
+ if (left < 0) left = 0;
+ menu.style.left = left + window.scrollX + "px";
+}
+function closeRowMenu() {
+ var menu = document.getElementById("rowActionsMenu");
+ if (menu) menu.style.display = "none";
+ _csRowMenuContext = null;
+}
+
+// Returns a stored docs string only when it looks like "name:file_id".
+function caseDocsValue(v) {
+ if (!v) return "";
+ var s = String(v).trim();
+ return s.indexOf(":") > 0 ? s : "";
+}
+
+// Resolves the attached-documents string (cs.j) for a case record.
+function getCaseDocsString(rec) {
+ if (!rec) return "";
+ var direct = caseDocsValue(rec.j);
+ if (direct) return direct;
+ var recs = window.caseRecords || (typeof caseRecords !== "undefined" && caseRecords) || [];
+ for (var i = 0; i < recs.length; i++) {
+  if (recs[i] && recs[i].a == rec.a) {
+   var fromStore = caseDocsValue(recs[i].j);
+   if (fromStore) return fromStore;
+   break;
+  }
+ }
+ return "";
+}
+
+// Parses "name:file_id" (or "file_id:name") into [{ file_name, file_id }].
+function parseCaseDocsList(str) {
+ var out = [];
+ if (!str) return out;
+ var idRe = /^[A-Za-z0-9_-]{20,}$/;
+ String(str)
+  .split(/\s+/)
+  .forEach(function (part) {
+   if (!part) return;
+   var idx = part.lastIndexOf(":");
+   if (idx <= 0 || idx === part.length - 1) return;
+   var left = part.slice(0, idx);
+   var right = part.slice(idx + 1);
+   var name = left;
+   var id = right;
+   // If the right side isn't a Drive id but the left side is, swap them.
+   if (!idRe.test(right) && idRe.test(left)) {
+    name = right;
+    id = left;
+   }
+   out.push({ file_name: name, file_id: id });
+  });
+ return out;
+}
+
+function showAttachedDocsModal(rec) {
+ var docsStr = getCaseDocsString(rec);
+ var files = parseCaseDocsList(docsStr);
+ if (!files.length) {
+  if (typeof showMessageModal === "function") {
+   showMessageModal("Info", "No attached documents found for this case.", false);
+  }
+  return;
+ }
+ var mid = "caseDocsModal_" + Date.now();
+ var rowsHtml = files
+  .map(function (f) {
+   var url =
+    "https://drive.google.com/file/d/" +
+    encodeURIComponent(f.file_id) +
+    "/view?usp=drivesdk";
+   return (
+    '<a href="' +
+    escHtml(url) +
+    '" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:6px;border:1px solid var(--gray-light,#DDE3EC);border-radius:8px;background:#F8FAFD;color:var(--navy,#0B2545);text-decoration:none;font-size:13px;overflow-wrap:anywhere;word-break:break-word;">' +
+    '<i class="fas fa-file-alt" style="color:var(--gold,#C9A227);flex:0 0 auto;"></i>' +
+    '<span style="min-width:0;">' +
+    escHtml(f.file_name) +
+    "</span>" +
+    '<i class="fas fa-external-link-alt" style="margin-left:auto;color:var(--gray);flex:0 0 auto;"></i>' +
+    "</a>"
+   );
+  })
+  .join("");
+ var html =
+  '<div class="modal fade" id="' +
+  mid +
+  '" tabindex="-1" aria-hidden="true">' +
+  '<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">' +
+  '<div class="modal-content animate-scale-in shadow-xl" style="border:3px solid var(--navy);border-radius:12px;overflow:hidden;">' +
+  '<div class="modal-header bg-navy-gradient text-gold" style="padding:14px 18px;border-bottom:3px solid var(--gold);">' +
+  '<h6 class="modal-title fw-bold" style="font-size:15px;letter-spacing:0.5px;"><i class="fas fa-paperclip me-2 text-gold"></i>ATTACHED DOCUMENTS</h6>' +
+  '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>' +
+  '<div class="modal-body p-3">' +
+  rowsHtml +
+  "</div>" +
+  '<div class="modal-footer" style="padding:12px 18px;border-top:2px solid var(--gray-bg);display:flex;justify-content:flex-end;">' +
+  '<button type="button" class="btn-premium btn-premium-secondary" data-bs-dismiss="modal">Close</button>' +
+  "</div></div></div></div>";
+ document.body.insertAdjacentHTML("beforeend", html);
+ var modalEl = document.getElementById(mid);
+ new bootstrap.Modal(modalEl).show();
+ modalEl.addEventListener("hidden.bs.modal", function () {
+  this.remove();
+ });
+}
+window.sendToRecheck = async function (rec) {
+ try {
+  var ok1 =
+   typeof showConfirmModal === "function"
+    ? await showConfirmModal("Do you want to re-check this case?")
+    : confirm("Do you want to re-check this case?");
+  if (!ok1) return;
+
+  // Permission check BEFORE the 2nd confirmation:
+  // table "f" must contain a row whose "h" column is function 119.
+  if (_usFnPermSet == null) await loadUsFnPerms();
+  if (!usHasFnPerm(119)) {
+   if (typeof showelsemodal === "function") {
+    showelsemodal("You are not authorized to execute this function");
+   } else {
+    alert("You are not authorized to execute this function");
+   }
+   return;
+  }
+
+  // 2nd confirmation
+  var ok2 =
+   typeof showConfirmModal === "function"
+    ? await showConfirmModal(
+     "Are you sure you want to re-check this case? This will re-check the case with the server.",
+    )
+    : confirm(
+     "Are you sure you want to re-check this case? This will re-check the case with the server.",
+    );
+  if (!ok2) return;
+
+  // fn 119: send the linked cs91 record id (.a) in x1, not the cs id
+  var cr91 = null;
+  try {
+   if (typeof getCaseCs91Record === "function") cr91 = getCaseCs91Record(rec);
+   if (!cr91 && typeof getCaseCs91Fallback === "function")
+    cr91 = getCaseCs91Fallback(rec);
+  } catch (e) { }
+  var id = cr91 && cr91.a != null ? cr91.a : null;
+  if (id == null) {
+   showMessageModal("Info", "Linked E-Court (cs91) record not found.", false);
+   return;
+  }
+  if (typeof reCheckCaseRecord === "function") {
+   await reCheckCaseRecord(id);
+  }
+ } catch (e) {
+  if (typeof showMessageModal === "function") {
+   showMessageModal("Info", "Error: " + e.message, false);
+  } else {
+   alert("Error: " + e.message);
+  }
+ }
+};
+
+function handleRowAction(action) {
+ var ctx = _csRowMenuContext || {};
+ if (action === "changeJuzeName") {
+  if (typeof changeJuzeName === "function") changeJuzeName(ctx.rec, ctx);
+ }
+ if (action === "changeAllJuzesName") {
+  if (typeof changeAllJuzesName === "function") changeAllJuzesName(ctx.rec, ctx);
+ }
+ if (action === "setOurParty") {
+  if (typeof changeOurParty === "function") changeOurParty(ctx.rec, ctx);
+ }
+ if (action === "recheckCase") {
+  if (typeof window.sendToRecheck === "function") {
+   window.sendToRecheck(ctx.rec);
+  } else {
+   try {
+    if (typeof showMessageModal === "function") {
+     showMessageModal("Info", "Re-check requested for this case.", false);
+    } else {
+     alert("Re-check requested for this case.");
+    }
+   } catch (e) {
+    alert("Re-check requested for this case.");
+   }
+  }
+ }
+ if (action === "viewAttachedDocs") {
+  showAttachedDocsModal(ctx.rec);
+ }
+ var recheckBtn = document.getElementById("rowActionRecheck");
+ if (recheckBtn) recheckBtn.style.display = "none";
+ var docsBtn = document.getElementById("rowActionViewDocs");
+ if (docsBtn) docsBtn.style.display = "none";
+ closeRowMenu();
+}
+function installUpdateRecordWrapper() {
+ if (typeof window.updateCaseRecord !== "function") return;
+ if (window.updateCaseRecord._csWrapped) return;
+ var base = window.updateCaseRecord;
+ var wrapper = async function () {
+  if (payload0.cd !== 2) payload0.cd = 1;
+  return base.apply(this, arguments);
+ };
+ wrapper._csWrapped = true;
+ window.updateCaseRecord = wrapper;
+}
+
+function isCaseCs91Record(rec) {
+ if (!rec) return false;
+ if (typeof isCs91Record === "function") return !!isCs91Record(rec);
+ return rec.tmt !== undefined;
+}
+
+function collectJudgeCaseIds(desigName) {
+ var d = String(desigName || "").trim();
+ var out = [];
+ var seen = {};
+ if (!d) return out;
+ var recs91 =
+  (typeof caseRecords91 !== "undefined" && caseRecords91) ||
+  window.caseRecords91 ||
+  [];
+ for (var i = 0; i < recs91.length; i++) {
+  var cr = recs91[i];
+  if (!cr || String(cr.j || "").trim() !== d) continue;
+  var cs =
+   typeof findCsByCs91Link === "function" ? findCsByCs91Link(cr.a) : null;
+  if (cs && cs.a != null && !seen[cs.a]) {
+   seen[cs.a] = 1;
+   out.push(cs.a);
+  }
+ }
+ return out;
+}
+
+function changeJuzeName(caseRecord, context) {
+ var rec = (context && context.rec) || caseRecord;
+ if (!rec) {
+  showMessageModal("Info", "No record selected.", false);
+  return;
+ }
+ showJuzeNameModal(rec, { all: false });
+}
+
+function changeAllJuzesName(caseRecord, context) {
+ var rec = (context && context.rec) || caseRecord;
+ if (!rec) {
+  showMessageModal("Info", "No record selected.", false);
+  return;
+ }
+ showJuzeNameModal(rec, { all: true });
+}
+
+function showJuzeNameModal(rec, opts) {
+ opts = opts || {};
+ if (!rec) {
+  showMessageModal("Info", "No record selected.", false);
+  return;
+ }
+ if (isCaseCs91Record(rec)) {
+  showMessageModal(
+   "Info",
+   "Judge name change is not available for E-Court (CNR) records.",
+   false,
+  );
+  return;
+ }
+ // var disp =
+ //   typeof getCaseDisplayRecord === "function" ? getCaseDisplayRecord(rec) : rec;
+ var cr =
+  typeof getCaseCs91Fallback === "function" ? getCaseCs91Fallback(rec) : null;
+ var courtName = rec.q || "";
+ var desigName = (cr && cr.j) || "";
+ var desig = String(desigName).trim();
+ var mid = "juzeNameModal_" + Date.now();
+ var ids = opts.all ? collectJudgeCaseIds(desig) : [];
+ window._csJuzeCtx = {
+  rec: rec,
+  court: String(courtName).trim(),
+  desig: desig,
+  all: !!opts.all,
+  count: ids.length,
+ };
+ var affectHtml = "";
+ if (opts.all) {
+  affectHtml =
+   '<div class="form-group-premium mb-2">' +
+   '<label class="form-label-premium mb-1">Cases affected:</label>' +
+   '<div class="form-control-premium" style="background:var(--gray-surface);font-weight:600;">' +
+   ids.length +
+   (ids.length === 1 ? " case" : " cases") +
+   " with this designation</div></div>";
+ }
+ var html =
+  '<div class="modal fade" id="' +
+  mid +
+  '" tabindex="-1" aria-hidden="true">' +
+  '<div class="modal-dialog modal-dialog-centered">' +
+  '<div class="modal-content animate-scale-in shadow-xl" style="border:3px solid var(--navy);border-radius:12px;overflow:hidden;">' +
+  '<div class="modal-header bg-navy-gradient text-gold" style="padding:14px 18px;border-bottom:3px solid var(--gold);">' +
+  '<h6 class="modal-title fw-bold" style="font-size:15px;letter-spacing:0.5px;"><i class="fas fa-user-tie me-2 text-gold"></i>CHANGE JUDGE NAME</h6>' +
+  '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>' +
+  '<div class="modal-body p-3">' +
+  '<div class="form-group-premium mb-2">' +
+  '<label class="form-label-premium mb-1">Court name:</label>' +
+  '<div class="form-control-premium" style="background:var(--gray-surface);font-weight:600;">' +
+  (courtName ? escHtml(courtName) : '<span class="text-muted">Court name not available</span>') +
+  "</div></div>" +
+  '<div class="form-group-premium mb-2">' +
+  '<label class="form-label-premium mb-1">Designation name:</label>' +
+  '<div class="form-control-premium" style="background:var(--gray-surface);font-weight:600;">' +
+  (desigName ? escHtml(desigName) : '<span class="text-muted">Designation name not available</span>') +
+  "</div></div>" +
+  affectHtml +
+  '<div class="form-group-premium mb-0">' +
+  '<label class="form-label-premium mb-1" for="juzeNewName">New judge name:</label>' +
+  '<input type="text" id="juzeNewName" class="form-control-premium" maxlength="12" placeholder="Enter new judge name" autocomplete="off" spellcheck="false" oninput="this.value=this.value.slice(0,12)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();saveJuzeName(\'' +
+  mid +
+  '\');}">' +
+  '<div class="form-hint">Maximum 12 characters.</div>' +
+  "</div></div>" +
+  '<div class="modal-footer" style="padding:12px 18px;border-top:2px solid var(--gray-bg);display:flex;justify-content:flex-end;gap:8px;">' +
+  '<button type="button" class="btn-premium btn-premium-secondary" data-bs-dismiss="modal">Cancel</button>' +
+  '<button type="button" class="btn-premium btn-premium-primary" onclick="saveJuzeName(\'' +
+  mid +
+  '\')"><i class="fas fa-check me-1"></i> OK</button>' +
+  "</div></div></div>";
+ document.body.insertAdjacentHTML("beforeend", html);
+ var modalEl = document.getElementById(mid);
+ new bootstrap.Modal(modalEl).show();
+ setTimeout(function () {
+  var input = document.getElementById("juzeNewName");
+  if (input) input.focus();
+ }, 250);
+ modalEl.addEventListener("hidden.bs.modal", function () {
+  window._csJuzeCtx = null;
+  this.remove();
+ });
+}
+
+async function saveJuzeName(mid) {
+ var ctx = window._csJuzeCtx || {};
+ var rec = ctx.rec;
+ if (!rec) {
+  showMessageModal("Info", "No record selected.", false);
+  return;
+ }
+ if (isCaseCs91Record(rec)) {
+  showMessageModal(
+   "Info",
+   "Judge name change is not available for E-Court (CNR) records.",
+   false,
+  );
+  return;
+ }
+ var input = document.getElementById("juzeNewName");
+ var val = input ? String(input.value || "").trim() : "";
+ if (!val) {
+  showMessageModal("Info", "Please enter new judge name.", false);
+  return;
+ }
+ if (val.length > 12) {
+  showMessageModal("Info", "Maximum 12 characters allowed.", false);
+  return;
+ }
+ if (ctx.court && val === ctx.court) {
+  showMessageModal("Info", "New judge name is same as current.", false);
+  return;
+ }
+ var ids = rec.a;
+ var allCount = 0;
+ if (ctx.all) {
+  if (!ctx.desig) {
+   showMessageModal(
+    "Info",
+    "Designation name not available for this record.",
+    false,
+   );
+   return;
+  }
+  ids = collectJudgeCaseIds(ctx.desig);
+  if (ids.length === 0) {
+   showMessageModal("Info", "No cases found with this designation.", false);
+   return;
+  }
+  allCount = ids.length;
+ }
+ var modalEl = document.getElementById(mid);
+ if (modalEl) {
+  var inst = bootstrap.Modal.getInstance(modalEl);
+  if (inst) inst.hide();
+ }
+ await new Promise(function (r) { setTimeout(r, 300); });
+ try {
+  await updateCaseRecordJudgeName(ids, val, allCount);
+ } catch (e) {
+  showMessageModal("Error", e && e.message ? e.message : "Update failed", true);
+ }
+}
+
+async function updateCaseRecordJudgeName(recId, newJudgeName, count) {
+ var isArr = Array.isArray(recId);
+ var ids = isArr
+  ? recId.filter(function (v) {
+   return v != null && v !== "";
+  })
+  : recId == null || recId === ""
+   ? []
+   : [recId];
+ var jName = String(newJudgeName || "").trim();
+ if (ids.length === 0) {
+  showMessageModal("Info", "No record selected.", false);
+  return;
+ }
+ if (!jName) {
+  showMessageModal("Info", "Please enter new judge name.", false);
+  return;
+ }
+ clearPayload0();
+ payload0.x1 = isArr ? ids : ids[0]; //Id (one case) or Id array (all cases)
+ payload0.p = { q: jName };
+ payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "cs" }]);
+ payload0.fn = 72;
+ // cd = 1 for "Change Judge name - only this case" (scalar id)
+ // cd = 2 for "Change Judge name - all cases" (id array)
+ payload0.cd = isArr ? 2 : 1;
+ payload0.ul = '2/0t.php';
+ payload0.gt = 2;
+ try {
+  var jResponse = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
+  // var jResponse = await fnj3(
+  //   "https://my1.in/2/t.php",
+  //   payload0,
+  //   1,
+  //   true,
+  //   null,
+  //   20000,
+  //   0,
+  //   1,
+  //   1,
+  // );
+  if (jResponse && jResponse.su == 1) {
+   await hndlRspo72(jResponse, { courtName: jName, count: count || 0 });
+  } else {
+   showMessageModal("Info", jResponse?.ms || "Record not updated", false);
+  }
+ } catch (e) {
+  showMessageModal("Info", "Error: " + e.message, false);
+ } finally {
+  payload0.cd = 1;
+ }
+}
+
+async function hndlRspo72(response, ctx) {
+ ctx = ctx || {};
+ await handl_ks_rspons(response);
+ await loadDataFromDB();
+ renderTable();
+ var n = parseInt(ctx.count || 0) || 0;
+ if (n > 0) {
+  showMessageModal(
+   "Success",
+   "✅ Judge name updated for " +
+   n +
+   (n === 1 ? " case" : " cases") +
+   ".\n\nNew name: " +
+   (ctx.courtName || ""),
+   false,
+  );
+ } else {
+  showMessageModal(
+   "Success",
+   "✅ Judge name updated successfully!\n\nCourt: " + (ctx.courtName || ""),
+   false,
+  );
+ }
+}
+
+function changeOurParty(caseRecord, context) {
+ var rec = (context && context.rec) || caseRecord;
+ if (!rec) {
+  showMessageModal("Info", "No record selected.", false);
+  return;
+ }
+ if (isCaseCs91Record(rec)) {
+  showMessageModal(
+   "Info",
+   "Set our party is not available for E-Court (CNR) records.",
+   false,
+  );
+  return;
+ }
+ showOurPartyModal(rec);
+}
+
+function showOurPartyModal(rec) {
+ if (!rec) {
+  showMessageModal("Info", "No record selected.", false);
+  return;
+ }
+ if (isCaseCs91Record(rec)) {
+  showMessageModal(
+   "Info",
+   "Set our party is not available for E-Court (CNR) records.",
+   false,
+  );
+  return;
+ }
+ var mid = "ourPartyModal_" + Date.now();
+ var courtName = rec.q || "";
+ var caseNo = String(rec.h || "").trim();
+ var caseYr = String(rec.i || "").trim();
+ window._csOurPartyCtx = { rec: rec };
+ // Pre-select the record's current party (default = Filer)
+ var cur = String(rec.r != null ? rec.r : "1").trim();
+ var selFiler = cur === "2" ? "" : " checked";
+ var selAnswerer = cur === "2" ? " checked" : "";
+ var caseHtml =
+  '<div class="form-group-premium mb-2">' +
+  '<label class="form-label-premium mb-1">Case:</label>' +
+  '<div class="form-control-premium" style="background:var(--gray-surface);font-weight:600;">' +
+  (caseNo
+   ? escHtml(caseNo) + (caseYr ? "/" + escHtml(caseYr) : "")
+   : '<span class="text-muted">Case number not available</span>') +
+  (courtName
+   ? ' <span style="color:var(--gray);">Ã¢â‚¬â€</span> ' + escHtml(courtName)
+   : "") +
+  "</div></div>";
+ var html =
+  '<div class="modal fade" id="' +
+  mid +
+  '" tabindex="-1" aria-hidden="true">' +
+  '<div class="modal-dialog modal-dialog-centered">' +
+  '<div class="modal-content animate-scale-in shadow-xl" style="border:3px solid var(--navy);border-radius:12px;overflow:hidden;">' +
+  '<div class="modal-header bg-navy-gradient text-gold" style="padding:14px 18px;border-bottom:3px solid var(--gold);">' +
+  '<h6 class="modal-title fw-bold" style="font-size:15px;letter-spacing:0.5px;"><i class="fas fa-user-check me-2 text-gold"></i>SET OUR PARTY</h6>' +
+  '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div>' +
+  '<div class="modal-body p-3">' +
+  caseHtml +
+  '<div class="form-group-premium mb-0">' +
+  '<label class="form-label-premium mb-1">Our party is:</label>' +
+  '<div class="d-flex gap-4 flex-wrap" style="padding-top:2px;">' +
+  '<label class="cursor-pointer d-inline-flex align-items-center gap-2 text-sm text-gray-dark">' +
+  '<input type="radio" id="' +
+  mid +
+  '_filer" name="ourParty_' +
+  mid +
+  '" value="1"' +
+  selFiler +
+  ' style="accent-color:var(--gold);"> Filer (Plaintiff)</label>' +
+  '<label class="cursor-pointer d-inline-flex align-items-center gap-2 text-sm text-gray-dark">' +
+  '<input type="radio" id="' +
+  mid +
+  '_answerer" name="ourParty_' +
+  mid +
+  '" value="2"' +
+  selAnswerer +
+  ' style="accent-color:var(--gold);"> Answerer (Defendant)</label>' +
+  "</div></div></div>" +
+  '<div class="modal-footer" style="padding:12px 18px;border-top:2px solid var(--gray-bg);display:flex;justify-content:flex-end;gap:8px;">' +
+  '<button type="button" class="btn-premium btn-premium-secondary" data-bs-dismiss="modal">Cancel</button>' +
+  '<button type="button" class="btn-premium btn-premium-primary" onclick="saveOurParty(\'' +
+  mid +
+  '\')"><i class="fas fa-check me-1"></i> OK</button>' +
+  "</div></div></div>";
+ document.body.insertAdjacentHTML("beforeend", html);
+ var modalEl = document.getElementById(mid);
+ new bootstrap.Modal(modalEl).show();
+ modalEl.addEventListener("hidden.bs.modal", function () {
+  window._csOurPartyCtx = null;
+  this.remove();
+ });
+}
+
+async function saveOurParty(mid) {
+ var ctx = window._csOurPartyCtx || {};
+ var rec = ctx.rec;
+ if (!rec) {
+  showMessageModal("Info", "No record selected.", false);
+  return;
+ }
+ if (isCaseCs91Record(rec)) {
+  showMessageModal(
+   "Info",
+   "Set our party is not available for E-Court (CNR) records.",
+   false,
+  );
+  return;
+ }
+ var checked = document.querySelector(
+  'input[name="ourParty_' + mid + '"]:checked',
+ );
+ var partyVal = parseInt(checked ? checked.value : "") || 1;
+ var modalEl = document.getElementById(mid);
+ if (modalEl) {
+  var inst = bootstrap.Modal.getInstance(modalEl);
+  if (inst) inst.hide();
+ }
+ await new Promise(function (r) { setTimeout(r, 300); });
+ try {
+  await updateCaseRecordParty(rec.a, partyVal);
+ } catch (e) {
+  showMessageModal("Error", e && e.message ? e.message : "Update failed", true);
+ }
+}
+
+async function updateCaseRecordParty(recId, partyVal) {
+ var val = parseInt(partyVal) || 1;
+ if (val !== 2) val = 1; // 1 = Filer, 2 = Answerer
+ if (recId == null || recId === "") {
+  showMessageModal("Info", "No record selected.", false);
+  return;
+ }
+ clearPayload0();
+ payload0.x1 = recId; //Id - only this case
+ payload0.p = { r: val }; //1 = Filer (Plaintiff), 2 = Answerer (Defendant)
+ payload0.vw = 1;
+ payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "cs" }]);
+ payload0.fn = 72;
+ payload0.cd = 3; //cd 1/2 are taken by "Change Judge name" (this case / all cases)
+ payload0.ul = '2/0t.php';
+ payload0.gt = 2;
+ try {
+  var pResponse = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
+  // var pResponse = await fnj3(
+  //   "https://my1.in/2/t.php",
+  //   payload0,
+  //   1,
+  //   true,
+  //   null,
+  //   20000,
+  //   0,
+  //   1,
+  //   1,
+  // );
+  if (pResponse && pResponse.su == 1) {
+   await hndlRspoOurParty(pResponse, { partyVal: val });
+  } else {
+   showMessageModal("Info", pResponse?.ms || "Record not updated", false);
+  }
+ } catch (e) {
+  showMessageModal("Info", "Error: " + e.message, false);
+ } finally {
+  payload0.cd = 1;
+ }
+}
+
+async function hndlRspoOurParty(response, ctx) {
+ ctx = ctx || {};
+ await handl_ks_rspons(response);
+ await loadDataFromDB();
+ renderTable();
+ var isAnswerer = parseInt(ctx.partyVal) === 2;
+ showMessageModal(
+  "Success",
+  "✅ Our party set to " +
+  (isAnswerer ? "Answerer (Defendant)" : "Filer (Plaintiff)") +
+  ".",
+  false,
+ );
+}
+
+async function reCheckCaseRecord(recId) {
+ if (recId == null || recId === "") {
+  showMessageModal("Info", "No record selected.", false);
+  return;
+ }
+ clearPayload0();
+ payload0.x1 = recId; //Id - only this case
+ payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "cs91" }]);
+ payload0.fn = 119;
+ payload0.ul = '2/0u.php';
+ payload0.gt = 2;
+ try {
+  var pResponse = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
+  // var pResponse = await fnj3(
+  //   "https://my1.in/2/u.php",
+  //   payload0,
+  //   1,
+  //   true,
+  //   null,
+  //   20000,
+  //   0,
+  //   1,
+  //   1,
+  // );
+  if (pResponse && pResponse.su == 1) {
+   await hndlreCheckCaseRecord(pResponse);
+  } else {
+   showMessageModal("Info", pResponse?.ms || "Record not updated", false);
+  }
+ } catch (e) {
+  showMessageModal("Info", "Error: " + e.message, false);
+ } finally {
+  payload0.cd = 1;
+ }
+}
+
+async function hndlreCheckCaseRecord(response) {
+ await handl_ks_rspons(response);
+ await loadDataFromDB();
+ renderTable();
+}
+
+document.addEventListener("click", function (e) {
+ var panel = document.getElementById("colVisPanel");
+ var btn = document.getElementById("colVisToggle");
+ if (panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) {
+  panel.style.display = "none";
+ }
+ var pPanel = document.getElementById("printColVisPanel");
+ var pBtn = document.getElementById("printColVisToggle");
+ if (pPanel && pBtn && !pPanel.contains(e.target) && !pBtn.contains(e.target)) {
+  pPanel.style.display = "none";
+ }
+ var menu = document.getElementById("rowActionsMenu");
+ var mbtn = e.target.closest ? e.target.closest("#rowActionsMenu button") : null;
+ if (menu && !menu.contains(e.target) && mbtn === null) {
+  var recheckBtn = document.getElementById("rowActionRecheck");
+  if (recheckBtn) recheckBtn.style.display = "none";
+  closeRowMenu();
+ }
+});
+
+
+// Backward-compatible aliases
+window.csHasFnPerm = window.usHasFnPerm;
+window.loadCsFnPerms = window.loadUsFnPerms;

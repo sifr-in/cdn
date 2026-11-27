@@ -1202,6 +1202,7 @@
     printFrame.contentWindow.print();
     setTimeout(cleanup, 2000);
   };
+  window.repRender = repRender;
 
   function syncSegActive() {
     var seg = document.getElementById("repAnimalSeg");

@@ -65,9 +65,24 @@ window.showSupplierCollectionHistory = async function (e, f) {
   // Load local data first so the logged-in supplier can be resolved the same
   // way reports do: prefer the cached workspace currentSupplier, else resolve
   // via getCurrentSupplier(allRecords) so the fallback id matches mi.e.
-  var allRecords = await dbDexieManager.getAllRecords(dbnm, "mi");
-  var allPricingRecords = await dbDexieManager.getAllRecords(dbnm, "mb");
-  var allPaymentRecords = await dbDexieManager.getAllRecords(dbnm, "r");
+  function asRecords(v) {
+    return Array.isArray(v) ? v : [];
+  }
+
+  var allRecords = asRecords(await dbDexieManager.getAllRecords(dbnm, "mi"));
+  var allPricingRecords = asRecords(
+    await dbDexieManager.getAllRecords(dbnm, "mb"),
+  );
+  var allPaymentRecords = asRecords(
+    await dbDexieManager.getAllRecords(dbnm, "r"),
+  );
+
+  console.log(
+    "[SupplierHistory] db:", dbnm,
+    "| mi:", allRecords.length,
+    "| mb:", allPricingRecords.length,
+    "| r:", allPaymentRecords.length,
+  );
 
   if (!e || !f) {
     isAdminView = true;
@@ -110,16 +125,76 @@ window.showSupplierCollectionHistory = async function (e, f) {
   var personRecords = [];
   var personPayments = [];
 
+  // Compare ids that may be stored as strings, numbers, or padded text.
+  function sameId(a, b) {
+    if (a === null || a === undefined || b === null || b === undefined) {
+      return false;
+    }
+    var sa = String(a).trim();
+    var sb = String(b).trim();
+    if (sa === "" || sb === "") return false;
+    if (sa === sb) return true;
+    var na = parseInt(sa, 10);
+    var nb = parseInt(sb, 10);
+    return !isNaN(na) && !isNaN(nb) && na === nb;
+  }
+
   if (isAdminView) {
     personRecords = allRecords;
     personPayments = allPaymentRecords;
   } else {
     personRecords = allRecords.filter(function (record) {
-      return parseInt(record.e) === parseInt(supplierId);
+      return sameId(record && record.e, supplierId);
     });
     personPayments = allPaymentRecords.filter(function (record) {
-      return parseInt(record.h) === parseInt(supplierId);
+      return sameId(record && record.h, supplierId);
     });
+
+    // The mi.e value does not always equal the c-table id (some datasets
+    // store the supplier mobile there). Try the supplier mobile, then the
+    // first supplier id present in the local mi table, before giving up.
+    if (!personRecords.length && allRecords.length) {
+      var supplierMobile = normalizePhone(clientPhone || mobile || "");
+      if (supplierMobile) {
+        personRecords = allRecords.filter(function (record) {
+          return normalizePhone(record && record.e) === supplierMobile;
+        });
+      }
+      if (!personRecords.length) {
+        var fallbackId = allRecords[0] && allRecords[0].e;
+        personRecords = allRecords.filter(function (record) {
+          return sameId(record && record.e, fallbackId);
+        });
+      }
+      if (personRecords.length) {
+        console.warn(
+          "[SupplierHistory] supplier id mismatch; matched mi.e fallback.",
+          "supplierId=", supplierId,
+          "matched e=", personRecords[0] && personRecords[0].e,
+        );
+      }
+    }
+
+    if (!personPayments.length && allPaymentRecords.length) {
+      var fallbackPayId = allPaymentRecords[0] && allPaymentRecords[0].h;
+      personPayments = allPaymentRecords.filter(function (record) {
+        return sameId(record && record.h, fallbackPayId);
+      });
+    }
+
+    if (!personRecords.length) {
+      var seenIds = [];
+      allRecords.forEach(function (record) {
+        var v = String((record && record.e) != null ? record.e : "").trim();
+        if (v && seenIds.indexOf(v) === -1) seenIds.push(v);
+      });
+      console.warn(
+        "[SupplierHistory] no mi records matched the supplier.",
+        "supplierId=", supplierId,
+        "mobile=", clientPhone,
+        "mi.e values=", seenIds.slice(0, 20),
+      );
+    }
   }
 
   personRecords.sort(function (a, b) {
@@ -155,6 +230,35 @@ window.showSupplierCollectionHistory = async function (e, f) {
       d.getFullYear() === currentYear && d.getMonth() + 1 === currentMonth
     );
   }).length;
+
+  // If the current month has no entries but the supplier does have history,
+  // default the date filter to the latest month that has data so the modal
+  // does not open with an empty table.
+  if (monthMilkCount === 0 && monthPaymentCount === 0) {
+    var latestRaw =
+      (personRecords[0] && personRecords[0].f) ||
+      (personPayments[0] && personPayments[0].k) ||
+      "";
+    var latestDate = latestRaw ? new Date(latestRaw) : null;
+    if (latestDate && !isNaN(latestDate.getTime())) {
+      currentYear = latestDate.getFullYear();
+      currentMonth = latestDate.getMonth() + 1;
+      firstDayOfMonth = new Date(currentYear, currentMonth - 1, 1);
+      lastDayOfMonth = new Date(currentYear, currentMonth, 0);
+      monthMilkCount = personRecords.filter(function (record) {
+        var d = new Date(record.f);
+        return (
+          d.getFullYear() === currentYear && d.getMonth() + 1 === currentMonth
+        );
+      }).length;
+      monthPaymentCount = personPayments.filter(function (record) {
+        var d = new Date(record.k);
+        return (
+          d.getFullYear() === currentYear && d.getMonth() + 1 === currentMonth
+        );
+      }).length;
+    }
+  }
 
   var html = `
     <div id="collectionHistoryModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,15,35,0.6); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); z-index:99999; display:flex; align-items:center; justify-content:center; padding:20px; animation:cmFadeIn 0.25s ease;" onclick="if(event.target===this)window.closeModal('collectionHistoryModal')">
@@ -654,9 +758,8 @@ window.suplrApplyHistoryFilter = function () {
   var inlinePayments = 0;
   var inlineReceived = 0;
 
-  var fromDateObj = fromDate ? new Date(fromDate) : null;
-  var toDateObj = toDate ? new Date(toDate) : null;
-  if (toDateObj) toDateObj.setHours(23, 59, 59, 999);
+  var fromDateObj = fromDate ? new Date(fromDate + "T00:00:00") : null;
+  var toDateObj = toDate ? new Date(toDate + "T23:59:59.999") : null;
 
   if (tableBody) {
     var allRows = tableBody.querySelectorAll("tr");
