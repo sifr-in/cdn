@@ -546,7 +546,7 @@ async function open_entind_crud(...args) {
  } catch (e) {
   console.error("Error:", e);
   if (loaderElement) loaderElement.style.display = "none";
-  window.showelsemodal("Info", "❌ " + e.message, false);
+  window.showelsemodal("Info: " + "❌ " + e.message);
  }
 }
 
@@ -1074,13 +1074,13 @@ async function saveRecord(isUpdate) {
      }
     }
    } else {
-    window.showelsemodal("Info", "⚠️ Saved to server but local sync failed", false);
+    window.showelsemodal("Info: " + "⚠️ Saved to server but local sync failed");
    }
   } else {
-   window.showelsemodal("Error", resp?.ms || "Failed", true);
+   window.showelsemodal(resp?.ms || "Failed");
   }
  } catch (e) {
-  window.showelsemodal("Info", e.message, false);
+  window.showelsemodal("Info: " + e.message);
  } finally {
   if (activeBtn) {
    activeBtn.disabled = false;
@@ -1269,10 +1269,10 @@ function renderCards(searchTerm) {
      renderCards(document.getElementById("entindSearch")?.value || "");
      window.showsuccessmodal("Success", "✅ Record deleted!", false);
     } else {
-     window.showelsemodal("Error", resp?.ms || "Failed", true);
+     window.showelsemodal(resp?.ms || "Failed");
     }
    } catch (e) {
-    window.showelsemodal("Info", e.message, false);
+    window.showelsemodal("Info: " + e.message);
    }
   });
  });

@@ -1,39 +1,3 @@
-// my1gal.js — shared/common file uploader + gallery (usable in ANY project)
-//
-// WHAT IT DOES
-//   - open_my1fileFn(callback, opts): a self-contained modal (no framework required) that
-//     uploads ANY file via multipart FormData, shows the uploaded files in a
-//     gallery grid with an icon chosen by the file extension (or a real thumbnail
-//     for images), and hands the results back through a hidden field and/or a
-//     callback.
-//   - my1fnd(...): the multipart twin of fnj3 (my1e3.js). Same signature/shape, but
-//     does NOT set Content-Type and sends FormData instead of a JSON string.
-//
-// DESIGN NOTES (why it looks the same in every project)
-//   - No CSS framework required. It ships its own neutral styles under a single
-//     #my1gal-style tag, all classes prefixed "my1gal-".
-//   - No icon font required. Icons are built-in inline SVGs.
-//   - Colors/radius come from CSS custom properties (--my1gal-*) with neutral
-//     defaults and automatic dark mode. `opts.theme` overrides them per call.
-//   - The accent defaults to currentColor, so it inherits whatever the host uses.
-//   - No backend is baked in. Thumbnail/open URLs are resolved by injectable
-//     callbacks (opts.thumbUrl / opts.openUrl). Host helpers (e.g.
-//     getGoogleDriveImageUrl) are used only when they happen to exist.
-//
-// USAGE
-//   open_my1fileFn({
-//     endpoint: "https://example.com/upload.php",  // caller-provided
-//     fn: -1,                                      // server function number
-//     maxSize: 1 * 1024 * 1024,                   // max bytes per file
-//     fieldId: "u1",                               // optional: persist items JSON here
-//     callback: function (items) { ... },          // optional
-//     accept: "*", multiple: true,
-//     title: "Upload Files", accent: "#3b82f6",
-//     theme: { radius: "14px", bg: "#111", fg: "#eee" },
-//     labels: { browse: "..." },
-//     thumbUrl: function (it) { return "..."; },
-//     openUrl:  function (it) { return "..."; }
-//   });
 (function () {
  'use strict';
 
@@ -137,7 +101,7 @@
    '.my1gal-root,.my1gal-root *{box-sizing:border-box;}' +
    '.my1gal-root{font:inherit;color:var(--my1gal-fg);}' +
    '.my1gal-svg{display:inline-block;vertical-align:-.125em;}' +
-   '.my1gal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.5);overflow:auto;}' +
+   '.my1gal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:2147483640;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.5);overflow:auto;}' +
    '.my1gal-dialog{position:relative;width:100%;max-width:640px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;background:var(--my1gal-bg);color:var(--my1gal-fg);border:1px solid var(--my1gal-border);border-radius:var(--my1gal-radius);box-shadow:var(--my1gal-shadow);}' +
    '.my1gal-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--my1gal-border);}' +
    '.my1gal-title{display:flex;align-items:center;gap:8px;font-size:1rem;font-weight:600;margin:0;}' +
@@ -188,7 +152,7 @@
   } catch (e) { }
   // neutral, framework-free fallback
   var ov = document.createElement('div');
-  ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;display:flex;align-items:flex-start;justify-content:center;background:rgba(0,0,0,.5);z-index:2147483647;';
+  ov.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;display:flex;align-items:flex-start;justify-content:center;background:rgba(0,0,0,.5);z-index:2147483640;';
   var box = document.createElement('div');
   box.style.cssText = 'background:#fff;color:#1f2328;border-radius:8px;margin-top:18vh;max-width:360px;width:88%;padding:18px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.25);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;';
   box.innerHTML = '<p style="margin:0 0 12px;font-size:14px;color:' + (type === 'ok' ? '#1a7f37' : '#c0392b') + '">' + escapeHtml(msg) + '</p>';
@@ -337,7 +301,7 @@
     uc = (daConst.my1fl_config && typeof daConst.my1fl_config === 'object') ? daConst.my1fl_config : {};
    } catch (e) { }
    var size = parseSizeToBytes(uc.size || uc.maxSize || uc.maxBytes, 25 * 1024 * 1024);
-   var countRaw = uc.cunt != null ? uc.cunt : (uc.count != null ? uc.count : (uc.maxFiles != null ? uc.maxFiles : 1));
+   var countRaw = uc.cn != null ? uc.cn : (uc.cunt != null ? uc.cunt : (uc.count != null ? uc.count : (uc.maxFiles != null ? uc.maxFiles : 1)));
    var count = parseInt(countRaw, 10);
    if (!isFinite(count) || count <= 0) count = 1;
    return { size: size, count: count };
@@ -361,8 +325,8 @@
   var _upCfg = getUploadConfig();
   var cfg = {
    endpoint: opts.endpoint || my1Endpoint('1.php'),
-   fn: (opts.fn != null ? opts.fn : -1),
-   vw: (opts.vw != null ? opts.vw : 4),
+   fn: 128,
+   fi: 0,//(opts.vw != null ? opts.vw : 4),
    drml: resolveDrml(opts.drml),
    folderId: opts.folderId || null,
    maxSize: (opts.maxSize != null ? Number(opts.maxSize) : _upCfg.size),
@@ -658,14 +622,14 @@
 
    var fd = new FormData();
    fd.append('fn', cfg.fn);
-   fd.append('vw', cfg.vw);
+   fd.append('fi', cfg.fi);
    if (cfg.drml) fd.append('drml', cfg.drml);
    if (cfg.folderId) fd.append('folderId', cfg.folderId);
    fd.append('name', file.name);
    fd.append('mime', file.type || '');
    fd.append('size', file.size);
-   fd.append('ul', '4/0d.php');
-   fd.append('gt', '4');
+   fd.append('ul', '2/0u.php');
+   fd.append('gt', '2');
    fd.append('eo', (window.payload0 && window.payload0.eo) || (window.appOwner && window.appOwner.eo) || '');
    fd.append('ec', (window.payload0 && window.payload0.ec) || (window.appOwner && window.appOwner.ec) || '');
    fd.append('jk', (window.payload0 && window.payload0.jk != null) ? window.payload0.jk : ((window.my1uzr && window.my1uzr.jk != null) ? window.my1uzr.jk : ''));
@@ -677,8 +641,11 @@
     return;
    }
 
-   // showLoader=0: the per-card spinner is the progress indicator, not a global overlay.
-   window.fnf4(cfg.endpoint, fd, cfg.loginRequired, true, null, cfg.timeout, 2)
+   // Show the common my1e4 loader while the upload request is in progress.
+   var _uploadPromise;
+   try { _uploadPromise = window.fnf4(cfg.endpoint, fd, cfg.loginRequired, true, null, cfg.timeout, 1, 1); }
+   catch (e) { _uploadPromise = Promise.reject(e); }
+   _uploadPromise
     .then(function (resp) {
      if (!resp || (resp.su != null && resp.su != 1)) {
       throw new Error((resp && (resp.ms || resp.m)) || 'Server rejected the upload');
@@ -709,9 +676,16 @@
      persist();
     })
     .catch(function (err) {
+     var raw = (err && err.message) || cfg.labels.failed;
+     var msg = raw;
+     try {
+      var parsed = JSON.parse(raw);
+      if (parsed && parsed.ms) msg = parsed.ms;
+     } catch (e) { }
      items[idx].status = 'error';
-     items[idx].error = (err && err.message) || cfg.labels.failed;
+     items[idx].error = msg;
      render();
+     try { notify('err', msg); } catch (e2) { }
     })
     .then(finish, finish);
   }
@@ -785,14 +759,17 @@
 
    var uploadBtn = e.target.closest('[data-act="upload-files"]');
    if (uploadBtn) {
-    if (busy) return;
+    var _active = items.some(function (it) { return it && it.status === 'uploading'; });
+    if (busy && _active && queue.length) return;
+    if (busy && !_active) busy = false;
     if (!ensureFilesCallback()) return;
-    var pending = items.filter(function (it) { return it && it.status === 'pending'; });
+     var pending = items.filter(function (it) { return it && (it.status === 'pending' || (it.status === 'error' && it.file)); });
     if (!pending.length) { notify('err', 'No files selected'); return; }
     batchResults = [];
     batchPending = pending.length;
     pending.forEach(function (it) {
      it.status = 'uploading';
+      it.error = '';
     });
     render();
     items.forEach(function (it, idx) {
@@ -822,6 +799,8 @@
 
    if (it.status === 'error' && (!btn || btn.getAttribute('data-act') === 'retry')) {
     if (it.file) {
+     queue = queue.filter(function (q) { return q.idx !== idx; });
+     if (!items.some(function (x) { return x && x.status === 'uploading'; })) busy = false;
      if (!ensureFilesCallback()) return;
      if (batchPending <= 0) batchResults = [];
      batchPending++;

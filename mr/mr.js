@@ -39,13 +39,14 @@ const tblsRequired = ["f", "fp", "mr", "c", "mp", "mr_h", "mq", "mu"];
 const moduLst = [
  { a: ",60,61,62,63,65,67,", b: "Dashboard", c: "fa-chart-line", d: "aminPnl", e: "#9c6f7fea", cid: 130 }
 ];
-const inTbls = ["dontCret~", "pubilc~64,66,67,68,69,70,118", "2/0e-60~mr,c,mq,ma", "2/g-61~mp", "2/0f-62~mr", "2/0f-63~mr", "4/b-64~mr", "2/e-65~mp", "3/0d-66~mu,mr,ma", "2/h-67~mr", "3/0e-68~mr,mr_h,mq", "3/0d-69~mr", "3/0d-70~mr", "2/j-79~c", "2/j-80~c", "4/a-118~", "2/u-120~"];
+const inTbls = ["dontCret~", "pubilc~64,66,67,68,69,70,118", "2/0e-60~mr,c,mq,ma", "2/0g-61~mp", "2/0f-62~mr", "2/0f-63~mr", "4/0b-64~mr", "2/0e-65~mp", "3/0d-66~mu,mr,ma", "2/0h-67~mr", "3/0e-68~mr,mr_h,mq", "3/0d-69~mr", "3/0d-70~mr", "2/0j-79~c", "2/0j-80~c", "4/0a-118~mr", "2/0u-120~"];
 const cust_const = [
- { "a": "paymentGatewayIntegrated", "b": 0, "c": "more customiztaion", "d": "if value is 1 payment gatewy will be shown, else manual", "u": "url-explaining-video" },
- { "a": "paymentRequiresProfile", "b": 0, "c": "more custom...", "d": "if value is 1 & payment gatewy on then will be users registration or profile is requred to use gatway, else cotinue as is", "u": "url-explaining-video" },
- { "a": "freeCnt", "b": 0, "c": "", "d": "free count to be given when profile is created fn-68 or plan-check--1", "u": "url-explaining-video" },
- { "a": "imageGalleryMax", "b": 4, "c": "", "d": "how many gallery images can be useed that number to be given here exp: 4", "u": "url-explaining-video" },
- { "a": "getDirectIdFromServer", "b": 1, "c": "", "d": "At my1img: if here have 1 then be use function to get ids directly and if 0/undefined then keep get and pass image url-data form cors64", "u": "url-explaining-video" }
+ {"66":[{ "a": "paymentGatewayIntegrated", "b": 0, "c": "more customiztaion", "d": "if value is 1 payment gatewy will be shown, else manual", "u": "url-explaining-video" },
+ { "a": "paymentRequiresProfile", "b": 0, "c": "more custom...", "d": "if value is 1 & payment gatewy on then will be users registration or profile is requred to use gatway, else cotinue as is", "u": "url-explaining-video" }]},
+ {"68":[{ "a": "freeCnt", "b": 0, "c": "", "d": "free count to be given when profile is created fn-68 or plan-check--1", "u": "url-explaining-video" },
+ { "a": "imageGalleryMax", "b": 4, "c": "", "d": "how many gallery images can be useed that number to be given here exp: 4", "u": "url-explaining-video" }]},
+ {"118":[{ "a": "getDirectIdFromServer", "b": 1, "c": "", "d": "At my1img: if here have 1 then be use function to get ids directly and if 0/undefined then keep get and pass image url-data form cors64", "u": "url-explaining-video" }]},
+ {"64":[{ "a": "prsnlCSS", "b": "", "c": "", "d": "At mr project: if black then keep as normal style and if here have any css name exp: prsnl.css then style what applyed to this mr project", "u": "url-explaining-video" }]}
 ];
 moduLst.hook = "onModuLstAllowed2";
 window[my1uzr.worknOnPg].moduLst = moduLst;
