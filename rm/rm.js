@@ -2,22 +2,21 @@ const tblsRequired = ["f", "fp", "c", "rm", "r", "rb", "rc"];
 const moduLst = [
  { a: ",85,115,", mi: ",44,", b: "Dashboard", c: "fa-chart-line", d: "home", e: "#0d6efd" },
  { a: ",106,", mi: ",50,", b: "Manage Rooms", c: "fa-bed", d: "rooms", e: "#198754" },
-  /* mi = csh "a" (script config) ids only. 114 here was an API fn id (inTbls
-     "114~rb,c"), which has no csh entry, so loadExe2Fn threw and alert()ed. */
-  { a: ",106,112,114,103,", mi: ",112,", b: "New Booking", c: "fa-calendar-plus", d: "booking", e: "#dc3545" },
- //{ a: ",112,114,", mi: ",112,114,", b: "Restaurant", c: "fa-utensils", d: "restaurant", e: "#fd7e14" },
+ { a: ",106,112,114,103,", mi: ",46,", b: "New Booking", c: "fa-calendar-plus", d: "booking", e: "#dc3545" },
+ //{ a: ",112,114,", mi: ",112,114,", b: "Restaurant", c: "fa-utensils", d: "restaurant", e: "#fd7e14" }, not in use but keep as is
  //{ a: ",112,114,111,", mi: ",112,114,111,", b: "Reviews", c: "fa-star", d: "reviews", e: "#ffc107" },
  { a: ",115,104", mi: ",51,", b: "Publish App", c: "fa-gear", d: "Publish App", e: "#6c757d" }
 ];
 window[my1uzr.worknOnPg].moduLst = moduLst;
 moduLst.hook = "onModuLstAllowed";
 //104-creates .da
-const inTbls = ["dontCret:", "pubilc:113,116,111", "2/l-85~c,rb,rc,r", "2/p-103~r", "2/t-104~", "2/q-106~rm", "4/a-111~rb", "2/s-112~rb,c,r", "3/c-113~rb,rc,c", "2/s-114~rb,c", "2/t-115~rb_h,rb", "3/c-116~rb,r"];
+const inTbls = ["dontCret:", "pubilc:113,116,111", "2/0l-85~c,rb,rc,r", "2/0p-103~r", "2/0t-104~", "2/0q-106~rm", "4/0a-111~rb", "2/0s-112~rb,c,r", "3/0c-113~rb,rc,c", "2/0s-114~rb,c", "2/0t-115~rb_h,rb", "3/0c-116~rb,r"];
 const cust_const = [
- { "a": "paymentGatewayIntegrated", "b": 0, "c": "more customiztaion", "d": "if value is 1 payment gatewy will be shown, else manual booking", "u": "url-explaining-video" },
- { "a": "showRoomAvalOnHomePg", "b": 1, "c": "more cust...", "d": "if 1 'already-booked' data is fetched on home-page load, to show `already booked` on first page itself", "u": "url-explaining-video" },
- { "a": "msgOnBookButtonifRoomBooked", "b": "This room is already booked for the selected dates.", "c": "more customiztaion", "d": "message to be shown, if room is already booked (useful when person clicks 'view all rooms' after applying booking dates & rooms have been filtered)", "u": "url-explaining-video" }
- // I comment it in code and this discription for now keep as is - { "a": "paymentGatewayAfterSuccessTesting", "b": 0, "c": "more customiztaion", "d": "if value is 1 payment gatewy will be not showing shown and go to direct success part (success testing perpose, not use for now needs to handle backend also for now 0), else manual booking", "u": "url-explaining-video" }
+ {
+  "113": [{ "a": "paymentGatewayIntegrated", "b": 0, "c": "more customiztaion", "d": "if value is 1 payment gatewy will be shown, else manual booking", "u": "url-explaining-video" },
+  { "a": "showRoomAvalOnHomePg", "b": 1, "c": "more cust...", "d": "if 1 'already-booked' data is fetched on home-page load, to show `already booked` on first page itself", "u": "url-explaining-video" },
+  { "a": "msgOnBookButtonifRoomBooked", "b": "This room is already booked for the selected dates.", "c": "more customiztaion", "d": "message to be shown, if room is already booked (useful when person clicks 'view all rooms' after applying booking dates & rooms have been filtered)", "u": "url-explaining-video" }]
+ }
 ];
 window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
  window[my1uzr.worknOnPg].allowedModulesMenuItems = allowedModules || [];
@@ -46,15 +45,6 @@ window[my1uzr.worknOnPg].colsToHideBookings = "nd";
 window[my1uzr.worknOnPg].colsToHideMenu = "rt, rw, pl, gl,"; //hm, rm, ar, pl, bs, rt, gl, rw
 window[my1uzr.worknOnPg].colsToHideGuestDetails = "ad";
 
-/* ============================================================
-   PHONEPE payload handover
-   ------------------------------------------------------------
-   After a COMPLETED payment phonepe/redirect.php redirects here
-   as ?pp=OK&oid=...&data=<urlencoded JSON payload>. Read it up
-   front so it survives the query-string cleanup done later by
-   handlePhonePeReturn() (booking.js), then expose it to
-   showPhonePePostData().
-   ============================================================ */
 window.ppPostData = null;
 (function capturePhonePePostData() {
  try {
@@ -64,6 +54,29 @@ window.ppPostData = null;
   window.ppPostData = null;
  }
 })();
+
+function toggleSidebar() {
+ var sidebar = document.getElementById("appSidebar");
+ var overlay = document.getElementById("sidebarOverlay");
+ if (sidebar) sidebar.classList.toggle("open");
+ if (overlay) overlay.classList.toggle("visible");
+}
+
+function closeSidebar() {
+ var sidebar = document.getElementById("appSidebar");
+ var overlay = document.getElementById("sidebarOverlay");
+ if (sidebar) sidebar.classList.remove("open");
+ if (overlay) overlay.classList.remove("visible");
+}
+
+window.handleMenuAction = function (action) {
+ closeSidebar();
+ if (typeof openAdminFromMenu === "function") {
+  openAdminFromMenu(action).catch(function (err) {
+   console.error("handleMenuAction error for", action, err);
+  });
+ }
+};
 
 async function showPhonePePostData() {
  var data = window.ppPostData;
@@ -75,13 +88,16 @@ async function showPhonePePostData() {
   payload0.x1 = data.orderId;
   payload0.fn = 116;
   payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "rb" }, { tb: "r" }]);
-  var resp = await fnj3("https://my1.in/3/c.php", payload0, 1, true, null, 20000, 0, 1, 1);
+  //var resp = await fnj3("https://my1.in/3/c.php", payload0, 1, true, null, 20000, 0, 1, 1);
+  payload0.ul = '3/0c.php';
+  payload0.gt = 3;
+  var resp = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
   if (resp && resp.su == 1) {
-    // Read the ids off x1 before handl_rm_rspons below, which can rewrite the
-    // response. This mail carries the paid status, so it cannot depend on what
-    // the handler leaves behind.
-    var paidIds = resp.x1;
-    await handl_rm_rspons(resp);
+   // Read the ids off x1 before handl_rm_rspons below, which can rewrite the
+   // response. This mail carries the paid status, so it cannot depend on what
+   // the handler leaves behind.
+   var paidIds = resp.x1;
+   await handl_rm_rspons(resp);
    await adminLoadDataFromDB();
    try {
     if (
@@ -89,32 +105,32 @@ async function showPhonePePostData() {
      typeof dbnm !== "undefined" &&
      typeof buildMyBookingAll === "function"
     ) {
-      var dbBk = (await dbDexieManager.getAllRecords(dbnm, "rb")) || [];
-      var dbRc = (await dbDexieManager.getAllRecords(dbnm, "rc")) || [];
-      myBookingAll = buildMyBookingAll(dbBk, dbRc);
-     }
-    } catch (e) {
-     console.warn("Failed to reload bookings after payment:", e);
+     var dbBk = (await dbDexieManager.getAllRecords(dbnm, "rb")) || [];
+     var dbRc = (await dbDexieManager.getAllRecords(dbnm, "rc")) || [];
+     myBookingAll = buildMyBookingAll(dbBk, dbRc);
     }
-    // Its own guard, so a Dexie reload failure above cannot silently swallow
-    // the paid-status mail.
-    try {
-     if (typeof buildMyBookingAll === "function") sendRoomBookingStatusMail(paidIds);
-    } catch (mailErr) {
-     console.warn("Room Booking Status mail skipped:", mailErr);
+   } catch (e) {
+    console.warn("Failed to reload bookings after payment:", e);
+   }
+   // Its own guard, so a Dexie reload failure above cannot silently swallow
+   // the paid-status mail.
+   try {
+    if (typeof buildMyBookingAll === "function") sendRoomBookingStatusMail(paidIds);
+   } catch (mailErr) {
+    console.warn("Room Booking Status mail skipped:", mailErr);
+   }
+   my1PageLoader(true);
+   setTimeout(function () {
+    // A combination comes back as one joined id ("51_52_53"), one row per room.
+    // Only one bill overlay fits on screen, so the stays are chained rather
+    // than shown together.
+    if (typeof printBookingBillsSequentially === "function") {
+     printBookingBillsSequentially(resp?.x1);
+    } else {
+     printMyBookingById(resp?.x1);
     }
-    my1PageLoader(true);
-    setTimeout(function () {
-     // A combination comes back as one joined id ("51_52_53"), one row per room.
-     // Only one bill overlay fits on screen, so the stays are chained rather
-     // than shown together.
-     if (typeof printBookingBillsSequentially === "function") {
-      printBookingBillsSequentially(resp?.x1);
-     } else {
-      printMyBookingById(resp?.x1);
-     }
-     my1PageLoader(false);
-    }, 2000);
+    my1PageLoader(false);
+   }, 2000);
   } else {
    showMessageModal("Error", resp?.ms || "Failed", true);
   }
@@ -122,9 +138,7 @@ async function showPhonePePostData() {
   showMessageModal("Info", "Error: " + err?.message || err, false);
  }
 
-  console.log("📦 PhonePe payload received:", data);
-  console.log("📦 Sifr payload received:", resp);
-  return true;
+ return true;
 }
 
 var MEL_MAIL_SUBJECT = "Room Booking Status";
@@ -177,41 +191,41 @@ var MEL_MAIL_CSS = [
 ].join("");
 
 function melBillNo() {
-  var d = new Date();
-  var p = function (n) {
-   return String(n).length < 2 ? "0" + n : String(n);
-  };
-  return (
-   "HT-" +
-   d.getFullYear() +
-   p(d.getMonth() + 1) +
-   p(d.getDate()) +
-   "-" +
-   Math.floor(1000 + Math.random() * 9000)
-  );
+ var d = new Date();
+ var p = function (n) {
+  return String(n).length < 2 ? "0" + n : String(n);
+ };
+ return (
+  "HT-" +
+  d.getFullYear() +
+  p(d.getMonth() + 1) +
+  p(d.getDate()) +
+  "-" +
+  Math.floor(1000 + Math.random() * 9000)
+ );
 }
 
 function melIssueDate() {
-  var d = new Date();
-  return (
-   d.getDate() + " " + (MONTHS[d.getMonth()] || "") + " " + d.getFullYear()
-  );
+ var d = new Date();
+ return (
+  d.getDate() + " " + (MONTHS[d.getMonth()] || "") + " " + d.getFullYear()
+ );
 }
 
 function melRowsFallback(sp) {
-  return (
-   '<div class="s-row"><span>Grand Total</span><span class="amt">' +
-   fmtMoney(sp.grandTotal) +
-   "</span></div>"
-  );
+ return (
+  '<div class="s-row"><span>Grand Total</span><span class="amt">' +
+  fmtMoney(sp.grandTotal) +
+  "</span></div>"
+ );
 }
 
 // A saved row always carries its stay dates, but the mail must never print a
 // raw "NaN" if one is ever missing, so an unparseable date reads as "-".
 function melMailDate(v) {
-  if (v == null || v === "") return "-";
-  var d = parseDate(v);
-  return d && !isNaN(d.getTime()) ? fmtDate(v) : "-";
+ if (v == null || v === "") return "-";
+ var d = parseDate(v);
+ return d && !isNaN(d.getTime()) ? fmtDate(v) : "-";
 }
 
 // The status labels the booking code produces (billStatusOf, myBookingsStatus)
@@ -246,79 +260,79 @@ function melPaysheetMailHtml(parts, booker, billNo) {
  var h = hotel || {};
  var subject = melMailSubject(parts);
  var sp0 = parts[0].snap;
-  var st = parts[0].st || { label: "Booking Requested", ok: false };
-  var nights = Number(sp0.nights) || 0;
-  var stay =
-   melMailDate(sp0.checkin) +
-   " \u2192 " +
-   melMailDate(sp0.checkout) +
-   (nights ? " \u00b7 " + nights + " night" + (nights > 1 ? "s" : "") : "");
-  var sheets = "";
-  for (var i = 0; i < parts.length; i++) {
-   var sp = parts[i].snap;
-   var roomLabel =
-    (sp.room && sp.room.name) ||
-    (parts[i].bk && parts[i].bk.s) ||
-    (parts.length > 1 ? "Room " + (i + 1) : "");
-   sheets +=
-    '<div class="m-sheet">' +
-    '<div class="m-sheet-h m-serif">Paysheet' +
-    (roomLabel ? " \u00b7 " + escHtml(roomLabel) : "") +
-    "</div>" +
-    (typeof summaryHtml === "function"
-     ? summaryHtml(sp, { billPrint: true })
-     : melRowsFallback(sp)) +
-    "</div>";
-  }
-  var cells = [
-   ["Guest Name", booker.name],
-   ["Mobile", booker.contact],
-   ["Address", booker.address],
-   ["Email", booker.email],
-  ];
-  var cellHtml = "";
-  for (var c = 0; c < cells.length; c++) {
-   cellHtml +=
-    '<td width="50%" style="padding:6px 10px 6px 0;vertical-align:top;">' +
-    '<div class="m-lbl">' +
-    escHtml(cells[c][0]) +
-    "</div>" +
-    '<div class="m-sub" style="color:#2a2419;">' +
-    escHtml(cells[c][1] || "-") +
-    "</div></td>";
-  }
-  return (
-   '<!DOCTYPE html><html><head><meta charset="utf-8">' +
-   '<meta name="viewport" content="width=device-width,initial-scale=1">' +
-"<title>" + escHtml(subject) + "</title>" +
-    "<style>" + MEL_MAIL_CSS + "</style></head>" +
-    '<body class="m-in"><div style="display:none;max-height:0;overflow:hidden;">' +
-    escHtml(subject + " \u00b7 " + (booker.name || "Guest")) +
+ var st = parts[0].st || { label: "Booking Requested", ok: false };
+ var nights = Number(sp0.nights) || 0;
+ var stay =
+  melMailDate(sp0.checkin) +
+  " \u2192 " +
+  melMailDate(sp0.checkout) +
+  (nights ? " \u00b7 " + nights + " night" + (nights > 1 ? "s" : "") : "");
+ var sheets = "";
+ for (var i = 0; i < parts.length; i++) {
+  var sp = parts[i].snap;
+  var roomLabel =
+   (sp.room && sp.room.name) ||
+   (parts[i].bk && parts[i].bk.s) ||
+   (parts.length > 1 ? "Room " + (i + 1) : "");
+  sheets +=
+   '<div class="m-sheet">' +
+   '<div class="m-sheet-h m-serif">Paysheet' +
+   (roomLabel ? " \u00b7 " + escHtml(roomLabel) : "") +
    "</div>" +
-   '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4efe3;"><tr><td align="center" style="padding:18px 10px;">' +
-   '<table role="presentation" class="m-card" width="640" cellpadding="0" cellspacing="0"><tr><td class="m-pad" style="padding:22px 24px 6px;">' +
-   '<table width="100%" cellpadding="0" cellspacing="0"><tr>' +
-   '<td style="vertical-align:top;">' +
-   '<div class="m-h1 m-serif">' + escHtml(h.name || "Hotel") + "</div>" +
-   (h.tagline ? '<div class="m-tag">' + escHtml(h.tagline) + "</div>" : "") +
-   '<div class="m-tag">' +
-   escHtml([h.address || h.city || "", h.phone || ""].filter(Boolean).join(" \u00b7 ")) +
-   "</div></td>" +
-   '<td align="right" style="vertical-align:top;white-space:nowrap;">' +
-   '<div class="m-h1 m-serif" style="font-size:15px;">' + escHtml(MEL_MAIL_SUBJECT) + "</div>" +
-   '<div class="m-tag">Bill No <b>' + escHtml(billNo) + "</b></div>" +
-   '<div class="m-tag">' + escHtml(melIssueDate()) + "</div>" +
-   "</td></tr></table>" +
-   '<div style="margin-top:14px;"><span class="m-badge' +
-   (st.ok ? " m-badge-ok" : "") +
-   '">' + escHtml(st.label) + "</span></div>" +
-   '<div class="m-sub" style="margin-top:10px;">' + escHtml(stay) + "</div>" +
-'<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr>' +
-    cellHtml +
-    "</tr></table>" +
-    sheets +
-    "</td></tr></table></td></tr></table></body></html>"
-  );
+   (typeof summaryHtml === "function"
+    ? summaryHtml(sp, { billPrint: true })
+    : melRowsFallback(sp)) +
+   "</div>";
+ }
+ var cells = [
+  ["Guest Name", booker.name],
+  ["Mobile", booker.contact],
+  ["Address", booker.address],
+  ["Email", booker.email],
+ ];
+ var cellHtml = "";
+ for (var c = 0; c < cells.length; c++) {
+  cellHtml +=
+   '<td width="50%" style="padding:6px 10px 6px 0;vertical-align:top;">' +
+   '<div class="m-lbl">' +
+   escHtml(cells[c][0]) +
+   "</div>" +
+   '<div class="m-sub" style="color:#2a2419;">' +
+   escHtml(cells[c][1] || "-") +
+   "</div></td>";
+ }
+ return (
+  '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+  '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+  "<title>" + escHtml(subject) + "</title>" +
+  "<style>" + MEL_MAIL_CSS + "</style></head>" +
+  '<body class="m-in"><div style="display:none;max-height:0;overflow:hidden;">' +
+  escHtml(subject + " \u00b7 " + (booker.name || "Guest")) +
+  "</div>" +
+  '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4efe3;"><tr><td align="center" style="padding:18px 10px;">' +
+  '<table role="presentation" class="m-card" width="640" cellpadding="0" cellspacing="0"><tr><td class="m-pad" style="padding:22px 24px 6px;">' +
+  '<table width="100%" cellpadding="0" cellspacing="0"><tr>' +
+  '<td style="vertical-align:top;">' +
+  '<div class="m-h1 m-serif">' + escHtml(h.name || "Hotel") + "</div>" +
+  (h.tagline ? '<div class="m-tag">' + escHtml(h.tagline) + "</div>" : "") +
+  '<div class="m-tag">' +
+  escHtml([h.address || h.city || "", h.phone || ""].filter(Boolean).join(" \u00b7 ")) +
+  "</div></td>" +
+  '<td align="right" style="vertical-align:top;white-space:nowrap;">' +
+  '<div class="m-h1 m-serif" style="font-size:15px;">' + escHtml(MEL_MAIL_SUBJECT) + "</div>" +
+  '<div class="m-tag">Bill No <b>' + escHtml(billNo) + "</b></div>" +
+  '<div class="m-tag">' + escHtml(melIssueDate()) + "</div>" +
+  "</td></tr></table>" +
+  '<div style="margin-top:14px;"><span class="m-badge' +
+  (st.ok ? " m-badge-ok" : "") +
+  '">' + escHtml(st.label) + "</span></div>" +
+  '<div class="m-sub" style="margin-top:10px;">' + escHtml(stay) + "</div>" +
+  '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;"><tr>' +
+  cellHtml +
+  "</tr></table>" +
+  sheets +
+  "</td></tr></table></td></tr></table></body></html>"
+ );
 }
 
 // Report a status mail that did not go out. The console line is always kept;
@@ -326,16 +340,16 @@ function melPaysheetMailHtml(parts, booker, billNo) {
 // since the send is fire-and-forget and would otherwise pass unnoticed. Returns
 // false so a `return melMailFail(...)` reads as the failure it is.
 function melMailFail(opts, reason) {
-  console.warn("Room Booking Status mail not sent: " + reason);
-  var onFail = opts && typeof opts.onFail === "function" ? opts.onFail : null;
-  if (onFail) {
-    try {
-      onFail(reason);
-    } catch (e) {
-      console.warn("Status mail onFail handler threw:", e);
-    }
+ console.warn("Room Booking Status mail not sent: " + reason);
+ var onFail = opts && typeof opts.onFail === "function" ? opts.onFail : null;
+ if (onFail) {
+  try {
+   onFail(reason);
+  } catch (e) {
+   console.warn("Status mail onFail handler threw:", e);
   }
-  return false;
+ }
+ return false;
 }
 
 // opts.guest is the guest the caller already resolved (name/mobile/address/
@@ -344,137 +358,136 @@ function melMailFail(opts, reason) {
 // opts.parts hands over the paysheet parts ready-made, for callers that cannot
 // resolve the ids themselves. opts.onFail is told why a send did not go out.
 async function sendRoomBookingStatusMail(idList, opts) {
-  try {
-   var parts = [];
-   var given = opts && Array.isArray(opts.parts) ? opts.parts : null;
-   if (given && given.length) {
-    // A caller that built the parts itself (the admin panel, which has no
-    // myBookingAll guest cache to look the ids up in) is taken at its word:
-    // re-deriving them here is what silently dropped every admin mail.
-    parts = given;
-   } else {
-    if (
-     typeof ppStayRoomIds !== "function" ||
-     typeof getMyBookingById !== "function" ||
-     typeof bookingSnapFromRecord !== "function"
-    ) {
-     return melMailFail(opts, "the booking cache is not loaded yet");
+ try {
+  var parts = [];
+  var given = opts && Array.isArray(opts.parts) ? opts.parts : null;
+  if (given && given.length) {
+   // A caller that built the parts itself (the admin panel, which has no
+   // myBookingAll guest cache to look the ids up in) is taken at its word:
+   // re-deriving them here is what silently dropped every admin mail.
+   parts = given;
+  } else {
+   if (
+    typeof ppStayRoomIds !== "function" ||
+    typeof getMyBookingById !== "function" ||
+    typeof bookingSnapFromRecord !== "function"
+   ) {
+    return melMailFail(opts, "the booking cache is not loaded yet");
+   }
+   var ids = ppStayRoomIds(idList);
+   if (!ids.length) return melMailFail(opts, "no booking was found for this stay");
+   for (var i = 0; i < ids.length; i++) {
+    var bk = getMyBookingById(ids[i]);
+    if (!bk) continue;
+    var snap =
+     typeof ensureSnapGst === "function"
+      ? ensureSnapGst(bookingSnapFromRecord(bk))
+      : bookingSnapFromRecord(bk);
+    if (!snap) continue;
+    var st =
+     typeof myBookingsStatus === "function"
+      ? myBookingsStatus(bk)
+      : { label: "Booking Requested", ok: false, paid: false };
+    var mailSnap = Object.assign({}, snap);
+    if (st.paid) {
+     mailSnap.paid = true;
+     mailSnap.received = Math.round(Number(snap.grandTotal) || 0);
     }
-    var ids = ppStayRoomIds(idList);
-    if (!ids.length) return melMailFail(opts, "no booking was found for this stay");
-    for (var i = 0; i < ids.length; i++) {
-     var bk = getMyBookingById(ids[i]);
-     if (!bk) continue;
-     var snap =
-      typeof ensureSnapGst === "function"
-       ? ensureSnapGst(bookingSnapFromRecord(bk))
-       : bookingSnapFromRecord(bk);
-     if (!snap) continue;
-     var st =
-      typeof myBookingsStatus === "function"
-       ? myBookingsStatus(bk)
-       : { label: "Booking Requested", ok: false, paid: false };
-     var mailSnap = Object.assign({}, snap);
-     if (st.paid) {
-      mailSnap.paid = true;
-      mailSnap.received = Math.round(Number(snap.grandTotal) || 0);
-     }
-     if (st.cancelled) {
-      mailSnap.paid = false;
-      mailSnap.received = 0;
-     }
-     parts.push({ snap: mailSnap, bk: bk, st: st });
+    if (st.cancelled) {
+     mailSnap.paid = false;
+     mailSnap.received = 0;
     }
-    if (!parts.length)
-     return melMailFail(opts, "no booking was found for this stay");
+    parts.push({ snap: mailSnap, bk: bk, st: st });
    }
-    var booker = null;
-    if (given && given.length) {
-     // A caller that built the parts itself already joined the guest onto the
-     // snapshot (rb.o -> c.a), so take the booker from there. resolveBookerInfo
-     // must not run on this path: it matches the *signed-in* my1uzr identity
-     // first and ignores which booking it is mailing about, which in the admin
-     // panel is the staff account - the status mail would go to the wrong guest.
-     if (typeof billBookerFromSnap === "function") {
-      try {
-       booker = billBookerFromSnap(parts[0].snap);
-      } catch (bs) {
-       booker = null;
-      }
-     }
-    } else if (typeof resolveBookerInfo === "function") {
-     try {
-      booker = await resolveBookerInfo(parts[0].snap);
-     } catch (be) {
-      booker = null;
-     }
-    }
-    if (!booker && opts && opts.guest && opts.guest.email) booker = opts.guest;
-   var toMail = (booker && booker.email) || "";
-   var guestName = (booker && booker.name) || "";
-   var contact = (booker && booker.mobile) || "";
-   var address = (booker && booker.address) || "";
-   for (var p = 0; p < parts.length; p++) {
-    var s0 = parts[p].snap;
-    if (!toMail && s0.email) toMail = String(s0.email);
-    if (!guestName && s0.guestName) guestName = String(s0.guestName);
-    if (!contact && s0.contact) contact = String(s0.contact);
-    if (!address && s0.address) address = String(s0.address);
-   }
-   if (!toMail) {
-    return melMailFail(opts, "the guest has no email address on file");
-   }
-   var html = melPaysheetMailHtml(
-    parts,
-    {
-     name: guestName,
-     contact: contact,
-     address: address,
-     email: toMail,
-    },
-melBillNo(),
-    );
-    var mailWait =
-     opts && Number(opts.timeout) > 0 ? Number(opts.timeout) : 20000;
-    var ctl =
-     typeof AbortController !== "undefined" ? new AbortController() : null;
-    var timer = window.setTimeout(function () {
-     if (ctl) ctl.abort();
-    }, mailWait);
-   var resp = await fetch(window[my1uzr.worknOnPg]?.clientConfig?.mailToCustomer, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-    body: new URLSearchParams({
-     nm: guestName,
-     nu: toMail,
-     sj: melMailSubject(parts),
-     ms: html,
-     hpt: "",
-    }).toString(),
-    signal: ctl ? ctl.signal : undefined,
-   });
-   window.clearTimeout(timer);
-   var out = null;
-   try {
-    out = await resp.json();
-   } catch (je) {
-    out = null;
-   }
-   if (resp.ok && out && out.su == 1) {
-    console.log("📧 Room Booking Status mail sent to " + toMail);
-    return true;
-   }
-   return melMailFail(
-    opts,
-    "the mail server rejected it (" +
-     resp.status +
-     " " +
-     ((out && out.ms) || "no response body") +
-     ")",
-   );
-  } catch (e) {
-   return melMailFail(opts, "the request failed (" + (e && e.message) + ")");
+   if (!parts.length)
+    return melMailFail(opts, "no booking was found for this stay");
   }
+  var booker = null;
+  if (given && given.length) {
+   // A caller that built the parts itself already joined the guest onto the
+   // snapshot (rb.o -> c.a), so take the booker from there. resolveBookerInfo
+   // must not run on this path: it matches the *signed-in* my1uzr identity
+   // first and ignores which booking it is mailing about, which in the admin
+   // panel is the staff account - the status mail would go to the wrong guest.
+   if (typeof billBookerFromSnap === "function") {
+    try {
+     booker = billBookerFromSnap(parts[0].snap);
+    } catch (bs) {
+     booker = null;
+    }
+   }
+  } else if (typeof resolveBookerInfo === "function") {
+   try {
+    booker = await resolveBookerInfo(parts[0].snap);
+   } catch (be) {
+    booker = null;
+   }
+  }
+  if (!booker && opts && opts.guest && opts.guest.email) booker = opts.guest;
+  var toMail = (booker && booker.email) || "";
+  var guestName = (booker && booker.name) || "";
+  var contact = (booker && booker.mobile) || "";
+  var address = (booker && booker.address) || "";
+  for (var p = 0; p < parts.length; p++) {
+   var s0 = parts[p].snap;
+   if (!toMail && s0.email) toMail = String(s0.email);
+   if (!guestName && s0.guestName) guestName = String(s0.guestName);
+   if (!contact && s0.contact) contact = String(s0.contact);
+   if (!address && s0.address) address = String(s0.address);
+  }
+  if (!toMail) {
+   return melMailFail(opts, "the guest has no email address on file");
+  }
+  var html = melPaysheetMailHtml(
+   parts,
+   {
+    name: guestName,
+    contact: contact,
+    address: address,
+    email: toMail,
+   },
+   melBillNo(),
+  );
+  var mailWait =
+   opts && Number(opts.timeout) > 0 ? Number(opts.timeout) : 20000;
+  var ctl =
+   typeof AbortController !== "undefined" ? new AbortController() : null;
+  var timer = window.setTimeout(function () {
+   if (ctl) ctl.abort();
+  }, mailWait);
+  var resp = await fetch(window[my1uzr.worknOnPg]?.clientConfig?.mailToCustomer, {
+   method: "POST",
+   headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+   body: new URLSearchParams({
+    nm: guestName,
+    nu: toMail,
+    sj: melMailSubject(parts),
+    ms: html,
+    hpt: "",
+   }).toString(),
+   signal: ctl ? ctl.signal : undefined,
+  });
+  window.clearTimeout(timer);
+  var out = null;
+  try {
+   out = await resp.json();
+  } catch (je) {
+   out = null;
+  }
+  if (resp.ok && out && out.su == 1) {
+   return true;
+  }
+  return melMailFail(
+   opts,
+   "the mail server rejected it (" +
+   resp.status +
+   " " +
+   ((out && out.ms) || "no response body") +
+   ")",
+  );
+ } catch (e) {
+  return melMailFail(opts, "the request failed (" + (e && e.message) + ")");
+ }
 }
 window.sendRoomBookingStatusMail = sendRoomBookingStatusMail;
 (async function () {
@@ -523,169 +536,40 @@ window.sendRoomBookingStatusMail = sendRoomBookingStatusMail;
   "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&display=swap"
  );
 
- if (!window[my1uzr.worknOnPg].csh) {
-  window[my1uzr.worknOnPg].csh = [
-   {
-    a: 1,
-    u: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css",
-   },
-   {
-    a: 2,
-    u: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js",
-   },
-   {
-    a: 3,
-    u: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css",
-   },
-   {
-    a: 4,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fbf62ad/cmn/my1lo.js",
-    c: "open_shoLgnO",
-    r: "open_shoLgnO",
-   },
-   { a: 5, u: "https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js" },
-   {
-    a: 8,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1xi.min.js",
-   },
-   {
-    a: 9,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fbf62ad/cmn/my1lp.js",
-    c: "open_shoLgnP",
-    r: "open_shoLgnP",
-   },
-   {
-    a: 30,
-    u: "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js",
-    r: " ",
-   },
-   {
-    a: 31,
-    u: "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
-    r: " ",
-   },
-    {
-     a: 24,
-     u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@be0e86f/rm/bill.js",
-     //u: "bill.js",
-     c: "showBill,closeBill",
-     r: " ",
-    },
-   {
-    a: 22,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/messageModal.js",
-    c: "showMessageModal,showModal",
-    r: " ",
-   },
-   {
-    a: 21,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e5844db/rm/rm_h.js",
-    c: "handl_rm_rspons",
-    r: " ",
-   },
-   {
-    a: 25,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@25415a1/cmn/conta.js",
-    c: "showContactModal",
-    r: " ",
-   },
-   {
-    a: 20,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@be0e86f/rm/booking.js",
-    //u: "booking.js",
-    c: "openSummarySheet,calcBooking",
-    r: " ",
-   },
-   {
-    a: 35,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2b397a9/cmn/my1img.js",
-    c: "open_addimage",
-    r: "open_addimage",
-   },
-   {
-    a: 36,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/cmn/ei.min.js",
-    c: "open_entind_crud",
-    r: "open_entind_crud",
-   },
-   // fn 40 removed — admin.js merged into rm.js
-   {
-    a: 41,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/sidebar.js",
-    c: "handleMenuAction,toggleSidebar",
-    r: " ",
-   },
-   {
-    a: 42,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b44c182/rm/availability.js",
-    //u: "availability.js",
-    c: "calcNights,calcTotal,getRoomAvailability,getRoomById,adRoomId,getOverlapCount",
-    r: " ",
-   },
-   {
-    a: 43,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b44c182/rm/cfgMt.js",
-    //u: "cfgMt.js",
-    c: "htGetById,htRoomTypeLabel,htRoomStatusLabel,htRoomName,htBedLabels,htAmenityLabels,htRoomOccupancy,htRoomRate,htRoomImage",
-    r: " ",
-   },
-   {
-    a: 44,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@be0e86f/rm/home.js",
-    //u: "home.js",
-    c: "showDashboard,renderTable",
-    r: " ",
-   },
-   {
-    a: 46,
-     u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@be0e86f/rm/adminBooking.js",
-     //u: "adminBooking.js",
-     c: "openBookingModal,saveBooking",
-    r: " ",
-   },
-   {
-    a: 47,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/restaurant.js",
-    c: "showRestaurant",
-    r: " ",
-   },
-   {
-    a: 49,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/reviews.js",
-    c: "showReviews,openReviewModal,submitReview",
-    r: " ",
-   },
-   {
-    a: 50,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b44c182/rm/addRoom.js",
-    //u: "addRoom.js",
-    c: "showAddRoom,setAddRoomHero,updateThumb,publishAddRoom,resetAddRoomForm,editRoom",
-    r: " ",
-   },
-   {
-    a: 51,
-    u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@caafdee/rm/rm_da.js",
-    //u: "rm_da.js",
-    c: "showPrintSettings",
-    r: " ",
-   },
-   { "a": 52, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b7740c3/cmn/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
-   { "a": 53, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fcbc516/cmn/my1rp.js", "c": "open_my1rp", "r": "open_my1rp" },
-   { "a": 106, "u": "addRoom.js", "c": "showAddRoom,setAddRoomHero,updateThumb,publishAddRoom,resetAddRoomForm,editRoom", "r": " " },
-   { "a": 112, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@be0e86f/rm/adminBooking.js", "c": "openBookingModal,saveBooking", "r": " " },
-   //{ "a": 112, "u": "adminBooking.js", "c": "openBookingModal,saveBooking", "r": " " },
-    { "a": 43, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@be0e86f/rm/billCombo.js", "c": " ", "r": " " }
-    //{ "a": 43, "u": "billCombo.js", "c": " ", "r": " " }
-   ];
+ const CSH_PUSH = [
+  { "a": 30, "u": "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" },
+  { "a": 31, "u": "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" },
+  { "a": 24, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@be0e86f/rm/bill.min.js", "c": "showBill,closeBill", "r": " " },
+  { "a": 22, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/messageModal.min.js", "c": "showMessageModal,showModal", "r": " " },
+  { "a": 21, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e5844db/rm/rm_h.min.js", "c": "handl_rm_rspons", "r": " " },
+  { "a": 25, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@25415a1/cmn/conta.min.js", "c": "showContactModal", "r": " " },
+  { "a": 20, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@f50cdcc/rm/booking.min.js", "c": "openSummarySheet,calcBooking", "r": " " },
+  { "a": 42, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b44c182/rm/availability.min.js", "c": "calcNights,calcTotal,getRoomAvailability,getRoomById,adRoomId,getOverlapCount", "r": " " },
+  { "a": 43, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@b44c182/rm/cfgMt.min.js", "c": "htGetById,htRoomTypeLabel,htRoomStatusLabel,htRoomName,htBedLabels,htAmenityLabels,htRoomOccupancy,htRoomRate,htRoomImage", "r": " " },
+  { "a": 44, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@f50cdcc/rm/home.min.js", "c": "showDashboard,renderTable", "r": " " },
+  { "a": 46, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@f50cdcc/rm/adminBooking.min.js", "c": "openBookingModal,saveBooking", "r": " " },
+  { "a": 47, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/restaurant.min.js", "c": "showRestaurant", "r": " " },
+  { "a": 49, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@555db4d/rm/reviews.min.js", "c": "showReviews,openReviewModal,submitReview", "r": " " },
+  { "a": 50, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@f50cdcc/rm/addRoom.min.js", "c": "showAddRoom,setAddRoomHero,updateThumb,publishAddRoom,resetAddRoomForm,editRoom", "r": " " },
+  { "a": 51, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@f50cdcc/rm/rm_da.min.js", "c": "showPrintSettings", "r": " " },
+  { "a": 53, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@f50cdcc/cmn/my1rp.min.js", "c": "open_my1rp", "r": "open_my1rp" },
+  { "a": 43, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@be0e86f/rm/billCombo.min.js" }
+ ];
+
+ const cshIds = {};
+ if (typeof pushCsh === 'function') {
+  for (let i = 0; i < CSH_PUSH.length; i++) {
+   const it = CSH_PUSH[i];
+   cshIds[it.r || it.c || it.u] = pushCsh(it.u, it.c, it.r, it.a);
+  }
  }
 
  try {
 
-   let result1 = await loadCshScriptsSequentially(1, 2, 3, 4, 5, 8, 30, 31, 22, 21, 25, 20, 24, 43);
+  let result1 = await loadCshScriptsSequentially(30, 31, 22, 21, 25, 20, 24, 43);
   if (!result1.success)
    throw new Error("Failed to load required scripts: " + result1.error);
 
-  console.log("📦 Creating database tables for:", dbnm);
   try {
    const createResult = await dbDexieManager.handleNwTables(
     "loader",
@@ -693,12 +577,6 @@ window.sendRoomBookingStatusMail = sendRoomBookingStatusMail;
     tblsRequired,
    );
    createResult.failureCount;
-   console.log(
-    "✅ Database initialized:",
-    dbnm,
-    "| Failure count:",
-    createResult.failureCount,
-   );
   } catch (dbError) {
    console.error("❌ Database error:", dbError);
   }
@@ -733,8 +611,8 @@ window.sendRoomBookingStatusMail = sendRoomBookingStatusMail;
    } catch (e2) { }
   }
 
-  await loadRoomConfig();
-  if (window[my1uzr.worknOnPg].clientConfig?.cust_da_const?.showRoomAvalOnHomePg == 1)
+  await Promise.all([loadRoomConfig(), loadAdminClientConfig()]);
+  if (window[my1uzr.worknOnPg].clientConfigByAdm?.cust_da_const?.showRoomAvalOnHomePg == 1)
    await openRoomBooking();
   applyClientConfigToPublic();
 
@@ -755,7 +633,6 @@ window.sendRoomBookingStatusMail = sendRoomBookingStatusMail;
   }
 
   renderAppUI();
-  console.log("✅ App UI rendered - Hotel Shri Vimaleshwar Executive");
 
   showPhonePePostData();
 
@@ -2527,6 +2404,12 @@ var IMG_FALLBACK =
   "</svg>",
  );
 
+// Self-contained fallback handler for generated <img> tags. Keeping the data
+// URI inside the attribute avoids a global lookup, so an image error can never
+// throw "imgFail is not defined" while this script is still loading.
+var IMG_ONERROR_ATTR =
+ 'onerror="this.onerror=null;this.src=\'' + IMG_FALLBACK + '\'"';
+
 var MONTHS = [
  "Jan",
  "Feb",
@@ -2653,6 +2536,8 @@ function imgFail(img) {
  img.dataset.fb = "1";
  img.src = IMG_FALLBACK;
 }
+// Keep the legacy global available for any markup cached before this fix.
+window.imgFail = imgFail;
 
 function stripKey(o) {
  if (!o) return o;
@@ -2707,7 +2592,7 @@ function parseBookingFacilityL(l) {
   if (Array.isArray(obj.adt)) adt = obj.adt;
   if (obj.ac != null) ac = obj.ac;
  }
-  return { main: main, ado: ado, adt: adt, ac: ac };
+ return { main: main, ado: ado, adt: adt, ac: ac };
 }
 
 // ── RECEIPT (table r) FIELD READERS ──────────────────────────────────────
@@ -2770,9 +2655,9 @@ function receiptEnvelopeWithTxn(rec, txn) {
 // JS as clientConfig.gst. Resolved at call time so script load order never
 // matters, and never cached on `hotel`.
 function htGstRate() {
-  var raw = window[my1uzr.worknOnPg]?.clientConfig?.gst;
-  var n = parseFloat(raw);
-  return isFinite(n) && n > 0 ? n : 0;
+ var raw = window[my1uzr.worknOnPg]?.clientConfig?.gst;
+ var n = parseFloat(raw);
+ return isFinite(n) && n > 0 ? n : 0;
 }
 
 // The GST due on an amount, rounded exactly the way the paysheet rounds it
@@ -2780,9 +2665,9 @@ function htGstRate() {
 // ₹ 1,250 at 5% is ₹ 63). One rule in one place, so a card can never quote a tax
 // the summary sheet then contradicts by a rupee.
 function htGstOn(amount) {
-  var base = Math.round(Number(amount) || 0);
-  var rate = htGstRate();
-  return rate > 0 ? Math.round((base * rate) / 100) : 0;
+ var base = Math.round(Number(amount) || 0);
+ var rate = htGstRate();
+ return rate > 0 ? Math.round((base * rate) / 100) : 0;
 }
 
 // Map a server/config room record (rm schema: a-j keys, nested h object) into
@@ -2793,59 +2678,59 @@ function htGstOn(amount) {
 // e.g. "2-3~8" = 2 guests included, sleeps at most 3, children aged 8 and under
 // stay free. The middle number is a MAX OCCUPANCY ceiling, not a child count.
 function htRoomOccupancyPolicy(room) {
-  var cfg = window[my1uzr.worknOnPg]?.clientConfig?.HT_CFG || {};
-  var numberOr = function (value, fallback) {
-    var n = parseInt(value, 10);
-    return isFinite(n) ? n : fallback;
-  };
-  var policy = room && room.occupancyPolicy;
-  var capacity = numberOr(
-    policy && policy.capacity,
-    numberOr(room && room.capacity, 2),
-  );
-  var maxOccupancy = numberOr(
-    policy && policy.maxOccupancy,
-    numberOr(
-      room && room.maxOccupancy,
-      numberOr(room && room.maxChildren, numberOr(cfg.maxOccupancy, capacity)),
-    ),
-  );
-  var freeMax = numberOr(
-    policy &&
-      (policy.childAgeFreeMax != null ? policy.childAgeFreeMax : policy.freeAge),
-    numberOr(cfg.childAgeFreeMax, 8),
-  );
-  var source = room && room.h;
-  if (typeof source === "string") {
-    var text = source.trim();
-    if (text.charAt(0) === "{" || text.charAt(0) === "[") {
-      try {
-        source = JSON.parse(text);
-      } catch (e) {
-        source = null;
-      }
-    } else if (text.indexOf("-") > -1 && text.indexOf("~") > -1) {
-      source = { e: text };
-    }
+ var cfg = window[my1uzr.worknOnPg]?.clientConfig?.HT_CFG || {};
+ var numberOr = function (value, fallback) {
+  var n = parseInt(value, 10);
+  return isFinite(n) ? n : fallback;
+ };
+ var policy = room && room.occupancyPolicy;
+ var capacity = numberOr(
+  policy && policy.capacity,
+  numberOr(room && room.capacity, 2),
+ );
+ var maxOccupancy = numberOr(
+  policy && policy.maxOccupancy,
+  numberOr(
+   room && room.maxOccupancy,
+   numberOr(room && room.maxChildren, numberOr(cfg.maxOccupancy, capacity)),
+  ),
+ );
+ var freeMax = numberOr(
+  policy &&
+  (policy.childAgeFreeMax != null ? policy.childAgeFreeMax : policy.freeAge),
+  numberOr(cfg.childAgeFreeMax, 8),
+ );
+ var source = room && room.h;
+ if (typeof source === "string") {
+  var text = source.trim();
+  if (text.charAt(0) === "{" || text.charAt(0) === "[") {
+   try {
+    source = JSON.parse(text);
+   } catch (e) {
+    source = null;
+   }
+  } else if (text.indexOf("-") > -1 && text.indexOf("~") > -1) {
+   source = { e: text };
   }
-  var value =
-    source && typeof source === "object" && source.e != null
-      ? source.e
-      : room && room.m;
-  if (value != null && typeof value !== "object") {
-    var occupancyText = String(value);
-    var parts = occupancyText.split("~")[0].split("-");
-    var freePart = occupancyText.split("~")[1];
-    capacity = numberOr(parts[0], capacity);
-    maxOccupancy = numberOr(parts[1], maxOccupancy);
-    freeMax = numberOr(freePart, freeMax);
-  }
-  return {
-    capacity: Math.max(0, capacity),
-    maxOccupancy: Math.max(0, maxOccupancy),
-    childAgeFreeMax: Math.max(0, freeMax),
-    freeAge: Math.max(0, freeMax),
-  };
+ }
+ var value =
+  source && typeof source === "object" && source.e != null
+   ? source.e
+   : room && room.m;
+ if (value != null && typeof value !== "object") {
+  var occupancyText = String(value);
+  var parts = occupancyText.split("~")[0].split("-");
+  var freePart = occupancyText.split("~")[1];
+  capacity = numberOr(parts[0], capacity);
+  maxOccupancy = numberOr(parts[1], maxOccupancy);
+  freeMax = numberOr(freePart, freeMax);
+ }
+ return {
+  capacity: Math.max(0, capacity),
+  maxOccupancy: Math.max(0, maxOccupancy),
+  childAgeFreeMax: Math.max(0, freeMax),
+  freeAge: Math.max(0, freeMax),
+ };
 }
 
 // Chargeable occupancy across a SET of rooms (one element for a single room,
@@ -2858,74 +2743,74 @@ function htRoomOccupancyPolicy(room) {
 // over is billed at their own rate - an extra adult at extraAdultsCharge, an
 // over-age child at paidChildCharge. The two together always equal the overflow.
 function htOccupancyPool(rooms, adultCount, childAges) {
-  var list = Array.isArray(rooms) ? rooms : rooms ? [rooms] : [];
-  var capacitySum = 0;
-  var maxOccupancySum = 0;
-  var childAgeFreeMax = 8;
-  for (var i = 0; i < list.length; i++) {
-    var p = htRoomOccupancyPolicy(list[i]);
-    capacitySum += p.capacity;
-    maxOccupancySum += p.maxOccupancy;
-    if (p.childAgeFreeMax > childAgeFreeMax) childAgeFreeMax = p.childAgeFreeMax;
+ var list = Array.isArray(rooms) ? rooms : rooms ? [rooms] : [];
+ var capacitySum = 0;
+ var maxOccupancySum = 0;
+ var childAgeFreeMax = 8;
+ for (var i = 0; i < list.length; i++) {
+  var p = htRoomOccupancyPolicy(list[i]);
+  capacitySum += p.capacity;
+  maxOccupancySum += p.maxOccupancy;
+  if (p.childAgeFreeMax > childAgeFreeMax) childAgeFreeMax = p.childAgeFreeMax;
+ }
+ var ages = Array.isArray(childAges) ? childAges : [];
+ var adultsCount = Math.max(0, parseInt(adultCount, 10) || 0);
+ var adultEquivalentChildren = 0;
+ var freeChildren = 0;
+ for (var ci = 0; ci < ages.length; ci++) {
+  var value = ages[ci];
+  if (value && typeof value === "object") {
+   value =
+    value.ag != null
+     ? value.ag
+     : value.age != null
+      ? value.age
+      : value.a;
   }
-  var ages = Array.isArray(childAges) ? childAges : [];
-  var adultsCount = Math.max(0, parseInt(adultCount, 10) || 0);
-  var adultEquivalentChildren = 0;
-  var freeChildren = 0;
-  for (var ci = 0; ci < ages.length; ci++) {
-    var value = ages[ci];
-    if (value && typeof value === "object") {
-      value =
-        value.ag != null
-          ? value.ag
-          : value.age != null
-            ? value.age
-            : value.a;
-    }
-    var age = parseInt(value, 10);
-    if (!isFinite(age) || age < 0) age = 0;
-    if (age > childAgeFreeMax) adultEquivalentChildren++;
-    else freeChildren++;
-  }
-  var effectiveOccupancy = adultsCount + adultEquivalentChildren;
-  // Included slots go to the adults first, then to the over-age children.
-  var includedForAdults = Math.min(adultsCount, capacitySum);
-  var includedForChildren = Math.min(
-    adultEquivalentChildren,
-    capacitySum - includedForAdults,
-  );
-  var extraAdultUnits = adultsCount - includedForAdults;
-  var paidChildUnits = adultEquivalentChildren - includedForChildren;
-  var overflow = extraAdultUnits + paidChildUnits;
-  return {
-    rooms: list,
-    roomCount: list.length,
-    capacity: capacitySum,
-    maxOccupancy: maxOccupancySum,
-    childAgeFreeMax: childAgeFreeMax,
-    adults: adultsCount,
-    children: ages.length,
-    childAges: ages,
-    adultEquivalentChildren: adultEquivalentChildren,
-    paidChildren: adultEquivalentChildren,
-    paidChildUnits: paidChildUnits,
-    freeChildren: freeChildren,
-    effectiveOccupancy: effectiveOccupancy,
-    extraAdultUnits: extraAdultUnits,
-    extraAdylts: extraAdultUnits,
-    extraAdults: extraAdultUnits,
-    overflowUnits: overflow,
-    isOverCapacity: overflow > 0,
-    overMaxOccupancy: effectiveOccupancy > maxOccupancySum,
-  };
+  var age = parseInt(value, 10);
+  if (!isFinite(age) || age < 0) age = 0;
+  if (age > childAgeFreeMax) adultEquivalentChildren++;
+  else freeChildren++;
+ }
+ var effectiveOccupancy = adultsCount + adultEquivalentChildren;
+ // Included slots go to the adults first, then to the over-age children.
+ var includedForAdults = Math.min(adultsCount, capacitySum);
+ var includedForChildren = Math.min(
+  adultEquivalentChildren,
+  capacitySum - includedForAdults,
+ );
+ var extraAdultUnits = adultsCount - includedForAdults;
+ var paidChildUnits = adultEquivalentChildren - includedForChildren;
+ var overflow = extraAdultUnits + paidChildUnits;
+ return {
+  rooms: list,
+  roomCount: list.length,
+  capacity: capacitySum,
+  maxOccupancy: maxOccupancySum,
+  childAgeFreeMax: childAgeFreeMax,
+  adults: adultsCount,
+  children: ages.length,
+  childAges: ages,
+  adultEquivalentChildren: adultEquivalentChildren,
+  paidChildren: adultEquivalentChildren,
+  paidChildUnits: paidChildUnits,
+  freeChildren: freeChildren,
+  effectiveOccupancy: effectiveOccupancy,
+  extraAdultUnits: extraAdultUnits,
+  extraAdylts: extraAdultUnits,
+  extraAdults: extraAdultUnits,
+  overflowUnits: overflow,
+  isOverCapacity: overflow > 0,
+  overMaxOccupancy: effectiveOccupancy > maxOccupancySum,
+ };
 }
 
 // Single-room convenience wrapper. Every existing caller keeps working; combo
 // callers reach for htOccupancyPool directly.
 function htEffectiveRoomOccupancy(room, adultCount, childAges) {
-  var occ = htOccupancyPool([room], adultCount, childAges);
-  occ.room = room;
-  return occ;
+ var occ = htOccupancyPool([room], adultCount, childAges);
+ occ.room = room;
+ return occ;
 }
 
 /* ============================================================
@@ -2942,23 +2827,23 @@ function htEffectiveRoomOccupancy(room, adultCount, childAges) {
    smaller rooms to a party a single room could have taken.
    ============================================================ */
 function htCombinations(list, size) {
-  var out = [];
-  (function walk(start, picked) {
-    if (picked.length === size) {
-     out.push(picked.slice());
-     return;
-    }
-    for (var i = start; i < list.length; i++) {
-     picked.push(list[i]);
-     walk(i + 1, picked);
-     picked.pop();
-    }
-  })(0, []);
-  return out;
+ var out = [];
+ (function walk(start, picked) {
+  if (picked.length === size) {
+   out.push(picked.slice());
+   return;
+  }
+  for (var i = start; i < list.length; i++) {
+   picked.push(list[i]);
+   walk(i + 1, picked);
+   picked.pop();
+  }
+ })(0, []);
+ return out;
 }
 
 function htComboKey(ids) {
-  return (ids || []).map(String).join("-");
+ return (ids || []).map(String).join("-");
 }
 
 // rm.da "showAllOptionsOfRoomsOnInit": with no guests in the stepper yet the
@@ -2967,9 +2852,9 @@ function htComboKey(ids) {
 // this on and gets the combinations next to the rooms from the start. The admin
 // picker is unaffected - it only ever searches a party that is already entered.
 function htShowAllRoomOptions() {
-  return (
-    window[my1uzr.worknOnPg]?.clientConfig?.showAllOptionsOfRoomsOnInit == 1
-  );
+ return (
+  window[my1uzr.worknOnPg]?.clientConfig?.showAllOptionsOfRoomsOnInit == 1
+ );
 }
 
 // rm.da "showAndUseFreeChildsOptionsOfRooms": a child within the room's free age
@@ -2979,10 +2864,10 @@ function htShowAllRoomOptions() {
 // The flag makes the copy in the search area count them that way too. It changes
 // no room in the list: the "use" half is what the search already does.
 function htExcludeFreeChildsFromTotal() {
-  return (
-    window[my1uzr.worknOnPg]?.clientConfig
-      ?.showAndUseFreeChildsOptionsOfRooms == 1
-  );
+ return (
+  window[my1uzr.worknOnPg]?.clientConfig
+   ?.showAndUseFreeChildsOptionsOfRooms == 1
+ );
 }
 
 // rm.da "showAndOptionsOfCardPriceings": decides how much of a stay a room card
@@ -2999,18 +2884,18 @@ function htExcludeFreeChildsFromTotal() {
 //
 // The figures are identical however it is set; only the detail shown changes.
 function htCardPricingMode() {
-  var raw = window[my1uzr.worknOnPg]?.clientConfig?.showAndOptionsOfCardPriceings;
-  var v = Number(raw);
-  return v === 1 || v === 3 ? v : 0;
+ var raw = window[my1uzr.worknOnPg]?.clientConfig?.showAndOptionsOfCardPriceings;
+ var v = Number(raw);
+ return v === 1 || v === 3 ? v : 0;
 }
 
 function htCardShowsWeeklyRates() {
-  return htCardPricingMode() == 1;
+ return htCardPricingMode() == 1;
 }
 
 // Mode 3: the total and the GST on it, and nothing else.
 function htCardShowsTotalWithGst() {
-  return htCardPricingMode() == 3;
+ return htCardPricingMode() == 3;
 }
 
 // The party as the search area should describe it. The free-child count comes
@@ -3018,13 +2903,13 @@ function htCardShowsTotalWithGst() {
 // children went - dropping them from the total and from the sentence would leave
 // "2 guests (2 adults, 2 children)" arguing with itself.
 function htSearchParty() {
-  var occ = htOccupancyPool([{}], adults, childAges);
-  var excluding = htExcludeFreeChildsFromTotal();
-  return {
-    pool: occ,
-    excluding: excluding,
-    total: excluding ? occ.effectiveOccupancy : occ.adults + occ.children,
-  };
+ var occ = htOccupancyPool([{}], adults, childAges);
+ var excluding = htExcludeFreeChildsFromTotal();
+ return {
+  pool: occ,
+  excluding: excluding,
+  total: excluding ? occ.effectiveOccupancy : occ.adults + occ.children,
+ };
 }
 
 // rm.da "showOnlyCombosAbovePersons": the band of party sizes, written as a
@@ -3054,33 +2939,33 @@ function htSearchParty() {
 // unreadable means the rule is off: every party sees single rooms and combinations,
 // which is how the search behaved before.
 function htCombosRange() {
-  var raw =
-    window[my1uzr.worknOnPg]?.clientConfig?.showOnlyCombosAbovePersons;
-  if (raw == null) return null;
-  var s = String(raw).trim();
-  if (!s) return null;
-  var parts = s.split(",");
-  var from, to;
-  if (parts.length >= 2) {
-   from = parseInt(parts[0], 10);
-   to = parseInt(parts[1], 10);
-  } else {
-   from = 1;
-   to = parseInt(parts[0], 10);
-  }
-  if (!isFinite(from) || !isFinite(to)) return null;
-  if (to < 1) return null;
-  if (from < 0) from = 0;
-  if (from > to) return null;
-  return { from: from, to: to };
+ var raw =
+  window[my1uzr.worknOnPg]?.clientConfig?.showOnlyCombosAbovePersons;
+ if (raw == null) return null;
+ var s = String(raw).trim();
+ if (!s) return null;
+ var parts = s.split(",");
+ var from, to;
+ if (parts.length >= 2) {
+  from = parseInt(parts[0], 10);
+  to = parseInt(parts[1], 10);
+ } else {
+  from = 1;
+  to = parseInt(parts[0], 10);
+ }
+ if (!isFinite(from) || !isFinite(to)) return null;
+ if (to < 1) return null;
+ if (from < 0) from = 0;
+ if (from > to) return null;
+ return { from: from, to: to };
 }
 
 // A party over the top of the band is shown combinations first, and by default
 // no single room at all: neither the normally priced ones nor the
 // extra-guest-charge ones, so a large group reads one list instead of two.
 function htCombosOnlyForParty() {
-  var r = htCombosRange();
-  return !!r && htSearchParty().total > r.to;
+ var r = htCombosRange();
+ return !!r && htSearchParty().total > r.to;
 }
 
 // rm.da "showExtraChargeRoomsAbovePersons": 1 lifts that for the room list. A
@@ -3095,10 +2980,10 @@ function htCombosOnlyForParty() {
 // Off (or absent) the room list is emptied above the band, as it always was, so
 // a hotel that wants the old single-list reading keeps it.
 function htKeepExtraChargeRoomsAboveBand() {
-  return (
-    window[my1uzr.worknOnPg]?.clientConfig
-      ?.showExtraChargeRoomsAbovePersons == 1
-  );
+ return (
+  window[my1uzr.worknOnPg]?.clientConfig
+   ?.showExtraChargeRoomsAbovePersons == 1
+ );
 }
 
 // True when the room list has actually been withheld from this party: over the
@@ -3106,7 +2991,7 @@ function htKeepExtraChargeRoomsAboveBand() {
 // The two places that branch on the band - the wipe and the filter bar - must
 // agree on this, or the bar goes on counting a list the guest cannot see.
 function htSingleRoomsHiddenForParty() {
-  return htCombosOnlyForParty() && !htKeepExtraChargeRoomsAboveBand();
+ return htCombosOnlyForParty() && !htKeepExtraChargeRoomsAboveBand();
 }
 
 // rm.da "showCombosCheapestFirst": 1 orders the public combination list by what
@@ -3124,18 +3009,18 @@ function htSingleRoomsHiddenForParty() {
 // becomes 36 blocks of a few cards each, alternating two, three and four rooms
 // from the cheapest set to the dearest.
 function htCombosRankByAllInPrice() {
-  return (
-    window[my1uzr.worknOnPg]?.clientConfig?.showCombosCheapestFirst == 1
-  );
+ return (
+  window[my1uzr.worknOnPg]?.clientConfig?.showCombosCheapestFirst == 1
+ );
 }
 
 // A party inside the band is the mirror image: single rooms stay, the combinations
 // go. The two never overlap, so a party is never left with neither.
 function htCombosHiddenForParty() {
-  var r = htCombosRange();
-  if (!r) return false;
-  var t = htSearchParty().total;
-  return t >= r.from && t <= r.to;
+ var r = htCombosRange();
+ if (!r) return false;
+ var t = htSearchParty().total;
+ return t >= r.from && t <= r.to;
 }
 
 // Every combination of the given pool that can sleep the party, best first:
@@ -3193,15 +3078,15 @@ function htComboOptions(pool, adultCount, childAges, opts) {
   typeof options.rateOf === "function"
    ? options.rateOf
    : function (r) {
-      return Number(r && r.pricePerNight) || 0;
-    };
+    return Number(r && r.pricePerNight) || 0;
+   };
  var list = (pool || []).filter(function (r) {
   return r && (!isAvailable || isAvailable(r));
  });
-  var occ = htOccupancyPool([{}], adultCount, childAges);
-  if ((!occ.effectiveOccupancy && !options.allowEmptyParty) || !list.length)
-   return [];
-  var maxRooms = Math.min(options.maxRooms || 3, list.length);
+ var occ = htOccupancyPool([{}], adultCount, childAges);
+ if ((!occ.effectiveOccupancy && !options.allowEmptyParty) || !list.length)
+  return [];
+ var maxRooms = Math.min(options.maxRooms || 3, list.length);
 
  if (maxRooms < 2) return [];
  // A room that already sleeps the whole party wins on its own, so stop before
@@ -3242,72 +3127,72 @@ function htComboOptions(pool, adultCount, childAges, opts) {
    var totalPerNight = set.reduce(function (sum, r) {
     return sum + (Number(rateOf(r)) || 0);
    }, 0);
-     return {
-      key: htComboKey(
-       set.map(function (r) {
-        return r.id;
-       }),
-      ),
-      rooms: set,
-      roomIds: set.map(function (r) {
-       return String(r.id);
-      }),
-      roomCount: set.length,
-      capacity: so.capacity,
-      maxOccupancy: so.maxOccupancy,
-      totalPerNight: totalPerNight,
-      effectiveOccupancy: so.effectiveOccupancy,
-      extraAdultUnits: so.extraAdultUnits,
-      paidChildUnits: so.paidChildUnits,
-      freeChildren: so.freeChildren,
-       fitsPooledNormal: !so.isOverCapacity,
-       extraAdultsCharge: extraRate,
-       paidChildCharge: childRate,
-       // The nightly figure the guest actually pays: the rooms, plus the guests
-       // the set has to charge for. htPartyCharge builds the same sum for one
-       // night from the same two rates, so this ranks sets on the number the card
-       // then prints.
-       allInPerNight:
-        totalPerNight +
-        so.extraAdultUnits * extraRate +
-        so.paidChildUnits * childRate,
-      };
-     })
-     .sort(function (a, b) {
-      if (options.cheapestAllIn) {
-       // rm.da "showCombosCheapestFirst": what the guest pays, cheap to
-       // expensive, and the room count only settles ties. allInPerNight is the
-       // same sum htPartyCharge and htCardTotal build for the card, so a set is
-       // ranked on the figure its own card prints and the two cannot disagree.
-       if (a.allInPerNight !== b.allInPerNight)
-        return a.allInPerNight - b.allInPerNight;
-       if (a.roomCount !== b.roomCount) return a.roomCount - b.roomCount;
-       if (a.fitsPooledNormal !== b.fitsPooledNormal)
-        return a.fitsPooledNormal ? -1 : 1;
-       if (a.maxOccupancy !== b.maxOccupancy)
-        return b.maxOccupancy - a.maxOccupancy;
-       return a.key < b.key ? -1 : a.key > b.key ? 1 : 0;
-      }
-      if (options.cheapestWithinSize) {
-       // Fewest rooms first, then the cheapest way to fill them. Nothing here
-       // looks at whether the set needs a surcharge until two sets are otherwise
-       // level, so a two-room set that covers six by charging for two of them
-       // leads the list instead of trailing every no-surcharge set behind it.
-       if (a.roomCount !== b.roomCount) return a.roomCount - b.roomCount;
-       if (a.allInPerNight !== b.allInPerNight)
-        return a.allInPerNight - b.allInPerNight;
-      }
-      if (a.fitsPooledNormal !== b.fitsPooledNormal) return a.fitsPooledNormal ? -1 : 1;
-      if (options.preferCheapest && a.totalPerNight !== b.totalPerNight)
-       return a.totalPerNight - b.totalPerNight;
-      // Several room counts reach the sort together, so fewer rooms has to
-      // outrank the headroom comparison - a three-room set always has more of it
-      // than a two-room set, and always costs more.
-      if (a.roomCount !== b.roomCount) return a.roomCount - b.roomCount;
-      if (a.maxOccupancy !== b.maxOccupancy) return b.maxOccupancy - a.maxOccupancy;
-      if (a.totalPerNight !== b.totalPerNight) return a.totalPerNight - b.totalPerNight;
-      return a.key < b.key ? -1 : a.key > b.key ? 1 : 0;
-    });
+   return {
+    key: htComboKey(
+     set.map(function (r) {
+      return r.id;
+     }),
+    ),
+    rooms: set,
+    roomIds: set.map(function (r) {
+     return String(r.id);
+    }),
+    roomCount: set.length,
+    capacity: so.capacity,
+    maxOccupancy: so.maxOccupancy,
+    totalPerNight: totalPerNight,
+    effectiveOccupancy: so.effectiveOccupancy,
+    extraAdultUnits: so.extraAdultUnits,
+    paidChildUnits: so.paidChildUnits,
+    freeChildren: so.freeChildren,
+    fitsPooledNormal: !so.isOverCapacity,
+    extraAdultsCharge: extraRate,
+    paidChildCharge: childRate,
+    // The nightly figure the guest actually pays: the rooms, plus the guests
+    // the set has to charge for. htPartyCharge builds the same sum for one
+    // night from the same two rates, so this ranks sets on the number the card
+    // then prints.
+    allInPerNight:
+     totalPerNight +
+     so.extraAdultUnits * extraRate +
+     so.paidChildUnits * childRate,
+   };
+  })
+  .sort(function (a, b) {
+   if (options.cheapestAllIn) {
+    // rm.da "showCombosCheapestFirst": what the guest pays, cheap to
+    // expensive, and the room count only settles ties. allInPerNight is the
+    // same sum htPartyCharge and htCardTotal build for the card, so a set is
+    // ranked on the figure its own card prints and the two cannot disagree.
+    if (a.allInPerNight !== b.allInPerNight)
+     return a.allInPerNight - b.allInPerNight;
+    if (a.roomCount !== b.roomCount) return a.roomCount - b.roomCount;
+    if (a.fitsPooledNormal !== b.fitsPooledNormal)
+     return a.fitsPooledNormal ? -1 : 1;
+    if (a.maxOccupancy !== b.maxOccupancy)
+     return b.maxOccupancy - a.maxOccupancy;
+    return a.key < b.key ? -1 : a.key > b.key ? 1 : 0;
+   }
+   if (options.cheapestWithinSize) {
+    // Fewest rooms first, then the cheapest way to fill them. Nothing here
+    // looks at whether the set needs a surcharge until two sets are otherwise
+    // level, so a two-room set that covers six by charging for two of them
+    // leads the list instead of trailing every no-surcharge set behind it.
+    if (a.roomCount !== b.roomCount) return a.roomCount - b.roomCount;
+    if (a.allInPerNight !== b.allInPerNight)
+     return a.allInPerNight - b.allInPerNight;
+   }
+   if (a.fitsPooledNormal !== b.fitsPooledNormal) return a.fitsPooledNormal ? -1 : 1;
+   if (options.preferCheapest && a.totalPerNight !== b.totalPerNight)
+    return a.totalPerNight - b.totalPerNight;
+   // Several room counts reach the sort together, so fewer rooms has to
+   // outrank the headroom comparison - a three-room set always has more of it
+   // than a two-room set, and always costs more.
+   if (a.roomCount !== b.roomCount) return a.roomCount - b.roomCount;
+   if (a.maxOccupancy !== b.maxOccupancy) return b.maxOccupancy - a.maxOccupancy;
+   if (a.totalPerNight !== b.totalPerNight) return a.totalPerNight - b.totalPerNight;
+   return a.key < b.key ? -1 : a.key > b.key ? 1 : 0;
+  });
 }
 
 /* ============================================================
@@ -3323,27 +3208,27 @@ function htComboOptions(pool, adultCount, childAges, opts) {
 // Split `total` across `weights` in proportion, with the rounding remainder
 // landing on the last slot. Returns integers that sum back to `total`.
 function htAllocate(total, weights) {
-  var n = (weights || []).length;
-  var out = [];
-  for (var z = 0; z < n; z++) out.push(0);
-  if (!n) return out;
-  var t = Math.round(Number(total) || 0);
-  if (!t) return out;
-  var sum = 0;
-  for (var w = 0; w < n; w++) sum += Number(weights[w]) || 0;
-  if (sum <= 0) {
-    // Nothing to weight by (all rooms free): the whole amount sits on the
-    // first room rather than vanishing.
-    out[0] = t;
-    return out;
-  }
-  var acc = 0;
-  for (var i = 0; i < n; i++) {
-    var share = i === n - 1 ? t - acc : Math.round((t * (Number(weights[i]) || 0)) / sum);
-    out[i] = share;
-    acc += share;
-  }
+ var n = (weights || []).length;
+ var out = [];
+ for (var z = 0; z < n; z++) out.push(0);
+ if (!n) return out;
+ var t = Math.round(Number(total) || 0);
+ if (!t) return out;
+ var sum = 0;
+ for (var w = 0; w < n; w++) sum += Number(weights[w]) || 0;
+ if (sum <= 0) {
+  // Nothing to weight by (all rooms free): the whole amount sits on the
+  // first room rather than vanishing.
+  out[0] = t;
   return out;
+ }
+ var acc = 0;
+ for (var i = 0; i < n; i++) {
+  var share = i === n - 1 ? t - acc : Math.round((t * (Number(weights[i]) || 0)) / sum);
+  out[i] = share;
+  acc += share;
+ }
+ return out;
 }
 
 // Spread stay-level facility lines across a set of rooms. Each room gets its
@@ -3351,227 +3236,227 @@ function htAllocate(total, weights) {
 // adds up to the single amount the guest selected (server multiplies a per-night
 // rate by nights on whichever row carries it).
 function htSplitFacilityLines(lines, roomCount) {
-  var list = Array.isArray(lines) ? lines : [];
-  var n = Math.max(1, parseInt(roomCount, 10) || 1);
-  var out = [];
-  for (var i = 0; i < n; i++) out.push([]);
-  for (var li = 0; li < list.length; li++) {
-    var line = list[li] || {};
-    var weights = [];
-    for (var w = 0; w < n; w++) weights.push(1);
-    var shares = htAllocate(line.b, weights);
-    for (var k = 0; k < n; k++) {
-      if (shares[k]) out[k].push({ a: line.a, b: shares[k] });
-    }
+ var list = Array.isArray(lines) ? lines : [];
+ var n = Math.max(1, parseInt(roomCount, 10) || 1);
+ var out = [];
+ for (var i = 0; i < n; i++) out.push([]);
+ for (var li = 0; li < list.length; li++) {
+  var line = list[li] || {};
+  var weights = [];
+  for (var w = 0; w < n; w++) weights.push(1);
+  var shares = htAllocate(line.b, weights);
+  for (var k = 0; k < n; k++) {
+   if (shares[k]) out[k].push({ a: line.a, b: shares[k] });
   }
-  return out;
+ }
+ return out;
 }
 
 function buildBookingRoomParts(snap) {
-  if (!snap) return [];
-  var rooms =
-   snap.rooms && snap.rooms.length
-    ? snap.rooms
-    : snap.room
-     ? [snap.room]
-     : [];
-  if (!rooms.length) return [];
-  var n = rooms.length;
-  var nights = Math.max(1, Number(snap.nights) || 1);
-  var costs = snap.roomNightCosts || [];
-  var gstRate = snap.gst != null ? Number(snap.gst) || 0 : htGstRate();
+ if (!snap) return [];
+ var rooms =
+  snap.rooms && snap.rooms.length
+   ? snap.rooms
+   : snap.room
+    ? [snap.room]
+    : [];
+ if (!rooms.length) return [];
+ var n = rooms.length;
+ var nights = Math.max(1, Number(snap.nights) || 1);
+ var costs = snap.roomNightCosts || [];
+ var gstRate = snap.gst != null ? Number(snap.gst) || 0 : htGstRate();
 
-  var roomCost = rooms.map(function (rr, i) {
-    if (costs[i]) return Math.round(Number(costs[i].cost) || 0);
-    return Math.round(Number(rr && rr.pricePerNight) || 0) * nights;
-  });
+ var roomCost = rooms.map(function (rr, i) {
+  if (costs[i]) return Math.round(Number(costs[i].cost) || 0);
+  return Math.round(Number(rr && rr.pricePerNight) || 0) * nights;
+ });
 
-  // Pooled occupancy attributed room by room: each room seats up to its normal
-  // capacity from the queue (adults first, then over-age children), and whatever
-  // is still unseated at the end belongs to the last room of the set - the one
-  // that was still filling when the party ran out of space. Summing this back
-  // reproduces htOccupancyPool's extraAdultUnits / paidChildUnits exactly.
-  var pool =
-   snap.occupancy && typeof snap.occupancy === "object"
-    ? snap.occupancy
-    : htOccupancyPool(rooms, snap.adults, snap.childAges || []);
-  var extraAdultsRate = Number(snap.extraAdultsRate) || 0;
-  var childRate = Number(snap.childRate) || 0;
-  var remA = Math.max(0, Number(pool.adults) || 0);
-  var remC = Math.max(0, Number(pool.adultEquivalentChildren) || 0);
-  // Free children are not chargeable, so they never consume a pooled slot, but
-  // they still have to be recorded against a room. Hand them out in order, never
-  // pushing a room past its own max-occupancy headroom, remainder last.
-  var poolAges = Array.isArray(pool.childAges) ? pool.childAges : [];
-  // Per-child per-night rates ride along with the ages in the same arrays, so
-  // every split below keeps them index-parallel. Absent rates fall back to the
-  // flat childRate the pool split has always used.
-  var poolRates = Array.isArray(snap.childRates) ? snap.childRates : [];
-  var hasRates = poolRates.length > 0;
-  var freeMax =
-   Number(pool.childAgeFreeMax) != null ? Number(pool.childAgeFreeMax) : 8;
-  var paidAges = [];
-  var freeAges = [];
-  var paidRates = [];
-  var freeRates = [];
-  for (var agi = 0; agi < poolAges.length; agi++) {
-   var ageV = poolAges[agi];
-   if (ageV && typeof ageV === "object") ageV = ageV.ag != null ? ageV.ag : ageV.a;
-   var ageNum = parseInt(ageV, 10);
-   if (!isFinite(ageNum) || ageNum < 0) ageNum = 0;
-   var rateNum = Math.max(0, parseFloat(poolRates[agi]) || 0);
-   if (ageNum > freeMax) {
-    paidAges.push(ageNum);
-    paidRates.push(rateNum);
-   } else {
-    freeAges.push(ageNum);
-    freeRates.push(rateNum);
+ // Pooled occupancy attributed room by room: each room seats up to its normal
+ // capacity from the queue (adults first, then over-age children), and whatever
+ // is still unseated at the end belongs to the last room of the set - the one
+ // that was still filling when the party ran out of space. Summing this back
+ // reproduces htOccupancyPool's extraAdultUnits / paidChildUnits exactly.
+ var pool =
+  snap.occupancy && typeof snap.occupancy === "object"
+   ? snap.occupancy
+   : htOccupancyPool(rooms, snap.adults, snap.childAges || []);
+ var extraAdultsRate = Number(snap.extraAdultsRate) || 0;
+ var childRate = Number(snap.childRate) || 0;
+ var remA = Math.max(0, Number(pool.adults) || 0);
+ var remC = Math.max(0, Number(pool.adultEquivalentChildren) || 0);
+ // Free children are not chargeable, so they never consume a pooled slot, but
+ // they still have to be recorded against a room. Hand them out in order, never
+ // pushing a room past its own max-occupancy headroom, remainder last.
+ var poolAges = Array.isArray(pool.childAges) ? pool.childAges : [];
+ // Per-child per-night rates ride along with the ages in the same arrays, so
+ // every split below keeps them index-parallel. Absent rates fall back to the
+ // flat childRate the pool split has always used.
+ var poolRates = Array.isArray(snap.childRates) ? snap.childRates : [];
+ var hasRates = poolRates.length > 0;
+ var freeMax =
+  Number(pool.childAgeFreeMax) != null ? Number(pool.childAgeFreeMax) : 8;
+ var paidAges = [];
+ var freeAges = [];
+ var paidRates = [];
+ var freeRates = [];
+ for (var agi = 0; agi < poolAges.length; agi++) {
+  var ageV = poolAges[agi];
+  if (ageV && typeof ageV === "object") ageV = ageV.ag != null ? ageV.ag : ageV.a;
+  var ageNum = parseInt(ageV, 10);
+  if (!isFinite(ageNum) || ageNum < 0) ageNum = 0;
+  var rateNum = Math.max(0, parseFloat(poolRates[agi]) || 0);
+  if (ageNum > freeMax) {
+   paidAges.push(ageNum);
+   paidRates.push(rateNum);
+  } else {
+   freeAges.push(ageNum);
+   freeRates.push(rateNum);
+  }
+ }
+ var remFree = freeAges.length;
+ var last = n - 1;
+ var occParts = rooms.map(function (rr, i) {
+  var policy = htRoomOccupancyPolicy(rr);
+  var cap = Math.max(0, policy.capacity);
+  var incA = Math.min(remA, cap);
+  remA -= incA;
+  var incC = Math.min(remC, Math.max(0, cap - incA));
+  remC -= incC;
+  var ovA = i === last ? remA : 0;
+  var ovC = i === last ? remC : 0;
+  remA = i === last ? 0 : remA;
+  remC = i === last ? 0 : remC;
+  // Free children follow the same "last room takes the remainder" rule, but
+  // are bounded by the room's own max-occupancy headroom.
+  var headroom = Math.max(0, policy.maxOccupancy - (incA + ovA + incC + ovC));
+  var freeHere = i === last ? remFree : Math.min(remFree, headroom);
+  remFree -= freeHere;
+  var myFreeAges = freeAges.splice(0, freeHere);
+  var myFreeRates = freeRates.splice(0, freeHere);
+  var myPaidAges = paidAges.splice(0, incC + ovC);
+  var myPaidRates = paidRates.splice(0, incC + ovC);
+  // With rates supplied the operator decides who is charged, so every
+  // over-age child in THIS room with a non-zero rate is billed - whether the
+  // pool seated them inside the included capacity or not. Without rates the
+  // pool's overflow count and the flat rate stand, unchanged.
+  var chargedRates = [];
+  if (hasRates) {
+   for (var cri = 0; cri < myPaidRates.length; cri++) {
+    if (myPaidRates[cri] > 0) chargedRates.push(myPaidRates[cri]);
    }
   }
-  var remFree = freeAges.length;
-  var last = n - 1;
-  var occParts = rooms.map(function (rr, i) {
-    var policy = htRoomOccupancyPolicy(rr);
-    var cap = Math.max(0, policy.capacity);
-    var incA = Math.min(remA, cap);
-    remA -= incA;
-    var incC = Math.min(remC, Math.max(0, cap - incA));
-    remC -= incC;
-    var ovA = i === last ? remA : 0;
-    var ovC = i === last ? remC : 0;
-    remA = i === last ? 0 : remA;
-    remC = i === last ? 0 : remC;
-    // Free children follow the same "last room takes the remainder" rule, but
-    // are bounded by the room's own max-occupancy headroom.
-    var headroom = Math.max(0, policy.maxOccupancy - (incA + ovA + incC + ovC));
-    var freeHere = i === last ? remFree : Math.min(remFree, headroom);
-    remFree -= freeHere;
-    var myFreeAges = freeAges.splice(0, freeHere);
-    var myFreeRates = freeRates.splice(0, freeHere);
-    var myPaidAges = paidAges.splice(0, incC + ovC);
-    var myPaidRates = paidRates.splice(0, incC + ovC);
-    // With rates supplied the operator decides who is charged, so every
-    // over-age child in THIS room with a non-zero rate is billed - whether the
-    // pool seated them inside the included capacity or not. Without rates the
-    // pool's overflow count and the flat rate stand, unchanged.
-    var chargedRates = [];
-    if (hasRates) {
-      for (var cri = 0; cri < myPaidRates.length; cri++) {
-        if (myPaidRates[cri] > 0) chargedRates.push(myPaidRates[cri]);
-      }
-    }
-    var chargedRateSum = chargedRates.reduce(function (a, r) {
-      return a + r;
-    }, 0);
-    return {
-      includedAdults: incA,
-      extraAdults: ovA,
-      adults: incA + ovA,
-      // Over-age children sleeping in this room (included in the pooled normal
-      // occupancy plus the ones billed extra) - this is the guest-block count.
-      overAgeChildren: incC + ovC,
-      // Over-age children actually charged, each at its own rate.
-      paidChildren: hasRates ? chargedRates.length : ovC,
-      freeChildren: freeHere,
-      childAges: myFreeAges.concat(myPaidAges),
-      childRates: myFreeRates.concat(myPaidRates),
-      chargedChildRates: chargedRates,
-      // Per-night money for the bill label: a single rate when every charged
-      // child in this room is priced alike, otherwise the per-night total.
-      childRateSum: hasRates ? chargedRateSum : ovC * childRate,
-      childRateUniform: hasRates
-        ? chargedRates.length === 0 ||
-          chargedRates.every(function (r) {
-            return r === chargedRates[0];
-          })
-        : true,
-      adultFee: Math.round(ovA * extraAdultsRate * nights),
-      childFee: Math.round(
-        (hasRates ? chargedRateSum : ovC * childRate) * nights,
-      ),
-    };
-  });
+  var chargedRateSum = chargedRates.reduce(function (a, r) {
+   return a + r;
+  }, 0);
+  return {
+   includedAdults: incA,
+   extraAdults: ovA,
+   adults: incA + ovA,
+   // Over-age children sleeping in this room (included in the pooled normal
+   // occupancy plus the ones billed extra) - this is the guest-block count.
+   overAgeChildren: incC + ovC,
+   // Over-age children actually charged, each at its own rate.
+   paidChildren: hasRates ? chargedRates.length : ovC,
+   freeChildren: freeHere,
+   childAges: myFreeAges.concat(myPaidAges),
+   childRates: myFreeRates.concat(myPaidRates),
+   chargedChildRates: chargedRates,
+   // Per-night money for the bill label: a single rate when every charged
+   // child in this room is priced alike, otherwise the per-night total.
+   childRateSum: hasRates ? chargedRateSum : ovC * childRate,
+   childRateUniform: hasRates
+    ? chargedRates.length === 0 ||
+    chargedRates.every(function (r) {
+     return r === chargedRates[0];
+    })
+    : true,
+   adultFee: Math.round(ovA * extraAdultsRate * nights),
+   childFee: Math.round(
+    (hasRates ? chargedRateSum : ovC * childRate) * nights,
+   ),
+  };
+ });
 
-  var pkgShare = htAllocate(snap.packageCost || 0, roomCost);
-  var addonShare = htAllocate(snap.addonCost || 0, roomCost);
-  var extraShare = htAllocate(snap.extraCharges || 0, roomCost);
-  var discShare = htAllocate(snap.discountAmt || 0, roomCost);
+ var pkgShare = htAllocate(snap.packageCost || 0, roomCost);
+ var addonShare = htAllocate(snap.addonCost || 0, roomCost);
+ var extraShare = htAllocate(snap.extraCharges || 0, roomCost);
+ var discShare = htAllocate(snap.discountAmt || 0, roomCost);
 
-  var parts = rooms.map(function (rr, i) {
-    var o = occParts[i];
-    var subtotal =
-     roomCost[i] +
-     o.adultFee +
-     o.childFee +
-     pkgShare[i] +
-     addonShare[i] +
-     extraShare[i] -
-     discShare[i];
-    return {
-     index: i,
-     room: rr,
-     roomId: String(
-      rr && rr.id != null ? rr.id : rr && rr.e != null ? rr.e : "",
-     ),
-     roomNo: rr && rr.e != null ? rr.e : rr && rr.no != null ? rr.no : "",
-     roomName: (rr && rr.name) || "",
-      nights: nights,
-      roomCostFull: roomCost[i],
-      includedAdults: o.includedAdults,
-      adults: o.adults,
-      childAges: o.childAges,
-      childRates: o.childRates,
-      chargedChildRates: o.chargedChildRates,
-      freeChildren: o.freeChildren,
-      extraAdults: o.extraAdults,
-      // Charged over-age children (drives the a:8 facility lines) ...
-      paidChildren: o.paidChildren,
-      // ... and every over-age child in the room, for the guest block.
-      overAgeChildren: o.overAgeChildren,
-     adultFee: o.adultFee,
-     childFee: o.childFee,
-     childRate: o.paidChildren
-       ? o.childRateSum / o.paidChildren
-       : 0,
-     childRateSum: o.childRateSum,
-     childRateUniform: o.childRateUniform,
-     packageCost: pkgShare[i],
-     addonCost: addonShare[i],
-     extraCharges: extraShare[i],
-     discountAmt: discShare[i],
-     subtotal: Math.round(subtotal),
-     gst: gstRate,
-     tax: 0,
-     total: 0,
-    };
-  });
+ var parts = rooms.map(function (rr, i) {
+  var o = occParts[i];
+  var subtotal =
+   roomCost[i] +
+   o.adultFee +
+   o.childFee +
+   pkgShare[i] +
+   addonShare[i] +
+   extraShare[i] -
+   discShare[i];
+  return {
+   index: i,
+   room: rr,
+   roomId: String(
+    rr && rr.id != null ? rr.id : rr && rr.e != null ? rr.e : "",
+   ),
+   roomNo: rr && rr.e != null ? rr.e : rr && rr.no != null ? rr.no : "",
+   roomName: (rr && rr.name) || "",
+   nights: nights,
+   roomCostFull: roomCost[i],
+   includedAdults: o.includedAdults,
+   adults: o.adults,
+   childAges: o.childAges,
+   childRates: o.childRates,
+   chargedChildRates: o.chargedChildRates,
+   freeChildren: o.freeChildren,
+   extraAdults: o.extraAdults,
+   // Charged over-age children (drives the a:8 facility lines) ...
+   paidChildren: o.paidChildren,
+   // ... and every over-age child in the room, for the guest block.
+   overAgeChildren: o.overAgeChildren,
+   adultFee: o.adultFee,
+   childFee: o.childFee,
+   childRate: o.paidChildren
+    ? o.childRateSum / o.paidChildren
+    : 0,
+   childRateSum: o.childRateSum,
+   childRateUniform: o.childRateUniform,
+   packageCost: pkgShare[i],
+   addonCost: addonShare[i],
+   extraCharges: extraShare[i],
+   discountAmt: discShare[i],
+   subtotal: Math.round(subtotal),
+   gst: gstRate,
+   tax: 0,
+   total: 0,
+  };
+ });
 
-  // Tax each part on its own base, then push the rounding difference onto the
-  // largest part so the parts re-add to the snapshot totals exactly.
-  var big = 0;
-  for (var b = 1; b < parts.length; b++) {
-    if (parts[b].subtotal > parts[big].subtotal) big = b;
-  }
-  var taxSum = 0;
-  for (var t = 0; t < parts.length; t++) {
-    parts[t].tax = gstRate > 0 ? Math.round((parts[t].subtotal * gstRate) / 100) : 0;
-    taxSum += parts[t].tax;
-  }
-  var snapTax = Math.round(Number(snap.tax) || 0);
-  if (snapTax) parts[big].tax += snapTax - taxSum;
-  var totalSum = 0;
-  for (var g = 0; g < parts.length; g++) {
-    if (parts[g].tax < 0) parts[g].tax = 0;
-    parts[g].total = parts[g].subtotal + parts[g].tax;
-    totalSum += parts[g].total;
-  }
-  // Reconcile the grand total the same way, so the combined bill is unchanged.
-  var snapTotal = Math.round(Number(snap.grandTotal) || 0);
-  if (snapTotal) {
-    var delta = snapTotal - totalSum;
-    if (delta && parts[big].total - delta >= 0) parts[big].total += delta;
-  }
-  return parts;
+ // Tax each part on its own base, then push the rounding difference onto the
+ // largest part so the parts re-add to the snapshot totals exactly.
+ var big = 0;
+ for (var b = 1; b < parts.length; b++) {
+  if (parts[b].subtotal > parts[big].subtotal) big = b;
+ }
+ var taxSum = 0;
+ for (var t = 0; t < parts.length; t++) {
+  parts[t].tax = gstRate > 0 ? Math.round((parts[t].subtotal * gstRate) / 100) : 0;
+  taxSum += parts[t].tax;
+ }
+ var snapTax = Math.round(Number(snap.tax) || 0);
+ if (snapTax) parts[big].tax += snapTax - taxSum;
+ var totalSum = 0;
+ for (var g = 0; g < parts.length; g++) {
+  if (parts[g].tax < 0) parts[g].tax = 0;
+  parts[g].total = parts[g].subtotal + parts[g].tax;
+  totalSum += parts[g].total;
+ }
+ // Reconcile the grand total the same way, so the combined bill is unchanged.
+ var snapTotal = Math.round(Number(snap.grandTotal) || 0);
+ if (snapTotal) {
+  var delta = snapTotal - totalSum;
+  if (delta && parts[big].total - delta >= 0) parts[big].total += delta;
+ }
+ return parts;
 }
 
 // Pull the created booking ids out of a save response. x1 is the ONLY source:
@@ -3585,45 +3470,45 @@ function buildBookingRoomParts(snap) {
 var PP_ID_SEP_RE = /[_,\s]+/;
 
 function bookingIdsFromResp(resp) {
-  var out = [];
-  function push(v) {
-    if (v == null || v === "") return;
-    // A combined value ("12_13") still counts as the ids it carries.
-    String(v)
-      .split(PP_ID_SEP_RE)
-      .forEach(function (part) {
-        var s = part.trim();
-        // Drop the uniqueness timestamp the writers append to a payment id.
-        s = s.replace(/-\d+$/, "");
-        if (s !== "" && out.indexOf(s) === -1) out.push(s);
-      });
-  }
-  if (!resp || typeof resp !== "object") return out;
-  var x1 = resp.x1;
-  // The list comes back either as an array or keyed by index.
-  if (Array.isArray(x1)) {
-    x1.forEach(push);
-  } else if (x1 && typeof x1 === "object") {
-    Object.keys(x1).forEach(function (k) {
-      push(x1[k]);
-    });
-  } else {
-    push(x1);
-  }
-  // Numeric order so the set is always assembled the same way, and the
-  // timestamp lands on the same id for a given stay.
-  out.sort(function (x, y) {
-    return (parseInt(x, 10) || 0) - (parseInt(y, 10) || 0);
+ var out = [];
+ function push(v) {
+  if (v == null || v === "") return;
+  // A combined value ("12_13") still counts as the ids it carries.
+  String(v)
+   .split(PP_ID_SEP_RE)
+   .forEach(function (part) {
+    var s = part.trim();
+    // Drop the uniqueness timestamp the writers append to a payment id.
+    s = s.replace(/-\d+$/, "");
+    if (s !== "" && out.indexOf(s) === -1) out.push(s);
+   });
+ }
+ if (!resp || typeof resp !== "object") return out;
+ var x1 = resp.x1;
+ // The list comes back either as an array or keyed by index.
+ if (Array.isArray(x1)) {
+  x1.forEach(push);
+ } else if (x1 && typeof x1 === "object") {
+  Object.keys(x1).forEach(function (k) {
+   push(x1[k]);
   });
-  return out;
+ } else {
+  push(x1);
+ }
+ // Numeric order so the set is always assembled the same way, and the
+ // timestamp lands on the same id for a given stay.
+ out.sort(function (x, y) {
+  return (parseInt(x, 10) || 0) - (parseInt(y, 10) || 0);
+ });
+ return out;
 }
 
 // The rooms of a stay snapshot, always as a list, for every caller that used to
 // assume a single room.
 function getBookingRooms(snap) {
-  if (!snap) return [];
-  if (snap.rooms && snap.rooms.length) return snap.rooms;
-  return snap.room ? [snap.room] : [];
+ if (!snap) return [];
+ if (snap.rooms && snap.rooms.length) return snap.rooms;
+ return snap.room ? [snap.room] : [];
 }
 
 /* ============================================================
@@ -3641,39 +3526,39 @@ function getBookingRooms(snap) {
 // line per extra adult (9) and per paid child (8); ado/adt carry this room's
 // share of the selected add-ons and extras.
 function buildBookingRoomL(part, ctx) {
-  var cfg = (ctx && ctx.cfg) || {};
-  var charges = [];
-  // The room rate is per-night (charged = rate x nights). The public writer
-  // sends it because that flow has always carried a:1; the admin writer lets the
-  // server derive it from rm, so the row only carries the guest-count charges.
-  if (ctx && ctx.includeRoomRate) {
-    var rate = (ctx.roomRates || [])[ctx.index] || 0;
-    if (rate > 0) charges.push({ a: 1, b: rate });
+ var cfg = (ctx && ctx.cfg) || {};
+ var charges = [];
+ // The room rate is per-night (charged = rate x nights). The public writer
+ // sends it because that flow has always carried a:1; the admin writer lets the
+ // server derive it from rm, so the row only carries the guest-count charges.
+ if (ctx && ctx.includeRoomRate) {
+  var rate = (ctx.roomRates || [])[ctx.index] || 0;
+  if (rate > 0) charges.push({ a: 1, b: rate });
+ }
+ var adultsRate = cfg.extraAdultsCharge || 0;
+ for (var ai = 0; ai < part.extraAdults; ai++) {
+  charges.push({ a: 9, b: adultsRate });
+ }
+ // One a:8 line per charged child, each carrying that child's own per-night
+ // rate. chargedChildRates is empty on the public flow, which has no per-child
+ // rates and keeps the single flat config charge.
+ var chargedChildRates = part.chargedChildRates || [];
+ if (chargedChildRates.length) {
+  for (var cri = 0; cri < chargedChildRates.length; cri++) {
+   charges.push({ a: 8, b: chargedChildRates[cri] });
   }
-  var adultsRate = cfg.extraAdultsCharge || 0;
-  for (var ai = 0; ai < part.extraAdults; ai++) {
-    charges.push({ a: 9, b: adultsRate });
+ } else {
+  var childCharge = cfg.paidChildCharge || 0;
+  for (var ci = 0; ci < part.paidChildren; ci++) {
+   charges.push({ a: 8, b: childCharge });
   }
-  // One a:8 line per charged child, each carrying that child's own per-night
-  // rate. chargedChildRates is empty on the public flow, which has no per-child
-  // rates and keeps the single flat config charge.
-  var chargedChildRates = part.chargedChildRates || [];
-  if (chargedChildRates.length) {
-    for (var cri = 0; cri < chargedChildRates.length; cri++) {
-      charges.push({ a: 8, b: chargedChildRates[cri] });
-    }
-  } else {
-    var childCharge = cfg.paidChildCharge || 0;
-    for (var ci = 0; ci < part.paidChildren; ci++) {
-      charges.push({ a: 8, b: childCharge });
-    }
-  }
-  return buildBookingFacilityL(
-    charges,
-    (ctx && ctx.addonPart) || [],
-    (ctx && ctx.extraPart) || [],
-    (ctx && ctx.chargeWithAc) || 0,
-  );
+ }
+ return buildBookingFacilityL(
+  charges,
+  (ctx && ctx.addonPart) || [],
+  (ctx && ctx.extraPart) || [],
+  (ctx && ctx.chargeWithAc) || 0,
+ );
 }
 
 // Guest block (zrb.k) for one part. a adults, b children total, c the
@@ -3681,68 +3566,68 @@ function buildBookingRoomL(part, ctx) {
 // g parallel child-rate slots, h the extras breakdown. Everything here is
 // scoped to the room, so a read-back bill of one row shows its own guests.
 function buildBookingRoomGuestJson(part, snap, ctx) {
-  var extraBreakdown = (ctx && ctx.extraBreakdown) || [];
-  return JSON.stringify({
-    a: part.adults,
-    b: (part.childAges || []).length,
-    // c is the adult-equivalent (over free-age) children in this room, which is
-    // every one of them whether or not they were billed extra.
-    c: part.overAgeChildren != null ? part.overAgeChildren : part.paidChildren,
-    d: part.freeChildren,
-    e: part.childAges || [],
-    f: (ctx && ctx.packageId) || 0,
-    // g is parallel to e: the per-night rate of each child in this room, 0 for
-    // a child that is not charged.
-    g: (part.childAges || []).map(function (_, gi) {
-      return Math.max(0, parseFloat((part.childRates || [])[gi]) || 0);
-    }),
-    h: extraBreakdown,
-  });
+ var extraBreakdown = (ctx && ctx.extraBreakdown) || [];
+ return JSON.stringify({
+  a: part.adults,
+  b: (part.childAges || []).length,
+  // c is the adult-equivalent (over free-age) children in this room, which is
+  // every one of them whether or not they were billed extra.
+  c: part.overAgeChildren != null ? part.overAgeChildren : part.paidChildren,
+  d: part.freeChildren,
+  e: part.childAges || [],
+  f: (ctx && ctx.packageId) || 0,
+  // g is parallel to e: the per-night rate of each child in this room, 0 for
+  // a child that is not charged.
+  g: (part.childAges || []).map(function (_, gi) {
+   return Math.max(0, parseFloat((part.childRates || [])[gi]) || 0);
+  }),
+  h: extraBreakdown,
+ });
 }
 
 // Build the send array - one row per booked room. Returns [] when the snapshot
 // has no usable room, so callers can report "nothing to send" instead of
 // posting a broken row.
 function buildBookingRoomRows(snap, opts) {
-  var o = opts || {};
-  var parts = buildBookingRoomParts(snap);
-  if (!parts.length) return [];
-  var cfg = window[my1uzr.worknOnPg]?.clientConfig || {};
-  var rows = [];
-  for (var i = 0; i < parts.length; i++) {
-    var part = parts[i];
-    var addonPart = (o.addonShares && o.addonShares[i]) || [];
-    var extraPart = (o.extraShares && o.extraShares[i]) || [];
-    rows.push({
-      // One row per room, so the room field is a single id string.
-      e: part.roomId,
-      f: o.bookingDtt,
-      g: o.checkin,
-      h: o.checkout,
-      i: o.actualCheckin,
-      j: o.actualCheckout,
-      k: buildBookingRoomGuestJson(part, snap, {
-        packageId: o.packageId,
-        extraBreakdown: o.extraBreakdown,
-      }),
-      l: buildBookingRoomL(part, {
-        cfg: cfg.HT_CFG || {},
-        index: i,
-        includeRoomRate: !!o.includeRoomRate,
-        roomRates: o.roomRates || [],
-        addonPart: addonPart,
-        extraPart: extraPart,
-        chargeWithAc: o.chargeWithAc,
-      }),
-      m: part.total,
-      n: part.discountAmt,
-      o: o.bookerId,
-      p: 0,
-      q: o.specialRequests || null,
-      r: (o.payments && o.payments[i]) || [],
-    });
-  }
-  return rows;
+ var o = opts || {};
+ var parts = buildBookingRoomParts(snap);
+ if (!parts.length) return [];
+ var cfg = window[my1uzr.worknOnPg]?.clientConfig || {};
+ var rows = [];
+ for (var i = 0; i < parts.length; i++) {
+  var part = parts[i];
+  var addonPart = (o.addonShares && o.addonShares[i]) || [];
+  var extraPart = (o.extraShares && o.extraShares[i]) || [];
+  rows.push({
+   // One row per room, so the room field is a single id string.
+   e: part.roomId,
+   f: o.bookingDtt,
+   g: o.checkin,
+   h: o.checkout,
+   i: o.actualCheckin,
+   j: o.actualCheckout,
+   k: buildBookingRoomGuestJson(part, snap, {
+    packageId: o.packageId,
+    extraBreakdown: o.extraBreakdown,
+   }),
+   l: buildBookingRoomL(part, {
+    cfg: cfg.HT_CFG || {},
+    index: i,
+    includeRoomRate: !!o.includeRoomRate,
+    roomRates: o.roomRates || [],
+    addonPart: addonPart,
+    extraPart: extraPart,
+    chargeWithAc: o.chargeWithAc,
+   }),
+   m: part.total,
+   n: part.discountAmt,
+   o: o.bookerId,
+   p: 0,
+   q: o.specialRequests || null,
+   r: (o.payments && o.payments[i]) || [],
+  });
+ }
+ return rows;
 }
 
 function mapRmToRoomRecord(rm) {
@@ -3761,8 +3646,8 @@ function mapRmToRoomRecord(rm) {
    }
   }
  }
-  var occupancyPolicy = htRoomOccupancyPolicy(rm);
-  var typeId = rm.i != null && typeof rm.i !== "object" ? rm.i : rm.j;
+ var occupancyPolicy = htRoomOccupancyPolicy(rm);
+ var typeId = rm.i != null && typeof rm.i !== "object" ? rm.i : rm.j;
  var type = htGetById(htRoomTypes, typeId);
  // Images come from f (hero) plus g (gallery). Both store Google Drive
  // "displayId thumbnailId" pairs — as a plain string for f, and as a JSON
@@ -3814,22 +3699,22 @@ function mapRmToRoomRecord(rm) {
    rm.h && typeof rm.h === "object" && rm.h.j && typeof rm.h.j === "object"
     ? rm.h.j
     : {},
-   capacity: occupancyPolicy.capacity,
-   maxAdults: occupancyPolicy.capacity,
-   maxOccupancy: occupancyPolicy.maxOccupancy,
-   childAgeFreeMax: occupancyPolicy.childAgeFreeMax,
-   occupancyPolicy: occupancyPolicy,
-   bed: htBedLabels(rm).join(" + ") || "King Bed",
+  capacity: occupancyPolicy.capacity,
+  maxAdults: occupancyPolicy.capacity,
+  maxOccupancy: occupancyPolicy.maxOccupancy,
+  childAgeFreeMax: occupancyPolicy.childAgeFreeMax,
+  occupancyPolicy: occupancyPolicy,
+  bed: htBedLabels(rm).join(" + ") || "King Bed",
   area: htRoomDimensions(rm) || "",
   amenities: htAmenityLabels(rm),
   ac: !!(type && type.folder === "AC"),
   facilities: htFacilityItems(rm),
   desc: [],
   images: images,
-   includedGuests: occupancyPolicy.capacity,
-    extraGuestRate: window[my1uzr.worknOnPg].clientConfig?.HT_CFG?.extraAdultsCharge || 0,
-    childRate: window[my1uzr.worknOnPg].clientConfig?.HT_CFG?.paidChildCharge || 0,
-  };
+  includedGuests: occupancyPolicy.capacity,
+  extraGuestRate: window[my1uzr.worknOnPg].clientConfig?.HT_CFG?.extraAdultsCharge || 0,
+  childRate: window[my1uzr.worknOnPg].clientConfig?.HT_CFG?.paidChildCharge || 0,
+ };
 }
 
 function applyClientConfigToPublic() {
@@ -3851,9 +3736,9 @@ function applyClientConfigToPublic() {
   address: cfg.bzadrs || (hotel && hotel.address) || "",
   phone: cfg.conta || (hotel && hotel.phone) || "",
   email: cfg.emlAdrs || (hotel && hotel.email) || "",
-   currency: (hotel && hotel.currency) || "INR",
-   symbol: (hotel && hotel.symbol) || "\u20B9",
-  };
+  currency: (hotel && hotel.currency) || "INR",
+  symbol: (hotel && hotel.symbol) || "\u20B9",
+ };
 
  if (Array.isArray(cfg.rmruls) && cfg.rmruls.length) {
   policies = policies || {};
@@ -4120,12 +4005,6 @@ async function openAdminFromMenu(action) {
   }
  }
  if (!item) return;
- /* admin.js merged into rm.js — fn 40 no longer needed */
- if (typeof toggleSidebar !== "function") {
-  try {
-   await loadExe2Fn(41);
-  } catch (e) { }
- }
  if (typeof calcNights !== "function") {
   try {
    await loadExe2Fn(42);
@@ -4141,21 +4020,19 @@ async function openAdminFromMenu(action) {
    await loadExe2Fn(44);
   } catch (e) { }
  }
-  var alreadyLoaded = {};
-  [41, 42, 43, 44].forEach(function (id) { alreadyLoaded[id] = true; });
-  /* Only ids that actually exist in csh are loadable. A stale id would make
-     loadExe2Fn throw and alert(), which blocks the whole menu action. */
-  var cshIds = {};
-  (window[my1uzr.worknOnPg].csh || []).forEach(function (s) {
-   cshIds[s.a] = true;
-  });
-  var fns = item.mi.split(",").filter(function (n) {
-   if (n === "") return false;
-   var id = parseInt(n, 10);
-   if (!cshIds[id])
-    console.warn("moduLst '" + item.d + "': script id " + id + " has no csh entry, skipping.");
-   return cshIds[id];
-  });
+ var alreadyLoaded = {};
+ [42, 43, 44].forEach(function (id) { alreadyLoaded[id] = true; });
+ var cshIds = {};
+ (window[my1uzr.worknOnPg].csh || []).forEach(function (s) {
+  cshIds[s.a] = true;
+ });
+ var fns = item.mi.split(",").filter(function (n) {
+  if (n === "") return false;
+  var id = parseInt(n, 10);
+  if (!cshIds[id])
+   console.warn("moduLst '" + item.d + "': script id " + id + " has no csh entry, skipping.");
+  return cshIds[id];
+ });
  for (var j = 0; j < fns.length; j++) {
   var fnId = parseInt(fns[j], 10);
   if (alreadyLoaded[fnId]) continue;
@@ -4190,7 +4067,7 @@ function renderNavBar() {
   '<div class="ht-brand" onclick="showHome()" role="button" title="' +
   escHtml(h.name) +
   '">' +
-  '<i class="fa-solid fa-crown ht-brand-icon" onclick="(async () => { await loadExe2Fn(52, [\'dv_to_set_open_my1ctr_processed\', 0, 1, 2], [1]); })();"></i>' +
+  '<i class="fa-solid fa-crown ht-brand-icon" onclick="(async () => { await loadExe2Fn(8, [\'dv_to_set_open_my1ctr_processed\', 0, 1, 2], [1]); })();"></i>' +
   //'<i class="fa-solid fa-crown ht-brand-icon" onClick = "openLogin()"></i>' +
   "<div>" +
   '<span class="ht-brand-name">' +
@@ -4249,114 +4126,114 @@ function renderNavBar() {
 // run at all - only the stepper moved - the bar is that note on its own, with
 // no "Show all rooms" button, which could not bring those rooms back anyway.
 function roomFilterBarHtml(list, comboCount, hiddenCount, combosOnly) {
-  // A party over the top of rm.da's showOnlyCombosAbovePersons band is shown
-  // combinations only, so every count this bar reports is a zero and its "No single
-  // room is available" line would be untrue - rooms were available, the rule just
-  // does not list them. The guest is told nothing here: the combinations section is
-  // simply the list. A party inside the band's lower half still reads this bar
-  // normally, because its room list is a real list.
-  //
-  // rm.da's showExtraChargeRoomsAbovePersons puts the room list back, and the bar
-  // comes back with it. The test is htSingleRoomsHiddenForParty - the same one the
-  // wipe uses, rather than a second copy of it here, so this can never end up
-  // counting a list the guest cannot see or suppressing a bar they need.
-  if (htSingleRoomsHiddenForParty()) return "";
-  // The count the search itself used: with rm.da's free-child flag on, children
-  // within the free age are not part of it, so every "N guests" below agrees
-  // with the rooms that were kept. With the flag off it stays a head count.
-  var sp = htSearchParty();
-  var total = sp.total;
-  var kids = sp.pool.children;
-  var searched = roomFilterActive || roomAvailFilter;
-  hiddenCount = hiddenCount || 0;
-  if (!searched && !hiddenCount) return "";
-  comboCount = comboCount || 0;
-  var guestLabel = total > 0
-   ? adults +
-   " adult" +
-   (adults > 1 ? "s" : "") +
-   (kids > 0
-    ? ", " + kids + " child" + (kids > 1 ? "ren" : "") +
-      // The children are off the count above, so say how many of them ride free.
-      (sp.excluding && sp.pool.freeChildren > 0
-       ? " \u00b7 " + sp.pool.freeChildren + " free"
-       : "")
+ // A party over the top of rm.da's showOnlyCombosAbovePersons band is shown
+ // combinations only, so every count this bar reports is a zero and its "No single
+ // room is available" line would be untrue - rooms were available, the rule just
+ // does not list them. The guest is told nothing here: the combinations section is
+ // simply the list. A party inside the band's lower half still reads this bar
+ // normally, because its room list is a real list.
+ //
+ // rm.da's showExtraChargeRoomsAbovePersons puts the room list back, and the bar
+ // comes back with it. The test is htSingleRoomsHiddenForParty - the same one the
+ // wipe uses, rather than a second copy of it here, so this can never end up
+ // counting a list the guest cannot see or suppressing a bar they need.
+ if (htSingleRoomsHiddenForParty()) return "";
+ // The count the search itself used: with rm.da's free-child flag on, children
+ // within the free age are not part of it, so every "N guests" below agrees
+ // with the rooms that were kept. With the flag off it stays a head count.
+ var sp = htSearchParty();
+ var total = sp.total;
+ var kids = sp.pool.children;
+ var searched = roomFilterActive || roomAvailFilter;
+ hiddenCount = hiddenCount || 0;
+ if (!searched && !hiddenCount) return "";
+ comboCount = comboCount || 0;
+ var guestLabel = total > 0
+  ? adults +
+  " adult" +
+  (adults > 1 ? "s" : "") +
+  (kids > 0
+   ? ", " + kids + " child" + (kids > 1 ? "ren" : "") +
+   // The children are off the count above, so say how many of them ride free.
+   (sp.excluding && sp.pool.freeChildren > 0
+    ? " \u00b7 " + sp.pool.freeChildren + " free"
     : "")
+   : "")
+  : "";
+ var hiddenNote =
+  hiddenCount > 0
+   ? '<span class="ht-filter-note"><i class="fa-solid fa-eye-slash"></i> ' +
+   hiddenCount +
+   " room" +
+   (hiddenCount > 1 ? "s" : "") +
+   " not shown" +
+   (total > 0
+    ? " \u00b7 " +
+    (roomAvailFilter
+     ? "booked for your dates or too small for " + total
+     : "too small for " + total + " guest" + (total > 1 ? "s" : ""))
+    : "") +
+   "</span>"
    : "";
-  var hiddenNote =
-   hiddenCount > 0
-    ? '<span class="ht-filter-note"><i class="fa-solid fa-eye-slash"></i> ' +
-      hiddenCount +
-      " room" +
-      (hiddenCount > 1 ? "s" : "") +
-      " not shown" +
-      (total > 0
-       ? " \u00b7 " +
-         (roomAvailFilter
-          ? "booked for your dates or too small for " + total
-          : "too small for " + total + " guest" + (total > 1 ? "s" : ""))
-       : "") +
-      "</span>"
-    : "";
-  if (!searched) {
-   return (
-    '<div class="ht-filter-bar ht-filter-bar-note"><i class="fa-solid fa-user-group"></i> ' +
-    "<b>" +
-    list.length +
-    "</b> room" +
-    (list.length > 1 ? "s" : "") +
-    (total > 0
-     ? " for <b>" + total + "</b> guest" + (total > 1 ? "s" : "")
-     : "") +
-    "." +
-    hiddenNote +
-    "</div>"
-   );
-  }
-  var scope;
-  if (roomFilterActive && roomAvailFilter) {
-   scope = total > 0
-    ? "<b>" + total + "</b> guest" + (total > 1 ? "s" : "") + " on your selected dates"
-    : "your selected dates";
-  } else if (roomAvailFilter) {
-   scope = "your selected dates";
-  } else {
-   scope = total > 0
-    ? "<b>" + total + "</b> guest" + (total > 1 ? "s" : "")
-    : "your criteria";
-  }
-  if (list.length > 0) {
-   return (
-    '<div class="ht-filter-bar"><i class="fa-solid fa-wand-magic-sparkles"></i> ' +
-    "<b>" +
-    list.length +
-    "</b> room" +
-    (list.length > 1 ? "s" : "") +
-    " available for " +
-    scope +
-    (roomFilterActive && guestLabel ? " (" + guestLabel + ")" : "") +
-    "." +
-    hiddenNote +
-    '<button class="ht-btn ht-btn-ember" onclick="clearAvailFilter()">Show all rooms</button></div>'
-   );
-  }
+ if (!searched) {
   return (
-   '<div class="ht-filter-bar ht-filter-bar-empty"><i class="fa-solid fa-triangle-exclamation"></i> ' +
-   (comboCount > 0
-    ? "No single room is available for " +
-      scope +
-      (roomFilterActive && guestLabel ? " (" + guestLabel + ")" : "") +
-      ", but " +
-      comboCount +
-      " room combination" +
-      (comboCount > 1 ? "s" : "") +
-      " can."
-    : "No room is available for " +
-      scope +
-      (roomFilterActive && guestLabel ? " (" + guestLabel + ")" : "")) +
+   '<div class="ht-filter-bar ht-filter-bar-note"><i class="fa-solid fa-user-group"></i> ' +
+   "<b>" +
+   list.length +
+   "</b> room" +
+   (list.length > 1 ? "s" : "") +
+   (total > 0
+    ? " for <b>" + total + "</b> guest" + (total > 1 ? "s" : "")
+    : "") +
+   "." +
+   hiddenNote +
+   "</div>"
+  );
+ }
+ var scope;
+ if (roomFilterActive && roomAvailFilter) {
+  scope = total > 0
+   ? "<b>" + total + "</b> guest" + (total > 1 ? "s" : "") + " on your selected dates"
+   : "your selected dates";
+ } else if (roomAvailFilter) {
+  scope = "your selected dates";
+ } else {
+  scope = total > 0
+   ? "<b>" + total + "</b> guest" + (total > 1 ? "s" : "")
+   : "your criteria";
+ }
+ if (list.length > 0) {
+  return (
+   '<div class="ht-filter-bar"><i class="fa-solid fa-wand-magic-sparkles"></i> ' +
+   "<b>" +
+   list.length +
+   "</b> room" +
+   (list.length > 1 ? "s" : "") +
+   " available for " +
+   scope +
+   (roomFilterActive && guestLabel ? " (" + guestLabel + ")" : "") +
+   "." +
    hiddenNote +
    '<button class="ht-btn ht-btn-ember" onclick="clearAvailFilter()">Show all rooms</button></div>'
   );
+ }
+ return (
+  '<div class="ht-filter-bar ht-filter-bar-empty"><i class="fa-solid fa-triangle-exclamation"></i> ' +
+  (comboCount > 0
+   ? "No single room is available for " +
+   scope +
+   (roomFilterActive && guestLabel ? " (" + guestLabel + ")" : "") +
+   ", but " +
+   comboCount +
+   " room combination" +
+   (comboCount > 1 ? "s" : "") +
+   " can."
+   : "No room is available for " +
+   scope +
+   (roomFilterActive && guestLabel ? " (" + guestLabel + ")" : "")) +
+  hiddenNote +
+  '<button class="ht-btn ht-btn-ember" onclick="clearAvailFilter()">Show all rooms</button></div>'
+ );
 }
 
 var sliderIdx = 0;
@@ -4374,7 +4251,7 @@ function hotelSliderHtml() {
    src +
    '" alt="' +
    hn +
-   '" loading="lazy" onerror="imgFail(this)"></div>'
+   '" loading="lazy" ' + IMG_ONERROR_ATTR + '"></div>'
   );
  }).join("");
  var dots = HOTEL_SLIDES.map(function (_, i) {
@@ -4480,134 +4357,134 @@ function bindSlider() {
 }
 
 function renderHome() {
-  var h = hotel || {};
-  var list = roomRecords;
-  var party = htPublicParty();
-  var availNow = [];
-  var availLater = [];
-  var soldOut = [];
-  var tooSmall = [];
-  // rm.da "showOnlyCombosAbovePersons": read before the loop, because whether a
-  // room is listed is decided by the party size and not by the room itself.
-  var combosOnly = htCombosOnlyForParty();
-  // The other end of the same band. The two are read together because which of the
-  // two lists survives is one decision, and a party is always left with one of them.
-  var combosHidden = htCombosHiddenForParty();
-  list.forEach(function (r) {
-   var free =
-    !checkIn || !checkOut
-     ? true
-     : typeof publicRoomIsAvailable === "function"
-      ? publicRoomIsAvailable(r, checkIn, checkOut)
-      : true;
-   if (!free) {
-    soldOut.push(r);
-    return;
-   }
-   // A room that cannot sleep the whole party is never offered, even when its
-   // dates are free - a combination of rooms is offered instead.
-   var occ = htEffectiveRoomOccupancy(r, party.adults, party.childAges);
-   if (occ.overMaxOccupancy) {
-    tooSmall.push(r);
-    return;
-   }
-    (occ.isOverCapacity ? availLater : availNow).push(r);
-   });
-  // A party over the rm.da threshold reads combinations only, so the room cards
-  // are dropped here - both the normally priced list and the extra-guest-charge
-  // one. tooSmall and soldOut are left alone: they are counted as "not shown"
-  // for the reason they actually did not appear, and in this mode the bar that
-  // would say so is suppressed.
-  //
-  // rm.da's showExtraChargeRoomsAbovePersons keeps this list, so a party of six
-  // still sees the suite that sleeps six, with its surcharge, above the
-  // combinations. Nothing that cannot hold the party reaches this point either
-  // way: the overMaxOccupancy test above has already put those in tooSmall.
-  if (htSingleRoomsHiddenForParty()) {
-   availNow = [];
-   availLater = [];
+ var h = hotel || {};
+ var list = roomRecords;
+ var party = htPublicParty();
+ var availNow = [];
+ var availLater = [];
+ var soldOut = [];
+ var tooSmall = [];
+ // rm.da "showOnlyCombosAbovePersons": read before the loop, because whether a
+ // room is listed is decided by the party size and not by the room itself.
+ var combosOnly = htCombosOnlyForParty();
+ // The other end of the same band. The two are read together because which of the
+ // two lists survives is one decision, and a party is always left with one of them.
+ var combosHidden = htCombosHiddenForParty();
+ list.forEach(function (r) {
+  var free =
+   !checkIn || !checkOut
+    ? true
+    : typeof publicRoomIsAvailable === "function"
+     ? publicRoomIsAvailable(r, checkIn, checkOut)
+     : true;
+  if (!free) {
+   soldOut.push(r);
+   return;
   }
-  var sections = "";
-  if (availNow.length) {
-   sections =
-    '<div class="ht-room-list">' +
-    availNow.map(function (r) { return roomCardHtml(r, "now"); }).join("") +
-    "</div>";
+  // A room that cannot sleep the whole party is never offered, even when its
+  // dates are free - a combination of rooms is offered instead.
+  var occ = htEffectiveRoomOccupancy(r, party.adults, party.childAges);
+  if (occ.overMaxOccupancy) {
+   tooSmall.push(r);
+   return;
   }
-  if (availLater.length) {
-   sections +=
-    '<div class="container"><div class="ht-combo-section-title"><i class="fa-solid fa-arrow-up-long"></i> Available with an extra guest charge</div></div>' +
-    '<div class="ht-room-list">' +
-    availLater.map(function (r) { return roomCardHtml(r, "extra"); }).join("") +
-    "</div>";
-  }
+  (occ.isOverCapacity ? availLater : availNow).push(r);
+ });
+ // A party over the rm.da threshold reads combinations only, so the room cards
+ // are dropped here - both the normally priced list and the extra-guest-charge
+ // one. tooSmall and soldOut are left alone: they are counted as "not shown"
+ // for the reason they actually did not appear, and in this mode the bar that
+ // would say so is suppressed.
+ //
+ // rm.da's showExtraChargeRoomsAbovePersons keeps this list, so a party of six
+ // still sees the suite that sleeps six, with its surcharge, above the
+ // combinations. Nothing that cannot hold the party reaches this point either
+ // way: the overMaxOccupancy test above has already put those in tooSmall.
+ if (htSingleRoomsHiddenForParty()) {
+  availNow = [];
+  availLater = [];
+ }
+ var sections = "";
+ if (availNow.length) {
+  sections =
+   '<div class="ht-room-list">' +
+   availNow.map(function (r) { return roomCardHtml(r, "now"); }).join("") +
+   "</div>";
+ }
+ if (availLater.length) {
+  sections +=
+   '<div class="container"><div class="ht-combo-section-title"><i class="fa-solid fa-arrow-up-long"></i> Available with an extra guest charge</div></div>' +
+   '<div class="ht-room-list">' +
+   availLater.map(function (r) { return roomCardHtml(r, "extra"); }).join("") +
+   "</div>";
+ }
  var combosHtml = "";
  var combos = [];
-  // An empty stepper has no party to match sets against, so the combinations are
-  // left out unless rm.da asks for every room option on the first paint.
-  // A party inside the band's lower half is the other way round: it has a party, and
-  // rm.da has said this size reads single rooms, so the sets are not built at all -
-  // and this beats showAllOptionsOfRoomsOnInit, which would otherwise put them back
-  // on the first paint.
+ // An empty stepper has no party to match sets against, so the combinations are
+ // left out unless rm.da asks for every room option on the first paint.
+ // A party inside the band's lower half is the other way round: it has a party, and
+ // rm.da has said this size reads single rooms, so the sets are not built at all -
+ // and this beats showAllOptionsOfRoomsOnInit, which would otherwise put them back
+ // on the first paint.
+ if (
+  typeof publicComboOptions === "function" &&
+  !combosHidden &&
+  (party.total > 0 || (!party.total && htShowAllRoomOptions()))
+ ) {
+  combos = publicComboOptions(party.adults, party.childAges);
+  // Say the group has no options at all only when both lists came up empty -
+  // either because the band rule took the rooms away, or because with
+  // showExtraChargeRoomsAbovePersons on no room turned out to sleep the party
+  // either. A suite sitting in the section above must not be contradicted by
+  // this, and a genuinely empty page must not be left silent.
   if (
-   typeof publicComboOptions === "function" &&
-   !combosHidden &&
-   (party.total > 0 || (!party.total && htShowAllRoomOptions()))
+   !combos.length &&
+   (htSingleRoomsHiddenForParty() ||
+    (!availNow.length && !availLater.length))
   ) {
-    combos = publicComboOptions(party.adults, party.childAges);
-    // Say the group has no options at all only when both lists came up empty -
-    // either because the band rule took the rooms away, or because with
-    // showExtraChargeRoomsAbovePersons on no room turned out to sleep the party
-    // either. A suite sitting in the section above must not be contradicted by
-    // this, and a genuinely empty page must not be left silent.
-    if (
-     !combos.length &&
-     (htSingleRoomsHiddenForParty() ||
-      (!availNow.length && !availLater.length))
-    ) {
-     // A group this size is only ever offered combinations, so having none is a
-     // real answer rather than a missing section - say so instead of leaving the
-     // page with a silent gap between the search area and the policies.
-     combosHtml =
-      '<div class="container"><div class="ht-empty">' +
-      '<i class="fas fa-people-group"></i>' +
-      "<b>No stay options for " +
-      htSearchParty().total +
-      " guests</b>" +
-      "<p>No combination of rooms is free for the selected dates. Try different dates, or call us and we will find a way.</p>" +
-      "</div></div>";
-    }
-    if (combos.length) {
-    // Combinations are offered next to the single rooms too, so the "no single
-    // room sleeps N" note only belongs here while the list above is empty. In
-    // combos-only mode the list above is empty because the rule emptied it, and
-    // a room may well have been able to take the party - the note would be
-    // claiming a limit the hotel does not have, so it stays off. The same goes for
-    // showExtraChargeRoomsAbovePersons, except that there the list is empty
-    // because the party is genuinely past every room - which is the one case where
-    // the note is true.
-    var noSingleFits = !htSingleRoomsHiddenForParty() && !availNow.length && !availLater.length;
-    // The N is the head count the search actually matched on, which is not the
-    // same number as party.total once free children are off it.
-    var noSingleSleeps = htSearchParty().total;
-    combosHtml =
-     '<div id="htComboSection">' +
-     '<div class="container"><div class="ht-combo-section-title"><i class="fa-solid fa-people-group"></i> Stay in a combination of rooms' +
-     (noSingleFits
-      ? ' <span style="font-family:var(--font-body);font-size:12px;font-weight:400;color:var(--brown)">no single room sleeps ' + noSingleSleeps + "</span>"
-      : "") +
+   // A group this size is only ever offered combinations, so having none is a
+   // real answer rather than a missing section - say so instead of leaving the
+   // page with a silent gap between the search area and the policies.
+   combosHtml =
+    '<div class="container"><div class="ht-empty">' +
+    '<i class="fas fa-people-group"></i>' +
+    "<b>No stay options for " +
+    htSearchParty().total +
+    " guests</b>" +
+    "<p>No combination of rooms is free for the selected dates. Try different dates, or call us and we will find a way.</p>" +
+    "</div></div>";
+  }
+  if (combos.length) {
+   // Combinations are offered next to the single rooms too, so the "no single
+   // room sleeps N" note only belongs here while the list above is empty. In
+   // combos-only mode the list above is empty because the rule emptied it, and
+   // a room may well have been able to take the party - the note would be
+   // claiming a limit the hotel does not have, so it stays off. The same goes for
+   // showExtraChargeRoomsAbovePersons, except that there the list is empty
+   // because the party is genuinely past every room - which is the one case where
+   // the note is true.
+   var noSingleFits = !htSingleRoomsHiddenForParty() && !availNow.length && !availLater.length;
+   // The N is the head count the search actually matched on, which is not the
+   // same number as party.total once free children are off it.
+   var noSingleSleeps = htSearchParty().total;
+   combosHtml =
+    '<div id="htComboSection">' +
+    '<div class="container"><div class="ht-combo-section-title"><i class="fa-solid fa-people-group"></i> Stay in a combination of rooms' +
+    (noSingleFits
+     ? ' <span style="font-family:var(--font-body);font-size:12px;font-weight:400;color:var(--brown)">no single room sleeps ' + noSingleSleeps + "</span>"
+     : "") +
 
     "</div></div>" +
     comboCardsHtml(combos) +
     "</div>";
-   }
+  }
  }
-  // Rooms that are booked for the selected dates, or that cannot sleep the
-  // party, are never rendered - they used to sit at the bottom of the list as
-  // greyed-out cards. They are still counted, so the bar above the list can
-  // tell the guest how many rooms the current search left out.
-  var hiddenCount = tooSmall.length + soldOut.length;
-  var myBookingRow = "";
+ // Rooms that are booked for the selected dates, or that cannot sleep the
+ // party, are never rendered - they used to sit at the bottom of the list as
+ // greyed-out cards. They are still counted, so the bar above the list can
+ // tell the guest how many rooms the current search left out.
+ var hiddenCount = tooSmall.length + soldOut.length;
+ var myBookingRow = "";
  if (
   typeof isLoggedIn === "function" &&
   isLoggedIn()
@@ -4635,9 +4512,9 @@ function renderHome() {
    '<i class="fa-solid fa-ban"></i> Cancel booking</button>' +
    "</div>";
  }
-  lastSearchSingleCount = availNow.length + availLater.length;
-  lastSearchComboCount = combos.length;
-  el("viewHome").innerHTML =
+ lastSearchSingleCount = availNow.length + availLater.length;
+ lastSearchComboCount = combos.length;
+ el("viewHome").innerHTML =
   '<div class="ht-hero"><div class="container">' +
   myBookingRow +
   // '<div class="kicker">' +
@@ -4652,19 +4529,19 @@ function renderHome() {
   "<p>Every room is a little retreat, styled for comfort and quiet luxury.</p>" +
   "</div></div>" +
   '<div class="container">' +
-   roomFilterBarHtml(
-    availNow.concat(availLater),
-    combos.length,
-    hiddenCount,
-    combosOnly,
-   ) +
-   "</div>" +
+  roomFilterBarHtml(
+   availNow.concat(availLater),
+   combos.length,
+   hiddenCount,
+   combosOnly,
+  ) +
+  "</div>" +
   sections +
   combosHtml +
   '<div class="container pb-5">' +
   policiesSectionHtml() +
   "</div>";
-  bindSlider();
+ bindSlider();
 }
 
 // The occupancy chosen in the nav stepper, with every child's age resolved to a
@@ -4679,7 +4556,7 @@ function htPublicParty() {
   var age = parseInt(Array.isArray(childAges) ? childAges[i] : undefined, 10);
   ages.push(isNaN(age) ? 0 : age);
  }
-  return { adults: a, childAges: ages, total: a + n };
+ return { adults: a, childAges: ages, total: a + n };
 }
 
 // What a room costs for the dates in the nav bar: the total for the whole stay
@@ -4692,28 +4569,28 @@ function htPublicParty() {
 // list always advertises the non-AC rate. With no usable range (no dates, or a
 // single date) dated is false and the caller shows the plain base rate.
 function htStayRate(room) {
-  var base = Number(room && room.pricePerNight) || 0;
-  var nights =
-    typeof nightsBetween === "function" ? nightsBetween(checkIn, checkOut) : 0;
-  if (
-    !room ||
-    !(nights > 0) ||
-    !checkIn ||
-    typeof roomNightRate !== "function" ||
-    typeof addDays !== "function"
-  ) {
-    return { dated: false, nights: 0, total: base, avg: base };
-  }
-  var total = 0;
-  for (var i = 0; i < nights; i++) {
-    total += Number(roomNightRate(room, addDays(checkIn, i), false)) || 0;
-  }
-  return {
-   dated: true,
-   nights: nights,
-   total: total,
-   avg: Math.round(total / nights),
-  };
+ var base = Number(room && room.pricePerNight) || 0;
+ var nights =
+  typeof nightsBetween === "function" ? nightsBetween(checkIn, checkOut) : 0;
+ if (
+  !room ||
+  !(nights > 0) ||
+  !checkIn ||
+  typeof roomNightRate !== "function" ||
+  typeof addDays !== "function"
+ ) {
+  return { dated: false, nights: 0, total: base, avg: base };
+ }
+ var total = 0;
+ for (var i = 0; i < nights; i++) {
+  total += Number(roomNightRate(room, addDays(checkIn, i), false)) || 0;
+ }
+ return {
+  dated: true,
+  nights: nights,
+  total: total,
+  avg: Math.round(total / nights),
+ };
 }
 
 // The mode-3 price line, shared by the room card and the combination card so
@@ -4730,30 +4607,30 @@ function htStayRate(room) {
 // its own wording. With no GST configured the small half is left off rather than
 // printing a pointless "+ ₹ 0 GST".
 function htTotalWithGstHtml(amount, note) {
-  var total = Math.round(Number(amount) || 0);
-  if (!(total > 0)) return "";
-  var gst = htGstOn(total);
-  return (
-   '<span class="ht-gst-total">' +
-   fmtMoney(total) +
-   "</span>" +
-   (gst > 0
-    ? '<span class="ht-gst-add">+ ' + fmtMoney(gst) + " GST</span>"
-    : "") +
-   (note ? '<span class="ht-gst-note">' + escHtml(note) + "</span>" : "")
-  );
+ var total = Math.round(Number(amount) || 0);
+ if (!(total > 0)) return "";
+ var gst = htGstOn(total);
+ return (
+  '<span class="ht-gst-total">' +
+  fmtMoney(total) +
+  "</span>" +
+  (gst > 0
+   ? '<span class="ht-gst-add">+ ' + fmtMoney(gst) + " GST</span>"
+   : "") +
+  (note ? '<span class="ht-gst-note">' + escHtml(note) + "</span>" : "")
+ );
 }
 
 function htPartyCharge(rooms, nights) {
-  var pool = htOccupancyPool(rooms, adults, childAges);
-  var cfg = window[my1uzr.worknOnPg]?.clientConfig?.HT_CFG || {};
-  var units = Number(nights) > 0 ? Number(nights) : 1;
-  var extraAdultUnits = Number(pool.extraAdultUnits) || 0;
-  var paidChildUnits = Number(pool.paidChildUnits) || 0;
-  var fee =
-   extraAdultUnits * (Number(cfg.extraAdultsCharge) || 0) * units +
-   paidChildUnits * (Number(cfg.paidChildCharge) || 0) * units;
-  return { fee: fee, pool: pool, nights: units };
+ var pool = htOccupancyPool(rooms, adults, childAges);
+ var cfg = window[my1uzr.worknOnPg]?.clientConfig?.HT_CFG || {};
+ var units = Number(nights) > 0 ? Number(nights) : 1;
+ var extraAdultUnits = Number(pool.extraAdultUnits) || 0;
+ var paidChildUnits = Number(pool.paidChildUnits) || 0;
+ var fee =
+  extraAdultUnits * (Number(cfg.extraAdultsCharge) || 0) * units +
+  paidChildUnits * (Number(cfg.paidChildCharge) || 0) * units;
+ return { fee: fee, pool: pool, nights: units };
 }
 
 // The figure a mode-3 card leads with: the room's own nights plus what the party
@@ -4762,16 +4639,16 @@ function htPartyCharge(rooms, nights) {
 // base and fee are carried alongside so a caller can show the uplift on its own
 // if it wants to.
 function htCardTotal(rooms, roomTotal, nights) {
-  var base = Math.round(Number(roomTotal) || 0);
-  var charge = htPartyCharge(rooms, nights);
-  var fee = Math.round(Number(charge.fee) || 0);
-  return {
-   base: base,
-   fee: fee,
-   total: base + fee,
-   hasFee: fee > 0,
-   pool: charge.pool,
-  };
+ var base = Math.round(Number(roomTotal) || 0);
+ var charge = htPartyCharge(rooms, nights);
+ var fee = Math.round(Number(charge.fee) || 0);
+ return {
+  base: base,
+  fee: fee,
+  total: base + fee,
+  hasFee: fee > 0,
+  pool: charge.pool,
+ };
 }
 
 // The priced rows a room card shows in place of one headline figure, in the
@@ -4795,87 +4672,87 @@ function htCardTotal(rooms, roomTotal, nights) {
 // Returns "" when the mode has nothing to price - the caller then keeps the plain
 // "Starting ... / night" wording.
 function htCardPriceRows(room, nights) {
-  if (!room || typeof buildDayRates !== "function") return "";
-  // Mode 3 quotes one total rather than a list, so there is nothing to list. This
-  // is the single choke point for that mode: the room card asks for rows either
-  // way and gets "" back here, then renders its own total line.
-  if (htCardShowsTotalWithGst()) return "";
-  var rows = [];
-  var seen = [];
-  var dedupe = false;
-  if (htCardShowsWeeklyRates()) {
-    dedupe = true;
-    // A week of nights always contains every weekday, so pricing one week and
-    // bucketing it by weekday yields the Friday, Saturday and normal rates
-    // through the same code path the stay itself used. With no dates chosen the
-    // week starts today, which prices the same room the same way.
-    var from =
-      checkIn || (typeof todayStr === "function" ? todayStr() : "");
-    var week = from ? buildDayRates(room, from, 7) : null;
-    if (!week) return "";
-    var byDay = {};
-    var tally = {};
-    // Weekday of night w, walked from the window's first night so the key lines
-    // up with the dayRates rows buildDayRates just produced.
-    var d0 = new Date(from + "T00:00:00");
-    if (isNaN(d0.getTime())) d0 = new Date();
-    for (var w = 0; w < week.dayRates.length; w++) {
-      var rate = Number(week.dayRates[w].rate) || 0;
-      var dayKey = String(
-        new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() + w).getDay(),
-      );
-      byDay[dayKey] = rate;
-      tally[rate] = (tally[rate] || 0) + 1;
-    }
-    // The most common rate in that week is the normal one - which is the room's
-    // own base rate unless the hotel has priced most weekdays apart. Ties leave
-    // the base rate in place, so "normal" is never an arbitrary weekday.
-    var normal = Number(room.pricePerNight) || 0;
-    var bestCount = tally[normal] || 0;
-    for (var tk in tally) {
-      if (!Object.prototype.hasOwnProperty.call(tally, tk)) continue;
-      if (tally[tk] > bestCount) {
-        bestCount = tally[tk];
-        normal = Number(tk) || 0;
-      }
-    }
-    rows.push({ label: "Normal night", rate: normal });
-    // Friday (5) and Saturday (6), only when they are priced apart from what is
-    // already on the list.
-    if (byDay["5"] != null) rows.push({ label: "Friday/Saturday", rate: byDay["5"] });
-    if (byDay["6"] != null) rows.push({ label: "Saturday", rate: byDay["6"] });
-  } else {
-    // The stay itself, one row per charged night. Nothing here without dates.
-    if (!(nights > 0) || !checkIn) return "";
-    var dr = buildDayRates(room, checkIn, nights);
-    for (var i = 0; i < dr.dayRates.length; i++) {
-      rows.push({ label: dr.dayRates[i].date, rate: dr.dayRates[i].rate });
-    }
+ if (!room || typeof buildDayRates !== "function") return "";
+ // Mode 3 quotes one total rather than a list, so there is nothing to list. This
+ // is the single choke point for that mode: the room card asks for rows either
+ // way and gets "" back here, then renders its own total line.
+ if (htCardShowsTotalWithGst()) return "";
+ var rows = [];
+ var seen = [];
+ var dedupe = false;
+ if (htCardShowsWeeklyRates()) {
+  dedupe = true;
+  // A week of nights always contains every weekday, so pricing one week and
+  // bucketing it by weekday yields the Friday, Saturday and normal rates
+  // through the same code path the stay itself used. With no dates chosen the
+  // week starts today, which prices the same room the same way.
+  var from =
+   checkIn || (typeof todayStr === "function" ? todayStr() : "");
+  var week = from ? buildDayRates(room, from, 7) : null;
+  if (!week) return "";
+  var byDay = {};
+  var tally = {};
+  // Weekday of night w, walked from the window's first night so the key lines
+  // up with the dayRates rows buildDayRates just produced.
+  var d0 = new Date(from + "T00:00:00");
+  if (isNaN(d0.getTime())) d0 = new Date();
+  for (var w = 0; w < week.dayRates.length; w++) {
+   var rate = Number(week.dayRates[w].rate) || 0;
+   var dayKey = String(
+    new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() + w).getDay(),
+   );
+   byDay[dayKey] = rate;
+   tally[rate] = (tally[rate] || 0) + 1;
   }
-  // Past a handful of rows the list stops being a headline and starts being a
-  // ledger, so it marks itself long and the card types it down a size.
-  var html =
-    '<div class="s-day-rates' +
-    (rows.length > 6 ? " is-long" : "") +
-    '">';
-  for (var ri = 0; ri < rows.length; ri++) {
-    var amt = Math.round(Number(rows[ri].rate) || 0);
-    // The weekly view drops a rate that repeats one already listed - a Friday
-    // that costs the same as a normal night, or a Saturday that costs the same
-    // as the Friday. The per-stay view keeps every night, repeated rate and all,
-    // because each row is a real date the guest will be charged.
-    if (dedupe && seen.indexOf(amt) !== -1) continue;
-    seen.push(amt);
-    html +=
-      '<div class="s-day-rate"><span class="s-day-name">' +
-      escHtml(rows[ri].label) +
-      '</span><span class="s-day-price">' +
-      fmtMoney(amt) +
-      "</span></div>";
+  // The most common rate in that week is the normal one - which is the room's
+  // own base rate unless the hotel has priced most weekdays apart. Ties leave
+  // the base rate in place, so "normal" is never an arbitrary weekday.
+  var normal = Number(room.pricePerNight) || 0;
+  var bestCount = tally[normal] || 0;
+  for (var tk in tally) {
+   if (!Object.prototype.hasOwnProperty.call(tally, tk)) continue;
+   if (tally[tk] > bestCount) {
+    bestCount = tally[tk];
+    normal = Number(tk) || 0;
+   }
   }
-  // Every figure above is a bare nightly rate, so the GST that is added at the
-  // paysheet stays out of it - say so once, at the foot of the list.
-  return html + '<div class="ht-price-gst">excl. GST</div></div>';
+  rows.push({ label: "Normal night", rate: normal });
+  // Friday (5) and Saturday (6), only when they are priced apart from what is
+  // already on the list.
+  if (byDay["5"] != null) rows.push({ label: "Friday/Saturday", rate: byDay["5"] });
+  if (byDay["6"] != null) rows.push({ label: "Saturday", rate: byDay["6"] });
+ } else {
+  // The stay itself, one row per charged night. Nothing here without dates.
+  if (!(nights > 0) || !checkIn) return "";
+  var dr = buildDayRates(room, checkIn, nights);
+  for (var i = 0; i < dr.dayRates.length; i++) {
+   rows.push({ label: dr.dayRates[i].date, rate: dr.dayRates[i].rate });
+  }
+ }
+ // Past a handful of rows the list stops being a headline and starts being a
+ // ledger, so it marks itself long and the card types it down a size.
+ var html =
+  '<div class="s-day-rates' +
+  (rows.length > 6 ? " is-long" : "") +
+  '">';
+ for (var ri = 0; ri < rows.length; ri++) {
+  var amt = Math.round(Number(rows[ri].rate) || 0);
+  // The weekly view drops a rate that repeats one already listed - a Friday
+  // that costs the same as a normal night, or a Saturday that costs the same
+  // as the Friday. The per-stay view keeps every night, repeated rate and all,
+  // because each row is a real date the guest will be charged.
+  if (dedupe && seen.indexOf(amt) !== -1) continue;
+  seen.push(amt);
+  html +=
+   '<div class="s-day-rate"><span class="s-day-name">' +
+   escHtml(rows[ri].label) +
+   '</span><span class="s-day-price">' +
+   fmtMoney(amt) +
+   "</span></div>";
+ }
+ // Every figure above is a bare nightly rate, so the GST that is added at the
+ // paysheet stays out of it - say so once, at the foot of the list.
+ return html + '<div class="ht-price-gst">excl. GST</div></div>';
 }
 
 
@@ -4885,87 +4762,87 @@ function htCardPriceRows(room, nights) {
 // dates, or that cannot sleep the party, is left out of the list entirely
 // rather than shown greyed out.
 function roomCardHtml(r, state) {
-  var badgeIcon = r.ac ? "fa-snowflake" : "fa-fan";
-  var policy = htRoomOccupancyPolicy(r);
-  // Both bookable states get the greenish card and the Available chip; the
-  // surcharge of the "extra" state is called out separately in the footer.
-  var chip =
-   '<span class="ht-avail-chip"><i class="fa-solid fa-circle-check"></i> Available</span>';
-  var foot =
-   '<button class="ht-btn ht-btn-ember" onclick="bookRoomNow(\'' +
-   r.id +
-   '\')">Book Now</button>' +
-   (state === "extra"
-    ? '<span class="ht-extra-chip"><i class="fa-solid fa-coins"></i> Extra guest charge applies</span>'
-    : "");
-  // With dates chosen the card prices the stay the way the paysheet does, one
-  // line per night (or per distinct weekday rate, per rm.da
-  // showAndOptionsOfCardPriceings) - see htCardPriceRows. Without dates it keeps
-  // the base rate and its "from" wording. The image chip carries the stay facts
-  // only: quoting a per-night average there would contradict the block below it.
-  var stay = htStayRate(r);
-  // The weekly view prices the room itself and needs no dates; the per-stay view
-  // is the stay and only exists once dates are chosen. Mode 3 lists no rows at
-  // all - htCardPriceRows stands aside and this line below takes its place.
-  var dayRows =
-   (htCardShowsWeeklyRates() || stay.dated)
-    ? htCardPriceRows(r, stay.nights)
-    : "";
-  // Mode 3: one figure - what the party actually pays for this stay, and the GST
-  // on top of it. The room's own nights come from htStayRate; htCardTotal adds
-  // the occupancy surcharge for anyone past this room's included capacity, on the
-  // same terms the paysheet uses, so a card and the summary sheet for the same
-  // party land on the same number. Undated there is one night's worth of both,
-  // which is the rate the guest would be quoted on any night they pick.
-  //
-  // The wrapper below is .ht-price (dayRows is empty, so listed is false), which
-  // is exactly the big display serif the total should keep.
-  var totalLine = "";
-  var cardTotal = null;
-  if (htCardShowsTotalWithGst()) {
-   cardTotal = htCardTotal(
-    [r],
-    stay.dated ? stay.total : Number(r.pricePerNight) || 0,
-    stay.dated ? stay.nights : 0
-   );
-   totalLine = htTotalWithGstHtml(
-    cardTotal.total,
-    stay.dated
-     ? "for " + stay.nights + (stay.nights > 1 ? " nights" : " night")
-     : "/ night"
-   );
-  }
-  // If the priced rows could not be produced after all, the card falls back to
-  // the plain base rate rather than showing an empty price block.
-  var listed = !!dayRows;
-  // A long per-stay list is a ledger, not a headline: it types down a size and
-  // drops the button to the foot of it (see .ht-card-foot-long).
-  var longList = dayRows.indexOf("is-long") !== -1;
-  var chipStart = stay.dated
-   ? stay.nights + (stay.nights > 1 ? " nights" : " night")
-   : cardTotal && cardTotal.hasFee
-    ? ""
-    : "Starting " + fmtMoney(r.pricePerNight) + " / night";
-  // The image chip carries the stay facts, not the price: quoting a second
-  // per-night figure here would argue with the one under the image. So the
-  // "Starting ..." rate is dropped exactly when the party charge has moved the
-  // price off the base rate, and the capacity stays either way.
-  var chipFacts = [];
-  if (chipStart) chipFacts.push(chipStart);
-  chipFacts.push(policy.capacity + " included");
-  // Rows if there are any, else the mode-3 total, else the plain base rate. The
-  // fallback keeps the capacity note because there is no total line carrying the
-  // stay facts; the total line's own note covers the same ground.
-  var price = listed
-   ? dayRows
-   : totalLine ||
-     (fmtMoney(r.pricePerNight) +
-      '<br><span class="per"> / night \u00b7 ' +
-      policy.capacity +
-      " included \u00b7 excl. GST</span>");
-  return (
-   '<article class="ht-room-card' +
-   (state === "now" ? " is-avail" : " is-extra") +
+ var badgeIcon = r.ac ? "fa-snowflake" : "fa-fan";
+ var policy = htRoomOccupancyPolicy(r);
+ // Both bookable states get the greenish card and the Available chip; the
+ // surcharge of the "extra" state is called out separately in the footer.
+ var chip =
+  '<span class="ht-avail-chip"><i class="fa-solid fa-circle-check"></i> Available</span>';
+ var foot =
+  '<button class="ht-btn ht-btn-ember" onclick="bookRoomNow(\'' +
+  r.id +
+  '\')">Book Now</button>' +
+  (state === "extra"
+   ? '<span class="ht-extra-chip"><i class="fa-solid fa-coins"></i> Extra guest charge applies</span>'
+   : "");
+ // With dates chosen the card prices the stay the way the paysheet does, one
+ // line per night (or per distinct weekday rate, per rm.da
+ // showAndOptionsOfCardPriceings) - see htCardPriceRows. Without dates it keeps
+ // the base rate and its "from" wording. The image chip carries the stay facts
+ // only: quoting a per-night average there would contradict the block below it.
+ var stay = htStayRate(r);
+ // The weekly view prices the room itself and needs no dates; the per-stay view
+ // is the stay and only exists once dates are chosen. Mode 3 lists no rows at
+ // all - htCardPriceRows stands aside and this line below takes its place.
+ var dayRows =
+  (htCardShowsWeeklyRates() || stay.dated)
+   ? htCardPriceRows(r, stay.nights)
+   : "";
+ // Mode 3: one figure - what the party actually pays for this stay, and the GST
+ // on top of it. The room's own nights come from htStayRate; htCardTotal adds
+ // the occupancy surcharge for anyone past this room's included capacity, on the
+ // same terms the paysheet uses, so a card and the summary sheet for the same
+ // party land on the same number. Undated there is one night's worth of both,
+ // which is the rate the guest would be quoted on any night they pick.
+ //
+ // The wrapper below is .ht-price (dayRows is empty, so listed is false), which
+ // is exactly the big display serif the total should keep.
+ var totalLine = "";
+ var cardTotal = null;
+ if (htCardShowsTotalWithGst()) {
+  cardTotal = htCardTotal(
+   [r],
+   stay.dated ? stay.total : Number(r.pricePerNight) || 0,
+   stay.dated ? stay.nights : 0
+  );
+  totalLine = htTotalWithGstHtml(
+   cardTotal.total,
+   stay.dated
+    ? "for " + stay.nights + (stay.nights > 1 ? " nights" : " night")
+    : "/ night"
+  );
+ }
+ // If the priced rows could not be produced after all, the card falls back to
+ // the plain base rate rather than showing an empty price block.
+ var listed = !!dayRows;
+ // A long per-stay list is a ledger, not a headline: it types down a size and
+ // drops the button to the foot of it (see .ht-card-foot-long).
+ var longList = dayRows.indexOf("is-long") !== -1;
+ var chipStart = stay.dated
+  ? stay.nights + (stay.nights > 1 ? " nights" : " night")
+  : cardTotal && cardTotal.hasFee
+   ? ""
+   : "Starting " + fmtMoney(r.pricePerNight) + " / night";
+ // The image chip carries the stay facts, not the price: quoting a second
+ // per-night figure here would argue with the one under the image. So the
+ // "Starting ..." rate is dropped exactly when the party charge has moved the
+ // price off the base rate, and the capacity stays either way.
+ var chipFacts = [];
+ if (chipStart) chipFacts.push(chipStart);
+ chipFacts.push(policy.capacity + " included");
+ // Rows if there are any, else the mode-3 total, else the plain base rate. The
+ // fallback keeps the capacity note because there is no total line carrying the
+ // stay facts; the total line's own note covers the same ground.
+ var price = listed
+  ? dayRows
+  : totalLine ||
+  (fmtMoney(r.pricePerNight) +
+   '<br><span class="per"> / night \u00b7 ' +
+   policy.capacity +
+   " included \u00b7 excl. GST</span>");
+ return (
+  '<article class="ht-room-card' +
+  (state === "now" ? " is-avail" : " is-extra") +
   '" id="room-card-' +
   r.id +
   '">' +
@@ -4975,15 +4852,15 @@ function roomCardHtml(r, state) {
   r.images[0] +
   '" alt="' +
   escHtml(r.name) +
-  '" loading="lazy" onerror="imgFail(this)">' +
+  '" loading="lazy" ' + IMG_ONERROR_ATTR + '">' +
   // '<span class="ht-ribbon"><i class="fa-solid ' +
   // badgeIcon +
   // '"></i> ' +
   // (r.ac ? "AC" : "Non-AC") +
   // "</span>" +
-   '<span class="ht-chip-start">' +
-   chipFacts.join(" \u00b7 ") +
-   "</span>" +
+  '<span class="ht-chip-start">' +
+  chipFacts.join(" \u00b7 ") +
+  "</span>" +
   "</div>" +
   '<div class="ht-room-body">' +
   "<h2>" +
@@ -4993,9 +4870,9 @@ function roomCardHtml(r, state) {
   escHtml(r.tagline) +
   "</p>" +
   '<div class="ht-badges">' +
-   badgeHtml("fa-user-group", policy.capacity + " included") +
-   badgeHtml("fa-people-group", "Sleeps up to " + policy.maxOccupancy) +
-   badgeHtml("fa-bed", escHtml(r.bed)) +
+  badgeHtml("fa-user-group", policy.capacity + " included") +
+  badgeHtml("fa-people-group", "Sleeps up to " + policy.maxOccupancy) +
+  badgeHtml("fa-bed", escHtml(r.bed)) +
   badgeHtml("fa-ruler-combined", r.area + " sq.ft") +
   "</div>" +
   '<div class="ht-pills">' +
@@ -5010,18 +4887,18 @@ function roomCardHtml(r, state) {
    : "") +
   "</div>" +
   '<div class="ht-card-foot' +
-   (longList ? " ht-card-foot-long" : "") +
-   '">' +
-   // A rate list instead of one headline figure, so the block steps out of
-   // .ht-price's 25px serif and keeps the foot's plain type. A div wrapper,
-   // because the list inside it is block markup.
-   '<div class="' +
-   (listed ? "ht-price-block" : "ht-price") +
-   '">' +
-   price +
-   "</div>" +
-   foot +
-   "</div>" +
+  (longList ? " ht-card-foot-long" : "") +
+  '">' +
+  // A rate list instead of one headline figure, so the block steps out of
+  // .ht-price's 25px serif and keeps the foot's plain type. A div wrapper,
+  // because the list inside it is block markup.
+  '<div class="' +
+  (listed ? "ht-price-block" : "ht-price") +
+  '">' +
+  price +
+  "</div>" +
+  foot +
+  "</div>" +
   "</div></article>"
  );
 }
@@ -5042,27 +4919,27 @@ var comboCardsHeld = [];
 // flag off the count is the 8 it has always been, and with the flag off the whole
 // list is ordered by room count, where a bigger opening buys nothing.
 function comboCardsPreviewCount() {
-  return htCombosRankByAllInPrice() ? 12 : COMBO_CARDS_PREVIEW;
+ return htCombosRankByAllInPrice() ? 12 : COMBO_CARDS_PREVIEW;
 }
 
 // One card per combination. Its rooms sit side by side, each keeping its own
 // details, and the footer carries the combined nightly total plus the shared
 // extra-guest / paid-child charges.
 function comboCardsHtml(combos) {
-  var list = combos || [];
-  var preview = comboCardsPreviewCount();
-  comboCardsHeld = list.slice(preview);
-  return (
-   '<div class="ht-combo-list">' +
-   list.slice(0, preview).map(comboCardHtml).join("") +
+ var list = combos || [];
+ var preview = comboCardsPreviewCount();
+ comboCardsHeld = list.slice(preview);
+ return (
+  '<div class="ht-combo-list">' +
+  list.slice(0, preview).map(comboCardHtml).join("") +
   (comboCardsHeld.length
    ? '<div class="ht-combo-rest" id="htComboRest"></div>' +
-     '<div class="ht-combo-more" id="htComboMore">' +
-     '<button type="button" class="ht-btn ht-btn-gold" onclick="showAllCombos()">' +
-     '<i class="fa-solid fa-layer-group"></i> Show all ' +
-     list.length +
-     " combinations" +
-     "</button></div>"
+   '<div class="ht-combo-more" id="htComboMore">' +
+   '<button type="button" class="ht-btn ht-btn-gold" onclick="showAllCombos()">' +
+   '<i class="fa-solid fa-layer-group"></i> Show all ' +
+   list.length +
+   " combinations" +
+   "</button></div>"
    : "") +
   "</div>"
  );
@@ -5080,124 +4957,124 @@ window.showAllCombos = function () {
 };
 
 function comboCardHtml(c) {
-  var head =
-   '<div class="ht-combo-head"><i class="fa-solid fa-layer-group"></i> ' +
-   c.rooms.length +
-   " room" +
-   (c.rooms.length > 1 ? "s" : "") +
-   ' <span class="tag">Sleeps ' + c.maxOccupancy + " combined</span>" +
-   (c.fitsPooledNormal
-    ? '<span class="tag"><i class="fa-solid fa-circle-check"></i> All guests included</span>'
-    : '<span class="tag"><i class="fa-solid fa-coins"></i> Extra guest charge applies</span>') +
-   "</div>";
-  // Every room is priced for the selected dates (see htStayRate), and the
-  // footer sums those stay totals rather than the base rates. Without dates the
-  // card falls back to the plain per-night figures the search engine ranked on.
-  var stayRates = c.rooms.map(htStayRate);
-  var dated = stayRates.some(function (s) {
-   return s.dated;
-  });
-  var stay = {
-   nights: dated ? stayRates[0].nights : 0,
-   total: stayRates.reduce(function (sum, s) {
-    return sum + (s.dated ? s.total : s.avg);
-   }, 0),
-  };
-  var rooms = c.rooms
-   .map(function (r, ri) {
-    var policy = htRoomOccupancyPolicy(r);
-    var rs = stayRates[ri];
-    var rate = rs.dated
-     ? fmtMoney(rs.avg) + " / night avg"
-     : fmtMoney(r.pricePerNight) + " / night";
-    return (
-     '<div class="ht-combo-room">' +
-     '<img src="' +
-     r.images[0] +
-     '" alt="' +
-     escHtml(r.name) +
-     '" loading="lazy" onerror="imgFail(this)">' +
-     '<div class="cr-body">' +
-     '<span class="cr-no">Room ' + escHtml(r.e) + "</span>" +
-     '<span class="cr-name">' + escHtml(r.name) + "</span>" +
-     '<span class="cr-occ">' +
-     policy.capacity +
-     " included \u00b7 sleeps up to " +
-     policy.maxOccupancy +
-     " \u00b7 " +
-     escHtml(r.bed) +
-     "</span>" +
-     '<span class="cr-rate">' + rate + "</span>" +
-     "</div></div>"
-    );
-   })
-   .join("");
-  // The set's total and the context that gives it meaning, hoisted out of the two
-  // wordings below so mode 3 can print the same figures in one shape. Dated it
-  // is the whole stay plus the per-night average; undated it is the combined
-  // nightly figure, which is what the ranking used.
-  var totalAmount = dated ? stay.total : c.totalPerNight;
-  // The party charge for this set, added to the room's own nights on the paysheet's
-  // terms (see htPartyCharge). A combination pools its free slots across the rooms,
-  // so its surcharge is usually nil even when a single room would have charged -
-  // which is exactly what the set is for. The units come from this one pool, so the
-  // breakdown line below and the total can never count different guests.
-  var cardTotal = htCardTotal(c.rooms, totalAmount, dated ? stay.nights : 0);
-  var totalNote = dated
-   ? "for " +
-     stay.nights +
-     (stay.nights > 1 ? " nights" : " night") +
-     " \u00b7 " +
-     fmtMoney(Math.round(cardTotal.total / stay.nights)) +
-     " / night avg"
-   : "/ night";
-  // Mode 3 replaces the <b> with the shared total-and-GST line, so the footer
-  // carries the same markup a room card does. htTotalWithGstHtml returns "" only
-  // for an unquotable amount, in which case the wording below still stands.
-  var totalLine = "";
-  if (htCardShowsTotalWithGst())
-   totalLine = htTotalWithGstHtml(cardTotal.total, totalNote);
-  // What the party surcharge is made of. Read from the same pool and the same
-  // HT_CFG the total above was built from, so this line is a breakdown of the
-  // figure beside it rather than a second, independently counted claim - and in
-  // mode 3 the two add up to exactly the total shown.
-  var hcfg = window[my1uzr.worknOnPg]?.clientConfig?.HT_CFG || {};
-  var fees = [];
-  if (cardTotal.pool.extraAdultUnits)
-   fees.push(cardTotal.pool.extraAdultUnits + " extra guest \u00d7 " + fmtMoney(hcfg.extraAdultsCharge));
-  if (cardTotal.pool.paidChildUnits)
-   fees.push(cardTotal.pool.paidChildUnits + " child \u00d7 " + fmtMoney(hcfg.paidChildCharge));
-  if (!totalLine)
-   totalLine = dated
-    ? "Total <b>" +
-      fmtMoney(stay.total) +
-      "</b> for " +
-      stay.nights +
-      (stay.nights > 1 ? " nights" : " night") +
-      " \u00b7 " +
-      fmtMoney(Math.round(stay.total / stay.nights)) +
-      " / night avg"
-    : "Total <b>" +
-      fmtMoney(c.totalPerNight) +
-      "</b> / night";
-  // The "excl. GST" footnote only makes sense while the GST is not written out.
-  // Mode 3 names the amount next to the total, so repeating it would contradict
-  // the line it sits on.
-  var gstFootnote = htCardShowsTotalWithGst() ? "" : " \u00b7 excl. GST";
-  var foot =
-   '<div class="ht-combo-foot">' +
-   '<span class="csum">' +
-   totalLine +
-   gstFootnote +
-   "</span>" +
-   (fees.length
-     ? '<span class="ht-combo-note' + (cardTotal.pool.extraAdultUnits ? " warn" : "") + '"><i class="fa-solid fa-coins"></i> ' + fees.join(" \u00b7 ") + "</span>"
-    : "") +
-   '<button class="ht-btn ht-btn-ember" onclick="bookComboNow(\'' +
-   c.key +
-   '\')">Book this combination</button>' +
-   "</div>";
-  return '<article class="ht-combo-card">' + head + '<div class="ht-combo-rooms">' + rooms + "</div>" + foot + "</article>";
+ var head =
+  '<div class="ht-combo-head"><i class="fa-solid fa-layer-group"></i> ' +
+  c.rooms.length +
+  " room" +
+  (c.rooms.length > 1 ? "s" : "") +
+  ' <span class="tag">Sleeps ' + c.maxOccupancy + " combined</span>" +
+  (c.fitsPooledNormal
+   ? '<span class="tag"><i class="fa-solid fa-circle-check"></i> All guests included</span>'
+   : '<span class="tag"><i class="fa-solid fa-coins"></i> Extra guest charge applies</span>') +
+  "</div>";
+ // Every room is priced for the selected dates (see htStayRate), and the
+ // footer sums those stay totals rather than the base rates. Without dates the
+ // card falls back to the plain per-night figures the search engine ranked on.
+ var stayRates = c.rooms.map(htStayRate);
+ var dated = stayRates.some(function (s) {
+  return s.dated;
+ });
+ var stay = {
+  nights: dated ? stayRates[0].nights : 0,
+  total: stayRates.reduce(function (sum, s) {
+   return sum + (s.dated ? s.total : s.avg);
+  }, 0),
+ };
+ var rooms = c.rooms
+  .map(function (r, ri) {
+   var policy = htRoomOccupancyPolicy(r);
+   var rs = stayRates[ri];
+   var rate = rs.dated
+    ? fmtMoney(rs.avg) + " / night avg"
+    : fmtMoney(r.pricePerNight) + " / night";
+   return (
+    '<div class="ht-combo-room">' +
+    '<img src="' +
+    r.images[0] +
+    '" alt="' +
+    escHtml(r.name) +
+    '" loading="lazy" ' + IMG_ONERROR_ATTR + '">' +
+    '<div class="cr-body">' +
+    '<span class="cr-no">Room ' + escHtml(r.e) + "</span>" +
+    '<span class="cr-name">' + escHtml(r.name) + "</span>" +
+    '<span class="cr-occ">' +
+    policy.capacity +
+    " included \u00b7 sleeps up to " +
+    policy.maxOccupancy +
+    " \u00b7 " +
+    escHtml(r.bed) +
+    "</span>" +
+    '<span class="cr-rate">' + rate + "</span>" +
+    "</div></div>"
+   );
+  })
+  .join("");
+ // The set's total and the context that gives it meaning, hoisted out of the two
+ // wordings below so mode 3 can print the same figures in one shape. Dated it
+ // is the whole stay plus the per-night average; undated it is the combined
+ // nightly figure, which is what the ranking used.
+ var totalAmount = dated ? stay.total : c.totalPerNight;
+ // The party charge for this set, added to the room's own nights on the paysheet's
+ // terms (see htPartyCharge). A combination pools its free slots across the rooms,
+ // so its surcharge is usually nil even when a single room would have charged -
+ // which is exactly what the set is for. The units come from this one pool, so the
+ // breakdown line below and the total can never count different guests.
+ var cardTotal = htCardTotal(c.rooms, totalAmount, dated ? stay.nights : 0);
+ var totalNote = dated
+  ? "for " +
+  stay.nights +
+  (stay.nights > 1 ? " nights" : " night") +
+  " \u00b7 " +
+  fmtMoney(Math.round(cardTotal.total / stay.nights)) +
+  " / night avg"
+  : "/ night";
+ // Mode 3 replaces the <b> with the shared total-and-GST line, so the footer
+ // carries the same markup a room card does. htTotalWithGstHtml returns "" only
+ // for an unquotable amount, in which case the wording below still stands.
+ var totalLine = "";
+ if (htCardShowsTotalWithGst())
+  totalLine = htTotalWithGstHtml(cardTotal.total, totalNote);
+ // What the party surcharge is made of. Read from the same pool and the same
+ // HT_CFG the total above was built from, so this line is a breakdown of the
+ // figure beside it rather than a second, independently counted claim - and in
+ // mode 3 the two add up to exactly the total shown.
+ var hcfg = window[my1uzr.worknOnPg]?.clientConfig?.HT_CFG || {};
+ var fees = [];
+ if (cardTotal.pool.extraAdultUnits)
+  fees.push(cardTotal.pool.extraAdultUnits + " extra guest \u00d7 " + fmtMoney(hcfg.extraAdultsCharge));
+ if (cardTotal.pool.paidChildUnits)
+  fees.push(cardTotal.pool.paidChildUnits + " child \u00d7 " + fmtMoney(hcfg.paidChildCharge));
+ if (!totalLine)
+  totalLine = dated
+   ? "Total <b>" +
+   fmtMoney(stay.total) +
+   "</b> for " +
+   stay.nights +
+   (stay.nights > 1 ? " nights" : " night") +
+   " \u00b7 " +
+   fmtMoney(Math.round(stay.total / stay.nights)) +
+   " / night avg"
+   : "Total <b>" +
+   fmtMoney(c.totalPerNight) +
+   "</b> / night";
+ // The "excl. GST" footnote only makes sense while the GST is not written out.
+ // Mode 3 names the amount next to the total, so repeating it would contradict
+ // the line it sits on.
+ var gstFootnote = htCardShowsTotalWithGst() ? "" : " \u00b7 excl. GST";
+ var foot =
+  '<div class="ht-combo-foot">' +
+  '<span class="csum">' +
+  totalLine +
+  gstFootnote +
+  "</span>" +
+  (fees.length
+   ? '<span class="ht-combo-note' + (cardTotal.pool.extraAdultUnits ? " warn" : "") + '"><i class="fa-solid fa-coins"></i> ' + fees.join(" \u00b7 ") + "</span>"
+   : "") +
+  '<button class="ht-btn ht-btn-ember" onclick="bookComboNow(\'' +
+  c.key +
+  '\')">Book this combination</button>' +
+  "</div>";
+ return '<article class="ht-combo-card">' + head + '<div class="ht-combo-rooms">' + rooms + "</div>" + foot + "</article>";
 }
 
 function badgeHtml(icon, text) {
@@ -5230,60 +5107,60 @@ function bpColHidden(code) {
 }
 
 function renderDetails() {
-  var r = getRoom();
-  if (!r) {
-   showHome();
-   return;
-  }
-  // A combination shows every room of the set, each with its own details, above
-  // the same shared summary sheet a single room uses.
-  var combo = comboSelection && comboSelection.rooms && comboSelection.rooms.length > 1
-   ? comboSelection
-   : null;
-  var left;
-  if (combo) {
-   left =
-    '<div class="ht-combo-detail-head">' +
-    '<i class="fa-solid fa-layer-group"></i> Combination of ' +
-    combo.rooms.length +
-    " rooms \u00b7 sleeps " +
-    htOccupancyPool(combo.rooms, adults, childAges).maxOccupancy +
-    " combined</div>";
-   combo.rooms.forEach(function (cr, ci) {
-    left +=
-     '<section class="ht-section ht-room-title" data-combo-room="' + cr.id + '">' +
-     "<h2>" +
-     escHtml(cr.e) + " - " + escHtml(cr.name) +
-     "</h2>" +
-     '<p class="tagline">' + escHtml(cr.tagline) + "</p>" +
-     galleryHtml(cr, "combo-" + ci) +
-     aboutHtml(cr);
-    if (!bpColHidden("flt")) left += facilitiesHtml(cr);
-    if (!bpColHidden("ia")) left += amenitiesHtml(cr);
-    left += "</section>";
-   });
-   if (!bpColHidden("cyp")) left += packagesSectionHtml(r);
-   if (!bpColHidden("aos")) left += addonsSectionHtml();
-   left += policiesSectionHtml();
-  } else {
-   left =
-    galleryHtml(r, "main") +
-    aboutHtml(r);
-   if (!bpColHidden("flt")) left += facilitiesHtml(r);
-   if (!bpColHidden("ia")) left += amenitiesHtml(r);
-   if (!bpColHidden("cyp")) left += packagesSectionHtml(r);
-   if (!bpColHidden("aos")) left += addonsSectionHtml();
-   left += policiesSectionHtml();
-  }
-  var body =
-   '<div class="container py-3 pb-5">' +
-   '<button class="ht-back" onclick="showHome()"><i class="fa-solid fa-arrow-left"></i> All Rooms</button>' +
-   '<div class="row g-4">' +
-   '<div class="col-xl-8 col-lg-7">' +
-   left +
-   "</div>" +
-   '<div class="col-xl-4 col-lg-5" id="summaryHost"></div>' +
-   "</div></div>";
+ var r = getRoom();
+ if (!r) {
+  showHome();
+  return;
+ }
+ // A combination shows every room of the set, each with its own details, above
+ // the same shared summary sheet a single room uses.
+ var combo = comboSelection && comboSelection.rooms && comboSelection.rooms.length > 1
+  ? comboSelection
+  : null;
+ var left;
+ if (combo) {
+  left =
+   '<div class="ht-combo-detail-head">' +
+   '<i class="fa-solid fa-layer-group"></i> Combination of ' +
+   combo.rooms.length +
+   " rooms \u00b7 sleeps " +
+   htOccupancyPool(combo.rooms, adults, childAges).maxOccupancy +
+   " combined</div>";
+  combo.rooms.forEach(function (cr, ci) {
+   left +=
+    '<section class="ht-section ht-room-title" data-combo-room="' + cr.id + '">' +
+    "<h2>" +
+    escHtml(cr.e) + " - " + escHtml(cr.name) +
+    "</h2>" +
+    '<p class="tagline">' + escHtml(cr.tagline) + "</p>" +
+    galleryHtml(cr, "combo-" + ci) +
+    aboutHtml(cr);
+   if (!bpColHidden("flt")) left += facilitiesHtml(cr);
+   if (!bpColHidden("ia")) left += amenitiesHtml(cr);
+   left += "</section>";
+  });
+  if (!bpColHidden("cyp")) left += packagesSectionHtml(r);
+  if (!bpColHidden("aos")) left += addonsSectionHtml();
+  left += policiesSectionHtml();
+ } else {
+  left =
+   galleryHtml(r, "main") +
+   aboutHtml(r);
+  if (!bpColHidden("flt")) left += facilitiesHtml(r);
+  if (!bpColHidden("ia")) left += amenitiesHtml(r);
+  if (!bpColHidden("cyp")) left += packagesSectionHtml(r);
+  if (!bpColHidden("aos")) left += addonsSectionHtml();
+  left += policiesSectionHtml();
+ }
+ var body =
+  '<div class="container py-3 pb-5">' +
+  '<button class="ht-back" onclick="showHome()"><i class="fa-solid fa-arrow-left"></i> All Rooms</button>' +
+  '<div class="row g-4">' +
+  '<div class="col-xl-8 col-lg-7">' +
+  left +
+  "</div>" +
+  '<div class="col-xl-4 col-lg-5" id="summaryHost"></div>' +
+  "</div></div>";
  el("viewDetails").innerHTML = body;
  if (!el("paySheetPanel") && typeof renderSummarySheet === "function") {
   renderSummarySheet();
@@ -5304,8 +5181,8 @@ function renderDetails() {
 // uid scopes the hero/thumb ids so a view holding several galleries (a room
 // combination) does not have them collide.
 function galleryHtml(r, uid) {
-  uid = uid || r.id;
-  return (
+ uid = uid || r.id;
+ return (
   '<div class="ht-gallery" data-room="' +
   r.id +
   '">' +
@@ -5315,14 +5192,14 @@ function galleryHtml(r, uid) {
   r.images[0] +
   '" alt="' +
   escHtml(r.name) +
-  '" onerror="imgFail(this)"></div>' +
+  '" ' + IMG_ONERROR_ATTR + '"></div>' +
   '<div class="thumbs">' +
   r.images
    .map(function (src, i) {
     return (
      '<img src="' +
      src +
-     '" alt="" loading="lazy" onerror="imgFail(this)" ' +
+     '" alt="" loading="lazy" ' + IMG_ONERROR_ATTR + " " +
      (i === 0 ? 'class="active" ' : "") +
      'onclick="setHero(' +
      i +
@@ -5337,8 +5214,8 @@ function galleryHtml(r, uid) {
 }
 
 function aboutHtml(r) {
-  var policy = htRoomOccupancyPolicy(r);
-  return (
+ var policy = htRoomOccupancyPolicy(r);
+ return (
   '<section class="ht-section ht-room-title">' +
   "<h2>" +
   escHtml(r.e) + " - " + escHtml(r.name) +
@@ -5347,9 +5224,9 @@ function aboutHtml(r) {
   escHtml(r.tagline) +
   "</p>" +
   '<div class="ht-badges mb-3">' +
-   badgeHtml("fa-user-group", policy.capacity + " included") +
-   badgeHtml("fa-people-group", "Sleeps up to " + policy.maxOccupancy) +
-   badgeHtml("fa-bed", escHtml(r.bed)) +
+  badgeHtml("fa-user-group", policy.capacity + " included") +
+  badgeHtml("fa-people-group", "Sleeps up to " + policy.maxOccupancy) +
+  badgeHtml("fa-bed", escHtml(r.bed)) +
   badgeHtml("fa-ruler-combined", r.area + " sq.ft") +
   badgeHtml(
    r.ac ? "fa-snowflake" : "fa-fan",
@@ -5648,8 +5525,8 @@ function showRoomDetails(id) {
  heroIdx = 0;
  addonIds = [];
  if (typeof roomGuestLimits === "function") {
-   var lim = roomGuestLimits(r);
-   adults = clamp(adults, 1, lim.maxAdults);
+  var lim = roomGuestLimits(r);
+  adults = clamp(adults, 1, lim.maxAdults);
   if (lim.maxTotal && adults + children > lim.maxTotal) {
    children = lim.maxTotal - adults;
   }
@@ -5658,72 +5535,72 @@ function showRoomDetails(id) {
   if (typeof setCounts === "function") setCounts();
   if (typeof renderChildStrip === "function") renderChildStrip();
  }
-  var pkgs = roomPackages(r);
-  packageId = pkgs.length ? pkgs[0].id : null;
-  comboSelection = null;
-  switchView("details");
+ var pkgs = roomPackages(r);
+ packageId = pkgs.length ? pkgs[0].id : null;
+ comboSelection = null;
+ switchView("details");
 }
 
 /* ---------- Combination selection ---------- */
 // The rooms currently chosen for booking: one room for a normal booking, the
 // whole set for a combination. Everything downstream reads this.
 function selectedComboRooms() {
-  if (comboSelection && comboSelection.rooms && comboSelection.rooms.length) {
-    return comboSelection.rooms;
-  }
-  var r = getRoom();
-  return r ? [r] : [];
+ if (comboSelection && comboSelection.rooms && comboSelection.rooms.length) {
+  return comboSelection.rooms;
+ }
+ var r = getRoom();
+ return r ? [r] : [];
 }
 
 function currentComboKey() {
-  if (!comboSelection || !comboSelection.rooms || comboSelection.rooms.length < 2) return "";
-  return publicComboKey(comboSelection.rooms.map(function (r) { return r.id; }));
+ if (!comboSelection || !comboSelection.rooms || comboSelection.rooms.length < 2) return "";
+ return publicComboKey(comboSelection.rooms.map(function (r) { return r.id; }));
 }
 
 function setComboSelection(combo) {
-  if (!combo || !combo.rooms || !combo.rooms.length) {
-    comboSelection = null;
-    return;
-  }
-  comboSelection = {
-    key: combo.key || publicComboKey(combo.rooms.map(function (r) { return r.id; })),
-    rooms: combo.rooms.slice(),
-  };
-  // The details view and the summary are both written against one room, so
-  // point them at the first of the set.
-  roomId = combo.rooms[0].id;
-  chargeWithAc = false;
-  heroIdx = 0;
-  addonIds = [];
-  var pkgs = roomPackages(combo.rooms[0]);
-  packageId = pkgs.length ? pkgs[0].id : null;
-  if (typeof setCounts === "function") setCounts();
-  if (typeof renderChildStrip === "function") renderChildStrip();
+ if (!combo || !combo.rooms || !combo.rooms.length) {
+  comboSelection = null;
+  return;
+ }
+ comboSelection = {
+  key: combo.key || publicComboKey(combo.rooms.map(function (r) { return r.id; })),
+  rooms: combo.rooms.slice(),
+ };
+ // The details view and the summary are both written against one room, so
+ // point them at the first of the set.
+ roomId = combo.rooms[0].id;
+ chargeWithAc = false;
+ heroIdx = 0;
+ addonIds = [];
+ var pkgs = roomPackages(combo.rooms[0]);
+ packageId = pkgs.length ? pkgs[0].id : null;
+ if (typeof setCounts === "function") setCounts();
+ if (typeof renderChildStrip === "function") renderChildStrip();
 }
 
 // Each gallery carries its own room id, so the hero swap works per-gallery and a
 // view showing several rooms at once behaves correctly.
 function setHero(i, uid) {
-  var hero = el("gHero_" + (uid || "main"));
-  if (!hero) return;
-  var gallery = hero.closest(".ht-gallery");
-  var owner = null;
-  if (gallery && gallery.getAttribute("data-room") != null) {
-   owner = getRoomById(gallery.getAttribute("data-room"));
-  }
-  if (!owner) {
-   var r = getRoom();
-   if (!r) return;
-   owner = r;
-  } else if (uid === "main") {
-   heroIdx = i;
-  }
-  if (!owner.images[i]) return;
-  hero.src = owner.images[i];
-  var thumbs = gallery ? gallery.querySelectorAll(".thumbs img") : [];
-  thumbs.forEach(function (t, j) {
-   t.classList.toggle("active", j === i);
-  });
+ var hero = el("gHero_" + (uid || "main"));
+ if (!hero) return;
+ var gallery = hero.closest(".ht-gallery");
+ var owner = null;
+ if (gallery && gallery.getAttribute("data-room") != null) {
+  owner = getRoomById(gallery.getAttribute("data-room"));
+ }
+ if (!owner) {
+  var r = getRoom();
+  if (!r) return;
+  owner = r;
+ } else if (uid === "main") {
+  heroIdx = i;
+ }
+ if (!owner.images[i]) return;
+ hero.src = owner.images[i];
+ var thumbs = gallery ? gallery.querySelectorAll(".thumbs img") : [];
+ thumbs.forEach(function (t, j) {
+  t.classList.toggle("active", j === i);
+ });
 }
 
 /* ============================================================
@@ -5810,28 +5687,28 @@ function normalizeBookingRow(bk) {
   typeof bk.j === "string" && /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/.test(bk.j)
    ? bk.j
    : "";
-  var row = {
-   a: bk.a,
-   d: bk.d,
-   e: e,
-   f: f,
-   g: "",
-   h: "",
-   i: JSON.stringify({ ad: adults, ch: [] }),
-    // j is the room reference, a single id string - one room per row.
-    j: bk.e != null ? bk.e : 0,
-   m: daysBetweenStr(e, f),
-   n: typeof bk.m === "number" ? bk.m : parseFloat(bk.m) || 0,
-   disc: bk.n != null ? Number(bk.n) || 0 : 0,
-   o: bk.o != null ? bk.o : 0,
-   oc: bk.o != null ? bk.o : 0,
-   k: bk.k != null ? bk.k : null,
-   l: bk.l != null ? bk.l : null,
-  };
-  if (Array.isArray(row.j)) {
-    row.j = typeof adRoomId === "function" ? adRoomId(row.j) : row.j[0];
-  }
-  row.jPrimary = row.j;
+ var row = {
+  a: bk.a,
+  d: bk.d,
+  e: e,
+  f: f,
+  g: "",
+  h: "",
+  i: JSON.stringify({ ad: adults, ch: [] }),
+  // j is the room reference, a single id string - one room per row.
+  j: bk.e != null ? bk.e : 0,
+  m: daysBetweenStr(e, f),
+  n: typeof bk.m === "number" ? bk.m : parseFloat(bk.m) || 0,
+  disc: bk.n != null ? Number(bk.n) || 0 : 0,
+  o: bk.o != null ? bk.o : 0,
+  oc: bk.o != null ? bk.o : 0,
+  k: bk.k != null ? bk.k : null,
+  l: bk.l != null ? bk.l : null,
+ };
+ if (Array.isArray(row.j)) {
+  row.j = typeof adRoomId === "function" ? adRoomId(row.j) : row.j[0];
+ }
+ row.jPrimary = row.j;
  if (actualCheckin) row.actualCheckin = actualCheckin;
  if (actualCheckout) row.actualCheckout = actualCheckout;
  return row;
@@ -5875,7 +5752,6 @@ async function adminLoadDataFromDB() {
     }
    }
    adminRoomRecords = rooms;
-   console.info("🏨 adminLoadDataFromDB:", rooms.length, "rooms");
   }
  } catch (e) {
   console.warn("Failed to load rooms from DB:", e);
@@ -7732,9 +7608,12 @@ async function openAdminPage(action) {
    await dbDexieManager.deleteRecords(dbnm, "rb");
    await dbDexieManager.deleteRecords(dbnm, "c");
    localStorage.setItem("ht_seed_cleaned", "1");
-   console.log("🧹 Old admin seed data cleared");
   } catch (e) { }
  }
+
+ // super-admin config (0.da) is independent of rm.da; refresh it on admin open
+ if (typeof loadAdminClientConfig === "function")
+  await loadAdminClientConfig();
 
  // fetch rm.da config once per session (room types/amenities lists);
  // needs cfgMt.js (htImgSrc) — guarded for direct deep links
@@ -7828,6 +7707,21 @@ window.loadRoomConfig = async function () {
  } catch (err) {
   console.error("Failed to load rm.da:", err);
   window[my1uzr.worknOnPg].clientConfig = {};
+ }
+};
+
+// Load the super-admin config (0.da) independently of rm.da. The file keeps
+// the "cust_da_const" wrapper, so readers use clientConfigByAdm.cust_da_const.
+// No hardcoded fallback: a missing/broken 0.da is only logged to the console.
+window.loadAdminClientConfig = async function () {
+ try {
+  var resp = await fetch("0.da", { cache: "no-store" });
+  if (!resp.ok) throw new Error("HTTP " + resp.status);
+  var cfg = await resp.json();
+  if (!cfg || typeof cfg !== "object") throw new Error("bad config");
+  window[my1uzr.worknOnPg].clientConfigByAdm = cfg;
+ } catch (err) {
+  console.error("Failed to load 0.da:", err);
  }
 };
 
@@ -7944,18 +7838,21 @@ window.openRoomBooking = async function (roomId, ci, co) {
   payload0.vw = 1;
   payload0.fn = 111;
   payload0.la = la;
-  var resp = await fnj3(
-   "https://my1.in/4/a.php",
-   payload0,
-   0,
-   true,
-   null,
-   20000,
-   0,
-   0,
-   1,
-   0
-  );
+  //var resp = await fnj3(
+  // "https://my1.in/4/a.php",
+  // payload0,
+  // 0,
+  // true,
+  // null,
+  // 20000,
+  // 0,
+  // 0,
+  // 1,
+  // 0
+  //);
+  payload0.ul = '4/0a.php';
+  payload0.gt = 4;
+  var resp = await fnj4(null, payload0, 0, 1, null, 20000, 1, 0);
   if (resp && resp.su == 1) {
    await handl_rm_rspons(resp);
    if (typeof beLoadBookedDates !== "function") {
@@ -7972,7 +7869,6 @@ window.openRoomBooking = async function (roomId, ci, co) {
      console.warn("Failed to preload booked dates:", e);
     }
    }
-   console.log("✅ New booking init applied");
   } else {
    console.warn(
     "New booking init failed:",
@@ -8004,7 +7900,6 @@ window.openRoomBooking = async function (roomId, ci, co) {
  }
 };
 
-// Server room status update: update.php, fn = -4, payload same as the room
 // record (a + d/e/f/g/h/i/j) with the new status in d.
 window.updateRoomStatus = async function (roomId, status) {
  var r = getRoomById(roomId);
@@ -8040,17 +7935,20 @@ window.updateRoomStatus = async function (roomId, status) {
    { tb: "r" },
   ]);
 
-  var resp = await fnj3(
-   "https://google.com/2/update.php",
-   payload0,
-   1,
-   true,
-   null,
-   20000,
-   0,
-   1,
-   1,
-  );
+  //var resp = await fnj3(
+  // "https://google.com/2/update.php",
+  // payload0,
+  // 1,
+  // true,
+  // null,
+  // 20000,
+  // 0,
+  // 1,
+  // 1,
+  //);
+  payload0.ul = '2/0update.php';
+  payload0.gt = 2;
+  var resp = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
   if (resp && resp.su == 1) {
    await handl_rm_rspons(resp);
    await adminLoadDataFromDB();
@@ -8133,8 +8031,8 @@ function renderRoomsGrid() {
   for (var a = 0; a < am.length; a++) {
    amHtml += '<span class="ht-amenity">' + escHtml(am[a]) + "</span>";
   }
-   var policy = htRoomOccupancyPolicy(r);
-   var beds = htBedLabels(r);
+  var policy = htRoomOccupancyPolicy(r);
+  var beds = htBedLabels(r);
   var bedsHtml = "";
   for (var b = 0; b < beds.length; b++) {
    bedsHtml +=
@@ -8192,12 +8090,12 @@ function renderRoomsGrid() {
    "<small>/night \u00b7 excl. GST</small></div>" +
    "</div>" +
    '<div class="room-meta">' +
-     '<span><i class="fas fa-user"></i>Included: ' +
-     policy.capacity +
-     "</span>" +
-     "<span>Sleeps up to: " +
-     policy.maxOccupancy +
-     "</span>" +
+   '<span><i class="fas fa-user"></i>Included: ' +
+   policy.capacity +
+   "</span>" +
+   "<span>Sleeps up to: " +
+   policy.maxOccupancy +
+   "</span>" +
    (htRoomDimensions(r)
     ? '<span><i class="fas fa-vector-square"></i>' +
     escHtml(htRoomDimensions(r)) +
