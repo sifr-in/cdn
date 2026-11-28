@@ -8,6 +8,7 @@ let _saveCtx = null;
     // Global flags
     let isProcessing = false;
     let currentModalId = null;
+    let currentModalInstance = null;
     let _fpListModalId = null;
 
     const PLACEHOLDER_IMG = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50"><rect width="50" height="50" fill="#f0f0f0"/><text x="25" y="25" text-anchor="middle" dy=".3em" font-size="12" fill="#999" font-family="Arial">No</text></svg>');
@@ -650,6 +651,7 @@ let _saveCtx = null;
 
             const modalId = 'cataPopItemFormModal_' + Date.now();
             currentModalId = modalId;
+            currentModalInstance = null;
 
             if (typeof create_fullpage_view !== 'function') {
                 if (typeof showToast === 'function') showToast('View system not available');
@@ -664,6 +666,7 @@ let _saveCtx = null;
             }
 
             const { contentElement, modalInstance, modalElement } = modalResult;
+            currentModalInstance = modalInstance;
 
             const title = isEdit
                 ? (isCategoryMode ? 'Edit Category' : 'Edit Stock')
@@ -680,11 +683,9 @@ let _saveCtx = null;
                 let categories = [];
                 try {
                     const allCategories = await dbDexieManager.getAllRecords(dbnm, 'p');
-                    console.log('All categories from IndexedDB:', allCategories.length);
 
                     // Get category IDs from o.da config
                     const categoryIds = window[my1uzr.worknOnPg]?.categorys || [];
-                    console.log('Category IDs from config:', categoryIds);
 
                     if (categoryIds.length > 0) {
                         // Build a map for quick lookup and preserve order
@@ -695,10 +696,8 @@ let _saveCtx = null;
                         categories = categoryIds
                             .map(id => cataMap[Number(id)])
                             .filter(c => c); // Remove any undefined
-                        console.log('Filtered categories:', categories.length);
                     } else {
                         categories = allCategories;
-                        console.log('Using all categories:', categories.length);
                     }
 
                     window.prod_cata = categories;
@@ -720,30 +719,24 @@ let _saveCtx = null;
                 if (isEdit && !isCategoryMode) {
                     const stockRecords = window.prod_stock || [];
 
-                    console.log('Looking for stock with sid:', item.sid, 'or stock_party_id:', item.stock_party_id);
-                    console.log('Available stock records:', stockRecords.length);
 
                     // Match by sid (item.sid === s.a) or by party ID (item.stock_party_id === s.e)
                     stockDetails = stockRecords.find(s => {
                         // Match by stock ID (sid)
                         if (item.sid && String(s.a) === String(item.sid)) {
-                            console.log('Found by sid:', item.sid);
                             return true;
                         }
                         // Match by party ID and product ID
                         if (item.stock_party_id && String(s.e) === String(item.stock_party_id) && String(s.g) === String(item.a)) {
-                            console.log('Found by party+product:', item.stock_party_id, item.a);
                             return true;
                         }
                         // Match by product ID in stock record
                         if (item.a && String(s.g) === String(item.a)) {
-                            console.log('Found by product ID:', item.a);
                             return true;
                         }
                         return false;
                     }) || {};
 
-                    console.log('Stock details found for edit:', stockDetails);
                 }
 
                 // Get party name from c table for edit mode
@@ -767,6 +760,8 @@ let _saveCtx = null;
                     }
                 }
 
+                const hasStockId = isEdit && !isCategoryMode && !!stockDetails.a;
+
                 const fd = {
                     a: isEdit ? item.a : (isCategoryMode ? getNextCategoryId() : getNextProductId()),
                     b: isEdit ? item.b : getCurrentDateTime(),
@@ -787,10 +782,17 @@ let _saveCtx = null;
                     sales_price: !isCategoryMode && isEdit ? (stockDetails.k || item.sales_price || '') : '',
                     sold_in: !isCategoryMode && isEdit ? (stockDetails.l || item.sold_in || '') : '',
                     notes: !isCategoryMode && isEdit ? (stockDetails.m || item.notes || '') : '',
-                    global_product_id: !isCategoryMode && isEdit ? (stockDetails.n || item.n || '') : ''
+                    global_product_id: !isCategoryMode && isEdit ? (stockDetails.n || item.n || '') : '',
+                    hasStockId: hasStockId
                 };
 
                 contentElement.innerHTML = buildItemFormHTML(title, btnText, fd, isEdit, isCategoryMode, finalCategoryOptions, index);
+
+                // Block native form submit immediately, before the async save handler is attached.
+                const form = contentElement.querySelector('#cataPopItemForm');
+                if (form) {
+                    form.addEventListener('submit', function (e) { e.preventDefault(); }, true);
+                }
 
                 if (isEdit && fd.g) setTimeout(() => window.handleImageUrlInput(getGoogleDriveImageUrl(fd.g)), 500);
 
@@ -807,13 +809,11 @@ let _saveCtx = null;
                     }, 300);
                 }
 
-                const form = contentElement.querySelector('#cataPopItemForm');
                 if (form) {
-                    console.log('Form found, attaching submit handler. isEdit:', isEdit, 'isCategoryMode:', isCategoryMode);
                     form.onsubmit = async function (e) {
-                        console.log('Form submit triggered!'); // ADD THIS DEBUG
                         e.preventDefault();
 
+                        if (isEdit && !isCategoryMode && !hasStockId) return;
                         if (isProcessing) return;
                         isProcessing = true;
                         const sb = this.querySelector('#cataPopSubmitBtn');
@@ -853,7 +853,6 @@ let _saveCtx = null;
                                 gValue = '';
                                 goValue = g1Input ? (g1Input.value || '') : '';
                                 hoValue = g2Input ? (g2Input.value || '') : '';
-                                console.log('File upload mode - g1 length:', goValue.length, 'g2 length:', hoValue.length);
                             } else if (isUrlInput) {
                                 // URL input: g has URL, g1 has display, g2 has thumbnail
                                 const originalUrl = urlInput.value.trim();
@@ -863,19 +862,16 @@ let _saveCtx = null;
                                 goValue = g1Input ? (g1Input.value || originalUrl) : originalUrl;
                                 hoValue = g2Input ? (g2Input.value || originalUrl) : originalUrl;
 
-                                console.log('URL mode - g:', gValue.substring(0, 50), 'g1 length:', goValue.length, 'g2 length:', hoValue.length);
                             } else if (isEdit && fd.g) {
                                 // Edit mode: keep existing values
                                 gValue = fd.g || '';
                                 goValue = fd.g1 || fd.g || '';
                                 hoValue = fd.g2 || fd.g || '';
-                                console.log('Keep existing images - g:', gValue.substring(0, 50));
                             } else {
                                 // No image provided
                                 gValue = '';
                                 goValue = '';
                                 hoValue = '';
-                                console.log('No image provided');
                             }
 
                             // Build p object with proper image values
@@ -911,14 +907,6 @@ let _saveCtx = null;
                                 p.a = item.a;
                             }
 
-                            console.log('P object being sent:', {
-                                e: p.e,
-                                g: p.g ? p.g.substring(0, 30) + '...' : '(empty)',
-                                g1: p.g1 ? p.g1.substring(0, 30) + '...' : '(empty)',
-                                g2: p.g2 ? p.g2.substring(0, 30) + '...' : '(empty)',
-                                f: p.f,
-                                a: p.a
-                            });
                             // Build new item object
                             const newItem = {
                                 a: isEdit && item ? item.a : (isCategoryMode ? getNextCategoryId() : getNextProductId()),
@@ -947,7 +935,6 @@ let _saveCtx = null;
                                     payload0.fn = 72;
                                 }
 
-                                console.log('Submitting - isEdit:', isEdit, 'isCategoryMode:', isCategoryMode, 'fn:', payload0.fn);
 
                                 if (!isCategoryMode) {
                                     // Product mode: include S object
@@ -1026,7 +1013,6 @@ let _saveCtx = null;
                                 ]);
                                 payload0.drml = "sambodhisarang.in";
 
-                                console.log('Payload:', payload0);
 
                                 var _ldId = 'edpr_ld_' + Date.now();
                                 var _ldDiv = document.createElement('div');
@@ -1038,13 +1024,16 @@ let _saveCtx = null;
                                 try {
                                     // Use different endpoint for updates
                                     const endpoint = (isEdit && !isCategoryMode) ? "https://my1.in/2/k.php" : "https://my1.in/2/i.php";
-                                    const response = await fnj3(endpoint, payload0, 1, true, null, 20000, 0, 2, 1);
+                                    payload0.ul = (isEdit && !isCategoryMode) ? '2/0k.php' : '2/0i.php';
+                                    payload0.gt = 2;
+                                    // const response = await fnj3(endpoint, payload0, 1, true, null, 20000, 0, 2, 1);
+                                    const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
                                     var _ldEl = document.getElementById(_ldId);
                                     if (_ldEl) _ldEl.remove();
 
                                     // Check if response is successful
                                     if (response && response.su == 1) {
-                                        _saveCtx = { isEdit, index, newItem, modalInstance, nm };
+                                        _saveCtx = { isEdit, index, newItem, modalInstance, nm, mode };
                                         if (payload0.fn == 72)
                                             hndlRspo72(response);
                                         else
@@ -1088,6 +1077,12 @@ let _saveCtx = null;
 
                     };
                 }
+
+                // Save handler is ready - allow submit now, except edit-without-stock.
+                const submitBtn = contentElement.querySelector('#cataPopSubmitBtn');
+                if (submitBtn && (!isEdit || isCategoryMode || hasStockId)) {
+                    submitBtn.disabled = false;
+                }
             })(); // END of loadCategories IIFE
 
         } catch (e) {
@@ -1128,7 +1123,6 @@ let _saveCtx = null;
         // In the handleImageUrlInput function, make sure these are working:
         if (finalImageInput) {
             finalImageInput.value = url; // or displayImageData for file upload
-            console.log('Set finalImageInput to:', url ? url.substring(0, 30) + '...' : 'empty');
         }
         if (g1Input) {
             g1Input.value = finalImageInput ? finalImageInput.value : '';
@@ -1155,7 +1149,7 @@ let _saveCtx = null;
             </h5>
         </div>
         
-        <form id="cataPopItemForm">
+        <form id="cataPopItemForm" onsubmit="return false;">
             <h6 class="text-primary mb-2"><i class="fas ${isCategoryMode ? 'fa-folder' : 'fa-box'} me-2"></i>${isCategoryMode ? 'Category' : 'Product'} Information</h6>
             
             <div class="row g-2 mb-3 inputbox2">
@@ -1294,14 +1288,14 @@ let _saveCtx = null;
                 <div id="cataPopImageDetails3" class="small text-muted mt-1" style="display:none;font-size:11px;"></div>
             </div>
             
-            ${!isCategoryMode ? `
+            ${!isCategoryMode && (!isEdit || fd.hasStockId) ? `
             <hr>
             <h6 class="text-success mb-2"><i class="fas fa-truck me-2"></i>Stock & Party Details</h6>
             <div class="row g-2 mb-3 inputbox2">
                 <div class="col-12">
                     <label class="form-label fw-bold small mb-1">Party (From whom received)</label>
                     <input id="c_dtls_party" name="stock_party_id" class="form-control inputbox form-control-sm" 
-                        readonly onclick="(async () => { await loadExe2Fn(22, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall', 1], [1]); })()" 
+                        readonly onclick="(async () => { await loadExe2Fn(13, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall', 1], [1]); })()" 
                         placeholder="Click to select Party" value="${fd.stock_party_name || ''}">
                     <input type="hidden" id="partyId" value="${fd.stock_party_id || ''}">
                     <div id="dv_for_add_itm_btn" style="display:${fd.stock_party_id ? 'block' : 'none'};margin-top:5px;">
@@ -1353,7 +1347,7 @@ let _saveCtx = null;
                 <button type="button" class="btn btn-sm btn-secondary" data-fp-close="1">
                     <i class="fas fa-times me-1"></i>Cancel
                 </button>
-                <button type="submit" class="btn btn-sm btn-primary" id="cataPopSubmitBtn">
+                <button type="submit" class="btn btn-sm btn-primary" id="cataPopSubmitBtn" disabled>
                     <i class="fas fa-save me-1"></i>${btnText}
                 </button>
             </div>
@@ -1439,7 +1433,6 @@ let _saveCtx = null;
         } catch (e) {
             console.warn('Error accessing IndexedDB, falling back to window variables:', e);
         }
-        console.log('Products loaded:', products.length);
 
         window.prod_list = products;
         window.prod_stock = products_stock;
@@ -1487,9 +1480,6 @@ let _saveCtx = null;
         <div>
             <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                 <h5 class="mb-0"><i class="fas ${titleIcon} me-2 text-primary"></i>${titleText}</h5>
-                <button class="btn btn-sm btn-outline-primary" id="cataPopRefreshBtn" title="Refresh list" onclick="refreshEd_prods()">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
             </div>
             <div class="mb-3">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -1551,28 +1541,12 @@ let _saveCtx = null;
                     showItemForm(targetMode, null, null);
                 });
             }
-
-            const refreshBtn = el.querySelector('#cataPopRefreshBtn');
-            if (refreshBtn) {
-                const newRefreshBtn = refreshBtn.cloneNode(true);
-                refreshBtn.parentNode.replaceChild(newRefreshBtn, refreshBtn);
-                newRefreshBtn.addEventListener('click', async function (e) {
-                    e.preventDefault();
-                    await window.withRefreshAnimation(this, async function () {
-                        const html = await buildProductListHTML(mode);
-                        el.innerHTML = html;
-                        attachListEventHandlers(el, mi, mode);
-                    });
-                    if (typeof showToast === 'function') showToast('Refreshed', { type: 'info', duration: 1000 });
-                });
-            }
         }, 100);
     }
 
     window.editProductItem = function (mode, index) {
         const dataArray = mode === 'category' ? 'prod_cata' : 'prod_list';
         const p = window[dataArray] && window[dataArray][index];
-        console.log('editProductItem called - mode:', mode, 'index:', index, 'product:', p);
         if (p) {
             // show() will hide previous fullpage view via nav stack
             showItemForm(mode, p, index);
@@ -1613,7 +1587,6 @@ let _saveCtx = null;
             return;
         }
 
-        console.log('deleteProductStock called - product:', p.e, 'stockId:', stockId);
 
         // Show confirmation modal
         if (typeof create_modal_dynamically === 'function') {
@@ -1673,7 +1646,6 @@ let _saveCtx = null;
             payload0.x1 = "s";
             payload0.x2 = parseInt(stockId);
 
-            console.log('Delete stock payload:', payload0);
 
             var _ldId = 'edst_ld_' + Date.now();
             var _ldDiv = document.createElement('div');
@@ -1683,12 +1655,15 @@ let _saveCtx = null;
             document.body.appendChild(_ldDiv);
             _delMode = mode;
 
-            const response = await fnj3("https://my1.in/2/l.php", payload0, 1, true, null, 20000, 0, 2, 1);
+            payload0.ul = '2/0l.php';
+            payload0.gt = 2;
+            // const response = await fnj3("https://my1.in/2/l.php", payload0, 1, true, null, 20000, 0, 2, 1);
+            const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
             var _ldEl = document.getElementById(_ldId);
             if (_ldEl) _ldEl.remove();
 
             if (response && response.su == 1) {
-                hndlRspo86(response, 's', parseInt(stockId), mode);
+                await hndlRspo86(response, 's', parseInt(stockId), mode);
             } else {
                 window.showelsemodal(response?.ms || 'Failed to delete stock. Please try again.');
             }
@@ -1705,7 +1680,6 @@ let _saveCtx = null;
         const dataArray = isCatMode ? 'prod_cata' : 'prod_list';
         const p = window[dataArray] && window[dataArray][index];
 
-        console.log('deleteProductItem called - mode:', mode, 'index:', index, 'name:', name);
 
         if (!p) {
             if (typeof showToast === 'function') showToast('Product not found', { type: 'error', duration: 2000 });
@@ -1808,7 +1782,12 @@ let _saveCtx = null;
                 // Attach delete handler
                 document.getElementById('confirmDeleteProductBtn_' + confirmModalId).addEventListener('click', async function () {
                     confirmInstance.hide();
-                    await executeDeleteProduct(productId, productName, mode, index, isCatMode, dataArray);
+                    const deleted = await executeDeleteProduct(productId, productName, mode, index, isCatMode, dataArray);
+                    if (deleted && currentModalInstance && typeof currentModalInstance.hide === 'function') {
+                        currentModalInstance.hide();
+                        currentModalInstance = null;
+                        currentModalId = null;
+                    }
                 });
             }
         }
@@ -1816,10 +1795,10 @@ let _saveCtx = null;
 
     // Execute product deletion after confirmation
     async function executeDeleteProduct(productId, productName, mode, index, isCatMode, dataArray) {
-        if (parseInt(productId) === 0) { window.showelsemodal("Product ID not be 0"); return; }
+        if (parseInt(productId) === 0) { window.showelsemodal("Product ID not be 0"); return false; }
         if (typeof payload0 === 'undefined') {
             if (typeof showToast === 'function') showToast('System error. Please try again.', { type: 'error', duration: 2000 });
-            return;
+            return false;
         }
 
         try {
@@ -1828,7 +1807,6 @@ let _saveCtx = null;
             payload0.x1 = "p";
             payload0.x2 = parseInt(productId);
 
-            console.log('Delete product payload:', payload0);
 
             var _ldId = 'edprd_ld_' + Date.now();
             var _ldDiv = document.createElement('div');
@@ -1838,19 +1816,25 @@ let _saveCtx = null;
             document.body.appendChild(_ldDiv);
             _delMode = mode;
 
-            const response = await fnj3("https://my1.in/2/l.php", payload0, 1, true, null, 20000, 0, 2, 1);
+            payload0.ul = '2/0l.php';
+            payload0.gt = 2;
+            // const response = await fnj3("https://my1.in/2/l.php", payload0, 1, true, null, 20000, 0, 2, 1);
+            const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
             var _ldEl = document.getElementById(_ldId);
             if (_ldEl) _ldEl.remove();
 
             if (response && response.su == 1) {
-                hndlRspo86(response, 'p', parseInt(productId), mode);
+                await hndlRspo86(response, 'p', parseInt(productId), mode);
+                return true;
             } else {
                 window.showelsemodal(response?.ms || 'Failed to delete. Please try again.');
+                return false;
             }
         } catch (error) {
             var _ldEl2 = document.getElementById(_ldId);
             if (_ldEl2) _ldEl2.remove();
             window.showelsemodal(error || 'Network Error: 500/404');
+            return false;
         }
     }
 
@@ -1881,14 +1865,12 @@ let _saveCtx = null;
                 if (finalImageInput) finalImageInput.value = '';
                 if (g1Input) g1Input.value = displayImageData;
                 if (g2Input) g2Input.value = thumbnailImageData;
-                console.log('File upload - Set g1 (display) length:', displayImageData.length, 'g2 (thumbnail) length:', thumbnailImageData.length);
             } else {
                 // URL input
                 if (finalImageInput) finalImageInput.value = url;
                 if (g1Input) g1Input.value = displayImageData;
                 if (g2Input) g2Input.value = thumbnailImageData;
                 if (urlInputEl) urlInputEl.value = url;
-                console.log('URL input - Set g:', url.substring(0, 50), 'g1 length:', displayImageData.length, 'g2 length:', thumbnailImageData.length);
             }
 
             updatePreviewBox(1, { dataUrl: result.original.dataUrl, width: result.original.details.width, height: result.original.details.height, size: result.original.details.size, sizeInBytes: result.original.details.sizeInBytes }, 'Original', false, prefix);
@@ -2057,7 +2039,6 @@ let _saveCtx = null;
         const file = input.files[0];
         if (!file) return;
 
-        console.log('File selected:', file.name, file.size);
         const fileInfo = document.getElementById(prefix + 'FileInfo') || document.getElementById('fileInfo');
         const uploadZone = document.getElementById(prefix + 'UploadZone') || document.getElementById('uploadZone');
         const urlInput = document.getElementById(prefix + 'CataPopImageUrlInput') || document.getElementById('cataPopImageUrlInput');
@@ -2395,7 +2376,6 @@ let _saveCtx = null;
     //                     const deleteRequest = store.delete(allKeys[index]);
     //                     deleteRequest.onsuccess = () => {
     //                         deletedCount++;
-    //                         console.log('Deleted product from p table:', idToDelete);
     //                         resolve();
     //                     };
     //                     deleteRequest.onerror = () => {
@@ -2409,7 +2389,6 @@ let _saveCtx = null;
     //         }
 
     //         db.close();
-    //         console.log('Total products deleted from p table:', deletedCount);
     //         return deletedCount;
     //     } catch (e) {
     //         console.error('Error deleting products from p table:', e);
@@ -2458,7 +2437,6 @@ let _saveCtx = null;
     //                     const deleteRequest = store.delete(allKeys[index]);
     //                     deleteRequest.onsuccess = () => {
     //                         deletedCount++;
-    //                         console.log('Deleted stock from s table:', idToDelete);
     //                         resolve();
     //                     };
     //                     deleteRequest.onerror = () => {
@@ -2472,7 +2450,6 @@ let _saveCtx = null;
     //         }
 
     //         db.close();
-    //         console.log('Total stocks deleted from s table:', deletedCount);
     //         return deletedCount;
     //     } catch (e) {
     //         console.error('Error deleting stocks from s table:', e);
@@ -2512,7 +2489,7 @@ let _saveCtx = null;
         if (swtch === 1) {
             const partyInput = document.getElementById('c_dtls_party');
             const partyIdInput = document.getElementById('partyId');
-            if (partyInput) partyInput.value = obj.i || obj.h || obj.e || 'Unknown';
+            if (partyInput) partyInput.value = obj.h || obj.e || 'Unknown';
             if (partyIdInput) partyIdInput.value = obj.a;
             const dvBtn = document.getElementById('dv_for_add_itm_btn');
             if (dvBtn) dvBtn.style.display = 'block';
@@ -2537,7 +2514,6 @@ let _saveCtx = null;
         } else { alert("Please Select a valid option"); }
     }
 
-    console.log('ed_prod.js loaded successfully');
 
     const uploadStyles = document.createElement('style');
     uploadStyles.textContent = `
@@ -2563,7 +2539,6 @@ async function hndlRspo86(response, x1, x2, mode) {
     try {
         if (x1 && x2 !== undefined && x2 !== null) {
             const deleteResult = await dbDexieManager.deleteRecords(dbnm, x1, { a: x2 });
-            console.log('Delete result:', deleteResult);
         }
         if (x1 === 's' && window.prod_stock) {
             window.prod_stock = window.prod_stock.filter(s => String(s.a) !== String(x2));
@@ -2583,7 +2558,6 @@ async function hndlRspo86(response, x1, x2, mode) {
         if (typeof window._refreshOpenEdProdList === 'function') {
             await window._refreshOpenEdProdList(mode);
         }
-        refreshUI();
     } catch (error) {
         console.error('Delete error:', error);
         window.showelsemodal("Delete failed: " + error.message);
@@ -2591,13 +2565,15 @@ async function hndlRspo86(response, x1, x2, mode) {
 }
 
 async function hndlRspo82(response) {
-        if (!isCategoryMode) {
+        const mode = _saveCtx.mode || (isCategoryMode ? 'category' : 'product');
+        const isCat = mode === 'category';
+        if (!isCat) {
             await handl_o_rspons(response, 1);
         }
         window.showsuccessmodal(response.ms || (_saveCtx.isEdit ? 'Updated' : 'Saved'));
 
         // Save locally only on success
-        if (isCategoryMode) {
+        if (isCat) {
             if (_saveCtx.isEdit && _saveCtx.index !== null) window.prod_cata[_saveCtx.index] = _saveCtx.newItem;
             else window.prod_cata.push(_saveCtx.newItem);
         } else {
@@ -2609,19 +2585,27 @@ async function hndlRspo82(response) {
         }
 
         _saveCtx.modalInstance.hide();
-        refreshUI();
+        // Refresh only the open fullpage list; never re-render/reload the home page.
+        if (typeof window._refreshOpenEdProdList === 'function') {
+            try {
+                await window._refreshOpenEdProdList(mode);
+            } catch (e) {
+                console.warn('Could not refresh product list after save:', e);
+            }
+        }
         if (typeof showToast === 'function') showToast(`"${_saveCtx.nm}" ${_saveCtx.isEdit ? 'updated' : 'added'}`, { type: 'success', duration: 2000 });
-        //setTimeout(function () { location.reload(); }, 300);
     }
 
 async function hndlRspo72(response) {
-        if (!isCategoryMode) {
+        const mode = _saveCtx.mode || (isCategoryMode ? 'category' : 'product');
+        const isCat = mode === 'category';
+        if (!isCat) {
             await handl_o_rspons(response, 1);
         }
         window.showsuccessmodal(response.ms || (_saveCtx.isEdit ? 'Updated' : 'Saved'));
 
         // Save locally only on success
-        if (isCategoryMode) {
+        if (isCat) {
             if (_saveCtx.isEdit && _saveCtx.index !== null) window.prod_cata[_saveCtx.index] = _saveCtx.newItem;
             else window.prod_cata.push(_saveCtx.newItem);
         } else {
@@ -2633,7 +2617,13 @@ async function hndlRspo72(response) {
         }
 
         _saveCtx.modalInstance.hide();
-        refreshUI();
+        // Refresh only the open fullpage list; never re-render/reload the home page.
+        if (typeof window._refreshOpenEdProdList === 'function') {
+            try {
+                await window._refreshOpenEdProdList(mode);
+            } catch (e) {
+                console.warn('Could not refresh product list after save:', e);
+            }
+        }
         if (typeof showToast === 'function') showToast(`"${_saveCtx.nm}" ${_saveCtx.isEdit ? 'updated' : 'added'}`, { type: 'success', duration: 2000 });
-        //setTimeout(function () { location.reload(); }, 300);
     }

@@ -2,7 +2,6 @@
 (function () {
     'use strict';
 
-    console.log('menu.js initializing...');
 
     // Menu items configuration
     window.burgerMenuItems = [
@@ -29,7 +28,6 @@
 
     // Create burger menu elements
     function createBurgerMenuElements() {
-        console.log('Creating burger menu elements...');
 
         // Remove existing if any
         const existingOverlay = document.getElementById('burgerMenuOverlay');
@@ -169,12 +167,10 @@
 
         document.body.appendChild(panel);
 
-        console.log('Burger menu elements created successfully');
     }
 
     // Open burger menu
     function openBurgerMenu() {
-        console.log('Opening burger menu...');
 
         // Make sure elements exist
         if (!document.getElementById('burgerMenuOverlay') || !document.getElementById('burgerMenuPanel')) {
@@ -190,12 +186,10 @@
         // Prevent body scroll when menu is open
         document.body.style.overflow = 'hidden';
 
-        console.log('Burger menu opened');
     }
 
     // Close burger menu
     function closeBurgerMenu() {
-        console.log('Closing burger menu...');
 
         const overlay = document.getElementById('burgerMenuOverlay');
         const panel = document.getElementById('burgerMenuPanel');
@@ -206,7 +200,6 @@
         // Restore body scroll
         document.body.style.overflow = '';
 
-        console.log('Burger menu closed');
     }
 
     // Handle menu item click
@@ -224,7 +217,7 @@
                     if (t351mp.su == 1)
                         window.showsuccessmodal("Massage:" + t351mp.ms);
                     else
-                        (async () => { await loadExe2Fn(31, [], [1]); })();
+                        (async () => { await loadExe2Fn(10, [], [1]); })();
                     break;
 
                 case 'mn_prods':
@@ -285,7 +278,7 @@
                     break;
 
                 case 'settings':
-                    // (async () => { await loadExe2Fn(35, ['dv_to_set_open_my1ctr_processed', 0, 1, 2], [1]); })();
+                    // (async () => { await loadExe2Fn(8, ['dv_to_set_open_my1ctr_processed', 0, 1, 2], [1]); })();
                     break;
 
                 case 'about':
@@ -301,7 +294,7 @@
                     break;
                 case 'fav1':
                     try {
-                        (async () => { await loadExe2Fn(14, ['dv_to_set_open_my1ctr_processed', 0, 1, 2], [1]); })();
+                        (async () => { await loadExe2Fn(8, ['dv_to_set_open_my1ctr_processed', 0, 1, 2], [1]); })();
                     } catch (error) {
                         window.showelsemodal(error || "500");
                     }
@@ -316,7 +309,7 @@
 
                 case 'showMyDrvPanel':
                     try {
-                        (async () => { await loadExe2Fn(32, [], [1]); })();
+                        (async () => { await loadExe2Fn(36, [], [1]); })();
                     } catch (error) {
                         window.showelsemodal(error || "500");
                     }
@@ -324,7 +317,7 @@
 
                 case 'showDrvBilingPanel':
                     try {
-                        (async () => { await loadExe2Fn(33, [], [1]); })();
+                        (async () => { await loadExe2Fn(37, [], [1]); })();
                     } catch (error) {
                         window.showelsemodal(error || "500");
                     }
@@ -332,7 +325,7 @@
 
                 case 'clr_cache':
                     try {
-                        (async () => { await loadExe2Fn(30, [], [1]); })();
+                        (async () => { await loadExe2Fn(7, [], [1]); })();
                     } catch (error) {
                         window.showelsemodal(error || "500");
                     }
@@ -345,7 +338,6 @@
             }
         }, 300);
 
-        console.log(`Menu action: ${action} - ${label}`);
     }
 
     // Expose functions globally
@@ -354,6 +346,5 @@
     window.createBurgerMenuElements = createBurgerMenuElements;
     window.handleMenuAction = handleMenuAction;
 
-    console.log('menu.js loaded successfully');
 
 })();

@@ -3,7 +3,6 @@
     'use strict';
 
     var PLACEHOLDER_IMG = window.PLACEHOLDER_IMG || 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f0f0f0"/><text x="100" y="105" text-anchor="middle" font-size="40" fill="#999">📷</text></svg>');
-    console.log('cart.js initializing...');
 
     // Cart data structure
     window.CART = window.CART || {};
@@ -40,7 +39,6 @@
                 timestamp: Date.now()
             };
             localStorage.setItem('cart_data', JSON.stringify(data));
-            console.log('Cart saved to localStorage');
         } catch (e) {
             console.error('Error saving cart:', e);
         }
@@ -57,7 +55,6 @@
                 window.SELECTED_UNIT = data.selectedUnit || {};
                 window.SELECTED_PACKAGE = data.selectedPackage || {};
                 normalizeCartKeys();
-                console.log('Cart loaded from localStorage');
                 return true;
             }
         } catch (e) {
@@ -143,7 +140,6 @@
 
     // Create cart icon in navbar
     function createCartIcon() {
-        console.log('Creating cart icon...');
         if (document.getElementById('cartIcon')) return document.getElementById('cartIcon');
         let container = document.getElementById('cartContainer');
         if (!container) container = document.getElementById('cartIconContainer');
@@ -173,7 +169,6 @@
                 <span id="cartBadge">0</span>
             </div>
         `;
-        console.log('Cart icon created successfully');
         return container.querySelector('#cartIcon');
     }
 
@@ -430,7 +425,7 @@
                             <i class="fas fa-user me-1 text-primary"></i>Customer (optional)
                         </label>
                         <input id="cst_checkout_name" class="form-control form-control-sm" readonly
-                            onclick="(async () => { await loadExe2Fn(22, ['no-loader-element', 1, 'cstCheckoutModalDiv', 'commonFnToRunAfter_op_CstCheckout', 1], [1]); })()"
+                            onclick="(async () => { await loadExe2Fn(13, ['no-loader-element', 1, 'cstCheckoutModalDiv', 'commonFnToRunAfter_op_CstCheckout', 1], [1]); })()"
                             placeholder="Click to select Customer" value="${window._checkoutCustomerName || ''}" style="cursor:pointer;background:#fff;">
                         <input type="hidden" id="cst_checkout_id" value="${window._checkoutCustomerId || ''}">
                         <div id="cst_checkout_status" style="display:${window._checkoutCustomerId ? 'block' : 'none'};margin-top:5px;">
@@ -570,7 +565,10 @@
             document.body.appendChild(_ldDiv);
 
             try {
-                const response = await fnj3("https://my1.in/3/a.php", payload0, 1, true, null, 20000, 0, 2, 1);
+                payload0.ul = '3/0a.php';
+                payload0.gt = 3;
+                // const response = await fnj3("https://my1.in/3/a.php", payload0, 1, true, null, 20000, 0, 2, 1);
+                const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
                 var _ldEl = document.getElementById(_ldId);
                 if (_ldEl) _ldEl.remove();
 
@@ -622,7 +620,6 @@
     }
 
     function initCart() {
-        console.log('Initializing cart...');
         addStyles();
         loadCart();
         const existingIcon = document.getElementById('cartIcon');
@@ -649,7 +646,6 @@
     window.saveCart = saveCart;
     window.hndlRspo77 = hndlRspo77;
 
-    console.log('cart.js loaded successfully');
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () { setTimeout(initCart, 500); });

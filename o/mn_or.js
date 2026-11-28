@@ -2,7 +2,6 @@
 (function () {
     'use strict';
 
-    console.log('mn_or.js initializing...');
 
     let currentModalInstance = null;
     let currentModalElement = null;
@@ -57,7 +56,6 @@
 
     // Fetch orders from server
     async function fetchOrdersFromServer() {
-        console.log('Fetching orders from server...');
 
         if (typeof payload0 === 'undefined') {
             console.error('payload0 not available');
@@ -77,7 +75,6 @@
                 { "tb": 'c', "col": 'b', "cl": "b" }
             ]);
 
-            console.log('Fetch orders payload:', payload0);
 
             var _ldId = 'mnor_ld_' + Date.now();
             var _ldDiv = document.createElement('div');
@@ -86,7 +83,10 @@
             _ldDiv.innerHTML = '<div class="spinner-border text-light" role="status"></div>';
             document.body.appendChild(_ldDiv);
 
-            const response = await fnj3("https://my1.in/2/j.php", payload0, 1, true, null, 20000, 0, 2, 1);
+            payload0.ul = '2/0j.php';
+            payload0.gt = 2;
+            // const response = await fnj3("https://my1.in/2/j.php", payload0, 1, true, null, 20000, 0, 2, 1);
+            const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
 
             var _ldEl = document.getElementById(_ldId);
             if (_ldEl) _ldEl.remove();
@@ -114,8 +114,6 @@
             const allOrders = await dbDexieManager.getAllRecords(dbnm, 'o');
             const customers = await dbDexieManager.getAllRecords(dbnm, 'c');
 
-            console.log('All orders:', allOrders.length);
-            console.log('All customers:', customers.length);
 
             if (!allOrders || allOrders.length === 0) {
                 return [];
@@ -167,7 +165,6 @@
                 return dateB - dateA;
             });
 
-            console.log('Grouped orders:', groupedOrders.length);
             return groupedOrders;
 
         } catch (error) {
@@ -193,13 +190,11 @@
     // Filter orders by status
     window.filterOrdersByStatus = async function (status, modalId) {
         currentStatusFilter = status;
-        console.log('Filtering by status:', status);
         await rebuildModalContent(modalId);
     };
 
     // Show manage orders modal
     async function showManageOrders() {
-        console.log('showManageOrders called');
 
         // Reset to default filter (All Orders)
         currentStatusFilter = 'all';
@@ -250,7 +245,6 @@
             attachManageOrdersHandlers(contentElement, modalInstance, currentModalId, orders);
             modalInstance.show();
 
-            console.log('Manage Orders modal shown');
 
         } catch (error) {
             console.error('Error showing manage orders:', error);
@@ -514,7 +508,4 @@
     window.showManageOrders = showManageOrders;
     window.showOrderHistoryForCustomer = window.showOrderHistoryForCustomer;
     window.filterOrdersByStatus = window.filterOrdersByStatus;
-
-    console.log('mn_or.js loaded successfully');
-
 })();

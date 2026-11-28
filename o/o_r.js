@@ -1,3 +1,6 @@
+// o_r.js - Local mirror of https://cdn.jsdelivr.net/gh/sifr-in/cdn@1d6dac3/o/o_r.js
+// Informational logs removed; genuine failures use console.error.
+
 window.PRODUCTS = [];
 window.PRODUCT_MAP = {};
 function handl_o_rspons(response) {
@@ -110,15 +113,11 @@ async function refreshStatusCache() {
                 if (order) {
                     // Update the d field
                     order.d = newStatus;
-                    console.log(order);
-                    
-                    await dbDexieManager.updateRecord(dbnm, 'o', order);
 
-                } else {
-                    console.log('Order not found in o table:', orderId);
+                    await dbDexieManager.updateRecord(dbnm, 'o', order);
                 }
             } catch (updateErr) {
-                console.log('Error updating order status for', orderId, ':', updateErr);
+                console.error('Error updating order status for', orderId, ':', updateErr);
             }
         }
     }
@@ -129,7 +128,6 @@ dbDexieManager.updateRecord = async function (dbName, tableName, record, keyFiel
         if (dbDexieManager.db && dbDexieManager.db.table) {
             const table = dbDexieManager.db.table(tableName);
             await table.put(record);
-            console.log('Record updated (Dexie) in', tableName, ':', record[keyField]);
             return true;
         }
         
@@ -146,7 +144,6 @@ dbDexieManager.updateRecord = async function (dbName, tableName, record, keyFiel
         return new Promise((resolve, reject) => {
             const request = store.put(record);
             request.onsuccess = () => {
-                console.log('Record updated (IDB) in', tableName, ':', record[keyField]);
                 resolve(request.result);
             };
             request.onerror = () => {
@@ -226,8 +223,6 @@ async function refreshProductsCache(plist, slist) {
             window.PRODUCT_MAP[item.pid] = item;
         });
 
-        console.log("Products cache refreshed", products.length);
-
         preloadProductImages(products);
 
     } catch (err) {
@@ -250,7 +245,6 @@ function preloadProductImages(products) {
 
     if (typeof queuedPreload === 'function') {
         urls.forEach(function (url) { queuedPreload(url); });
-        console.log("Images queued for preload:", urls.length);
         return;
     }
 
@@ -261,9 +255,7 @@ function preloadProductImages(products) {
             img.onerror = function () { resolve(); };
             img.src = url;
         });
-    })).then(function () {
-        console.log("Images preloaded:", urls.length);
-    });
+    }));
 }
 function decodeSoldIn(str) {
     if (!str || str.trim() === '') {

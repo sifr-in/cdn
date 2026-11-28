@@ -2,7 +2,6 @@
 (function () {
     'use strict';
 
-    console.log('my_drvr.js initializing...');
 
     let fn100Records = [];
     let currentViewId = null;
@@ -88,7 +87,10 @@
                 { tb: 'fn100', col: 'b', cl: 'b' }
             ]);
 
-            var response = await fnj3("https://my1.in/2/o.php", payload, 1, true, null, 20000, 0, 2, 1);
+            payload.ul = '2/0o.php';
+            payload.gt = 2;
+            // var response = await fnj3("https://my1.in/2/o.php", payload, 1, true, null, 20000, 0, 2, 1);
+            var response = await fnj4(null, payload, 1, 1, null, 20000, 2, 1);
             var ldEl = document.getElementById(ldId);
             if (ldEl) ldEl.remove();
 
@@ -314,5 +316,4 @@
     `;
     document.head.appendChild(style);
 
-    console.log('my_drvr.js loaded successfully');
 })();

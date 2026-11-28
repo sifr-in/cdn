@@ -2,7 +2,6 @@
 (function () {
     'use strict';
 
-    console.log('mn_ct.js initializing...');
 
     let currentModalInstance = null;
     let currentModalId = null;
@@ -17,7 +16,6 @@
     // Save category list locally
     function saveCategoryListLocal(list) {
         if (window[my1uzr.worknOnPg]) window[my1uzr.worknOnPg].categorys = list;
-        console.log('Categories saved locally:', list);
     }
 
     // Get all categories from p table
@@ -71,7 +69,10 @@
         document.body.appendChild(_ldDiv);
 
         try {
-            const response = await fnj3("https://my1.in/2/t.php", payload0, 1, true, null, 20000, 0, 2, 1);
+            payload0.ul = '2/0t.php';
+            payload0.gt = 2;
+            // const response = await fnj3("https://my1.in/2/t.php", payload0, 1, true, null, 20000, 0, 2, 1);
+            const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
             var _ldEl = document.getElementById(_ldId);
             if (_ldEl) _ldEl.remove();
             if (response && response.su == 1) {
@@ -90,7 +91,6 @@
 
     // Show manage categories modal
     window.showManageCategories = async function () {
-        console.log('showManageCategories called');
 
         try {
             if (typeof create_fullpage_view !== 'function') {
@@ -359,6 +359,5 @@
 
     addStyles();
 
-    console.log('mn_ct.js loaded successfully');
 
 })();

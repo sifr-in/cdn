@@ -2,7 +2,6 @@
 (function () {
     'use strict';
 
-    console.log('drv_pnl.js initializing...');
 
     let selectedDriver = null;
     let selectedDriverName = '';
@@ -168,7 +167,7 @@
 
     window._openDriverForMNDrv = function (viewId) {
         window._mndrvViewId = viewId;
-        (async () => { await loadExe2Fn(22, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_DrvSelect_MNDrv', 1], [1]); })();
+        (async () => { await loadExe2Fn(13, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_DrvSelect_MNDrv', 1], [1]); })();
     };
 
     window.commonFnToRunAfter_op_DrvSelect_MNDrv = function (obj, swtch) {
@@ -439,7 +438,10 @@
             document.body.appendChild(_ldDiv);
 
             try {
-                const response = await fnj3("https://mydrv1.in/2/l.php", payload0, 1, true, null, 20000, 0, 2, 1);
+                payload0.ul = '2/0l.php';
+                payload0.gt = 2;
+                // const response = await fnj3("https://mydrv1.in/2/l.php", payload0, 1, true, null, 20000, 0, 2, 1);
+                const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
                 var _ldEl = document.getElementById(_ldId);
                 if (_ldEl) _ldEl.remove();
                 if (response && response.su == 1) {
@@ -474,6 +476,5 @@
     window.driverToggleStatus = window.driverToggleStatus;
     window.driverSubmitUpdates = window.driverSubmitUpdates;
 
-    console.log('drv_pnl.js loaded successfully');
 
 })();

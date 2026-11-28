@@ -2,7 +2,6 @@
 (function () {
     'use strict';
 
-    console.log('up_prod.js initializing...');
 
     let isProcessing = false;
     const PLACEHOLDER_IMG = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50"><rect width="50" height="50" fill="#f0f0f0"/><text x="25" y="25" text-anchor="middle" dy=".3em" font-size="12" fill="#999" font-family="Arial">No</text></svg>');
@@ -21,7 +20,6 @@
 
     // Show update product modal
     window.showUpdateProduct = async function (productId) {
-        console.log('showUpdateProduct called for:', productId);
 
         window._upProdImageFailed = false;
 
@@ -231,7 +229,6 @@
                         payload0.p = p; payload0.vw = 1; payload0.fn = 83;
                         payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'p', "col": 'b', "cl": "b" }]);
                         payload0.drml = "sambodhisarang.in";
-                        console.log('Update product payload:', payload0);
 
                         var _ldId = 'uppr_ld_' + Date.now();
                         var _ldDiv = document.createElement('div');
@@ -240,11 +237,14 @@
                         _ldDiv.innerHTML = '<div class="spinner-border text-light" role="status"></div>';
                         document.body.appendChild(_ldDiv);
 
-                        const response = await fnj3("https://my1.in/2/k.php", payload0, 1, true, null, 20000, 0, 2, 1);
+                        payload0.ul = '2/0k.php';
+                        payload0.gt = 2;
+                        // const response = await fnj3("https://my1.in/2/k.php", payload0, 1, true, null, 20000, 0, 2, 1);
+                        const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
                         var _ldEl = document.getElementById(_ldId);
                         if (_ldEl) _ldEl.remove();
                         if (response && response.su == 1) {
-                            hndlRspo83(response);
+                            await hndlRspo83(response, modalInstance);
                         } else {
                             isProcessing = false;
                             if (sb) { sb.disabled = false; sb.innerHTML = '<i class="fas fa-save me-1"></i>Update Product'; }
@@ -315,12 +315,18 @@
     st.textContent = `.inputbox{ border: 0.98px solid #000000dc; margin-top: 10px; margin-bottom: 8px; width: 100%; } .inputbox2{ border: 0.88px solid #1a1a1aa6; margin-top: 10px; padding: 20px; margin-bottom: 8px; }`;
     document.head.appendChild(st);
 
-    console.log('up_prod.js loaded successfully');
-    function hndlRspo83(response) {
-        handl_o_rspons(response, 1);
+    async function hndlRspo83(response, modalInstance) {
+        await handl_o_rspons(response, 1);
         window.showsuccessmodal(response.ms || 'Product updated');
-        modalInstance.hide();
-        //setTimeout(() => location.reload(), 300);
+        if (modalInstance && typeof modalInstance.hide === 'function') {
+            modalInstance.hide();
+        }
+        if (typeof refreshProductsCache === 'function') {
+            await refreshProductsCache();
+        }
+        if (typeof window._refreshOpenEdProdList === 'function') {
+            await window._refreshOpenEdProdList('product');
+        }
     }
     window.hndlRspo83 = hndlRspo83;
 

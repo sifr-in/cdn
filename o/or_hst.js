@@ -2,7 +2,6 @@
 (function () {
     'use strict';
 
-    console.log('orders_history.js initializing...');
     let itemsToCancel = [];
     let selectedItemIds = [];
     let selectedChosenStatus = null;
@@ -563,7 +562,7 @@
             const bsModal = bootstrap.Modal.getInstance(selectElement);
             if (bsModal) bsModal.hide();
             setTimeout(function () {
-                (async () => { await loadExe2Fn(22, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_DrvSelect_OH', 1], [1]); })();
+                (async () => { await loadExe2Fn(13, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_DrvSelect_OH', 1], [1]); })();
             }, 300);
         };
 
@@ -631,7 +630,6 @@
         if (selectedDriverId) payload0.drvr = selectedDriverId;
         payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'os' }, { "tb": 'od' }]);
 
-        console.log('Status update payload:', payload0);
 
         var _ohLoaderId = 'ohLoader_' + Date.now();
         var _ohLoaderDiv = document.createElement('div');
@@ -641,7 +639,10 @@
         document.body.appendChild(_ohLoaderDiv);
 
         try {
-            const response = await fnj3("https://my1.in/2/l.php", payload0, 1, true, null, 20000, 0, 2, 1, 0);
+            payload0.ul = '2/0l.php';
+            payload0.gt = 2;
+            // const response = await fnj3("https://my1.in/2/l.php", payload0, 1, true, null, 20000, 0, 2, 1, 0);
+            const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
             var _ld = document.getElementById(_ohLoaderId);
             if (_ld) _ld.remove();
             if (response && response.su == 1) {
@@ -753,7 +754,10 @@
             document.body.appendChild(_ldDiv);
 
             try {
-                const response = await fnj3("https://my1.in/3/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
+                payload0.ul = '3/0b.php';
+                payload0.gt = 3;
+                // const response = await fnj3("https://my1.in/3/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
+                const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
                 var _ldEl = document.getElementById(_ldId);
                 if (_ldEl) _ldEl.remove();
                 if (response && response.su == 1) {
@@ -818,7 +822,6 @@
     }
 
     addStyles();
-    console.log('orders_history.js loaded successfully');
     window.hndlRspo88 = hndlRspo88;
     window.hndlRspo84 = hndlRspo84;
 
