@@ -356,6 +356,12 @@ function removeModalFromStack(modalId) {
    modalOpen: modalStack.length > 0,
    modalStack: [...modalStack]
   }, '');
+
+  // Returning to the home view must re-render the category strip and product
+  // list, otherwise the loader left by the modal-time render stays on screen.
+  if (modalStack.length === 0 && typeof window.restoreHomeView === 'function') {
+   window.restoreHomeView();
+  }
  }
 }
 
@@ -555,7 +561,6 @@ async function loadCshScriptsSequentially(...scriptIds) {
  const scriptsToLoad = csheArray.filter(function (script) { return orderedIds.includes(Number(script.a)); });
 
  if (orderedIds.length === 0) {
-  console.log('[my1e4] all requested scripts skipped via dontLoad');
   return { success: true, loadedCount: 0, totalScripts: 0 };
  }
 
@@ -652,7 +657,7 @@ async function loadAndExeFn(functionName, params = [], idOfLoader, scriptUrl) {
   }
  } catch (e) {
   console.error('Error:', e.message);
-  alert(`Error: ${e.message}. Please retry or contact support.`);
+  window.showelsemodal(`Error: ${e.message}. Please retry or contact support.`);
  } finally {
   if (loader) loader.style.display = 'none'; // Hide loader
  }
@@ -729,7 +734,7 @@ async function loadExecFn(fnsToChk, fnsToRun, pFNarams = [], idOfLoader, scriptU
  } catch (e) {
   console.error('loadExecFn params:', { fnsToChk, fnsToRun, pFNarams, idOfLoader, scriptUrl, pSCRParams });
   console.error('Error:', e.message);
-  alert(`Error: ${e.message}. Please retry or contact support.`);
+  window.showelsemodal(`Error: ${e.message}. Please retry or contact support.`);
  } finally {
   if (loader) loader.style.display = 'none'; // Hide loader
  }
@@ -893,7 +898,7 @@ async function loadExe2Fn(id_as_a, pFNarams = [], pSCRParams = []) {
    console.error('loadExe2Fn params:', { id_as_a, pFNarams, pSCRParams });
    console.error('Error:', e);
    const msg = (e && e.message) ? e.message : String(e);
-   alert(`Error: ${msg}. Please retry or contact support.`);
+   window.showelsemodal(`Error: ${msg}. Please retry or contact support.`);
   } finally {
    // Hide loader
    if (pSCRParams[0] === 1 && loader) {
@@ -980,7 +985,7 @@ function postCall_Json(rURL, jsonData, tkrq, syncOrNo) {
    if (typeof loader !== 'undefined')
     loader.style.display = 'none';
   } else if (xhr.status == 500) {
-   alert("err calling API. status: 500");
+   window.showelsemodal("err calling API. status: 500");
   }
  };
  if (typeof loader !== 'undefined')
@@ -1845,7 +1850,7 @@ function chkLoadLoginExists(shoLoginByOas2orByPas1) {
     createLoginByOModal();
     return { __loginRequired: true, ms: "login-modal loaded;" };
    }).catch(err => {
-    alert("Failed to load login system: " + err.message);
+    window.showelsemodal("Failed to load login system: " + err.message);
     return { __loginRequired: true, __ignored: true };
    });
   } else {
@@ -1858,7 +1863,7 @@ function chkLoadLoginExists(shoLoginByOas2orByPas1) {
     createLoginByPModal();
     return { __loginRequired: true, ms: "login-modal loaded;" };
    }).catch(err => {
-    alert("Failed to load login system: " + err.message);
+    window.showelsemodal("Failed to load login system: " + err.message);
     return { __loginRequired: true, __ignored: true };
    });
   } else {
@@ -3766,7 +3771,6 @@ window.getTableNamesRequiredForPrj = async function (fData, fpData) {
   if (!extraNames.length) return [];
   const base = (typeof tblsRequired !== 'undefined' && Array.isArray(tblsRequired)) ? tblsRequired : ['v'];
   const all = base.concat(extraNames).filter(function (v, i, a) { return v && a.indexOf(v) === i; });
-  console.debug('Allowed project tables:', all.join(', '));
   return all;
  } catch (e) {
   console.warn('Could not create allowed project tables:', e);
@@ -3789,7 +3793,7 @@ window.preloadWajiwSounds = preloadWajiwSounds;
  const src = document.currentScript ? document.currentScript.src : '';
  let __chkLgIn = '';
  try {
-  const u = new URL(src, (window.location && window.location.href) || 'http://x/');
+  const u = new URL(src, (window.location && window.location.href));
   __chkLgIn = u.searchParams.get('chkLgIn') || '';
   if (!__chkLgIn) {
    const v = u.searchParams.get('v') || '';
@@ -3805,7 +3809,7 @@ window.preloadWajiwSounds = preloadWajiwSounds;
 
  let __adInBodyNotModal = '';
  try {
-  const u2 = new URL(src, (window.location && window.location.href) || 'http://x/');
+  const u2 = new URL(src, (window.location && window.location.href));
   __adInBodyNotModal = u2.searchParams.get('adInBodyNotModal') || '';
   if (!__adInBodyNotModal) {
    const v2 = u2.searchParams.get('v') || '';
@@ -3821,7 +3825,7 @@ window.preloadWajiwSounds = preloadWajiwSounds;
 
  let __dontLoad = '';
  try {
-  const u3 = new URL(src, (window.location && window.location.href) || 'http://x/');
+  const u3 = new URL(src, (window.location && window.location.href));
   __dontLoad = u3.searchParams.get('dontLoad') || '';
   if (!__dontLoad) {
    const v3 = u3.searchParams.get('v') || '';
@@ -3843,7 +3847,7 @@ window.preloadWajiwSounds = preloadWajiwSounds;
 
  const appPath = vMatch[1].replace(/\.js$/, '.min.js');
  const url = 'https://cdn.jsdelivr.net/gh/sifr-in/cdn@' + appPath;
- //const url = 'git/cs.js';
+ //const url = 'o.js';
  set_owner();
  window[my1uzr.worknOnPg].csh = [
   { a: 1, u: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" },
@@ -3852,7 +3856,7 @@ window.preloadWajiwSounds = preloadWajiwSounds;
   { a: 4, u: "https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js" },
   { a: 5, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7b214f5/cmn/my1xi.min.js" },
   { a: 6, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7b214f5/cmn/my1ap.min.js" },
-  { a: 7, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/clrChe.min.js", c: "showClearCacheModal", r: "showClearCacheModal" },
+  { a: 7, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@70795ad/cmn/clrChe.min.js", c: "showClearCacheModal", r: "showClearCacheModal" },
   { a: 8, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@7b214f5/cmn/my1ctr.min.js", c: "open_my1ctr", r: "open_my1ctr" },
   { a: 9, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e22c03d/cmn/my1jo.min.js", c: "open_shoJgnO", r: "open_shoJgnO" },
   { a: 10, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e22c03d/cmn/my1jp.min.js", c: "open_shoJgnP", r: "open_shoJgnP" },
