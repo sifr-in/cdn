@@ -1,14 +1,29 @@
 const tblsRequired = ["c", "f", "fp", "s", "p", "b", "be", "ba", "i", "r", "x"];
-const inTbls = ["dontCret:", "public:", "2/b-2~p,s", "2/b-3~c,b,i,r,ba,p,s,be", "2/b-4~c,b,i,r,ba,p,s,be", "2/b-7~c,b,i,r,ba,p,s,be", "2/1-9~b,be,r,i", "2/b-23~r", "2/b-25~p,s", "2/b-47~r,ba,p,s","2/j-79~c","2/j-80~c", "2/o-102~be", "2/p-103~r", "2/t-104~", "2/p-105~r", "2/00-122~ba,p,s" , "2/00-123~x,r"];
+
+function isValidItemId(v) {
+ const s = String(v == null ? "" : v).trim();
+ return !!s && s !== "null" && s !== "undefined" && s !== "0";
+}
+
+function getBillSelectedToUpdate() {
+ if (typeof billSelectedToUpdate !== 'undefined' && billSelectedToUpdate) return billSelectedToUpdate;
+ return window.billSelectedToUpdate || null;
+}
+const inTbls = ["dontCret:", "public:", "2/0b-2~p,s", "2/0b-3~c,b,i,r,ba,p,s,be", "2/0b-4~c,b,i,r,ba,p,s,be", "2/0b-7~c,b,i,r,ba,p,s,be", "2/01-9~b,be,r,i", "2/0b-23~r", "2/0b-25~p,s", "2/0b-47~r,ba,p,s", "2/0j-79~c", "2/0j-80~c", "2/0o-102~be", "2/0p-103~r", "2/0t-104~", "2/0p-105~r", "4/0a-118~", "2/00-122~ba,p,s", "2/00-123~x,r"];
 //104 for .da
 const moduLst = [
  { "a": ",2,3,4,7,9,25,104,", "b": "Dashboard", "c": "fa-plus-circle", "d": "mn_prods", "e": "#198754" }
 ];
 const cust_const = [
-  { "a": "billingModule", "b": 0, "c": "more customiztaion", "d": "here for add item bill will be if 0 = normal, 1 = car garage, 2 = laundry", "u": "url-explaining-video" },
+ {
+  "3": [{ "a": "billingModule", "b": 0, "c": "more customiztaion", "d": "here for add item bill will be if 0 = normal, 1 = car garage, 2 = laundry", "u": "url-explaining-video" },
   { "a": "bePrModule", "b": 3, "c": "more custom..", "d": "here for be print bill will be if 1 = normal as old view, 2 = normal with updated view, 3 = updaet new theme with updated view", "u": "url-explaining-video" },
   { "a": "showEyeMesuremetsTableInBill", "b": 0, "c": "", "d": "here for eye measurments table in bill will be if 0 = don't show, 1 = show", "u": "url-explaining-video" },
-  { "a": "show_1hide_0MenuPopupItme", "b": {"bgtiv":1,"bexps":1}, "c": "", "d": "here if 'bgtiv'(bill inverd) or 'bexps'(expenditures) is == 1 then show them in menu.popup and if 0 or undefined then hide;", "u": "url-explaining-video" }
+  { "a": "show_1hide_0MenuPopupItme", "b": { "bgtiv": 1, "bexps": 1 }, "c": "", "d": "here if 'bgtiv'(bill inverd) or 'bexps'(expenditures) is == 1 then show them in menu.popup and if 0 or undefined then hide;", "u": "url-explaining-video" }]
+ },
+  {
+    "118": [{ "a": "getDirectIdFromServer", "b": 1, "c": "", "d": "At my1img: if here have 1 then be use function to get ids directly and if 0/undefined then keep get and pass image url-data form cors64", "u": "url-explaining-video" }]
+  }
 ];
 moduLst.hook = "onModuLstAllowed";
 window[my1uzr.worknOnPg].moduLst = moduLst;
@@ -21,7 +36,6 @@ window[my1uzr.worknOnPg].onModuLstAllowed = function (allowedModules) {
  // window.burgerMenuItems.push(...menuItems);
  // if (typeof createBurgerMenuElements === 'function') createBurgerMenuElements();
 };
-const appData = {};
 // const xtraFlds_fildsToNeeds = {
 //   "k": {
 //     "lbl": "additional info 1",
@@ -80,24 +94,15 @@ const appData = {};
 // ])
 // Make it dynamecally;
 // ```
-  window[my1uzr.worknOnPg].clientConfig = {};
-// Expose the client config as a global alias. Some CDN-loaded scripts (e.g. bePr.js
-// used by the print flow) reference a bare `clientConfig` instead of
-// window[my1uzr.worknOnPg].clientConfig. A getter keeps them in sync so the global
-// is never stale or undefined (which caused "clientConfig is not defined" on print).
+window[my1uzr.worknOnPg].clientConfig = {};
+
 Object.defineProperty(window, 'clientConfig', {
  get() { return window[my1uzr.worknOnPg].clientConfig; },
  configurable: true
 });
-// ==================== b.da config (must be loaded before module selection / first render) ====================
-// 0 or undefined -> don't show measurement tables, 1 -> show. Sourced from b.da.
 let showEyeMesuremetsTableInBill = 0;
-// 0 or null = normal; 1 = garage / services. Sourced from b.da -> cust_da_const.billingModule.
 let billingModule = 0;
-// 1 = bePr.js, 2 = bePr2.js, 3 = bePr3.js (default). Sourced from b.da -> cust_da_const.bePrModule.
 let bePrModule = 3;
-
-// Loads b.da once and caches it on the page state so every later reader sees the same object.
 async function bDaConfig() {
  const state = window[my1uzr.worknOnPg];
  if (state.clientConfig && typeof state.clientConfig === 'object' && Object.keys(state.clientConfig).length) {
@@ -115,13 +120,28 @@ async function bDaConfig() {
   console.error('Failed to load b.da:', err);
   state.clientConfig = state.clientConfig || {};
  }
+ // Load super-admin config independently from 0.da
+ try {
+  const admResp = await fetch('0.da');
+  if (admResp.ok) {
+   const admConfig = (await admResp.json()) || {};
+   state.clientConfigByAdm = admConfig;
+   if (admConfig.cust_da_const && state.clientConfig) {
+    state.clientConfig.cust_da_const = admConfig.cust_da_const;
+   }
+  }
+ } catch (e) {
+  console.warn('Failed to load 0.da:', e);
+  state.clientConfigByAdm = state.clientConfigByAdm || {};
+ }
  return state.clientConfig;
 }
 
 // Applies the config-driven constants and mirrors them on window for older readers.
 function applyBDaConfig(config) {
  const cfg = config || {};
- const daConst = (cfg.cust_da_const && typeof cfg.cust_da_const === 'object') ? cfg.cust_da_const : {};
+ const admCfg = (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].clientConfigByAdm) || {};
+ const daConst = (admCfg.cust_da_const && typeof admCfg.cust_da_const === 'object') ? admCfg.cust_da_const : ((cfg.cust_da_const && typeof cfg.cust_da_const === 'object') ? cfg.cust_da_const : {});
  const moduleValue = daConst.billingModule ?? cfg.billingModule ?? 0;
  billingModule = Number(moduleValue) || 0;
  const bePrValue = daConst.bePrModule ?? cfg.bePrModule ?? 3;
@@ -130,9 +150,9 @@ function applyBDaConfig(config) {
  showEyeMesuremetsTableInBill = Number(eyeValue) == 1 ? 1 : 0;
  if (cfg.pickerTdVersion) window.PICKER_TD_VERSION = String(cfg.pickerTdVersion);
  if (cfg.pickerDateFormat) window.PICKER_DATE_FORMAT = String(cfg.pickerDateFormat);
- window.billingModule = billingModule;
- window.bePrModule = bePrModule;
- window.showEyeMesuremetsTableInBill = showEyeMesuremetsTableInBill;
+ if (typeof billingModule !== "undefined") window.billingModule = billingModule;
+ if (typeof bePrModule !== "undefined") window.bePrModule = bePrModule;
+ if (typeof showEyeMesuremetsTableInBill !== "undefined") window.showEyeMesuremetsTableInBill = showEyeMesuremetsTableInBill;
 }
 appcss = `
  :root { --primary-purple: #6f42c1; --secondary-gold: #ffd700; --light-purple: #e2d9f3; --dark-purple: #4a2d7e }
@@ -239,91 +259,63 @@ function formatShortDisplay(val) {
  return String(d[2]).padStart(2, '0') + '/' + ((window.MONTH_SHORT || [])[Number(d[1]) - 1] || d[1]);
 }
 
-// Global datetime picker initializer - one function for all date/time fields.
-// options:
-//   initialValue - pre-set value ("YYYY-MM-DD HH:mm")
-//   autoNow      - default true; set false to leave empty instead of auto-filling current date & time
-//   scrollable   - cap widget height with vertical scroll
 (async function () {
- // window["xtraj_payload"] = {};
- // xtraj_payload.fl = "https://my1.in/2/b.php";
- // xtraj_payload.vw = 1;
- // xtraj_payload.fn = 4;
- // xtraj_payload.chkSuOfFn = -1;
- // xtraj_payload.regme = 1;
- //keep this all commenst at it is:-
 
- window[my1uzr.worknOnPg].csh = [
-  { "a": 1, "u": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" },
-  { "a": 2, "u": "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" },
-  { "a": 3, "u": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" },
-  { "a": 4, "u": "https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" },
-  { "a": 5, "u": "https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js" },
-  { "a": 6, "u": "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" },
-  { "a": 7, "u": "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" },
-  { "a": 8, "u": "https://code.jquery.com/jquery-3.6.0.min.js" },
-  { "a": 9, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@asdf2e1/b/b.min.js", "c": "set_bill_innerHTML", "r": "set_bill_innerHTML" },
-  { "a": 10, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@14002e4/b/ba.min.js", "c": "open_bil_inward", "r": "open_bil_inward" },
-  { "a": 11, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/bn.js", "c": "set_add_itm_nw_innerHTML", "r": "set_add_itm_nw_innerHTML" },
-  { "a": 12, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/b/bp.js", "c": "set_deup_prod_innerHTML", "r": "set_deup_prod_innerHTML" },
-  { "a": 13, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@a30ac23/b/bPrOp.min.css" },
-  { "a": 14, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/ei.min.js", "c": "open_entind_crud", "r": "open_entind_crud" },
-  { "a": 15, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/my1lp.min.js", "c": "open_shoLgnP", "r": "open_shoLgnP" },
-  { "a": 16, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/my1ap.min.js" },
-  { "a": 17, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@efd30b6/cmn/my1xi.min.js" },
-  { "a": 18, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@24bf6ca/cmn/my1drv.min.js" },
-  //{ "a": 19, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1e3.min.js", "c": "fileUploadTesting", "r": "fileUploadTesting" },
-  { "a": 20, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fc84f58/cmn/my1dra.min.js", "c": "upldAnyFile2drv", "r": "upldAnyFile2drv" },
-  { "a": 21, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/be.js", "c": "set_be_innerHTML", "r": "set_be_innerHTML" },
-  { "a": 22 },
-  { "a": 23, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/b/be_da.js", "c": "showPrintSettings", "r": "showPrintSettings" },
-  { "a": 24, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@8ca71f7/cmn/my1img.min.js", "c": "open_addimage", "r": "open_addimage" },
-  { "a": 25, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/clrChe.js", "c": "showClearCacheModal", "r": "showClearCacheModal" },
-  { "a": 26, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/b/bi.js", "c": "set_bill_Inverd_innerHTML", "r": "set_bill_Inverd_innerHTML" },
-  { "a": 27, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/b/bgtiv.js", "c": "set_get_data_innerHTML", "r": "set_get_data_innerHTML" },
-  { "a": 28, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/b/rep_coll.js", "c": "set_rep_coll_innerHTML", "r": "set_rep_coll_innerHTML" },
-  { "a": 29 },
-  { "a": 30, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e1e550/cmn/my1ctr.js", "c": "open_my1ctr", "r": "open_my1ctr" },
-   { "a": 31, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/brcd.js", "c": "set_barcodes_innerHTML", "r": "set_barcodes_innerHTML" },
-   { "a": 32, "u": "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/bexps.js", "c": "set_expenditures_innerHTML", "r": "set_expenditures_innerHTML" },
-  ];
+ // Bar loader shown after nav, before main content
+ const __bmLoader = document.createElement('div');
+ __bmLoader.id = 'bmTopLoader';
+ __bmLoader.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:4px;z-index:99999;background:linear-gradient(90deg,#6f42c1,#ffd700);animation:bmBar 1.2s ease-in-out infinite;';
+ const __bmLoaderStyle = document.createElement('style');
+ __bmLoaderStyle.textContent = '@keyframes bmBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}';
+ document.head.appendChild(__bmLoaderStyle);
+ document.body.appendChild(__bmLoader);
 
- // b.da must be ready before the add-item module is chosen or anything renders.
+ const CSH_PUSH = [
+  { a: 15, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@a30ac23/b/bPrOp.min.css" },
+  { a: 20, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@fc84f58/cmn/my1dra.min.js", c: "upldAnyFile2drv", r: "upldAnyFile2drv" },
+  { a: 21, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@70795ad/b/be.js", c: "set_be_innerHTML", r: "set_be_innerHTML" },
+  { a: 23, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@70795ad/b/be_da.js", c: "showPrintSettings", r: "showPrintSettings" },
+  { a: 26, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@70795ad/b/bi.js", c: "set_bill_Inverd_innerHTML", r: "set_bill_Inverd_innerHTML" },
+  { a: 27, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@70795ad/b/bgtiv.js", c: "set_get_data_innerHTML", r: "set_get_data_innerHTML" },
+  { a: 28, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@1e2e6e7/b/rep_coll.js", c: "set_rep_coll_innerHTML", r: "set_rep_coll_innerHTML" },
+  { a: 31, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@2c053d0/b/brcd.js", c: "set_barcodes_innerHTML", r: "set_barcodes_innerHTML" },
+  { a: 32, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@70795ad/b/bexps.js", c: "set_expenditures_innerHTML", r: "set_expenditures_innerHTML" },
+  { a: 33, u: "https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" },
+  { a: 34, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@24bf6ca/cmn/my1drv.min.js" },
+  { a: 35, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@70795ad/b/ba.js", c: "open_bil_inward", r: "open_bil_inward" },
+  { a: 36, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@70795ad/b/bn.js", c: "set_add_itm_nw_innerHTML", r: "set_add_itm_nw_innerHTML" },
+  { a: 37, u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@70795ad/b/bp.js", c: "set_deup_prod_innerHTML", r: "set_deup_prod_innerHTML" },
+  { a: 39, u: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" },
+  { a: 40, u: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" },
+  { a: 41, u: "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" },
+  { a: 42, u: "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" }
+ ];
+
  applyBDaConfig(await bDaConfig());
-
- const csh1 = window[my1uzr.worknOnPg].csh;
- // billingModule 0 = normal items, 1 = garage / services.
- // Any missing / unknown value (including 2 = laundry, until its module is supplied) falls back to 0.
+ const csh1 = CSH_PUSH;
  const addItemModules = {
-  0: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/b/shoRegItm.js", c: "showAddNormalItemModal" },
+  0: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@70795ad/b/shoRegItm.js", c: "showAddNormalItemModal" },
   1: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/shoCarwork.js", c: "showAddCarWorkModal" },
   2: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@e4a4472/b/shoLodryItm.js", c: "showAddLondryItemModal" }
  };
  const addItemModule = addItemModules[billingModule] || addItemModules[0];
- const item1 = csh1.find(x => x.a === 29);
- if (item1) {
-  Object.assign(item1, {
-   u: addItemModule.u,
-   c: addItemModule.c,
-   r: addItemModule.c
-  });
- }
-
- // bePrModule 1 = bePr.js, 2 = bePr2.js, 3 = bePr3.js.
- // Any missing / unknown value falls back to 3 (bePr3.js).
  const bePrModules = {
   1: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/bePr.js" },
-  2: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@9f56004/b/bePr2.js" },
-  3: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/b/bePr3.js" }
+  2: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@70795ad/b/bePr2.js" },
+  3: { u: "https://cdn.jsdelivr.net/gh/sifr-in/cdn@70795ad/b/bePr3.js" }
  };
- const bePrModuleSelected = bePrModules[bePrModule] || bePrModules[3];
- const bePrItem = csh1.find(x => x.a === 22);
- if (bePrItem) {
-  Object.assign(bePrItem, {
-   u: bePrModuleSelected.u,
-   c: "sho_bepr_mdl",
-   r: "sho_bepr_mdl"
-  });
+ const bePrModuleSelected = bePrModules[bePrModule] || bePrModules[2];
+ csh1.push(
+  { a: 29, u: addItemModule.u, c: addItemModule.c, r: addItemModule.c },
+  { a: 22, u: bePrModuleSelected.u, c: "sho_bepr_mdl", r: "sho_bepr_mdl" }
+ );
+
+ const cshIds = {};
+ if (typeof pushCsh === 'function') {
+  for (let i = 0; i < CSH_PUSH.length; i++) {
+   const it = CSH_PUSH[i];
+   cshIds[it.r || it.c || it.u] = pushCsh(it.u, it.c, it.r, it.a);
+  }
  }
 
  // Ensure UNIT_DATA is available
@@ -344,8 +336,6 @@ function formatShortDisplay(val) {
    { "a": "21", "e": "year", "f": "year" }
   ];
  }
-
- window.fnCombineCowMhas = function (...objj) { console.log(objj); }
 
  window.UNIT_MAP = {};
  window.UNIT_DATA.forEach(function (unit) { window.UNIT_MAP[unit.a] = unit; });
@@ -423,9 +413,9 @@ function formatShortDisplay(val) {
  };
 
  var PLACEHOLDER_IMG = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23e9ecef"/><text x="50" y="55" text-anchor="middle" font-size="40" fill="%23adb5bd">?</text></svg>');
- window.PLACEHOLDER_IMG = PLACEHOLDER_IMG;
+ if (typeof PLACEHOLDER_IMG !== "undefined") window.PLACEHOLDER_IMG = PLACEHOLDER_IMG;
  function getMaxDateTables() {
-  const t = [{ "tb": 'c' }, { "tb": 'b' }, { "tb": 'i' }, { "tb": 'r' }, { "tb": 'ba' }, { "tb": 'p' }, { "tb": 's' }];
+  const t = [{ "tb": 'c' }, { "tb": 'b' }, { "tb": 'i' }, { "tb": 'r' }, { "tb": 'ba' }, { "tb": 'p' }, { "tb": 's' }, { "tb": 'x' }];
   if (shoEyeMsrmntTbl) t.splice(4, 0, { "tb": 'be', "col": 'eb', "cl": "eb" });
   return t;
  }
@@ -437,46 +427,12 @@ function formatShortDisplay(val) {
  let stored_eye_msrmnt = [];
  let stored_bill_items = [];
  let stored_bill_cash_info = [];
-
  let mostUsedItems = {}; // Track item usage
  let receivedAmounts = []; // Track received payments
-
- // Bill being edited (null = new bill). Must be declared before the initial
- // set_bill_innerHTML(...) render below, which reaches refreshGrandTotals()
- // and reads this binding (avoids a temporal-dead-zone error).
  let billSelectedToUpdate = null;
-
  let receiptDatePicker = null, deliveryDatePicker = null, receivedDateTimePicker = null;
 
- function getGoogleDriveImageUrl(value, thumbnail) {
-  if (!value) return '';
-  value = String(value).trim();
-  var parts = value.split(/\s+/);
-  if (parts.length >= 1 && /^[A-Za-z0-9_-]{20,}$/.test(parts[0])) {
-   var fileId = thumbnail && parts[1] ? parts[1] : parts[0];
-   return 'https://lh3.googleusercontent.com/d/' + fileId + '=s0?authuser=0';
-  }
-  return value;
- }
- window.getGoogleDriveImageUrl = getGoogleDriveImageUrl;
-
- var cssLinks = [
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
- ];
- cssLinks.forEach(function (href) {
-  var link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = href;
-  // Above-the-fold CSS: fetch it as early as possible and reuse the preconnected connection.
-  link.fetchPriority = 'high';
-  link.crossOrigin = 'anonymous';
-  document.head.appendChild(link);
- });
-
-
  async function billingRequisit_be() { await loadExe2Fn(21, ['blankDivSection1'], [1]); }
-
 
  var styleEl = document.createElement('style');
  styleEl.innerHTML = appcss;
@@ -486,7 +442,7 @@ function formatShortDisplay(val) {
 <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #6f42c1 !important; box-shadow: 0 2px 10px rgb(0 0 0 / .1);">
  <div class="container-fluid">
   <button class="navbar-brand btn btn-link" style="border: none; background: none; text-decoration: none; color: #ffd700 !important;"
-   onclick="(async () => { await loadExe2Fn(30, ['dv_to_set_open_my1ctr_processed', 0, 1, 2], [1]); })()">
+   onclick="(async () => { await loadExe2Fn(8, ['dv_to_set_open_my1ctr_processed', 0, 1, 2, 2], [1]); })()">
    <i class="fa-solid fa-user"></i>Billing Software
   </button>
   <button class="btn" style="margin-left:-18px;background:rgba(255, 255, 255, 0.12);border:1px solid rgba(255,255,255,.2);" type="button" onclick="location.reload()">
@@ -505,11 +461,11 @@ function formatShortDisplay(val) {
                 <i class="fas fa-sync"></i>
                 <span>Sync Data</span>
             </div>
-            <div class="menu-item" onclick="(async()=>{await loadExe2Fn(12,[],[1]);})()">
+            <div class="menu-item" onclick="(async()=>{await loadExe2Fn(37,[],[1]);})()">
                 <i class="fas fa-info-circle"></i>
                 <span>Manage Products</span>
             </div>
-            ${window[my1uzr.worknOnPg].clientConfig?.cust_da_const?.show_1hide_0MenuPopupItme?.bgtiv == 1 ? `
+            ${(window[my1uzr.worknOnPg].clientConfigByAdm?.cust_da_const?.show_1hide_0MenuPopupItme?.bgtiv ?? window[my1uzr.worknOnPg].clientConfig?.cust_da_const?.show_1hide_0MenuPopupItme?.bgtiv) == 1 ? `
               <div class="menu-item" onclick="(async()=>{await loadExe2Fn(26,[],[1]);})()">
                 <i class="fas fa-square-plus"></i>
                 <span>Bill Inward</span>
@@ -523,7 +479,7 @@ function formatShortDisplay(val) {
                 <i class="fas fa-chart-bar"></i>
                 <span>Reports</span>
             </div>
-            ${window[my1uzr.worknOnPg].clientConfig?.cust_da_const?.show_1hide_0MenuPopupItme?.bgtiv== 1 ? `
+            ${(window[my1uzr.worknOnPg].clientConfigByAdm?.cust_da_const?.show_1hide_0MenuPopupItme?.bgtiv ?? window[my1uzr.worknOnPg].clientConfig?.cust_da_const?.show_1hide_0MenuPopupItme?.bgtiv) == 1 ? `
               <div class="menu-item" onclick="(async()=>{await loadExe2Fn(32,[],[1]);})()">
                 <i class="fas fa-file-invoice-dollar"></i>
                 <span>Expenditures</span>
@@ -534,7 +490,6 @@ function formatShortDisplay(val) {
                 <span>Settings</span>
             </div>
         </div>
-
         <div class="menu-sub-dropdown" id="menuSubDropdown">
             <div class="menu-item menu-sub-item" onclick="setDefaRmrk()">
                 <i class="fas fa-comment"></i>
@@ -549,7 +504,6 @@ function formatShortDisplay(val) {
                 <span>Shop Info</span>
             </div>
         </div>
-
     </div>
 </div>
  </div>
@@ -562,7 +516,7 @@ function formatShortDisplay(val) {
  try {
   let result1;
   try {
-    result1 = await loadCshScriptsSequentially(2, 4, 5, 17, 16);
+   result1 = await loadCshScriptsSequentially(15, 33, 34, 39, 40, 41, 42);
   } catch (loadErr) {
    console.warn('Some scripts failed, continuing with available ones');
    result1 = { success: true };
@@ -625,7 +579,6 @@ function formatShortDisplay(val) {
 
   if (result1.success) {
 
-   console.log('SUCCESS:', result1.message);
    const createResult = await dbDexieManager.handleNwTables("loader", dbnm, tblsRequired);
    tblFailureCount = createResult.failureCount;
    const result2 = await loadCshScriptsSequentially(18);
@@ -635,10 +588,10 @@ function formatShortDisplay(val) {
    window[my1uzr.worknOnPg].csh.push({ a: getNextCshId(), u: `https://my1.in/${appOwner.eo}/${appOwner.ec}/b/index.html` });
    window[my1uzr.worknOnPg].csh.push({ a: getNextCshId(), u: `https://my1.in/${appOwner.eo}/${appOwner.ec}/b/b.mn` });
 
+   const __bmL = document.getElementById('bmTopLoader'); if (__bmL) __bmL.remove();
    await set_bill_innerHTML('container_blank_main', 0, 1, 0);
   } else {
    console.error('FAILED:', result1.error);
-   console.log(`Only ${result1.loadedCount}/${result1.totalScripts} scripts loaded`);
   }
 
   // b.da is already loaded at the top of this IIFE (bDaConfig) and stored on
@@ -650,10 +603,12 @@ function formatShortDisplay(val) {
     (async () => {
      try {
       await clearPayload0();
-      payload0.vw = 1;
       payload0.fn = 4;
+      payload0.ul = '2/0b.php';
+      payload0.gt = 2;
       payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, getMaxDateTables());
-      const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 1);
+      const response = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
+      //const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 1);
       if (response && response.su == 1) {
        hndlRspo4(response, 1);
       } else {
@@ -668,7 +623,7 @@ function formatShortDisplay(val) {
   document
    .getElementById("bt_clr_locl_db")
    .addEventListener("click", function () {
-    (async () => { await loadExe2Fn(25, [], [1]); })();
+    (async () => { await loadExe2Fn(7, [], [1]); })();
    });
  } catch (error) {
   console.error("Initialization failed:", error);
@@ -691,7 +646,9 @@ function formatShortDisplay(val) {
   set(v) { billTableRowId = v; }
  });
  window.refreshStoredEyeMeasurements = async function () {
-  if (shoEyeMsrmntTbl) stored_eye_msrmnt = await dbDexieManager.getAllRecords(dbnm, "be") || [];
+  const showEyeOnBill = (typeof showEyeMesuremetsTableInBill !== 'undefined' && Number(showEyeMesuremetsTableInBill) === 1)
+   || (typeof window !== 'undefined' && Number(window.showEyeMesuremetsTableInBill) === 1);
+  if (showEyeOnBill) stored_eye_msrmnt = await dbDexieManager.getAllRecords(dbnm, "be") || [];
  };
  let globalBill = {};
  let globalItems = [];
@@ -714,7 +671,7 @@ function formatShortDisplay(val) {
  // Helper function to play sounds
  function playSound(url) {
   const audio = new Audio(url);
-  audio.play().catch(e => console.log('Audio play failed:', e));
+  audio.play().catch(() => { });
  }
 
  // Scoped modern styles for the bill-form container-fluid (bill-modern theme)
@@ -778,22 +735,24 @@ function formatShortDisplay(val) {
   document.head.appendChild(st);
  }
 
- async function set_bill_innerHTML(...params) {
-  try {
-   items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
-   prods = await dbDexieManager.getAllRecords(dbnm, "p") || [];
-   clientReferrerArray = [];
-   stored_bill = await dbDexieManager.getAllRecords(dbnm, "b") || [];
-   if (shoEyeMsrmntTbl) stored_eye_msrmnt = await dbDexieManager.getAllRecords(dbnm, "be") || [];
-   stored_bill_items = await dbDexieManager.getAllRecords(dbnm, "i") || [];
-   stored_bill_cash_info = await dbDexieManager.getAllRecords(dbnm, "r") || [];
-   window.billSaved = false;
-  } catch (error) {
-   console.error("Initialization failed:", error);
-   showToast("Initialization error - please refresh");
-  }
+  async function set_bill_innerHTML(...params) {
+   if (typeof pageLoader === 'function') pageLoader(true);
+   try {
+    try {
+     items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
+     prods = await dbDexieManager.getAllRecords(dbnm, "p") || [];
+     clientReferrerArray = [];
+     stored_bill = await dbDexieManager.getAllRecords(dbnm, "b") || [];
+     if (shoEyeMsrmntTbl) stored_eye_msrmnt = await dbDexieManager.getAllRecords(dbnm, "be") || [];
+     stored_bill_items = await dbDexieManager.getAllRecords(dbnm, "i") || [];
+     stored_bill_cash_info = await dbDexieManager.getAllRecords(dbnm, "r") || [];
+     window.billSaved = false;
+    } catch (error) {
+     console.error("Initialization failed:", error);
+     showToast("Initialization error - please refresh");
+    }
 
-  addBillModernStyles();
+    addBillModernStyles();
 
   const c_ontainer_blank_main = document.getElementById(params[0]);
   c_ontainer_blank_main.innerHTML = `
@@ -834,14 +793,14 @@ function formatShortDisplay(val) {
 <div class="col-7 col-sm-8">
 <div class="input-group">
 <span class="input-group-text fs-6"><i class="fas fa-user"></i></span>
-<input id="c_dtls_lient" type="text" class="form-control bm-input" readonly onclick="(async () => { await loadExe2Fn(14, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall', 1, typeof window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_forCust !== 'undefined' ? window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_forCust : null], [1]); })()" placeholder="Customer Details">
+<input id="c_dtls_lient" type="text" class="form-control bm-input" readonly onclick="(async () => { await loadExe2Fn(13, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall', 1, typeof window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_forCust !== 'undefined' ? window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_forCust : null], [1]); })()" placeholder="Customer Details">
 </div>
 <input type="hidden" id="clientId">
 </div>
 <div class="col-5 col-sm-4">
 <div class="input-group">
 <span class="input-group-text fs-6"><i class="fas fa-handshake"></i></span>
-<input id="r_dtls_eferrer" type="text" class="form-control bm-input" readonly onclick="(async () => { await loadExe2Fn(14, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall', 2, typeof window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_forRef !== 'undefined' ? window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_forRef : null], [1]); })()" placeholder="Referrer">
+<input id="r_dtls_eferrer" type="text" class="form-control bm-input" readonly onclick="(async () => { await loadExe2Fn(13, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall', 2, typeof window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_forRef !== 'undefined' ? window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_forRef : null], [1]); })()" placeholder="Referrer">
 </div>
 <input type="hidden" id="referrerId">
 </div>
@@ -1065,7 +1024,10 @@ function formatShortDisplay(val) {
   setTimeout(() => {
    updateBillSectionsVisibility();
   }, 700);
- }
+   } finally {
+    if (typeof pageLoader === 'function') pageLoader(false);
+   }
+  }
 
  function showAddItemModal() {
   // Create a modal
@@ -1312,7 +1274,11 @@ style="font-size: 0.8rem;">
 
   const name = document.getElementById('modalItemName').value.trim();
   const price = parseFloat(document.getElementById('modalItemPrice').value) || 0;
-  const itemId = document.getElementById('modalItemName').getAttribute('data-item-id');
+  let itemId = document.getElementById('modalItemName').getAttribute('data-item-id');
+  if (!isValidItemId(itemId)) {
+   const exact = items.find(function (i) { return i && i.gn && String(i.gn).trim().toLowerCase() === name.toLowerCase(); });
+   if (exact && isValidItemId(exact.a)) itemId = exact.a;
+  }
 
   // Check if item exists in inventory
   const itemExistsInInventory = checkIfItemExists(name);
@@ -1322,7 +1288,7 @@ style="font-size: 0.8rem;">
   // 2. Price > 0
   // 3. Item exists in inventory OR we have a valid item ID
   // 4. Item has a valid ID (either from existing item or newly created)
-  if (name && price > 0 && (itemExistsInInventory || itemId)) {
+  if (name && price > 0 && isValidItemId(itemId)) {
    modalAddItemBtn.disabled = false;
   } else {
    modalAddItemBtn.disabled = true;
@@ -1356,20 +1322,23 @@ style="font-size: 0.8rem;">
    return;
   }
 
-  const matchedItems = items.filter(item => {
+  const exactMatches = items.filter(item => {
    if (!item || !item.gn) return false;
    return item.gn.toLowerCase() === itemName.toLowerCase();
   });
+  const searchMatches = items.filter(item => {
+   if (!item || !item.gn) return false;
+   return item.gn.toLowerCase().includes(itemName.toLowerCase());
+  });
 
-  if (matchedItems.length !== 1) {
-   // Clear the data-item-id attribute since item doesn't exist
-   inputElement.removeAttribute('data-item-id');
-   if (modalAddNewItemBtn) modalAddNewItemBtn.style.display = 'block';
+  if (modalAddNewItemBtn) {
+   modalAddNewItemBtn.style.display = searchMatches.length === 0 ? 'block' : 'none';
+  }
+
+  if (exactMatches.length === 1) {
+   inputElement.setAttribute('data-item-id', exactMatches[0].a);
   } else {
-   // Exactly one match found
-   if (modalAddNewItemBtn) modalAddNewItemBtn.style.display = 'none';
-   // Set the item ID attribute
-   inputElement.setAttribute('data-item-id', matchedItems[0].a);
+   inputElement.removeAttribute('data-item-id');
   }
 
   // Always update button state after name blur
@@ -1564,7 +1533,11 @@ onerror="this.style.display='none'; document.getElementById('modalItemImageConta
   const rate = parseFloat(document.getElementById('modalItemRate').value) || 0;
   const price = parseFloat(document.getElementById('modalItemPrice').value) || 0;
   const description = document.getElementById('modalItemDescription').value;
-  const itemId = document.getElementById('modalItemName').getAttribute('data-item-id');
+  let itemId = document.getElementById('modalItemName').getAttribute('data-item-id');
+  if (!isValidItemId(itemId)) {
+   const exact = items.find(function (i) { return i && i.gn && String(i.gn).trim().toLowerCase() === name.toLowerCase(); });
+   if (exact && isValidItemId(exact.a)) itemId = exact.a;
+  }
   const imageUrl = document.querySelector('#modalItemImageContainer img')?.src || '';
 
   // Validation
@@ -1577,6 +1550,11 @@ onerror="this.style.display='none'; document.getElementById('modalItemImageConta
   if (!price || parseFloat(price) <= 0) {
    showToast('Please enter a valid price');
    document.getElementById('modalItemRate').focus();
+   return;
+  }
+  if (!isValidItemId(itemId)) {
+   showToast('Please select a valid item from inventory');
+   document.getElementById('modalItemName').focus();
    return;
   }
 
@@ -1610,8 +1588,8 @@ onerror="this.style.display='none'; document.getElementById('modalItemImageConta
   const rates = modalTaxAmounts
    ? { tax1: modalTaxAmounts.tax1, tax2: modalTaxAmounts.tax2 }
    : ((document.getElementById('modalItemTax1') || document.getElementById('modalItemTax2'))
-      ? { tax1: itemTaxClampPercent(document.getElementById('modalItemTax1') && document.getElementById('modalItemTax1').value), tax2: itemTaxClampPercent(document.getElementById('modalItemTax2') && document.getElementById('modalItemTax2').value) }
-      : productTaxRates(productRow));
+    ? { tax1: itemTaxClampPercent(document.getElementById('modalItemTax1') && document.getElementById('modalItemTax1').value), tax2: itemTaxClampPercent(document.getElementById('modalItemTax2') && document.getElementById('modalItemTax2').value) }
+    : productTaxRates(productRow));
   const taxAmounts = modalTaxAmounts || itemTaxAmounts(rates.tax1, rates.tax2, price);
   const taxPercent = price > 0
    ? itemTaxRound((taxAmounts.taxAmount / price) * 100)
@@ -2070,7 +2048,7 @@ ${itemTaxLineHTML(uniqueItemId, rates.tax1, rates.tax2, taxAmounts.taxAmount)}
   renderBillCards(filteredBills);
   m_odalInstance.show();
  }
- window.showBillCards = showBillCards;
+ if (typeof showBillCards !== "undefined") window.showBillCards = showBillCards;
 
  async function handleBillAction(m_odalInstance, action, b346illID) {
   billTableRowId = b346illID;
@@ -2092,6 +2070,7 @@ ${itemTaxLineHTML(uniqueItemId, rates.tax1, rates.tax2, taxAmounts.taxAmount)}
     // Set global bill ID
     billTableRowId = b346illID;
     billSelectedToUpdate = sCurrBill;
+    if (typeof window !== "undefined") window.billSelectedToUpdate = billSelectedToUpdate;
 
     // Find related items
     let sCurrItems = stored_bill_items.filter(item => item.e == b346illID);
@@ -2106,11 +2085,20 @@ ${itemTaxLineHTML(uniqueItemId, rates.tax1, rates.tax2, taxAmounts.taxAmount)}
     globalItems = sCurrItems;
     globalCashInfo = sCurrCashInfo;
 
-    if (typeof billingRequisit_be === 'function' && shoEyeMsrmntTbl) {
+    const showEyeOnBill = (typeof showEyeMesuremetsTableInBill !== 'undefined' && Number(showEyeMesuremetsTableInBill) === 1)
+     || (typeof window !== 'undefined' && Number(window.showEyeMesuremetsTableInBill) === 1);
+    if (typeof billingRequisit_be === 'function' && showEyeOnBill) {
      if (typeof setEyeMeasurement === 'function') {
-      let sCurrEyeMsrmnt = stored_eye_msrmnt.find(eye => eye.ea == b346illID) || {};
+      if (typeof window.refreshStoredEyeMeasurements === 'function') {
+       try { await window.refreshStoredEyeMeasurements(); } catch (e) { console.warn('refreshStoredEyeMeasurements failed', e); }
+      }
+      let sCurrEyeMsrmnt = stored_eye_msrmnt.find(eye => String(eye.ea) == String(b346illID)) || {};
       setEyeMeasurement(sCurrEyeMsrmnt);
-      if (typeof lockAllEyeInputs === 'function') lockAllEyeInputs();
+      const eyeEditing = !!(document.getElementById('eyeEditActions') && !document.getElementById('eyeEditActions').classList.contains('d-none'));
+      if (!eyeEditing) {
+       if (typeof toggleEyeEdit === 'function') toggleEyeEdit();
+       else if (typeof unlockAllEyeInputs === 'function') unlockAllEyeInputs();
+      }
      } else {
       window.showelsemodal("setEyeMeasurement function not found; contact admin;");
      }
@@ -2129,12 +2117,14 @@ ${itemTaxLineHTML(uniqueItemId, rates.tax1, rates.tax2, taxAmounts.taxAmount)}
       if (await window.showConfirmModal(`This cannot be undone. Continue?`)) {
        await clearPayload0();
        payload0.fn = 9;
-       payload0.vw = 1;
-       payload0.b = billData;
-       var tTxt = postCall_Json("https://my1.in/2/1.php", payload0, 0, false);
-       var response = JSON.parse(tTxt);
+       payload0.b = { "a": billData.a };
+       payload0.ul = '2/01.php';
+       payload0.gt = 2;
+       var response = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
+       //var tTxt = postCall_Json("https://my1.in/2/1.php", payload0, 0, false);
+       //var response = JSON.parse(tTxt);
        if (response && response.su == 1) {
-        await delBillByID(billTableRowId);
+        await delBillByID(billData.a);
        } else {
         window.showelsemodal(response.ms);
        }
@@ -2193,7 +2183,7 @@ ${itemTaxLineHTML(uniqueItemId, rates.tax1, rates.tax2, taxAmounts.taxAmount)}
   previewMain.style.flexShrink = '0'; // never let the flex container distort the paper
   previewMain.style.zoom = scale;
  }
- window.fitInvoicePreview = fitInvoicePreview;
+ if (typeof fitInvoicePreview !== "undefined") window.fitInvoicePreview = fitInvoicePreview;
 
  // Make the invoice content (#invoiceContentMain) exactly match the paper
  // (#previewMain) size. The remote bePr.js only sets top/left on
@@ -2225,7 +2215,7 @@ ${itemTaxLineHTML(uniqueItemId, rates.tax1, rates.tax2, taxAmounts.taxAmount)}
   invoice.style.height = '100%';
   invoice.style.overflow = 'auto';
  }
- window.fitInvoiceContent = fitInvoiceContent;
+ if (typeof fitInvoiceContent !== "undefined") window.fitInvoiceContent = fitInvoiceContent;
 
  // Fit both the paper (to the screen) and the invoice (to the paper).
  function refreshResponsivePreview() {
@@ -2262,7 +2252,9 @@ ${itemTaxLineHTML(uniqueItemId, rates.tax1, rates.tax2, taxAmounts.taxAmount)}
    });
   }
  }
- function showAlreadyReceivedAmts(b346illID, s594CurrItems, c594ashInfo) {
+ async function showAlreadyReceivedAmts(b346illID, s594CurrItems, c594ashInfo) {
+  const freshCashInfo = (await dbDexieManager.getAllRecords(dbnm, 'r') || []).filter(cash => cash.tb === 7 && cash.td == b346illID);
+  c594ashInfo = freshCashInfo;
   const modal = create_modal_dynamically('received_amount_modal');
   const modalContent = modal.contentElement;
   const modalInstance = modal.modalInstance;
@@ -2335,9 +2327,9 @@ ${itemTaxLineHTML(uniqueItemId, rates.tax1, rates.tax2, taxAmounts.taxAmount)}
 <!-- Date & Time - col-4 -->
 <div class="col-4">
 <label class="form-label small text-muted mb-1">Date</label>
-<div class="position-relative">
+<div class="position-relative" style="min-width:0;overflow:hidden;">
 <input type="text" class="form-control form-control-sm" id="receivedDateTimeModal" placeholder="Select Date & Time" style="border:1px solid #212529;color:transparent;caret-color:transparent;">
-<span id="receivedDateTimeModal_disp" style="position:absolute;inset:0;display:flex;align-items:center;padding:0 .75rem;pointer-events:none;color:#212529;font-size:.875rem;"></span>
+<span id="receivedDateTimeModal_disp" style="position:absolute;inset:0;display:flex;align-items:center;padding:0 .75rem;pointer-events:none;color:#212529;font-size:.875rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%;"></span>
 </div>
 </div>
 
@@ -2437,6 +2429,10 @@ ${renderExistingPayments(c594ashInfo)}
    }
   };
 
+  const receivedDateTimeModalInput = document.getElementById('receivedDateTimeModal');
+  const receivedDateTimeModalDisp = document.getElementById('receivedDateTimeModal_disp');
+  if (receivedDateTimeModalInput) receivedDateTimeModalInput.value = '';
+  if (receivedDateTimeModalDisp) receivedDateTimeModalDisp.textContent = '';
   initializeModalDatePicker();
 
   // Store temporary payments array for this modal
@@ -2469,12 +2465,9 @@ ${renderExistingPayments(c594ashInfo)}
    if (!(await showConfirmModal(`Submit the following payments for bill ${billId}:\n\n${paymentDetails}`))) {
     return;
    }
+   await clearPayload0();
 
-   // Prepare payload for each payment
-   payload0.vw = 1;
-   payload0.fn = 23; // Use the same function number as your existing code
-
-   // Process all payments
+   payload0.fn = 23;
    for (const payment of window.tempReceivedAmounts) {
     let paymentPayload = {
      h: billData.e, // Client ID from bill
@@ -2487,9 +2480,10 @@ ${renderExistingPayments(c594ashInfo)}
 
     payload0.r = paymentPayload;
     payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, getMaxDateTables());
-
-    // Make the API call for each payment
-    const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
+    payload0.ul = '2/0b.php';
+    payload0.gt = 2;
+    const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
+    //const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
 
     if (response.su !== 1) {
      window.showelsemodal(`Failed to save payment: ${extractMessages(response)}`);
@@ -2896,7 +2890,7 @@ ${renderExistingPayments(c594ashInfo)}
   updateBillSectionsVisibility();
 
   // Find item details from items array
-  const itemDetails = items.find(i => i.a == item.f) || {};
+  const itemDetails = items.find(i => i.a == (item.f || item.a)) || {};
   const linePrice = parseFloat(item.g) || 0;
   const taxInfo = billItemTaxBreakdown(item);
   const tax1 = linePrice > 0 ? itemTaxClampPercent((taxInfo.tax1 / linePrice) * 100) : 0;
@@ -2907,7 +2901,7 @@ ${renderExistingPayments(c594ashInfo)}
   const rateToShow = savedRate > 0 ? savedRate : (parseFloat((typeof window.getSellingPriceFromStock === 'function' ? window.getSellingPriceFromStock(itemDetails) : itemDetails.k) || 0) || 0);
 
   const itemHTML = `
-<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${item.f}" data-item-rate="${rateToShow}" data-item-description="${String(item.i || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" data-item-subname="${String(taxInfo.subName || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" data-item-tax1="${tax1.toFixed(2)}" data-item-tax2="${tax2.toFixed(2)}" data-item-tax1-amount="${taxInfo.tax1.toFixed(2)}" data-item-tax2-amount="${taxInfo.tax2.toFixed(2)}" data-item-tax-percent="${taxPercent.toFixed(2)}" data-item-tax-amount="${taxAmount.toFixed(2)}">
+<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${item.f || item.a}" data-item-rate="${rateToShow}" data-item-description="${String(item.i || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" data-item-subname="${String(taxInfo.subName || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" data-item-tax1="${tax1.toFixed(2)}" data-item-tax2="${tax2.toFixed(2)}" data-item-tax1-amount="${taxInfo.tax1.toFixed(2)}" data-item-tax2-amount="${taxInfo.tax2.toFixed(2)}" data-item-tax-percent="${taxPercent.toFixed(2)}" data-item-tax-amount="${taxAmount.toFixed(2)}">
 <div class="card-body">
 <div class="row">
 <!-- Left side - Image -->
@@ -3002,27 +2996,73 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
  }
 
  async function delBillByID(b426illID) {
+  const billID = Number.isFinite(Number(b426illID)) ? Number(b426illID) : b426illID;
   try {
-   let t1999mp = await dbDexieManager.deleteRecords(dbnm, 'b', b426illID);
-   let itemsToDelete = (await dbDexieManager.getAllRecords(dbnm, 'i')).filter(o => o.e === b426illID);
-   for (let o of itemsToDelete) {
-    await dbDexieManager.deleteRecords(dbnm, 'i', o.a);
+   let billDeleteResult = await dbDexieManager.deleteRecords(dbnm, 'b', billID);
+   if (!billDeleteResult || billDeleteResult.success === false) {
+    throw new Error((billDeleteResult && billDeleteResult.error) || 'Failed to delete bill');
    }
-   let t2001mp = await dbDexieManager.deleteRecords(dbnm, 'be', { ea: b426illID }, ['ea']);
-   let cashInfoToDelete = (await dbDexieManager.getAllRecords(dbnm, 'r')).filter(o => o.tb === 7 && o.td === b426illID);
+   let itemsToDelete = (await dbDexieManager.getAllRecords(dbnm, 'i')).filter(o => o.e == billID);
+   for (let o of itemsToDelete) {
+    let itemDeleteResult = await dbDexieManager.deleteRecords(dbnm, 'i', o.a);
+    if (!itemDeleteResult || itemDeleteResult.success === false) {
+     throw new Error((itemDeleteResult && itemDeleteResult.error) || 'Failed to delete item');
+    }
+   }
+   let eyeMsrmntsToDelete = (await dbDexieManager.getAllRecords(dbnm, 'be')).filter(o => o.ea == billID);
+   for (let o of eyeMsrmntsToDelete) {
+    let eyeDeleteResult = await dbDexieManager.deleteRecords(dbnm, 'be', o.a);
+    if (!eyeDeleteResult || eyeDeleteResult.success === false) {
+     throw new Error((eyeDeleteResult && eyeDeleteResult.error) || 'Failed to delete eye measurement');
+    }
+   }
+   let cashInfoToDelete = (await dbDexieManager.getAllRecords(dbnm, 'r')).filter(o => o.tb === 7 && o.td == billID);
    for (let o of cashInfoToDelete) {
-    await dbDexieManager.deleteRecords(dbnm, 'r', o.a);
+    let cashDeleteResult = await dbDexieManager.deleteRecords(dbnm, 'r', o.a);
+    if (!cashDeleteResult || cashDeleteResult.success === false) {
+     throw new Error((cashDeleteResult && cashDeleteResult.error) || 'Failed to delete cash info');
+    }
+   }
+   if (typeof stored_bill !== 'undefined') {
+    stored_bill = stored_bill.filter(b => b.a != billID);
+   }
+   if (typeof stored_bill_items !== 'undefined') {
+    stored_bill_items = stored_bill_items.filter(o => o.e != billID);
+   }
+   if (typeof stored_bill_cash_info !== 'undefined') {
+    stored_bill_cash_info = stored_bill_cash_info.filter(o => !(o.tb === 7 && o.td == billID));
+   }
+   if (typeof stored_eye_msrmnt !== 'undefined') {
+    stored_eye_msrmnt = stored_eye_msrmnt.filter(o => o.ea != billID);
+   }
+   document.querySelectorAll('.bill-card[data-bill-id="' + billID + '"]').forEach(card => {
+    card.closest('.col-12, .col-md-6, .col-lg-4')?.remove();
+   });
+   let searchInput = document.getElementById('bill_op_search');
+   if (searchInput) {
+    searchInput.dispatchEvent(new Event('input'));
    }
    await setMaxBillNo();
+   await showToast("Deleted Successfully.");
   } catch (error) {
+   console.error('delBillByID failed:', error);
    window.showelsemodal("Initialization error - please refresh");
   }
  }
-
- // Ensure a date string has a full "YYYY-MM-DD HH:mm" format (append time if missing)
+ // Canonicalize any stored date variant to "YYYY-MM-DD HH:mm" (the format the
+ // pickers and validation expect). Handles date-only values, ISO 'T', seconds
+ // and extra trailing tokens such as "2026-11-20 00:00:00 00:00".
  function normalizeFullDateTime(val) {
-  if (!val) return '';
-  return val.includes(' ') && val.split(' ')[1].length === 5 ? val : val + ' 00:00';
+  if (val === null || val === undefined) return '';
+  const trimmed = String(val).trim();
+  if (!trimmed) return '';
+  const parts = trimmed.split(/[\sT]+/).filter(Boolean);
+  const dateMatch = parts[0].match(/^(\d{4}-\d{2}-\d{2})/);
+  if (!dateMatch) return trimmed;
+  const timeMatch = (parts[1] || '').match(/^(\d{1,2}):(\d{1,2})/);
+  const hours = timeMatch ? timeMatch[1].padStart(2, '0') : '00';
+  const minutes = timeMatch ? timeMatch[2].padStart(2, '0') : '00';
+  return `${dateMatch[1]} ${hours}:${minutes}`;
  }
 
  // Initialize pickers for all datetime fields
@@ -3072,8 +3112,6 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
  }
 
  function handleUploadedFile(fileUrl, fileName, fileType, fileId) {
-  console.log('File uploaded:', fileName, fileUrl);
-  // Update your form fields or UI here
   document.getElementById('itemDescription').value = fileUrl;
  }
  async function temporary() {
@@ -3120,13 +3158,27 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
   printBtn.classList.add('btn-secondary');
  }
 
+ function syncPaymentActionButtons() {
+  if (!billSelectedToUpdate) return;
+  const hasPendingPayments = (window.newUpdatePayments || []).length > 0;
+  if (hasPendingPayments) {
+   disableUpdateButton();
+   disablePrintButton();
+  } else {
+   enableUpdateButton();
+   enablePrintButton();
+  }
+ }
+
  // Save Bill Function with enhanced validation
  async function crUpBill(fnNumber) {
   try {
    // Validate required fields
-   ['invoiceNumber','receiptDate','c_dtls_lient'].forEach(function (id) { clearInvalid(document.getElementById(id)); });
+   ['invoiceNumber', 'receiptDate', 'c_dtls_lient'].forEach(function (id) { clearInvalid(document.getElementById(id)); });
    const invoiceNumber = document.getElementById('invoiceNumber').value.trim();
-   const receiptDateValue = document.getElementById('receiptDate').value;
+   const receiptDateValue = normalizeFullDateTime(document.getElementById('receiptDate').value);
+   document.getElementById('receiptDate').value = receiptDateValue;
+   if (receiptDatePicker) receiptDatePicker.setCommitted(receiptDateValue);
    const deliveryDateValue = document.getElementById('deliveryDate').value;
    const clientId = document.getElementById('clientId').value;
    const r_eferrerId = parseInt(document.getElementById('referrerId').value);
@@ -3144,8 +3196,8 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
     return validateAndScrollToField('c_dtls_lient', 'Please select a customer');
    }
 
-   // Validate date formats and ensure time is included
-   if (!receiptDateValue.includes(' ') || receiptDateValue.split(' ')[1].length !== 5) {
+   // Validate date format and ensure time is included
+   if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(receiptDateValue)) {
     return validateAndScrollToField('receiptDate', 'Please select both date and time for receipt');
    }
 
@@ -3176,6 +3228,22 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
    }
 
    // Prepare bill items array
+   for (const item of Array.from(addedItems)) {
+    let itemId = String(item.getAttribute('data-item-id') || '').trim();
+    const name = (item.querySelector('strong')?.textContent || 'Unknown item').trim();
+    if (!isValidItemId(itemId)) {
+     const match = items.find(function (i) { return i && i.gn && String(i.gn).trim().toLowerCase() === name.toLowerCase(); });
+     if (match && isValidItemId(match.a)) {
+      itemId = String(match.a).trim();
+      item.setAttribute('data-item-id', itemId);
+     }
+    }
+    if (!isValidItemId(itemId)) {
+     window.showelsemodal('Item ID required for: ' + name);
+     return;
+    }
+   }
+
    const billItems = Array.from(addedItems).map(item => {
     const itemId = item.getAttribute('data-item-id') || '';
     const name = item.querySelector('strong').textContent;
@@ -3200,7 +3268,7 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
     // Split layout: j/tax1 amount, k/tax2 amount, t/sub-name.
     // Legacy layout: j/sub-name, t/combined tax amount.
     if (itemTaxSplitEnabled()) {
-     return {
+     const obj = {
       "h": qty.toString(), // Quantity
       "f": itemId, // Item ID
       "g": price, // Price
@@ -3209,9 +3277,10 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
       "k": tax2Amount, // Tax 2 amount
       "t": subName // Sub Name (laundry operation)
      };
+     return obj;
     }
 
-    return {
+    const obj = {
      "h": qty.toString(), // Quantity
      "f": itemId, // Item ID
      "g": price, // Price
@@ -3219,6 +3288,7 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
      "j": subName, // Sub Name (laundry operation)
      "t": combinedTaxAmount // Tax amount
     };
+    return obj;
    });
 
    const receivedPayments = receivedAmounts.map(payment => {
@@ -3261,17 +3331,21 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
     payload0.b.a = billSelectedToUpdate.a;
    }
    payload0.r = receivedPayments;
-
    payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, getMaxDateTables());
-   payload0.vw = 1;
    payload0.fn = fnNumber;//3=save new bill,7=update bill
-   const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
+   payload0.ul = '2/0b.php';
+   payload0.gt = 2;
+   const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
+   //const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
    if (response.su == 1) {
     if (fnNumber == 7) {
      let t1999mp = await dbDexieManager.deleteRecords(dbnm, 'b', billSelectedToUpdate.a);
-     let t2000mp = (await dbDexieManager.getAllRecords(dbnm, 'i')).filter(o => o.e === billSelectedToUpdate.a).forEach(o => dbDexieManager.deleteRecords(dbnm, 'i', o.a));
-     let t2001mp = await dbDexieManager.deleteRecords(dbnm, 'be', { ea: billSelectedToUpdate.a }, ['ea']);
-     let t2002mp = (await dbDexieManager.getAllRecords(dbnm, 'r')).filter(o => o.tb === 7 && o.td === billSelectedToUpdate.a).forEach(o => dbDexieManager.deleteRecords(dbnm, 'r', o.a));
+     let updateItemsToDelete = (await dbDexieManager.getAllRecords(dbnm, 'i')).filter(o => o.e == billSelectedToUpdate.a);
+     for (let o of updateItemsToDelete) { await dbDexieManager.deleteRecords(dbnm, 'i', o.a); }
+     let updateEyeMsrmntsToDelete = (await dbDexieManager.getAllRecords(dbnm, 'be')).filter(o => o.ea == billSelectedToUpdate.a);
+     for (let o of updateEyeMsrmntsToDelete) { await dbDexieManager.deleteRecords(dbnm, 'be', o.a); }
+     let updateCashInfoToDelete = (await dbDexieManager.getAllRecords(dbnm, 'r')).filter(o => o.tb === 7 && o.td == billSelectedToUpdate.a);
+     for (let o of updateCashInfoToDelete) { await dbDexieManager.deleteRecords(dbnm, 'r', o.a); }
     }
     handl_op_rspons(response, 0);
     disableSaveBtn();
@@ -3317,14 +3391,22 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
  }
 
  function extractMessages(data) {
-  if (!data.fn3 || !data.fn3.r || !Array.isArray(data.fn3.r)) {
-   return "";
+  if (!data) return "";
+  if (typeof data.ms === 'string') return data.ms;
+  if (Array.isArray(data)) {
+   return data
+    .map(obj => (obj && obj.ms) || "")
+    .filter(ms => ms !== "")
+    .join('\n');
   }
-
-  return data.fn3.r
-   .map(obj => obj.ms || "") // Extract ms property or empty string if not present
-   .filter(ms => ms !== "")  // Remove empty messages
-   .join('\n');              // Join with line breaks
+  if (Array.isArray(data.r)) {
+   return data.r
+    .map(obj => (obj && obj.ms) || "")
+    .filter(ms => ms !== "")
+    .join('\n');
+  }
+  if (data.r && typeof data.r.ms === 'string') return data.r.ms;
+  return "";
  }
 
  function calculateDiscountFromPercentage() {
@@ -3427,7 +3509,6 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
      window.removeEventListener('popstate', handleBackButton);
     }, 500);
    }).catch(error => {
-    console.log('Scanner stop error:', error);
     // Force cleanup even if scanner fails to clear
     if (container && container.parentNode) {
      document.body.removeChild(container);
@@ -3562,7 +3643,6 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
 
      // If scanning is paused, ignore this scan
      if (qrScannerState.isPaused) {
-      console.log('Scanning paused, ignoring scan');
       return;
      }
 
@@ -3693,7 +3773,6 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
      // Don't show error messages for normal camera operation
      // Only log for debugging, but don't display to user
      if (!errorMessage.includes('NotFoundException') && !errorMessage.includes('No QR code')) {
-      console.log(`QR Scan: ${errorMessage}`);
      }
 
      // Don't update the UI with error messages
@@ -3720,7 +3799,6 @@ ${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
        scannerElement.innerHTML = '';
       }
      }).catch(error => {
-      console.log('Scanner cleanup error:', error);
       qrScannerActive = false;
       currentQRScanner = null;
       html5QrcodeScanner = null;
@@ -3906,7 +3984,6 @@ Continuous mode: Items will be added automatically. Click stop or press back but
     (errorMessage) => {
      // Don't log normal camera operation errors
      if (!errorMessage.includes('NotFoundException') && !errorMessage.includes('No QR code')) {
-      console.log(`QR Scan: ${errorMessage}`);
      }
     }
    );
@@ -4008,7 +4085,6 @@ Continuous mode: Items will be added automatically. Click stop or press back but
   updateBillSummary();
   updateBillSectionsVisibility();
 
-  console.log(`Quantity increased: ${currentQty} → ${newQty}, Price: ${newPrice.toFixed(2)}`);
  }
 
  // Get the unique ID of an item card
@@ -4349,24 +4425,24 @@ ${stockIndicator}
  }
 
  // Selling price for a stock row is stored inside the sold_in string (s.l),
-// e.g. "18~2-50-55--2-2-22" where 50 is the selling price. Fall back to
-// the legacy s.k field when sold_in is empty.
-window.getSellingPriceFromStock = function (row) {
- const soldIn = row && (row.l || row.sold_in || row.soldIn);
- const first = Array.isArray(soldIn) ? soldIn[0] : soldIn;
- const str = String(first || '').trim();
- if (str) {
-  const parts = str.split('~');
-  if (parts.length >= 2) {
-   const m = parts[1].match(/^([\d.]*)-([\d.]*)/);
-   const sp = m ? parseFloat(m[2]) : NaN;
-   if (Number.isFinite(sp)) return sp;
+ // e.g. "18~2-50-55--2-2-22" where 50 is the selling price. Fall back to
+ // the legacy s.k field when sold_in is empty.
+ window.getSellingPriceFromStock = function (row) {
+  const soldIn = row && (row.l || row.sold_in || row.soldIn);
+  const first = Array.isArray(soldIn) ? soldIn[0] : soldIn;
+  const str = String(first || '').trim();
+  if (str) {
+   const parts = str.split('~');
+   if (parts.length >= 2) {
+    const m = parts[1].match(/^([\d.]*)-([\d.]*)/);
+    const sp = m ? parseFloat(m[2]) : NaN;
+    if (Number.isFinite(sp)) return sp;
+   }
   }
- }
- return parseFloat(row && row.k) || 0;
-};
+  return parseFloat(row && row.k) || 0;
+ };
 
-function itemTaxAmounts(tax1, tax2, linePrice) {
+ function itemTaxAmounts(tax1, tax2, linePrice) {
   const amount1 = itemTaxRound((linePrice * itemTaxClampPercent(tax1)) / 100);
   const amount2 = itemTaxRound((linePrice * itemTaxClampPercent(tax2)) / 100);
   return { tax1Amount: amount1, tax2Amount: amount2, taxAmount: itemTaxRound(amount1 + amount2) };
@@ -4379,13 +4455,13 @@ function itemTaxAmounts(tax1, tax2, linePrice) {
   return (a + b).toFixed(2) + '%';
  }
 
-function itemTaxLineHTML(uniqueItemId, tax1, tax2, amount) {
+ function itemTaxLineHTML(uniqueItemId, tax1, tax2, amount) {
   if (taxDisplayHidden()) return '';
-  return '<span class="item-tax-line text-nowrap" style="display:inline-block; flex:0 0 auto; color:#6c757d; font-size:.875rem; margin-left:auto;">' + 
-            'Tax: ₹<span id="itemTax-' + uniqueItemId + '">' + itemTaxRound(amount).toFixed(2) + '</span> ' +
-            '(<span id="itemTaxRates-' + uniqueItemId + '">' + itemTaxRatesLabel(tax1, tax2) + '</span>)' + 
-         '</span>';
-}
+  return '<span class="item-tax-line text-nowrap" style="display:inline-block; flex:0 0 auto; color:#6c757d; font-size:.875rem; margin-left:auto;">' +
+   'Tax: ₹<span id="itemTax-' + uniqueItemId + '">' + itemTaxRound(amount).toFixed(2) + '</span> ' +
+   '(<span id="itemTaxRates-' + uniqueItemId + '">' + itemTaxRatesLabel(tax1, tax2) + '</span>)' +
+   '</span>';
+ }
 
  // Recomputes tax for a card from its two stored rates (or the combined rate).
  function updateItemCardTax(itemElement, price) {
@@ -4721,9 +4797,9 @@ function itemTaxLineHTML(uniqueItemId, tax1, tax2, amount) {
   const dd = document.getElementById('receivedCashierDropdown');
   if (dd) dd.style.display = 'none';
  }
- window.toggleReceivedCashierDropdown = toggleReceivedCashierDropdown;
- window.pickReceivedCashier = pickReceivedCashier;
- window.clearReceivedCashier = clearReceivedCashier;
+ if (typeof toggleReceivedCashierDropdown !== "undefined") window.toggleReceivedCashierDropdown = toggleReceivedCashierDropdown;
+ if (typeof pickReceivedCashier !== "undefined") window.pickReceivedCashier = pickReceivedCashier;
+ if (typeof clearReceivedCashier !== "undefined") window.clearReceivedCashier = clearReceivedCashier;
  if (typeof document !== 'undefined') {
   document.addEventListener('click', function (e) {
    const dd = document.getElementById('receivedCashierDropdown');
@@ -4770,7 +4846,6 @@ function itemTaxLineHTML(uniqueItemId, tax1, tax2, amount) {
    let constraintCounter = 0; // Default to 1 for first payment on this date
    let didCrossBillIncrement = false;
 
-   console.log('Validation result:', validationResult);
 
    if (validationResult.matchingCount > 0) {
     // Same amount/date payments exist for THIS SPECIFIC DATE
@@ -4785,22 +4860,18 @@ function itemTaxLineHTML(uniqueItemId, tax1, tax2, amount) {
     const nextCounter = validationResult.nextConstraint;
     message += `\n\nDo you want to add another payment with constraint counter ${nextCounter}?`;
 
-    console.log('Asking user:', message);
 
     const userResponse = await showConfirmModal(message);
 
     if (!userResponse) {
-     console.log('User cancelled');
      return;
     }
 
     // Set constraint counter to the next available one (existing payments untouched)
     constraintCounter = validationResult.nextConstraint;
     didCrossBillIncrement = true;
-    console.log('Setting constraint counter to:', constraintCounter);
    } else {
     // No matching payments for this date
-    console.log('No matching payments for date', paymentDate, '- using constraint counter 0');
     constraintCounter = 0;
    }
 
@@ -4816,7 +4887,6 @@ function itemTaxLineHTML(uniqueItemId, tax1, tax2, amount) {
     g: (document.getElementById('receivedCashier') ? document.getElementById('receivedCashier').value : '') || ''
    };
 
-   console.log('Adding payment with constraint counter:', constraintCounter, receivedAmount);
 
    // Add to array
    receivedAmounts.push(receivedAmount);
@@ -5033,7 +5103,10 @@ ${actionsHtml}
   const billId = billSelectedToUpdate ? billSelectedToUpdate.a : null;
   const newPayments = billId ? window.newUpdatePayments.filter(p => p.billId === billId) : [];
 
-  if (newPayments.length === 0) return;
+  if (newPayments.length === 0) {
+   syncPaymentActionButtons();
+   return;
+  }
 
   let newSection = '<h6>New Payments to be Added</h6>';
 
@@ -5074,6 +5147,7 @@ ${actionsHtml}
 `;
 
   container.innerHTML = newSection + container.innerHTML;
+  syncPaymentActionButtons();
  }
 
  async function removeNewUpdatePayment(paymentId) {
@@ -5152,13 +5226,13 @@ ${actionsHtml}
     };
    });
    await clearPayload0();
-   payload0.vw = 1;
    payload0.fn = 103;
    payload0.r = paymentArray;
+   payload0.ul = '2/0p.php';
+   payload0.gt = 2;
    payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, getMaxDateTables());
-
-   const response = await fnj3("https://my1.in/2/p.php", payload0, 1, true, null, 20000, 0, 2, 1);
-
+   const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
+   //const response = await fnj3("https://my1.in/2/p.php", payload0, 1, true, null, 20000, 0, 2, 1);
    if (response.su == 1) {
     await handl_op_rspons(response, 0);
     stored_bill_cash_info = await dbDexieManager.getAllRecords(dbnm, "r") || [];
@@ -5205,9 +5279,9 @@ ${actionsHtml}
     window.newUpdatePayments = window.newUpdatePayments.filter(p => p.billId !== billData.a);
     updateNewPaymentsUI();
     updateGrandTotalsForUpdate();
+    syncPaymentActionButtons();
     const stillMissing = newPayments.filter(np => !alreadyInHistory(np));
     if (stillMissing.length > 0) {
-     console.log('updateBillPayments: payments missing from history, response=', response);
      showToast(stillMissing.length + ' payment(s) not visible in history — check console');
     } else {
      showToast('Payments updated successfully!');
@@ -5226,7 +5300,7 @@ ${actionsHtml}
  // otherwise the original addReceivedAmount() keeps working exactly as before.
  document.addEventListener('click', function (e) {
   const btn = e.target.closest('button[onclick="addReceivedAmount()"]');
-  if (btn && billSelectedToUpdate) {
+  if (btn && getBillSelectedToUpdate()) {
    e.preventDefault();
    e.stopPropagation();
    addNewReceivedAmount();
@@ -5409,15 +5483,17 @@ ${actionsHtml}
   }
   try {
    await clearPayload0();
-   payload0.vw = 1;
    payload0.fn = 105;
    payload0.x1 = id;
-   const response = await fnj3("https://my1.in/2/p.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+   payload0.ul = '2/0p.php';
+   payload0.gt = 2;
+   const response = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
+   //const response = await fnj3("https://my1.in/2/p.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
    if (response.su == 1) {
     await dbDexieManager.deleteRecords(dbnm, 'r', id);
     receivedAmounts = receivedAmounts.filter(payment => payment.id !== id);
-     updateNewPaymentsUI();
-     updateGrandTotalsForUpdate();
+    updateNewPaymentsUI();
+    updateGrandTotalsForUpdate();
    } else {
     window.showelsemodal(response.ms);
    }
@@ -6019,6 +6095,11 @@ margin-top: 70px;
        const t3782mp = await dbDexieManager.insertToDexie(dbnm, "r", response.r.l, true, ["a"]);
       }
      }
+     if (response.x != null) {
+      if (response.x.l != null) {
+       await dbDexieManager.insertToDexie(dbnm, "x", response.x.l, true, ["a"]);
+      }
+     }
      if (response.c != null) {
       if (response.c.l != null) {
        const t3793mp = await dbDexieManager.insertToDexie(dbnm, "c", response.c.l, true, ["a"]);
@@ -6291,7 +6372,6 @@ margin-top: 70px;
     stockItem.qAvlb = stockItem.i - stockItem.qSold;
    });
    const t3025mp = await dbDexieManager.insertToDexie(dbnm, "s", t_s_mp, true, ["a"]);
-   console.log('Updated stock items with qSold:', t_s_mp);
 
   }, 1000); // 1 second delay
  }
@@ -6318,7 +6398,6 @@ margin-top: 70px;
 
  function temporaryAlertFunction(billId) {
   // Implement temporary alert functionality
-  console.log('Temporary alert for bill:', billId);
  }
 
  // Function to verify if item was successfully added to sale list
@@ -6677,14 +6756,12 @@ This remark will be automatically filled in the bill notes section for new bills
   try {
    // Get current bill ID
    if (!billTableRowId || billTableRowId <= 0) {
-    console.log('No bill selected for update');
     return false;
    }
 
    // Find the original bill
    const originalBill = stored_bill.find(bill => bill.a == billTableRowId);
    if (!originalBill) {
-    console.log('Original bill not found');
     return true; // If can't find original, assume changes exist
    }
 
@@ -6694,7 +6771,6 @@ This remark will be automatically filled in the bill notes section for new bills
    const currentNotes = document.getElementById('billNotes')?.value?.trim() || '';
    const originalNotes = originalBill.i || '';
    if (currentNotes !== originalNotes) {
-    console.log('Bill notes changed:', originalNotes, '→', currentNotes);
     return true;
    }
 
@@ -6702,7 +6778,6 @@ This remark will be automatically filled in the bill notes section for new bills
    const currentDiscount = document.getElementById('discountAmount')?.value || '0';
    const originalDiscount = originalBill.k?.toString() || '0';
    if (parseFloat(currentDiscount) !== parseFloat(originalDiscount)) {
-    console.log('Discount changed:', originalDiscount, '→', currentDiscount);
     return true;
    }
 
@@ -6710,7 +6785,6 @@ This remark will be automatically filled in the bill notes section for new bills
    const currentInvoice = document.getElementById('invoiceNumber')?.value?.trim() || '';
    const originalInvoice = originalBill.g?.toString() || '';
    if (currentInvoice !== originalInvoice) {
-    console.log('Invoice number changed:', originalInvoice, '→', currentInvoice);
     return true;
    }
 
@@ -6718,7 +6792,6 @@ This remark will be automatically filled in the bill notes section for new bills
    const currentClientId = document.getElementById('clientId')?.value || '';
    const originalClientId = originalBill.e?.toString() || '';
    if (currentClientId !== originalClientId) {
-    console.log('Client changed:', originalClientId, '→', currentClientId);
     return true;
    }
 
@@ -6726,7 +6799,6 @@ This remark will be automatically filled in the bill notes section for new bills
    const currentReferrerId = document.getElementById('referrerId')?.value || '0';
    const originalReferrerId = originalBill.l?.toString() || '0';
    if (currentReferrerId !== originalReferrerId) {
-    console.log('Referrer changed:', originalReferrerId, '→', currentReferrerId);
     return true;
    }
 
@@ -6740,7 +6812,6 @@ This remark will be automatically filled in the bill notes section for new bills
 
    // If number of items changed
    if (storedBillItems.length !== currentItems.length) {
-    console.log('Number of items changed:', storedBillItems.length, '→', currentItems.length);
     return true;
    }
 
@@ -6765,7 +6836,6 @@ This remark will be automatically filled in the bill notes section for new bills
 
     if (!storedItemsMap.has(key)) {
      // Item with this ID, price, and tax doesn't exist in stored items
-     console.log('New item found or price/tax changed:', currentItem);
      return true;
     }
 
@@ -6773,19 +6843,16 @@ This remark will be automatically filled in the bill notes section for new bills
 
     // Compare quantity
     if (Math.abs(storedItem.quantity - currentItem.quantity) > 0.01) {
-     console.log('Quantity changed:', storedItem.quantity, '→', currentItem.quantity);
      return true;
     }
 
     // Compare description
     if (storedItem.description !== currentItem.description) {
-     console.log('Description changed:', storedItem.description, '→', currentItem.description);
      return true;
     }
 
     // Compare tax
     if (Math.abs(storedItem.taxAmount - currentItem.taxAmount) > 0.01) {
-     console.log('Tax changed:', storedItem.taxAmount, '→', currentItem.taxAmount);
      return true;
     }
 
@@ -6795,7 +6862,6 @@ This remark will be automatically filled in the bill notes section for new bills
 
    // If there are items left in storedItemsMap, they were removed from the form
    if (storedItemsMap.size > 0) {
-    console.log('Items removed from form:', Array.from(storedItemsMap.keys()));
     return true;
    }
 
@@ -6806,7 +6872,6 @@ This remark will be automatically filled in the bill notes section for new bills
 
     // If one has measurement and other doesn't
     if ((currentEyeMeasurement === null) !== (originalEyeMeasurement === null)) {
-     console.log('Eye measurement presence changed');
      return true;
     }
 
@@ -6818,7 +6883,6 @@ This remark will be automatically filled in the bill notes section for new bills
       const currentVal = currentEyeMeasurement[field] || '';
       const originalVal = originalEyeMeasurement[field] || '';
       if (String(currentVal) !== String(originalVal)) {
-       console.log(`Eye measurement field ${field} changed:`, originalVal, '→', currentVal);
        return true;
       }
      }
@@ -6831,7 +6895,6 @@ This remark will be automatically filled in the bill notes section for new bills
 
    // Compare number of payments
    if (receivedAmounts.length !== originalPayments.length) {
-    console.log('Number of payments changed:', originalPayments.length, '→', receivedAmounts.length);
     return true;
    }
 
@@ -6841,19 +6904,16 @@ This remark will be automatically filled in the bill notes section for new bills
     const originalPayment = originalPayments[i];
 
     if (!originalPayment) {
-     console.log('New payment added');
      return true;
     }
 
     // Compare amount
     if (Math.abs(parseFloat(currentPayment.amount) - parseFloat(originalPayment.j || 0)) > 0.01) {
-     console.log('Payment amount changed');
      return true;
     }
 
     // Compare payment type
     if (String(currentPayment.paymentType) !== String(originalPayment.i || '0')) {
-     console.log('Payment type changed');
      return true;
     }
 
@@ -6861,12 +6921,10 @@ This remark will be automatically filled in the bill notes section for new bills
     const currentDate = currentPayment.dateTime?.split(' ')[0] || '';
     const originalDate = originalPayment.k || '';
     if (currentDate !== originalDate) {
-     console.log('Payment date changed');
      return true;
     }
    }
 
-   console.log('No changes detected in bill');
    return false;
 
   } catch (error) {
@@ -7049,13 +7107,6 @@ This remark will be automatically filled in the bill notes section for new bills
  const paymentTypeInt = parseInt(paymentType) || 0;
  
  // DEBUG: Log what we're checking
- console.log('Validating payment uniqueness:', {
- clientId,
- amount,
- dateTime,
- paymentDate,
- paymentType
- });
  
  // Arrays to collect matching payments (ONLY same date)
  const matchingPayments = [];
@@ -7078,11 +7129,6 @@ This remark will be automatically filled in the bill notes section for new bills
  source: 'pending'
  });
  
- console.log('Found matching pending payment:', {
- date: paymentDatePart,
- amount: paymentAmount,
- constraintCounter: payment.constraintCounter || 0
- });
  }
  });
  
@@ -7106,19 +7152,12 @@ This remark will be automatically filled in the bill notes section for new bills
  source: 'saved'
  });
  
- console.log('Found matching saved payment:', {
- date: paymentDatePart,
- amount: paymentAmount,
- constraintCounter: payment.n || 0
- });
  }
  });
  
- console.log('Total matching payments for date', paymentDate + ':', matchingPayments.length);
  
  if (matchingPayments.length === 0) {
  // No matching payments for this date
- console.log('No matching payments found for date', paymentDate);
  return {
  isDuplicate: false,
  existingConstraint: 0,
@@ -7132,8 +7171,6 @@ This remark will be automatically filled in the bill notes section for new bills
  const constraintCounters = matchingPayments.map(p => p.constraintCounter || 0);
  const maxCounter = Math.max(...constraintCounters);
  
- console.log('Constraint counters for date', paymentDate + ':', constraintCounters);
- console.log('Max constraint counter:', maxCounter);
  
  return {
  isDuplicate: matchingPayments.length > 0,
@@ -7147,12 +7184,6 @@ This remark will be automatically filled in the bill notes section for new bills
   const paymentDate = dateTime.split(' ')[0]; // Get only YYYY-MM-DD part
 
   // DEBUG: Log what we're checking
-  console.log('Validating payment uniqueness:', {
-   clientId,
-   amount,
-   dateTime,
-   paymentDate
-  });
 
   // Arrays to collect matching payments (ONLY same date)
   const matchingPayments = [];
@@ -7173,11 +7204,6 @@ This remark will be automatically filled in the bill notes section for new bills
      source: 'pending'
     });
 
-    console.log('Found matching pending payment:', {
-     date: paymentDatePart,
-     amount: paymentAmount,
-     constraintCounter: payment.constraintCounter || 0
-    });
    }
   });
 
@@ -7199,19 +7225,12 @@ This remark will be automatically filled in the bill notes section for new bills
      source: 'saved'
     });
 
-    console.log('Found matching saved payment:', {
-     date: paymentDatePart,
-     amount: paymentAmount,
-     constraintCounter: payment.n || 0
-    });
    }
   });
 
-  console.log('Total matching payments for date', paymentDate + ':', matchingPayments.length);
 
   if (matchingPayments.length === 0) {
    // No matching payments for this date
-   console.log('No matching payments found for date', paymentDate);
    return {
     isDuplicate: false,
     existingConstraint: 0,
@@ -7225,8 +7244,6 @@ This remark will be automatically filled in the bill notes section for new bills
   const constraintCounters = matchingPayments.map(p => p.constraintCounter || 0);
   const maxCounter = Math.max(...constraintCounters);
 
-  console.log('Constraint counters for date', paymentDate + ':', constraintCounters);
-  console.log('Max constraint counter:', maxCounter);
 
   return {
    isDuplicate: matchingPayments.length > 0,
@@ -7284,72 +7301,6420 @@ This remark will be automatically filled in the bill notes section for new bills
 
  window.showelsemodal = window.showelsemodal;
  window.closeModal = window.closeModal;
- window.set_bill_innerHTML = set_bill_innerHTML;
- window.showAddItemModal = showAddItemModal;
- window.handleAddNewItemInModal = handleAddNewItemInModal;
- window.handleNewItmAddedToInventory = handleNewItmAddedToInventory;
- window.addItemFromModal = addItemFromModal;
- window.selectModalItem = selectModalItem;
- window.showBillCards = showBillCards;
- window.handleBillAction = handleBillAction;
- window.sho_bl_modal = sho_bl_modal;
- window.showAlreadyReceivedAmts = showAlreadyReceivedAmts;
- window.submitAllPayments = submitAllPayments;
- window.updateBillPayments = updateBillPayments;
- window.addNewReceivedAmount = addNewReceivedAmount;
- window.updateNewPaymentsUI = updateNewPaymentsUI;
- window.removeNewUpdatePayment = removeNewUpdatePayment;
- window.updateGrandTotalsForUpdate = updateGrandTotalsForUpdate;
- window.updatePaymentTypeIcon = updatePaymentTypeIcon;
- window.updatePayment = updatePayment;
- window.validateAndUpdatePayment = validateAndUpdatePayment;
- window.handleItemNotFoundYes = handleItemNotFoundYes;
- window.handleItemNotFoundNo = handleItemNotFoundNo;
- window.addReceivedAmount = addReceivedAmount;
- window.addTempReceivedAmount = addTempReceivedAmount;
- window.removeTempPayment = removeTempPayment;
- window.removeReceivedAmount = removeReceivedAmount;
- window.removeItemFromInvoice = removeItemFromInvoice;
- window.updateItemQuantity = updateItemQuantity;
- window.updateItemRate = updateItemRate;
+ if (typeof set_bill_innerHTML !== "undefined") window.set_bill_innerHTML = set_bill_innerHTML;
+ if (typeof showAddItemModal !== "undefined") window.showAddItemModal = showAddItemModal;
+ if (typeof handleAddNewItemInModal !== "undefined") window.handleAddNewItemInModal = handleAddNewItemInModal;
+ if (typeof handleNewItmAddedToInventory !== "undefined") window.handleNewItmAddedToInventory = handleNewItmAddedToInventory;
+ if (typeof addItemFromModal !== "undefined") window.addItemFromModal = addItemFromModal;
+ if (typeof selectModalItem !== "undefined") window.selectModalItem = selectModalItem;
+ if (typeof showBillCards !== "undefined") window.showBillCards = showBillCards;
+ if (typeof handleBillAction !== "undefined") window.handleBillAction = handleBillAction;
+ if (typeof sho_bl_modal !== "undefined") window.sho_bl_modal = sho_bl_modal;
+ if (typeof showAlreadyReceivedAmts !== "undefined") window.showAlreadyReceivedAmts = showAlreadyReceivedAmts;
+ if (typeof submitAllPayments !== "undefined") window.submitAllPayments = submitAllPayments;
+ if (typeof updateBillPayments !== "undefined") window.updateBillPayments = updateBillPayments;
+ if (typeof addNewReceivedAmount !== "undefined") window.addNewReceivedAmount = addNewReceivedAmount;
+ if (typeof updateNewPaymentsUI !== "undefined") window.updateNewPaymentsUI = updateNewPaymentsUI;
+ if (typeof removeNewUpdatePayment !== "undefined") window.removeNewUpdatePayment = removeNewUpdatePayment;
+ if (typeof updateGrandTotalsForUpdate !== "undefined") window.updateGrandTotalsForUpdate = updateGrandTotalsForUpdate;
+ if (typeof updatePaymentTypeIcon !== "undefined") window.updatePaymentTypeIcon = updatePaymentTypeIcon;
+ if (typeof updatePayment !== "undefined") window.updatePayment = updatePayment;
+ if (typeof validateAndUpdatePayment !== "undefined") window.validateAndUpdatePayment = validateAndUpdatePayment;
+ if (typeof handleItemNotFoundYes !== "undefined") window.handleItemNotFoundYes = handleItemNotFoundYes;
+ if (typeof handleItemNotFoundNo !== "undefined") window.handleItemNotFoundNo = handleItemNotFoundNo;
+ if (typeof addReceivedAmount !== "undefined") window.addReceivedAmount = addReceivedAmount;
+ if (typeof addTempReceivedAmount !== "undefined") window.addTempReceivedAmount = addTempReceivedAmount;
+ if (typeof removeTempPayment !== "undefined") window.removeTempPayment = removeTempPayment;
+ if (typeof removeReceivedAmount !== "undefined") window.removeReceivedAmount = removeReceivedAmount;
+ if (typeof removeItemFromInvoice !== "undefined") window.removeItemFromInvoice = removeItemFromInvoice;
+ if (typeof updateItemQuantity !== "undefined") window.updateItemQuantity = updateItemQuantity;
+ if (typeof updateItemRate !== "undefined") window.updateItemRate = updateItemRate;
 
  // Tax 1 / Tax 2 helpers shared with bn.js, shoRegItm.js and bp.js
- window.refreshItemsWithTax = refreshItemsWithTax;
- window.itemTaxSplitEnabled = itemTaxSplitEnabled;
- window.taxDisplayHidden = taxDisplayHidden;
- window.itemTaxRound = itemTaxRound;
- window.itemTaxClampPercent = itemTaxClampPercent;
- window.productTaxRates = productTaxRates;
- window.billItemTaxBreakdown = billItemTaxBreakdown;
- window.itemTaxAmounts = itemTaxAmounts;
- window.itemTaxRatesLabel = itemTaxRatesLabel;
- window.updateItemCardTax = updateItemCardTax;
- window.updateBillSummary = updateBillSummary;
- window.updateBillSectionsVisibility = updateBillSectionsVisibility;
- window.updateGrandTotals = updateGrandTotals;
- window.calculateBillSummary = calculateBillSummary;
- window.calculateDiscountFromPercentage = calculateDiscountFromPercentage;
- window.calculateDiscountFromAmount = calculateDiscountFromAmount;
- window.crUpBill = crUpBill;
- window.delBillByID = delBillByID;
- window.show_client_bills = show_client_bills;
- window.showAlreadyReceivedAmts = showAlreadyReceivedAmts;
- window.setDefaRmrk = setDefaRmrk;
- window.saveDefaultRemark = saveDefaultRemark;
- window.sendPaymentReminder = sendPaymentReminder;
- window.temporary = temporary;
- window.temporaryAlertFunction = temporaryAlertFunction;
- window.showToast = showToast;
- window.playSound = playSound;
- window.checkChangeInSoldItems = checkChangeInSoldItems;
- window.getCurrentFormItems = getCurrentFormItems;
- window.showItemDropdown = showItemDropdown;
- window.addItemDirectlyFromQR = addItemDirectlyFromQR;
- window.handl_op_rspons = handl_op_rspons;
- window.commonFnToRunAfter_op_ViewCall = commonFnToRunAfter_op_ViewCall;
- window.handleUploadedFile = handleUploadedFile;
+ if (typeof refreshItemsWithTax !== "undefined") window.refreshItemsWithTax = refreshItemsWithTax;
+ if (typeof itemTaxSplitEnabled !== "undefined") window.itemTaxSplitEnabled = itemTaxSplitEnabled;
+ if (typeof taxDisplayHidden !== "undefined") window.taxDisplayHidden = taxDisplayHidden;
+ if (typeof itemTaxRound !== "undefined") window.itemTaxRound = itemTaxRound;
+ if (typeof itemTaxClampPercent !== "undefined") window.itemTaxClampPercent = itemTaxClampPercent;
+ if (typeof productTaxRates !== "undefined") window.productTaxRates = productTaxRates;
+ if (typeof billItemTaxBreakdown !== "undefined") window.billItemTaxBreakdown = billItemTaxBreakdown;
+ if (typeof itemTaxAmounts !== "undefined") window.itemTaxAmounts = itemTaxAmounts;
+ if (typeof itemTaxRatesLabel !== "undefined") window.itemTaxRatesLabel = itemTaxRatesLabel;
+ if (typeof updateItemCardTax !== "undefined") window.updateItemCardTax = updateItemCardTax;
+ if (typeof updateBillSummary !== "undefined") window.updateBillSummary = updateBillSummary;
+ if (typeof updateBillSectionsVisibility !== "undefined") window.updateBillSectionsVisibility = updateBillSectionsVisibility;
+ if (typeof updateGrandTotals !== "undefined") window.updateGrandTotals = updateGrandTotals;
+ if (typeof calculateBillSummary !== "undefined") window.calculateBillSummary = calculateBillSummary;
+ if (typeof calculateDiscountFromPercentage !== "undefined") window.calculateDiscountFromPercentage = calculateDiscountFromPercentage;
+ if (typeof calculateDiscountFromAmount !== "undefined") window.calculateDiscountFromAmount = calculateDiscountFromAmount;
+ if (typeof crUpBill !== "undefined") window.crUpBill = crUpBill;
+ if (typeof delBillByID !== "undefined") window.delBillByID = delBillByID;
+ if (typeof show_client_bills !== "undefined") window.show_client_bills = show_client_bills;
+ if (typeof showAlreadyReceivedAmts !== "undefined") window.showAlreadyReceivedAmts = showAlreadyReceivedAmts;
+ if (typeof setDefaRmrk !== "undefined") window.setDefaRmrk = setDefaRmrk;
+ if (typeof saveDefaultRemark !== "undefined") window.saveDefaultRemark = saveDefaultRemark;
+ if (typeof sendPaymentReminder !== "undefined") window.sendPaymentReminder = sendPaymentReminder;
+ if (typeof temporary !== "undefined") window.temporary = temporary;
+ if (typeof temporaryAlertFunction !== "undefined") window.temporaryAlertFunction = temporaryAlertFunction;
+ if (typeof showToast !== "undefined") window.showToast = showToast;
+ if (typeof playSound !== "undefined") window.playSound = playSound;
+ if (typeof checkChangeInSoldItems !== "undefined") window.checkChangeInSoldItems = checkChangeInSoldItems;
+ if (typeof getCurrentFormItems !== "undefined") window.getCurrentFormItems = getCurrentFormItems;
+ if (typeof showItemDropdown !== "undefined") window.showItemDropdown = showItemDropdown;
+ if (typeof addItemDirectlyFromQR !== "undefined") window.addItemDirectlyFromQR = addItemDirectlyFromQR;
+ if (typeof handl_op_rspons !== "undefined") window.handl_op_rspons = handl_op_rspons;
+ if (typeof commonFnToRunAfter_op_ViewCall !== "undefined") window.commonFnToRunAfter_op_ViewCall = commonFnToRunAfter_op_ViewCall;
+ if (typeof handleUploadedFile !== "undefined") window.handleUploadedFile = handleUploadedFile;
 
 })();
+
+// ==================== Shared QR Scanner (used by item modules) ====================
+// Self-contained camera QR scanner with back/front camera switching. The item
+// modules (git/shoRegItm.js, git/shoCarwork.js, git/shoLodryItm.js) call this
+// from their openQRScannerModal() so the "modalItemIdInput" click actually scans.
+// Returns a promise that resolves when the scanner modal is closed.
+window.my1OpenQRScanner = function (opts) {
+ opts = opts || {};
+ const onDecode = typeof opts.onDecode === 'function' ? opts.onDecode : function () { };
+ const isContinuous = typeof opts.isContinuous === 'function' ? opts.isContinuous : function () { return false; };
+ const onClose = typeof opts.onClose === 'function' ? opts.onClose : function () { };
+
+ const QR_LIB_URL = 'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
+
+ return new Promise(function (resolve) {
+  let settled = false;
+  const done = function () { if (!settled) { settled = true; resolve(); } };
+
+  function ensureQRLib() {
+   return new Promise(function (res, rej) {
+    if (window.Html5Qrcode) { res(); return; }
+    const existing = document.querySelector('script[data-my1-qr-lib="1"]');
+    if (existing) {
+     existing.addEventListener('load', function () { res(); });
+     existing.addEventListener('error', function () { rej(new Error('QR library failed to load')); });
+     return;
+    }
+    const s = document.createElement('script');
+    s.src = QR_LIB_URL;
+    s.async = true;
+    s.setAttribute('data-my1-qr-lib', '1');
+    s.onload = function () { res(); };
+    s.onerror = function () { rej(new Error('QR library failed to load')); };
+    document.head.appendChild(s);
+   });
+  }
+
+  async function checkCamera(facingMode) {
+   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    const e = new Error('Camera API not available');
+    e.name = 'NotSupportedError';
+    throw e;
+   }
+   const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
+   stream.getTracks().forEach(function (t) { t.stop(); });
+  }
+
+  function cameraErrorMessage(err) {
+   const name = err && err.name;
+   if (name === 'NotAllowedError' || name === 'SecurityError') {
+    return 'Camera access was denied. Please allow camera permission in your browser settings.';
+   }
+   if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+    return 'No camera found on this device.';
+   }
+   if (name === 'NotReadableError' || name === 'TrackStartError') {
+    return 'Camera is already in use by another application.';
+   }
+   if (name === 'NotSupportedError' || name === 'OverconstrainedError' || name === 'ConstraintNotSatisfiedError') {
+    return 'Camera is not supported on this device or browser.';
+   }
+   return 'QR scanner is currently unavailable. Please enter the item ID manually.';
+  }
+
+  async function run() {
+   try {
+    await ensureQRLib();
+   } catch (e) {
+    showToast('QR scanner library could not be loaded.');
+    done();
+    return;
+   }
+
+   // Pick a working camera (default back), falling back to the other one.
+   let facingMode = 'environment';
+   try {
+    await checkCamera(facingMode);
+   } catch (err) {
+    const fallback = facingMode === 'environment' ? 'user' : 'environment';
+    try {
+     facingMode = fallback;
+     await checkCamera(facingMode);
+    } catch (err2) {
+     showToast(cameraErrorMessage(err2));
+     done();
+     return;
+    }
+   }
+
+   let modal;
+   try {
+    modal = create_modal_dynamically('qr_scanner_modal');
+   } catch (e) {
+    showToast('QR scanner is currently unavailable. Please enter the item ID manually.');
+    done();
+    return;
+   }
+   const modalContent = modal.contentElement;
+   const modalInstance = modal.modalInstance;
+   const modalElement = modal.modalElement;
+
+   modalContent.innerHTML = `
+<div class="modal-header">
+<h5 class="modal-title">QR Code Scanner</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+<div id="qr-reader-container" class="text-center">
+<div id="qr-reader" style="width:100%"></div>
+<div id="qr-scanner-message" class="text-muted mt-2">Initializing camera...</div>
+</div>
+<div class="d-flex justify-content-center gap-2 mt-3">
+<button type="button" class="btn btn-outline-primary btn-sm" id="qr-switch-camera-btn">
+<i class="fas fa-camera-rotate me-1"></i> <span id="qr-switch-camera-label">Use front camera</span>
+</button>
+<button type="button" class="btn btn-danger btn-sm" id="qr-stop-btn">
+<i class="fas fa-stop me-1"></i> Stop
+</button>
+</div>
+</div>
+`;
+
+   const setStatus = function (msg, cls) {
+    const el = modalContent.querySelector('#qr-scanner-message');
+    if (el) { el.textContent = msg; el.className = (cls || 'text-muted') + ' mt-2'; }
+   };
+   const setSwitchLabel = function () {
+    const lbl = modalContent.querySelector('#qr-switch-camera-label');
+    if (lbl) lbl.textContent = facingMode === 'environment' ? 'Use front camera' : 'Use back camera';
+   };
+
+   let scanner = null;
+   let scanPaused = false;
+   let busy = false;
+
+   const onScanSuccess = function (decodedText) {
+    if (scanPaused) return;
+    scanPaused = true;
+    try { onDecode(decodedText); } catch (e) { console.error('QR onDecode error:', e); }
+
+    if (isContinuous()) {
+     let delay = 1500;
+     try { delay = (window[my1uzr.worknOnPg].confg && window[my1uzr.worknOnPg].confg.scanDelayQR) || 1500; } catch (e) { }
+     setStatus('Scanned: ' + decodedText, 'text-success');
+     setTimeout(function () {
+      scanPaused = false;
+      setStatus('Ready to scan...', 'text-muted');
+     }, delay);
+    } else {
+     setStatus('Scanned!', 'text-success');
+     setTimeout(closeScanner, 400);
+    }
+   };
+
+   async function startScanner() {
+    scanner = new Html5Qrcode('qr-reader');
+    setStatus('Starting camera...', 'text-muted');
+    await scanner.start(
+     { facingMode: facingMode },
+     {
+      fps: 10,
+      qrbox: function (vw, vh) {
+       const size = Math.floor(Math.min(vw, vh) * 0.7);
+       return { width: size, height: size };
+      }
+     },
+     onScanSuccess,
+     function () { /* per-frame "not found" errors: ignore */ }
+    );
+    setStatus('Ready to scan...', 'text-muted');
+    setSwitchLabel();
+   }
+
+   async function safeStop() {
+    if (!scanner) return;
+    const s = scanner;
+    scanner = null;
+    try { await s.stop(); } catch (e) { /* ignore */ }
+    try { s.clear(); } catch (e) { /* ignore */ }
+   }
+
+   function closeScanner() {
+    const inst = bootstrap.Modal.getInstance(modalElement);
+    if (inst) inst.hide();
+   }
+
+   async function switchCamera() {
+    if (busy) return;
+    busy = true;
+    const previous = facingMode;
+    const next = facingMode === 'environment' ? 'user' : 'environment';
+    setStatus('Switching camera...', 'text-muted');
+    try {
+     await safeStop();
+     facingMode = next;
+     scanPaused = false;
+     await checkCamera(facingMode);
+     await startScanner();
+    } catch (err) {
+     showToast(cameraErrorMessage(err));
+     try {
+      facingMode = previous;
+      await checkCamera(facingMode);
+      await startScanner();
+     } catch (e2) {
+      setStatus(cameraErrorMessage(e2), 'text-danger');
+     }
+    } finally {
+     busy = false;
+    }
+   }
+
+   modalElement.addEventListener('shown.bs.modal', async function () {
+    if (scanner) return;
+    try {
+     await startScanner();
+    } catch (err) {
+     console.error('QR scanner start failed:', err);
+     setStatus(cameraErrorMessage(err), 'text-danger');
+     showToast(cameraErrorMessage(err));
+    }
+   });
+
+   const stopBtn = modalContent.querySelector('#qr-stop-btn');
+   if (stopBtn) stopBtn.addEventListener('click', closeScanner);
+
+   const switchBtn = modalContent.querySelector('#qr-switch-camera-btn');
+   if (switchBtn) switchBtn.addEventListener('click', switchCamera);
+
+   modalElement.addEventListener('hidden.bs.modal', async function () {
+    scanPaused = true;
+    await safeStop();
+    try { onClose(); } catch (e) { }
+    done();
+   });
+
+   modalInstance.show();
+  }
+
+  run().catch(function (e) {
+   console.error('QR scanner failed:', e);
+   showToast('QR scanner is currently unavailable. Please enter the item ID manually.');
+   done();
+  });
+ });
+}
+
+function calculateModalPrice() {
+ const qty = parseFloat(document.getElementById('modalItemQty').value) || 1;
+ const rate = parseFloat(document.getElementById('modalItemRate').value) || 0;
+ const price = qty * rate;
+ document.getElementById('modalItemPrice').value = price.toFixed(2);
+
+ // Update add button state
+ updateModalAddButtonState();
+}
+
+function updateModalAddButtonState() {
+ const modalAddItemBtn = document.getElementById('modalAddItemBtn');
+ if (!modalAddItemBtn) return;
+
+ const name = document.getElementById('modalItemName').value.trim();
+ const price = parseFloat(document.getElementById('modalItemPrice').value) || 0;
+ let itemId = document.getElementById('modalItemName').getAttribute('data-item-id');
+ if (!isValidItemId(itemId)) {
+  const exact = items.find(function (i) { return i && i.gn && String(i.gn).trim().toLowerCase() === name.toLowerCase(); });
+  if (exact && isValidItemId(exact.a)) itemId = exact.a;
+ }
+
+ // Check if item exists in inventory
+ const itemExistsInInventory = checkIfItemExists(name);
+
+ // Enable button only if:
+ // 1. Name is not empty
+ // 2. Price > 0
+ // 3. Item exists in inventory OR we have a valid item ID
+ // 4. Item has a valid ID (either from existing item or newly created)
+ if (name && price > 0 && isValidItemId(itemId)) {
+  modalAddItemBtn.disabled = false;
+ } else {
+  modalAddItemBtn.disabled = true;
+ }
+}
+
+// Helper function to check if item exists in inventory
+function checkIfItemExists(itemName) {
+ if (!itemName.trim()) return false;
+
+ const searchName = itemName.toLowerCase().trim();
+
+ // Check if exact match exists in items array
+ const matchedItems = items.filter(item => {
+  if (!item || !item.gn) return false;
+  return item.gn.toLowerCase() === searchName;
+ });
+
+ return matchedItems.length > 0;
+}
+
+function handleModalItemNameBlur(inputElement) {
+ const itemName = inputElement.value.trim();
+ const modalAddNewItemBtn = document.getElementById('modalAddNewItemBtn');
+
+ if (itemName === '') {
+  clearModalItemForm();
+  if (modalAddNewItemBtn) modalAddNewItemBtn.style.display = 'none';
+  // Update button state
+  updateModalAddButtonState();
+  return;
+ }
+
+ const exactMatches = items.filter(item => {
+  if (!item || !item.gn) return false;
+  return item.gn.toLowerCase() === itemName.toLowerCase();
+ });
+ const searchMatches = items.filter(item => {
+  if (!item || !item.gn) return false;
+  return item.gn.toLowerCase().includes(itemName.toLowerCase());
+ });
+
+ if (modalAddNewItemBtn) {
+  modalAddNewItemBtn.style.display = searchMatches.length === 0 ? 'block' : 'none';
+ }
+
+ if (exactMatches.length === 1) {
+  inputElement.setAttribute('data-item-id', exactMatches[0].a);
+ } else {
+  inputElement.removeAttribute('data-item-id');
+ }
+
+ // Always update button state after name blur
+ updateModalAddButtonState();
+}
+
+function clearModalItemForm() {
+ document.getElementById('modalItemName').value = '';
+ document.getElementById('modalItemName').removeAttribute('data-item-id');
+ document.getElementById('modalItemQty').value = '';
+ document.getElementById('modalItemRate').value = '';
+ document.getElementById('modalItemPrice').value = '';
+ document.getElementById('modalItemDescription').value = '';
+ document.getElementById('modalItemIdInput').value = '';
+
+ const imageContainer = document.getElementById('modalItemImageContainer');
+ if (imageContainer) {
+  imageContainer.innerHTML = `
+<i class="fas fa-image fa-3x text-muted"></i>
+<div class="mt-2">
+<small class="text-muted">No Image</small>
+</div>
+`;
+ }
+
+ const modalAddItemBtn = document.getElementById('modalAddItemBtn');
+ if (modalAddItemBtn) {
+  modalAddItemBtn.disabled = true;
+ }
+}
+
+function handleModalItemIdInput(event) {
+ const itemId = event.target.value.trim();
+
+ if (itemId === '') {
+  const existingDropdown = document.querySelector('.item-id-dropdown');
+  if (existingDropdown) {
+   existingDropdown.remove();
+  }
+  return;
+ }
+
+ const matchedItems = items.find((c) => c.a.toString() == itemId);
+
+ const existingDropdown = document.querySelector('.item-id-dropdown');
+ if (existingDropdown) {
+  existingDropdown.remove();
+ }
+
+ if (!matchedItems) {
+  showToast('No items found with this ID');
+
+  if (continuousQRMode && qrScannerActive) {
+   event.target.value = '';
+  }
+ } else {
+  if (window[my1uzr.worknOnPg]?.confg?.addByQR == 1) {
+   addItemDirectlyFromQR(matchedItems);
+   event.target.value = '';
+
+   window.lastQRScannedItemAdded = true;
+   window.lastQRScannedItemId = matchedItems.a;
+
+   // Close the modal after adding via QR
+   const modal = bootstrap.Modal.getInstance(document.getElementById('addItemModal'));
+   if (modal) {
+    modal.hide();
+   }
+  } else {
+   selectModalItem(matchedItems);
+   event.target.value = '';
+
+   window.lastQRScannedItemAdded = true;
+   window.lastQRScannedItemId = matchedItems.a;
+  }
+ }
+}
+
+function selectModalItem(item) {
+ document.getElementById('modalItemName').value = item.gn;
+ document.getElementById('modalItemRate').value = (typeof window.getSellingPriceFromStock === 'function' ? window.getSellingPriceFromStock(item) : (item.k || 0));
+ document.getElementById('modalItemQty').value = '';
+
+ // Set the data-item-id attribute
+ document.getElementById('modalItemName').setAttribute('data-item-id', item.a);
+
+ // Show the product's Tax 1 / Tax 2 (p.j / p.k) in the modal inputs.
+ // The legacy b.js modal has no tax inputs, so guard each lookup.
+ const rates = productTaxRates(item);
+ const modalTax1 = document.getElementById('modalItemTax1');
+ const modalTax2 = document.getElementById('modalItemTax2');
+ if (modalTax1) modalTax1.value = rates.tax1.toFixed(2);
+ if (modalTax2) modalTax2.value = rates.tax2.toFixed(2);
+
+ calculateModalPrice();
+
+ const imageContainer = document.getElementById('modalItemImageContainer');
+ if (imageContainer && item.gu) {
+  imageContainer.innerHTML = `
+<img src="${getGoogleDriveImageUrl(item.gu)}" 
+class="img-fluid rounded" 
+alt="Item Image"
+style="max-width: 100%; height: auto; max-height: 120px; object-fit: cover;"
+onerror="this.style.display='none'; document.getElementById('modalItemImageContainer').innerHTML = '<i class=\\'fas fa-image fa-3x text-muted\\'></i><div class=\\'mt-2\\'><small class=\\'text-muted\\'>No Image</small></div>'">
+`;
+ }
+
+ mostUsedItems[item.a] = (mostUsedItems[item.a] || 0) + 1;
+
+ const modalAddNewItemBtn = document.getElementById('modalAddNewItemBtn');
+ if (modalAddNewItemBtn) modalAddNewItemBtn.style.display = 'none';
+
+ // Update button state
+ updateModalAddButtonState();
+
+ setTimeout(() => {
+  document.getElementById('modalItemQty').focus();
+ }, 10);
+}
+
+async function handleAddNewItemInModal(nwProdNm = '') {
+ // Get the value from modal if not provided
+ if (!nwProdNm) {
+  nwProdNm = document.getElementById('modalItemName').value.trim();
+ }
+
+ // Close the dropdown in modal
+ const dropdown = document.querySelector('.item-dropdown');
+ if (dropdown) {
+  dropdown.remove();
+ }
+
+ // Then open the add item modal
+ await loadExe2Fn(11, [nwProdNm, "handleNewItmAddedToInventory"], [1]);
+}
+function handleNewItmAddedToInventory(nwItmNm) {
+ try {
+  const itemName = nwItmNm.trim();
+  // 2. Find the item in items array (case-insensitive)
+  const findItem = () => {
+   return items.find(item => {
+    if (!item || !item.gn) return false;
+    return item.gn.toLowerCase() === itemName.toLowerCase();
+   });
+  };
+
+  let foundItem = findItem();
+
+  if (!foundItem) {
+   // If not found immediately, wait a bit and try again (item might have just been added)
+   setTimeout(() => {
+    // Refresh items array if needed
+    if (typeof dbDexieManager !== 'undefined') {
+     dbDexieManager.getAllRecords(dbnm, "s").then(async (refreshedItems) => {
+      items = refreshedItems || [];
+      if (typeof window.refreshItemsWithTax === 'function') {
+       try { await window.refreshItemsWithTax(); } catch (e) { console.warn('refreshItemsWithTax failed', e); }
+      }
+      const retryItem = findItem();
+
+      if (retryItem) {
+       // Simulate a dropdown click event to add the item
+       selectModalItem(retryItem);
+       addItemFromModal();
+      } else {
+       showToast(`Item "${itemName}" not found in inventory`);
+      }
+     }).catch(error => {
+      console.error('Error refreshing items:', error);
+      showToast('Error searching for item');
+     });
+    }
+   }, 1000);
+   return;
+  }
+
+  // 3. Use the existing function to add the item
+  selectModalItem(foundItem);
+  addItemFromModal();
+  updateBillSectionsVisibility();
+
+ } catch (error) {
+  console.error('Error in handleNewItmAddedToInventory:', error);
+  showToast('Error adding new inventory item to bill');
+ }
+}
+
+function addItemFromModal() {
+ // Get values from modal
+ const name = document.getElementById('modalItemName').value.trim();
+ const qty = parseInt(document.getElementById('modalItemQty').value) || 1;
+ const rate = parseFloat(document.getElementById('modalItemRate').value) || 0;
+ const price = parseFloat(document.getElementById('modalItemPrice').value) || 0;
+ const description = document.getElementById('modalItemDescription').value;
+ let itemId = document.getElementById('modalItemName').getAttribute('data-item-id');
+ if (!isValidItemId(itemId)) {
+  const exact = items.find(function (i) { return i && i.gn && String(i.gn).trim().toLowerCase() === name.toLowerCase(); });
+  if (exact && isValidItemId(exact.a)) itemId = exact.a;
+ }
+ const imageUrl = document.querySelector('#modalItemImageContainer img')?.src || '';
+
+ // Validation
+ if (!name) {
+  showToast('Please enter item name');
+  document.getElementById('modalItemName').focus();
+  return;
+ }
+
+ if (!price || parseFloat(price) <= 0) {
+  showToast('Please enter a valid price');
+  document.getElementById('modalItemRate').focus();
+  return;
+ }
+ if (!isValidItemId(itemId)) {
+  showToast('Please select a valid item from inventory');
+  document.getElementById('modalItemName').focus();
+  return;
+ }
+
+ // Check if item already exists in sale list with same rate
+ const existingItem = findExistingItemInSaleList(itemId, rate);
+
+ if (existingItem) {
+  // Item exists with same rate - increment quantity
+  incrementItemQuantity(existingItem, qty);
+  showToast(`Quantity increased for ${name}`);
+
+  // Close the modal
+  const modal = bootstrap.Modal.getInstance(document.getElementById('addItemModal'));
+  if (modal) {
+   modal.hide();
+  }
+
+  // Play sound for item addition
+  playSound('https://cdn.pixabay.com/download/audio/2025/10/21/audio_3880ed67e2.mp3');
+  return;
+ }
+
+ // Add new item
+ const addedItemsContainer = document.getElementById('addedItemsContainer');
+ const uniqueItemId = Date.now();
+
+ // Apply the product's Tax 1 / Tax 2 rates to the new card.
+ // Prefer the modal inputs (what the user sees) when that modal has them.
+ const productRow = items.find(i => i.a == itemId) || null;
+ const modalTaxAmounts = (typeof getModalTaxAmounts === 'function') ? getModalTaxAmounts() : null;
+ const rates = modalTaxAmounts
+  ? { tax1: modalTaxAmounts.tax1, tax2: modalTaxAmounts.tax2 }
+  : ((document.getElementById('modalItemTax1') || document.getElementById('modalItemTax2'))
+   ? { tax1: itemTaxClampPercent(document.getElementById('modalItemTax1') && document.getElementById('modalItemTax1').value), tax2: itemTaxClampPercent(document.getElementById('modalItemTax2') && document.getElementById('modalItemTax2').value) }
+   : productTaxRates(productRow));
+ const taxAmounts = modalTaxAmounts || itemTaxAmounts(rates.tax1, rates.tax2, price);
+ const taxPercent = price > 0
+  ? itemTaxRound((taxAmounts.taxAmount / price) * 100)
+  : itemTaxRound(rates.tax1 + rates.tax2);
+
+ const itemHTML = `
+<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}" data-item-tax1="${rates.tax1.toFixed(2)}" data-item-tax2="${rates.tax2.toFixed(2)}" data-item-tax1-amount="${taxAmounts.tax1Amount.toFixed(2)}" data-item-tax2-amount="${taxAmounts.tax2Amount.toFixed(2)}" data-item-tax-percent="${taxPercent.toFixed(2)}" data-item-tax-amount="${taxAmounts.taxAmount.toFixed(2)}">
+<div class="card-body">
+<div class="row">
+<!-- Left side - Image (fixed 3 columns) -->
+<div class="col-3">
+<div class="text-center">
+${`<img src="${imageUrl || 'https://cdn-icons-png.freepik.com/512/13543/13543330.png'}" class="added-item-image" alt="Item Image" 
+onerror="this.src='https://cdn-icons-png.freepik.com/512/13543/13543330.png'">`}
+</div>
+</div>
+
+<!-- Right side - Details (fixed 9 columns) -->
+<div class="col-9">
+<!-- Row 1 - Item Name -->
+<div class="row mb-2 g-0">
+<div class="col-10">
+<strong>${name}</strong>
+</div>
+<div class="col-2 d-flex align-items-center justify-content-end">
+<button class="btn btn-outline-danger btn-sm" onclick="removeItemFromInvoice(${uniqueItemId})">
+<i class="fas fa-trash"></i>
+</button>
+</div>
+</div>
+
+<!-- Row 2 - Quantity, Rate, Price (fixed 4-4-4 columns) -->
+<div class="row mb-2 g-0">
+<div class="col-4">
+<strong>Qty:</strong> 
+<input type="number" 
+class="form-control form-control-sm d-inline-block w-auto" 
+value="${qty}" 
+min="1" 
+step="1"
+style="width: 70px; display: inline-block;"
+onchange="updateItemQuantity(${uniqueItemId}, parseFloat(this.value))"
+onblur="updateItemQuantity(${uniqueItemId}, parseFloat(this.value))">
+</div>
+<div class="col-4">
+<strong>Rate:</strong> 
+<input type="number" 
+class="form-control form-control-sm d-inline-block w-auto" 
+value="${rate.toFixed(2)}" 
+min="0" 
+step="0.01"
+style="width: 80px; display: inline-block;"
+onchange="updateItemRate(${uniqueItemId}, this.value)"
+onblur="updateItemRate(${uniqueItemId}, this.value)">
+</div>
+<div class="col-4">
+<strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${price.toFixed(2)}</span>
+</div>
+</div>
+
+<!-- Row 3 - Description & Tax -->
+<div class="row g-0">
+<div class="col-12 d-flex align-items-baseline flex-wrap">
+<small class="text-muted text-start" style="flex: 1 1 0; min-width: 0; margin-right: 6px; font-size: 1rem; overflow-wrap: anywhere;">${description || ''}</small>
+${itemTaxLineHTML(uniqueItemId, rates.tax1, rates.tax2, taxAmounts.taxAmount)}
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+`;
+
+ addedItemsContainer.insertAdjacentHTML('beforeend', itemHTML);
+
+ // Update bill summary
+ updateBillSummary();
+
+ // Close the modal
+ const modal = bootstrap.Modal.getInstance(document.getElementById('addItemModal'));
+ if (modal) {
+  modal.hide();
+ }
+
+ // Play sound for item addition
+ playSound('https://cdn.pixabay.com/download/audio/2025/10/21/audio_3880ed67e2.mp3');
+ setTimeout(() => {
+  updateBillSectionsVisibility();
+ }, 1111);
+}
+
+// Enable drag-to-scroll on a scrollable element
+function enableDragScroll(element, scrollTarget) {
+ if (!element) return;
+
+ const target = scrollTarget || element;
+
+ let isDown = false;
+ let dragged = false;
+ let startX = 0;
+ let startY = 0;
+ let startScrollLeft = 0;
+ let startScrollTop = 0;
+
+ element.style.cursor = 'grab';
+
+ element.addEventListener('pointerdown', function (e) {
+
+  // Only left mouse button
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+  // Don't drag when clicking controls
+  if (e.target.closest(
+   'input, select, textarea, button, a, label'
+  )) return;
+
+  isDown = true;
+  dragged = false;
+
+  startX = e.clientX;
+  startY = e.clientY;
+
+  startScrollLeft = target.scrollLeft;
+  startScrollTop = target.scrollTop;
+
+  element.style.cursor = 'grabbing';
+  element.style.userSelect = 'none';
+
+  // Keep receiving pointer events
+  element.setPointerCapture?.(e.pointerId);
+ });
+
+
+ element.addEventListener('pointermove', function (e) {
+
+  if (!isDown) return;
+
+  const dx = e.clientX - startX;
+  const dy = e.clientY - startY;
+
+  // Small movement = click
+  if (!dragged && (
+   Math.abs(dx) > 4 ||
+   Math.abs(dy) > 4
+  )) {
+   dragged = true;
+  }
+
+  if (dragged) {
+   target.scrollLeft = startScrollLeft - dx;
+   target.scrollTop = startScrollTop - dy;
+  }
+ });
+
+
+ function stopDrag(e) {
+
+  if (!isDown) return;
+
+  isDown = false;
+
+  element.style.cursor = 'grab';
+  element.style.userSelect = '';
+
+  if (e?.pointerId !== undefined) {
+   element.releasePointerCapture?.(e.pointerId);
+  }
+ }
+
+
+ element.addEventListener('pointerup', stopDrag);
+ element.addEventListener('pointercancel', stopDrag);
+
+
+ // Prevent card click after dragging
+ element.addEventListener('click', function (e) {
+
+  if (dragged) {
+   e.preventDefault();
+   e.stopPropagation();
+
+   dragged = false;
+  }
+
+ }, true);
+}
+
+async function showBillCards() {
+ const modal = create_modal_dynamically('bill_cards_container');
+ const b_ill_cards_container = modal.contentElement;
+ const m_odalInstance = modal.modalInstance;
+ modal.modalElement.querySelector('.modal-dialog').classList.add('modal-xl');
+ // Only the inner bill list should scroll - prevent the outer body from showing a second scrollbar
+ b_ill_cards_container.style.overflowY = 'hidden';
+ b_ill_cards_container.innerHTML = `
+<div class="modal-header">
+<h5 class="modal-title">Search Bills</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+ </div>
+   <div class="modal-body overflow-y-auto" id="billCardsScrollArea" style="max-height: calc(100vh - 170px);">
+<div class="input-group mb-3">
+ <input type="text" class="form-control border border-dark" id="bill_op_search" placeholder="Search by bill no, Mobile, Name...">
+<span class="input-group-text p-0 border border-dark"><i class="fa-solid fa-magnifying-glass px-2"></i></span>
+<span class="input-group-text p-0 border border-dark">
+<button id="billDateToggleBtn" class="btn p-0 px-2 border-0">
+    <i class="fa-solid fa-angle-right text-primary"></i>
+</button>
+</span>
+  </div>
+  <small id="billDateError" class="text-danger d-none">From date cannot be after To date</small>
+<div id="billDateFilterSection" class="row g-2 mb-3" style="display:none;">
+    <div class="col-6">
+        <div class="d-flex align-items-center gap-2">
+            <label class="mb-0 text-nowrap">From</label>
+            <input type="date" class="form-control form-control-sm border border-dark" style="max-width: 65%;" id="billFilterFromDate">
+        </div>
+    </div>
+
+    <div class="col-6">
+        <div class="d-flex align-items-center gap-2">
+            <label class="mb-0 text-nowrap">To</label>
+            <input type="date" class="form-control form-control-sm border border-dark" style="max-width: 65%;" id="billFilterToDate">
+        </div>
+    </div>
+</div>
+ <div id="billCardsContainer" class="row g-3 border"></div>
+</div>
+`;
+
+ // Enable drag-to-scroll for the big bill list
+ const billListScrollArea = b_ill_cards_container.querySelector('#billCardsScrollArea');
+ enableDragScroll(billListScrollArea);
+ billListScrollArea.style.touchAction = 'pan-y';
+
+ // Create a variable to store the filtered bills
+ let filteredBills = stored_bill;
+
+ // Search + Date filter combined
+ const performSearch = (searchTerm) => {
+  let results = stored_bill;
+
+  // Text filter
+  if (searchTerm && searchTerm.trim()) {
+   const term = searchTerm.toLowerCase().trim();
+   results = results.filter(bill => {
+    return (
+     (bill.g && bill.g.toString().toLowerCase().includes(term)) ||
+     (bill.ee && bill.ee.toString().toLowerCase().includes(term)) ||
+     (bill.eh && bill.eh.toLowerCase().includes(term)) ||
+     (bill.ei && bill.ei.toLowerCase().includes(term)) ||
+     (bill.em && bill.em.toString().toLowerCase().includes(term))
+    );
+   });
+  }
+
+  // Date filter
+  const fromDate = document.getElementById('billFilterFromDate')?.value;
+  const toDate = document.getElementById('billFilterToDate')?.value;
+  if (fromDate || toDate) {
+   const from = fromDate ? new Date(fromDate) : null;
+   const to = toDate ? new Date(toDate + 'T23:59:59') : null;
+   results = results.filter(bill => {
+    if (!bill.b) return false;
+    const billDate = new Date(bill.b);
+    if (from && billDate < from) return false;
+    if (to && billDate > to) return false;
+    return true;
+   });
+  }
+
+  filteredBills = results;
+  renderBillCards(filteredBills);
+ };
+
+ // Add search event listener
+ document.getElementById('bill_op_search').addEventListener('input', function (e) {
+  performSearch(e.target.value);
+ });
+
+ // Date toggle button
+ const dateToggleBtn = document.getElementById('billDateToggleBtn');
+ const dateFilterSection = document.getElementById('billDateFilterSection');
+ dateToggleBtn.addEventListener('click', function () {
+  const isHidden = dateFilterSection.style.display === 'none';
+  dateFilterSection.style.display = isHidden ? '' : 'none';
+  const icon = this.querySelector('i');
+  if (isHidden) {
+   icon.classList.remove('fa-angle-right');
+   icon.classList.add('fa-angle-down');
+  } else {
+   icon.classList.remove('fa-angle-down');
+   icon.classList.add('fa-angle-right');
+   // Clear dates when hiding
+   document.getElementById('billFilterFromDate').value = '';
+   document.getElementById('billFilterToDate').value = '';
+   performSearch(document.getElementById('bill_op_search').value);
+  }
+ });
+
+ // Date filter inputs
+ const fromDateEl = document.getElementById('billFilterFromDate');
+ const toDateEl = document.getElementById('billFilterToDate');
+ const billDateError = document.getElementById('billDateError');
+ const validateDates = () => {
+  fromDateEl.classList.remove('border-danger');
+  toDateEl.classList.remove('border-danger');
+  const isInvalid = fromDateEl.value && toDateEl.value && new Date(fromDateEl.value) > new Date(toDateEl.value);
+  fromDateEl.classList.toggle('border-danger', isInvalid);
+  toDateEl.classList.toggle('border-danger', isInvalid);
+  billDateError.classList.toggle('d-none', !isInvalid);
+ };
+ fromDateEl.addEventListener('input', function () {
+  validateDates();
+  performSearch(document.getElementById('bill_op_search').value);
+ });
+ toDateEl.addEventListener('input', function () {
+  validateDates();
+  performSearch(document.getElementById('bill_op_search').value);
+ });
+
+ // Make sure we have client data
+ if (!clientReferrerArray || clientReferrerArray.length === 0) {
+  try {
+   clientReferrerArray = await dbDexieManager.getAllRecords(dbnm, "c") || [];
+  } catch (error) {
+   console.error("Error loading client data:", error);
+   showToast("Error loading client data");
+   b_ill_cards_container.innerHTML = "<p class='text-danger'>Error loading client data</p>";
+   modal_bill_cards.style.display = "block";
+   return;
+  }
+ }
+
+ stored_bill.sort((a, b) => {
+  const dateA = new Date(a.b);
+  const dateB = new Date(b.b);
+  return dateB - dateA;
+ });
+
+ // Create a map for faster client lookup
+ const clientMap = new Map();
+ clientReferrerArray.forEach(client => {
+  clientMap.set(client.a, client);
+ });
+
+ // Join client data to bills
+ stored_bill.forEach(bill => {
+  const client = clientMap.get(bill.e) || {};
+
+  // Add client fields to bill object
+  bill.ee = client.e; // phone
+  bill.ef = client.f; // ?
+  bill.eh = client.h; // first name
+  bill.ei = client.i; // last name
+  bill.el = client.l; // ?
+  bill.em = client.m; // ?
+ });
+
+ // Function to render bill cards
+ function renderBillCards(billsToRender) {
+  const container = document.getElementById('billCardsContainer');
+  container.innerHTML = '';
+
+  if (billsToRender.length === 0) {
+   container.innerHTML = "<p class='text-muted text-center py-4'>No bills match your search</p>";
+   return;
+  }
+
+  billsToRender.forEach(bill => {
+   const col = document.createElement("div");
+   col.className = "col-12 col-md-6 col-lg-4 border border-dark rounded-2";
+
+   const card = document.createElement("div");
+   card.className = "card bill-card h-100";
+   card.dataset.billId = bill.a;
+
+   // Format bill date and time
+   const billDate = bill.b ? new Date(bill.b) : null;
+   const formattedDateTime = billDate ?
+    `${billDate.toLocaleDateString()} ${billDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` :
+    'No date';
+
+   // Format client name and mobile
+   const clientName = `${bill.eh || ''} ${bill.ei || ''}`.trim() || '';
+   const clientMobile = bill.ee || 'No phone';
+
+   // Count items for this bill
+   const billItemCount = stored_bill_items.filter(item => item.e == bill.a).length;
+
+   // Card header with dropdown
+   const cardHeader = document.createElement("div");
+   cardHeader.className = "card-header d-flex justify-content-between align-items-center";
+   cardHeader.innerHTML = `
+    <div>
+    <span class="fw-bold me-3">${bill.g}<span class="bg-secondary text-white rounded-2 ps-2 pe-2 ms-2">${billItemCount}</span></span>
+    <small class="text-muted">${formattedDateTime}</small>
+    </div>
+    <div class="dropdown">
+    <button class="btn btn-sm btn-outline-secondary dropdown-toggle text-primary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <i class="bi bi-gear"></i>
+    </button>
+    <ul class="dropdown-menu border border-dark">
+    <li><button class="dropdown-item text-success" style="border-bottom:2px solid #0d6dfd8e;" data-action="rcpt"><i class="bi bi-cash-coin"></i> Amount Received</button></li>
+    <li><button class="dropdown-item" style="border-bottom:2px solid #0d6dfd8e;" data-action="view"><i class="bi bi-eye"></i> View Details</button></li>
+    <li><button class="dropdown-item" style="border-bottom:2px solid #0d6dfd8e;" data-action="print"><i class="bi bi-printer"></i> Print Bill</button></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><button class="dropdown-item text-danger" data-action="del"><i class="bi bi-trash"></i> Delete Bill</button></li>
+    </ul>
+    </div>
+    `;
+
+   // Card body
+   const cardBody = document.createElement("div");
+   cardBody.className = "card-body";
+   cardBody.innerHTML = `
+    <div class="mb-2">
+    <div class="d-flex align-items-center">
+    <h6 class="card-title mb-1">
+    ${clientName}
+    <small class="ms-2">
+        <a href="tel:${clientMobile}" class="text-decoration-none text-muted">
+            <i class="fa-solid fa-phone"></i> ${clientMobile}
+        </a>
+    </small>
+    </h6>
+    </div>
+    </div>
+    `;
+
+   // Add click event to card body for temporary alert
+   cardBody.addEventListener("click", function (e) {
+    // Don't trigger if clicking on dropdown or buttons
+    if (!e.target.closest('.dropdown') && !e.target.closest('button')) {
+     temporaryAlertFunction(bill.a);
+    }
+   });
+
+   // Add event listeners to dropdown actions
+   const dropdownButtons = cardHeader.querySelectorAll('.dropdown-item');
+   dropdownButtons.forEach(button => {
+    button.addEventListener("click", function (e) {
+     e.stopPropagation();
+     const action = this.dataset.action;
+     handleBillAction(m_odalInstance, action, bill.a);
+    });
+   });
+
+   card.appendChild(cardHeader);
+   card.appendChild(cardBody);
+   col.appendChild(card);
+   container.appendChild(col);
+  });
+ }
+
+ // Initial render
+ renderBillCards(filteredBills);
+ m_odalInstance.show();
+}
+if (typeof showBillCards !== "undefined") window.showBillCards = showBillCards;
+
+async function handleBillAction(m_odalInstance, action, b346illID) {
+ billTableRowId = b346illID;
+ switch (action) {
+  case 'rcpt':
+   let s594CurrItems = stored_bill_items.filter(item => item.e == b346illID);
+   let c594ashInfo = stored_bill_cash_info.filter(cash => cash.tb == 7 && cash.td == b346illID);
+   showAlreadyReceivedAmts(b346illID, s594CurrItems, c594ashInfo);
+   break;
+  case 'view':
+   // Find the selected bill
+   let sCurrBill = stored_bill.find(bill => bill.a == b346illID);
+
+   if (!sCurrBill) {
+    showToast('Bill not found');
+    return;
+   }
+
+   // Set global bill ID
+   billTableRowId = b346illID;
+   billSelectedToUpdate = sCurrBill;
+    if (typeof window !== "undefined") window.billSelectedToUpdate = billSelectedToUpdate;
+
+   // Find related items
+   let sCurrItems = stored_bill_items.filter(item => item.e == b346illID);
+
+   // Find cash info
+   let sCurrCashInfo = stored_bill_cash_info.filter(cash =>
+    cash.tb == 7 && cash.td == b346illID
+   );
+
+   // Set global variables
+   globalBill = sCurrBill;
+   globalItems = sCurrItems;
+   globalCashInfo = sCurrCashInfo;
+
+   const showEyeOnBill = (typeof showEyeMesuremetsTableInBill !== 'undefined' && Number(showEyeMesuremetsTableInBill) === 1)
+    || (typeof window !== 'undefined' && Number(window.showEyeMesuremetsTableInBill) === 1);
+   if (typeof billingRequisit_be === 'function' && showEyeOnBill) {
+    if (typeof setEyeMeasurement === 'function') {
+     if (typeof window.refreshStoredEyeMeasurements === 'function') {
+      try { await window.refreshStoredEyeMeasurements(); } catch (e) { console.warn('refreshStoredEyeMeasurements failed', e); }
+     }
+     let sCurrEyeMsrmnt = stored_eye_msrmnt.find(eye => String(eye.ea) == String(b346illID)) || {};
+     setEyeMeasurement(sCurrEyeMsrmnt);
+     const eyeEditing = !!(document.getElementById('eyeEditActions') && !document.getElementById('eyeEditActions').classList.contains('d-none'));
+     if (!eyeEditing) {
+      if (typeof toggleEyeEdit === 'function') toggleEyeEdit();
+      else if (typeof unlockAllEyeInputs === 'function') unlockAllEyeInputs();
+     }
+    } else {
+     window.showelsemodal("setEyeMeasurement function not found; contact admin;");
+    }
+   }
+   // Load the bill data into the form
+   loadBillIntoForm(sCurrBill, sCurrItems, sCurrCashInfo);
+
+   if (m_odalInstance)
+    m_odalInstance.hide();
+
+   break;
+  case 'del':
+   const billData = stored_bill.find((c) => c.a == b346illID);
+   if (billData && billData.a > 0) {
+    if (await window.showConfirmModal(`Are you sure you want to delete this bill & it's data?`)) {
+     if (await window.showConfirmModal(`This cannot be undone. Continue?`)) {
+      await clearPayload0();
+      payload0.fn = 9;
+      payload0.b = { "a": billData.a };
+      payload0.ul = '2/01.php';
+      payload0.gt = 2;
+      var response = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
+      //var tTxt = postCall_Json("https://my1.in/2/1.php", payload0, 0, false);
+      //var response = JSON.parse(tTxt);
+      if (response && response.su == 1) {
+       await delBillByID(billData.a);
+      } else {
+       window.showelsemodal(response.ms);
+      }
+     }
+    }
+   } else {
+    window.showelsemodal("bill not found");
+   }
+   break;
+  case 'print':
+   playSound('https://bigsoundbank.com/UPLOAD/mp3/1417.mp3');
+   sho_bl_modal(billTableRowId);
+   break;
+ }
+}
+async function sho_bl_modal(billTableRowId) {
+ // Play print sound
+ playSound('https://bigsoundbank.com/UPLOAD/mp3/1417.mp3');
+
+ await loadExe2Fn(22, [billTableRowId], []);
+
+ // Make the invoice preview (paper) adapt to the available modal/viewport space
+ initResponsiveInvoicePreview();
+}
+
+// Make #previewMain (the "paper") responsive: instead of the fixed px size
+// applied by the remote bePr.js, it fills the available width and its height
+// follows the paper aspect ratio automatically. Uses CSS `zoom` so the layout
+// (and centering) reflows correctly; it never affects the image download,
+// which clones the invoice into its own element.
+function fitInvoicePreview() {
+ const previewMain = document.querySelector('#beprModal #previewMain') || document.querySelector('#previewMain');
+ if (!previewMain) return;
+ const display = previewMain.closest('.preview-display');
+ if (!display) return;
+
+ // Base (unzoomed) paper size as set inline by applyPaperSettings()
+ const curZoom = parseFloat(previewMain.style.zoom) || 1;
+ const baseW = parseFloat(previewMain.style.width) || (previewMain.offsetWidth / curZoom);
+ const baseH = parseFloat(previewMain.style.height) || (previewMain.offsetHeight / curZoom);
+ if (!baseW || !baseH) return;
+
+ const cs = getComputedStyle(display);
+ const availW = display.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+ if (availW <= 0) return;
+
+ // Responsive: fit the paper to the screen, but never let it grow wider than a
+ // phone-like preview. On desktop this keeps the invoice at mobile width
+ // (centered by `.preview-display`); on phones the available width is already
+ // below the cap, so nothing changes there. Height follows the paper's aspect
+ // ratio automatically via the same zoom; `.preview-display` scrolls if tall.
+ const MAX_PREVIEW_WIDTH = 390; // phone-like paper width on desktop
+ let scale = Math.min(availW, MAX_PREVIEW_WIDTH) / baseW;
+ scale = Math.max(0.1, Math.min(scale, 6));
+
+ previewMain.style.flexShrink = '0'; // never let the flex container distort the paper
+ previewMain.style.zoom = scale;
+}
+if (typeof fitInvoicePreview !== "undefined") window.fitInvoicePreview = fitInvoicePreview;
+
+// Make the invoice content (#invoiceContentMain) exactly match the paper
+// (#previewMain) size. The remote bePr.js only sets top/left on
+// #printContentArea, so it shrink-wraps the content instead of the paper.
+// Forcing the content area to the paper's (unzoomed) size makes the invoice
+// fill the page; longer invoices scroll inside it.
+function fitInvoiceContent() {
+ const previewMain = document.querySelector('#beprModal #previewMain') || document.querySelector('#previewMain');
+ const printContent = document.querySelector('#beprModal #printContentArea') || document.querySelector('#printContentArea');
+ const invoice = document.querySelector('#beprModal #invoiceContentMain') || document.querySelector('#invoiceContentMain');
+ if (!previewMain || !printContent || !invoice) return;
+
+ // Base (unzoomed) paper size as set inline by applyPaperSettings()
+ const curZoom = parseFloat(previewMain.style.zoom) || 1;
+ const baseW = parseFloat(previewMain.style.width) || (previewMain.offsetWidth / curZoom);
+ const baseH = parseFloat(previewMain.style.height) || (previewMain.offsetHeight / curZoom);
+ if (!baseW || !baseH) return;
+
+ // Content area = exactly the paper ("fill the paper"; position is ignored)
+ printContent.style.boxSizing = 'border-box';
+ printContent.style.top = '0';
+ printContent.style.left = '0';
+ printContent.style.width = baseW + 'px';
+ printContent.style.height = baseH + 'px';
+ printContent.style.overflow = 'hidden';
+
+ // Invoice fills the content area; scrolls if longer than the page
+ invoice.style.width = '100%';
+ invoice.style.height = '100%';
+ invoice.style.overflow = 'auto';
+}
+if (typeof fitInvoiceContent !== "undefined") window.fitInvoiceContent = fitInvoiceContent;
+
+// Fit both the paper (to the screen) and the invoice (to the paper).
+function refreshResponsivePreview() {
+ fitInvoiceContent();
+ fitInvoicePreview();
+}
+
+// Wrap the remote applyPaperSettings (so paper-config changes re-fit) and keep
+// the preview fitting on window resize / orientation change.
+function initResponsiveInvoicePreview() {
+ if (typeof window.applyPaperSettings === 'function' && !window.applyPaperSettings.__my1Responsive) {
+  const orig = window.applyPaperSettings;
+  const wrapped = function () {
+   const r = orig.apply(this, arguments);
+   setTimeout(refreshResponsivePreview, 0);
+   return r;
+  };
+  wrapped.__my1Responsive = true;
+  window.applyPaperSettings = wrapped;
+ }
+
+ refreshResponsivePreview();
+ // Re-fit once layout has settled (modal show transition / flex height).
+ setTimeout(refreshResponsivePreview, 150);
+ setTimeout(refreshResponsivePreview, 500);
+
+ if (!window.__my1RespPrevBound) {
+  window.__my1RespPrevBound = true;
+  let t = null;
+  window.addEventListener('resize', function () {
+   if (!document.querySelector('#previewMain')) return;
+   clearTimeout(t);
+   t = setTimeout(refreshResponsivePreview, 120);
+  });
+ }
+}
+async function showAlreadyReceivedAmts(b346illID, s594CurrItems, c594ashInfo) {
+ const freshCashInfo = (await dbDexieManager.getAllRecords(dbnm, 'r') || []).filter(cash => cash.tb === 7 && cash.td == b346illID);
+ c594ashInfo = freshCashInfo;
+ const modal = create_modal_dynamically('received_amount_modal');
+ const modalContent = modal.contentElement;
+ const modalInstance = modal.modalInstance;
+
+ //content not scrolling got resolved after adding below;
+ modal.modalElement.querySelector('.modal-dialog').classList.add('modal-lg');
+ const modalBody = modalContent.querySelector('.modal-body');
+ if (!modalBody) {
+  modalContent.style.maxHeight = '85vh';
+  modalContent.style.overflowY = 'auto';
+ }
+
+ // Calculate bill total from items (price + tax)
+ const billTotal = s594CurrItems.reduce((sum, item) => sum + (parseFloat(item.g) || 0) + billItemTaxBreakdown(item).total, 0);
+
+ // Find the bill to get discount information
+ const currentBill = stored_bill.find(bill => bill.a == b346illID);
+ const discountAmount = parseFloat(currentBill?.k || 0);
+
+ // Calculate final amount after discount
+ const finalAmount = billTotal - discountAmount;
+
+ // Calculate totals from existing payments
+ const totalReceived = c594ashInfo.reduce((sum, payment) => sum + parseFloat(payment.j || 0), 0);
+ const balance = finalAmount - totalReceived;
+
+ // Store bill total and discount info globally for this modal
+ window.modalBillTotal = billTotal;
+ window.modalFinalAmount = finalAmount;
+ window.modalDiscountAmount = discountAmount;
+ window.modalExistingPaymentsTotal = totalReceived;
+
+ // Set modal title and content
+ modalContent.innerHTML = `
+<div class="modal-header">
+<h5 class="modal-title">Add Received Amount - Bill ${b346illID}</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body" style="background-color: #d4c7ec;">
+<!-- Bill Summary Section -->
+<div class="card mb-3">
+<div class="card-header bg-light">
+<h6 class="mb-0">Bill Summary</h6>
+</div>
+<div class="card-body">
+<div class="row text-center">
+<div class="col-4">
+<small class="text-muted">Items Total</small>
+<div class="fw-bold">₹${billTotal.toFixed(2)}</div>
+</div>
+<div class="col-4">
+<small class="text-muted">Discount</small>
+<div class="fw-bold text-danger">-₹${discountAmount.toFixed(2)}</div>
+</div>
+<div class="col-4">
+<small class="text-muted">Final Amount</small>
+<div class="fw-bold text-primary">₹${finalAmount.toFixed(2)}</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Add Received Amount Card -->
+<div class="card mb-3" id="addReceivedAmountCard">
+<div class="card-header bg-light">
+<h6 class="mb-0">Add New Payment</h6>
+</div>
+<div class="card-body">
+<div class="row align-items-end g-2">
+<!-- Date & Time - col-4 -->
+<div class="col-4">
+<label class="form-label small text-muted mb-1">Date</label>
+<div class="position-relative" style="min-width:0;overflow:hidden;">
+<input type="text" class="form-control form-control-sm" id="receivedDateTimeModal" placeholder="Select Date & Time" style="border:1px solid #212529;color:transparent;caret-color:transparent;">
+<span id="receivedDateTimeModal_disp" style="position:absolute;inset:0;display:flex;align-items:center;padding:0 .75rem;pointer-events:none;color:#212529;font-size:.875rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%;"></span>
+</div>
+</div>
+
+<!-- Amount - col-4 -->
+<div class="col-4">
+<label class="form-label small text-muted mb-1">Rcvd Amt.</label>
+<input type="text" class="form-control form-control-sm" placeholder="Amount" id="receivedAmountModal" inputmode="decimal" autocomplete="off" oninput="window.allowFloat(this,2)" style="border:1px solid #212529;">
+</div>
+
+<!-- Payment Type - col-2 -->
+<div class="col-2">
+<label class="form-label small text-muted mb-1">Type</label>
+<div class="d-inline-block position-relative" style="height:31px;">
+<button class="btn btn-primary btn-sm" id="paymentTypeBtnModal" type="button" tabindex="-1" style="pointer-events:none;">
+<i class="fas fa-credit-card"></i>
+</button>
+<select id="paymentTypeModal" onchange="this.blur();updatePaymentTypeIcon('paymentTypeModal','paymentTypeBtnModal')" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:3;border:1px solid #212529;">
+<option value="0">Select</option>
+<option value="1">Cash</option>
+<option value="2">Cheque</option>
+<option value="3">Card</option>
+<option value="4">UPI</option>
+<option value="5">Bank Transfer</option>
+</select>
+</div>
+</div>
+
+<!-- Add Button - col-2 -->
+<div class="col-2">
+<button class="btn btn-primary btn-sm" onclick="addTempReceivedAmount(${b346illID})">
+<i class="fas fa-plus"></i>
+</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Temporary payments container (hidden) -->
+<div id="tempPaymentsContainer" style="display: none;"></div>
+
+<!-- Grand Total Summary -->
+<div class="row mt-4">
+<div class="col-12">
+<div class="card border-success">
+<div class="card-body bg-light">
+<div class="row text-center">
+<div class="col-4">
+<h6>Final Amount</h6>
+<h4 class="text-primary">₹<span id="modalGrandBillTotal">${finalAmount.toFixed(2)}</span></h4>
+</div>
+<div class="col-4">
+<h6>Rcvd</h6>
+<h4 class="text-success">₹<span id="modalGrandTotalReceived">${totalReceived.toFixed(2)}</span></h4>
+</div>
+<div class="col-4">
+<h6>Bal</h6>
+<h4 class="text-danger">₹<span id="modalGrandBalance">${balance.toFixed(2)}</span></h4>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Existing Received Amounts -->
+<div id="addedReceivedAmountsContainerModal">
+<h6>Existing Payments</h6>
+${renderExistingPayments(c594ashInfo)}
+</div>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+<button type="button" class="btn btn-success" onclick="submitAllPayments(${b346illID})">Submit new Payments</button>
+</div>
+`;
+
+ // Also update the updateModalTotals function to use final amount
+ window.updateModalTotals = function () {
+  // Get existing payments total and final amount from stored values
+  const existingPaymentsTotal = window.modalExistingPaymentsTotal || 0;
+  const tempPaymentsTotal = window.tempReceivedAmounts.reduce((sum, payment) => sum + payment.amount, 0);
+  const totalReceived = existingPaymentsTotal + tempPaymentsTotal;
+  const finalAmount = window.modalFinalAmount || 0;
+  const balance = finalAmount - totalReceived;
+
+  document.getElementById('modalGrandTotalReceived').textContent = totalReceived.toFixed(2);
+  document.getElementById('modalGrandBalance').textContent = balance.toFixed(2);
+
+  // Update balance color based on amount
+  const balanceElement = document.getElementById('modalGrandBalance');
+  if (balance === 0) {
+   balanceElement.className = 'text-success';
+  } else if (balance > 0) {
+   balanceElement.className = 'text-warning';
+  } else {
+   balanceElement.className = 'text-danger';
+  }
+ };
+
+ const receivedDateTimeModalInput = document.getElementById('receivedDateTimeModal');
+ const receivedDateTimeModalDisp = document.getElementById('receivedDateTimeModal_disp');
+ if (receivedDateTimeModalInput) receivedDateTimeModalInput.value = '';
+ if (receivedDateTimeModalDisp) receivedDateTimeModalDisp.textContent = '';
+ initializeModalDatePicker();
+
+ // Store temporary payments array for this modal
+ window.tempReceivedAmounts = [];
+ modalInstance.show();
+}
+async function submitAllPayments(billId) {
+ if (window.tempReceivedAmounts.length === 0) {
+  showToast('No new payments to submit');
+  return;
+ }
+ if (window.tempReceivedAmounts.length > 1) {
+  window.showelsemodal('only 1 amount entry allowed at a time;');
+  return;
+ }
+
+ try {
+  // Find the bill data
+  const billData = stored_bill.find((c) => c.a == billId);
+  if (!billData) {
+   window.showelsemodal("Bill not found, refresh all data");
+   return false;
+  }
+
+  // Show confirmation with all payment details
+  let paymentDetails = window.tempReceivedAmounts.map(payment => {
+   return `₹${payment.amount} (${getPaymentTypeText(payment.paymentType)}) on ${formatDateTime(payment.dateTime)}`;
+  }).join('\n');
+
+  if (!(await showConfirmModal(`Submit the following payments for bill ${billId}:\n\n${paymentDetails}`))) {
+   return;
+  }
+  await clearPayload0();
+
+  payload0.fn = 23;
+  for (const payment of window.tempReceivedAmounts) {
+   let paymentPayload = {
+    h: billData.e, // Client ID from bill
+    i: payment.paymentType, // Payment type (1=Cash, 2=Cheque, etc.)
+    j: payment.amount.toString(), // Amount received
+    k: payment.dateTime.split(' ')[0], // Date only (YYYY-MM-DD format)
+    td: billData.a, // Bill ID
+    n: payment.constraintCounter || 0
+   };
+
+   payload0.r = paymentPayload;
+   payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, getMaxDateTables());
+   payload0.ul = '2/0b.php';
+   payload0.gt = 2;
+   const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
+   //const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
+
+   if (response.su !== 1) {
+    window.showelsemodal(`Failed to save payment: ${extractMessages(response)}`);
+    return;
+   } else {
+    handl_op_rspons(response, 0);
+    showToast('All payments submitted successfully!');
+    setTimeout(() => {
+     window.tempReceivedAmounts = [];
+    }, 1000);
+   }
+  }
+  stored_bill_cash_info = await dbDexieManager.getAllRecords(dbnm, "r") || [];
+
+  const modal = bootstrap.Modal.getInstance(document.getElementById('received_amount_modal'));
+  if (modal) {
+   modal.hide();
+  }
+
+ } catch (error) {
+  console.error('Error submitting payments:', error);
+  showToast('Error submitting payments: ' + error.message);
+ }
+}
+async function addTempReceivedAmount(billId) {
+ const dateTime = document.getElementById('receivedDateTimeModal').value;
+ const amount = parseFloat(document.getElementById('receivedAmountModal').value) || 0;
+ const paymentType = document.getElementById('paymentTypeModal').value;
+
+ // Validation
+ if (!dateTime) {
+  showToast('Please select date and time');
+  return;
+ }
+
+ if (amount <= 0) {
+  showToast('Please enter a valid amount');
+  return;
+ }
+
+ // Extract date part
+ const paymentDate = dateTime.split(' ')[0];
+
+ // Get client ID from bill data
+ const currentBill = stored_bill.find(bill => bill.a == billId);
+ if (!currentBill) {
+  showToast('Bill not found');
+  return;
+ }
+
+ const clientId = currentBill.e;
+ const paymentTypeInt = parseInt(paymentType) || 0;
+
+ // Collect all matching payments - ONLY for same date
+ const matchingPayments = [];
+
+ // Check in temporary payments - ONLY same date
+ window.tempReceivedAmounts.forEach(payment => {
+  const existingDate = payment.dateTime.split(' ')[0];
+  const existingAmount = parseFloat(payment.amount) || 0;
+
+  if (payment.clientId === clientId &&
+   Math.abs(existingAmount - amount) < 0.001 &&
+   existingDate === paymentDate && // Same date
+   payment.paymentType === paymentType) {
+   matchingPayments.push({
+    constraintCounter: payment.constraintCounter || 0,
+    date: existingDate,
+    source: 'temp'
+   });
+  }
+ });
+
+ // Check in stored payments for this client - ONLY same date
+ stored_bill_cash_info.forEach(payment => {
+  const existingDate = payment.k || '';
+  const existingAmount = parseFloat(payment.j) || 0;
+  const existingPaymentType = payment.i || '0';
+
+  if (payment.f === 0 &&
+   payment.h === clientId &&
+   Math.abs(existingAmount - amount) < 0.001 &&
+   existingDate === paymentDate && // Same date
+   parseInt(existingPaymentType) === paymentTypeInt) {
+   matchingPayments.push({
+    constraintCounter: payment.n || 0,
+    date: existingDate,
+    source: 'stored'
+   });
+  }
+ });
+
+ // Calculate constraint counter
+ let constraintCounter = 0; // Default to 1 for first payment on this date
+
+ if (matchingPayments.length > 0) {
+  // Find the highest constraint counter for this date
+  const constraintCounters = matchingPayments.map(p => p.constraintCounter || 0);
+  const maxCounter = Math.max(...constraintCounters);
+
+  // Ask user for confirmation
+  let message = `Same amount (₹${amount.toFixed(2)}) on same date (${paymentDate}) already exists.\n\n`;
+
+  if (matchingPayments.length === 1) {
+   message += `Current constraint counter: ${maxCounter}\n\n`;
+  } else {
+   message += `Current constraint counters: 0 to ${maxCounter}\n\n`;
+  }
+
+  const nextCounter = maxCounter + 1;
+  message += `Do you want to add another payment with constraint counter ${nextCounter}?`;
+
+  const userResponse = await showConfirmModal(message);
+
+  if (!userResponse) {
+   return;
+  }
+
+  constraintCounter = nextCounter;
+ } else {
+  constraintCounter = 0;
+ }
+
+ // Add to temporary array with constraint counter
+ const tempPayment = {
+  id: Date.now(),
+  dateTime: dateTime,
+  amount: amount,
+  paymentType: paymentType,
+  constraintCounter: constraintCounter || 0,
+  clientId: clientId,
+  timestamp: new Date().toISOString()
+ };
+
+ window.tempReceivedAmounts.push(tempPayment);
+ renumberConstraintCounters(window.tempReceivedAmounts || []);
+
+ // Update UI to show temporary payments
+ updateTempPaymentsUI();
+
+ // Clear the form
+ document.getElementById('receivedAmountModal').value = '';
+ document.getElementById('paymentTypeModal').value = '0';
+ updatePaymentTypeIcon('paymentTypeModal', 'paymentTypeBtnModal');
+
+ // Update the totals in the modal
+ updateModalTotals();
+
+ // Show success message with constraint counter info
+ if (constraintCounter > 0) {
+  showToast(`Payment added to temporary list with constraint counter: ${constraintCounter}. Click "Submit All Payments" to save.`);
+ } else {
+  showToast('Payment added to temporary list. Click "Submit All Payments" to save.');
+ }
+}
+function updateModalTotals() {
+ // Get existing payments total and bill total from stored values
+ const existingPaymentsTotal = window.modalExistingPaymentsTotal || 0;
+ const tempPaymentsTotal = window.tempReceivedAmounts.reduce((sum, payment) => sum + payment.amount, 0);
+ const totalReceived = existingPaymentsTotal + tempPaymentsTotal;
+ const billTotal = window.modalBillTotal || 0;
+ const balance = billTotal - totalReceived;
+
+ document.getElementById('modalGrandTotalReceived').textContent = totalReceived.toFixed(2);
+ document.getElementById('modalGrandBalance').textContent = balance.toFixed(2);
+
+ // Update balance color based on amount
+ const balanceElement = document.getElementById('modalGrandBalance');
+ if (balance === 0) {
+  balanceElement.className = 'text-success';
+ } else if (balance > 0) {
+  balanceElement.className = 'text-warning';
+ } else {
+  balanceElement.className = 'text-danger';
+ }
+}
+function updateTempPaymentsUI() {
+ const container = document.getElementById('tempPaymentsContainer');
+
+ if (window.tempReceivedAmounts.length === 0) {
+  container.style.display = 'none';
+  return;
+ }
+
+ container.style.display = 'block';
+ container.innerHTML = '<h6 class="mt-4">New Payments to be Added</h6>';
+
+ window.tempReceivedAmounts.forEach((payment, index) => {
+  const paymentTypeIcon = getPaymentTypeIcon(payment.paymentType);
+  const formattedDate = formatDateTime(payment.dateTime);
+
+  // Show constraint counter if it exists and is greater than 0
+  const constraintCounterBadge = payment.constraintCounter > 0 ?
+   `<span class="badge bg-${getConstraintCounterColor(payment.constraintCounter)} ms-1" title="Constraint counter: ${payment.constraintCounter}">${payment.constraintCounter}</span>` : '';
+
+  const paymentHTML = `
+<div class="card mb-2 received-amount-card" style="border-left: 4px solid #ffc107 !important;">
+<div class="card-body py-2">
+<div class="row align-items-center">
+<div class="col-4">
+<small class="text-muted"><i class="far fa-calendar me-1"></i>${formattedDate}</small>
+</div>
+<div class="col-6">
+<strong>${paymentTypeIcon} ₹${payment.amount.toFixed(2)}${constraintCounterBadge}</strong>
+</div>
+<div class="col-2 text-end">
+<button class="btn btn-outline-danger btn-sm" onclick="removeTempPayment(${payment.id})">
+<i class="fas fa-times"></i>
+</button>
+</div>
+</div>
+</div>
+</div>
+`;
+
+  container.insertAdjacentHTML('beforeend', paymentHTML);
+ });
+}
+function removeTempPayment(paymentId) {
+ window.tempReceivedAmounts = window.tempReceivedAmounts.filter(payment => payment.id !== paymentId);
+ renumberConstraintCounters(window.tempReceivedAmounts || []);
+ updateTempPaymentsUI();
+ updateModalTotals();
+ showToast('Payment removed from temporary list');
+}
+function addAmountToBill(billId) {
+ const dateTime = document.getElementById('receivedDateTimeModal').value;
+ const amount = parseFloat(document.getElementById('receivedAmountModal').value) || 0;
+ const paymentType = document.getElementById('paymentTypeModal').value;
+
+ // Validation
+ if (!dateTime) {
+  showToast('Please select date and time');
+  return;
+ }
+
+ if (amount <= 0) {
+  showToast('Please enter a valid amount');
+  return;
+ }
+
+ if (paymentType === '0') {
+  showToast('Please select payment type');
+  return;
+ }
+
+ // Show alert as requested
+ window.showsuccessmodal(`Adding amount to bill ${billId}\nAmount: ₹${amount}\nPayment Type: ${getPaymentTypeText(paymentType)}\nDate: ${dateTime}`);
+
+ // Here you would typically make an API call to save the payment
+ // For now, just show success message
+ showToast(`₹${amount} added to bill ${billId}`);
+
+ // Clear the form
+ document.getElementById('receivedAmountModal').value = '';
+ document.getElementById('paymentTypeModal').value = '0';
+ updatePaymentTypeIcon('paymentTypeModal', 'paymentTypeBtnModal');
+
+ // Note: In a real implementation, you would:
+ // 1. Make API call to save the payment
+ // 2. Update the UI with the new payment
+ // 3. Possibly refresh the payments list
+}
+async function initializeModalDatePicker() {
+ try {
+  await window.initDateTimePicker('receivedDateTimeModal', { displayFormatter: window.formatLongDisplay });
+ } catch (error) {
+  console.error('Failed to initialize modal date picker:', error);
+  // Fallback: set current datetime manually
+  document.getElementById('receivedDateTimeModal').value = formatForPicker(new Date());
+ }
+}
+function renderExistingPayments(payments) {
+ if (!payments || payments.length === 0) {
+  return `
+<div class="text-center text-muted py-3">
+<i class="fas fa-receipt fa-2x mb-2"></i>
+<p>No payments recorded yet</p>
+</div>
+`;
+ }
+
+ let html = '';
+ payments.forEach(payment => {
+  const paymentTypeIcon = getPaymentTypeIcon(payment.i);
+  const paymentTypeText = getPaymentTypeText(payment.i);
+  const formattedDate = payment.k ? formatDateTime(payment.k) : 'No date';
+
+  // Show constraint counter (n field) if it exists and is greater than 0
+  const constraintCounterBadge = payment.n > 0 ?
+   `<span class="badge bg-${getConstraintCounterColor(payment.n)} ms-1" title="Constraint counter for same amount on same date"> ${payment.n}</span>` : '';
+
+  html += `
+<div class="card mb-2 received-amount-card">
+<div class="card-body py-2">
+<div class="row align-items-center">
+<div class="col-6">
+<small class="text-muted"><i class="far fa-calendar me-1"></i>${formattedDate}</small>
+</div>
+<div class="col-4">
+<strong>${paymentTypeIcon} ₹${parseFloat(payment.j || 0).toFixed(2)}${constraintCounterBadge}</strong>
+<br>
+<small class="text-muted">${paymentTypeText}</small>
+</div>
+<div class="col-2 text-end">
+<small class="text-muted">${payment.a}</small>
+</div>
+</div>
+</div>
+</div>
+`;
+ });
+
+ return html;
+}
+function loadBillIntoForm(bill, billItems, cashInfo) {
+ try {
+  window.billSaved = false;
+  const addBtn = document.getElementById('addReceivedAmountBtn');
+  if (addBtn) {
+   addBtn.disabled = false;
+   addBtn.classList.remove('btn-secondary');
+   addBtn.classList.add('btn-primary');
+  }
+  // Populate basic bill information
+  document.getElementById('invoiceNumber').value = bill.g || '';
+  const receiptDateValue = normalizeFullDateTime(bill.f || '');
+  if (receiptDatePicker) receiptDatePicker.setCommitted(receiptDateValue);
+  document.getElementById('receiptDate').value = receiptDateValue;
+  document.getElementById('billNotes').value = bill.i || '';
+  document.getElementById('discountAmount').value = bill.k || 0;
+  const discountAmount = parseFloat(bill.k) || 0;
+  if (discountAmount > 0) {
+   setTimeout(() => {
+    calculateDiscountFromAmount();
+   }, 100);
+  }
+
+
+  // Set delivery date from bill.i.dldt if available, leave empty if optional
+  let deliveryValue = (bill.i && bill.i.dldt) ? normalizeFullDateTime(bill.i.dldt) : '';
+  if (deliveryDatePicker) deliveryDatePicker.setCommitted(deliveryValue);
+  document.getElementById('deliveryDate').value = deliveryValue;
+
+  // Set client information
+  if (bill.e) {
+   document.getElementById('clientId').value = bill.e;
+   // Fetch and display client name
+   loadClientName(bill.e);
+  }
+
+  // Clear existing items
+  document.getElementById('addedItemsContainer').innerHTML = '';
+
+  // Add bill items to the form
+  billItems.forEach(item => {
+   addBillItemToForm(item);
+  });
+
+  updateBillSectionsVisibility();
+  // Clear and populate received amounts
+  receivedAmounts = [];
+  if (cashInfo && cashInfo.length > 0) {
+   cashInfo.forEach(payment => {
+    receivedAmounts.push({
+     id: payment.a,
+     clientId: bill.e,
+     dateTime: payment.k || new Date().toISOString().split('T')[0] + ' 00:00',
+     amount: parseFloat(payment.j) || 0,
+     paymentType: payment.i || '0',
+     constraintCounter: payment.n || 0,
+     timestamp: payment.b || new Date().toISOString()
+    });
+   });
+  }
+  updateNewPaymentsUI();
+
+  // Update bill summary
+  updateBillSummary();
+  updateGrandTotalsForUpdate();
+
+  // Enable update and print buttons
+  enableUpdateButton();
+  enablePrintButton();
+  disableSaveBtn();
+
+  // Scroll to top of form
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  showToast('Bill loaded successfully');
+
+ } catch (error) {
+  console.error('Error loading bill into form:', error);
+  showToast('Error loading bill data');
+ }
+}
+
+function addBillItemToForm(item) {
+ // This function adds an item directly to the added items container
+ // without going through the form entry process
+
+ const addedItemsContainer = document.getElementById('addedItemsContainer');
+ const uniqueItemId = Date.now();
+ updateBillSectionsVisibility();
+
+ // Find item details from items array
+ const itemDetails = items.find(i => i.a == (item.f || item.a)) || {};
+ const linePrice = parseFloat(item.g) || 0;
+ const taxInfo = billItemTaxBreakdown(item);
+ const tax1 = linePrice > 0 ? itemTaxClampPercent((taxInfo.tax1 / linePrice) * 100) : 0;
+ const tax2 = linePrice > 0 ? itemTaxClampPercent((taxInfo.tax2 / linePrice) * 100) : 0;
+ const taxAmount = taxInfo.total;
+ const taxPercent = linePrice > 0 ? itemTaxRound((taxAmount / linePrice) * 100) : itemTaxRound(tax1 + tax2);
+ const savedRate = linePrice / (parseFloat(item.h) || 1);
+ const rateToShow = savedRate > 0 ? savedRate : (parseFloat((typeof window.getSellingPriceFromStock === 'function' ? window.getSellingPriceFromStock(itemDetails) : itemDetails.k) || 0) || 0);
+
+ const itemHTML = `
+<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${item.f || item.a}" data-item-rate="${rateToShow}" data-item-description="${String(item.i || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" data-item-subname="${String(taxInfo.subName || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" data-item-tax1="${tax1.toFixed(2)}" data-item-tax2="${tax2.toFixed(2)}" data-item-tax1-amount="${taxInfo.tax1.toFixed(2)}" data-item-tax2-amount="${taxInfo.tax2.toFixed(2)}" data-item-tax-percent="${taxPercent.toFixed(2)}" data-item-tax-amount="${taxAmount.toFixed(2)}">
+<div class="card-body">
+<div class="row">
+<!-- Left side - Image -->
+<div class="col-3">
+<div class="text-center">
+${`<img src="${getGoogleDriveImageUrl(itemDetails.gu) || 'https://cdn-icons-png.freepik.com/512/13543/13543330.png'}" class="added-item-image" alt="Item Image" 
+onerror="this.src='https://cdn-icons-png.freepik.com/512/13543/13543330.png'">`}
+</div>
+</div>
+
+<!-- Right side - Details -->
+<div class="col-9">
+<!-- Row 1 - Item Name -->
+<div class="row mb-2 g-0">
+<div class="col-10">
+<strong>${itemDetails.gn || 'Unknown Item'}</strong>
+</div>
+<div class="col-2 d-flex align-items-center justify-content-end">
+<button class="btn btn-outline-danger btn-sm" onclick="removeItemFromInvoice(${uniqueItemId})">
+<i class="fas fa-trash"></i>
+</button>
+</div>
+</div>
+
+<!-- Row 2 - Quantity, Rate, Price -->
+<div class="row mb-2 g-0">
+<div class="col-4">
+<strong>Qty:</strong> 
+<input type="number" 
+class="form-control form-control-sm d-inline-block w-auto" 
+value="${item.h || '1'}" 
+min="1" 
+step="1"
+style="width: 70px; display: inline-block;"
+onchange="updateItemQuantity(${uniqueItemId}, parseFloat(this.value))"
+onblur="updateItemQuantity(${uniqueItemId}, parseFloat(this.value))">
+</div>
+<div class="col-4">
+<strong>Rate:</strong> 
+<input type="number" 
+class="form-control form-control-sm d-inline-block w-auto" 
+ value="${rateToShow.toFixed(2)}" 
+ min="0" 
+ step="0.01"
+ style="width: 80px; display: inline-block;"
+ onchange="updateItemRate(${uniqueItemId}, this.value)"
+ onblur="updateItemRate(${uniqueItemId}, this.value)">
+</div>
+<div class="col-4">
+<strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${linePrice.toFixed(2)}</span>
+</div>
+</div>
+
+<!-- Row 3 - Description & Tax -->
+<div class="row g-0">
+<div class="col-12 d-flex align-items-baseline flex-wrap">
+<small class="text-muted text-start" style="flex: 1 1 0; min-width: 0; margin-right: 6px; font-size: 1rem; overflow-wrap: anywhere;">${item.i || ''}</small>
+${itemTaxLineHTML(uniqueItemId, tax1, tax2, taxAmount)}
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+`;
+
+ addedItemsContainer.insertAdjacentHTML('beforeend', itemHTML);
+}
+
+async function loadClientName(clientId) {
+ try {
+  // Try to find client in existing array first
+  let client = clientReferrerArray.find(c => c.a == clientId);
+
+  // If not found, try to fetch from database
+  if (!client && clientReferrerArray.length === 0) {
+   clientReferrerArray = await dbDexieManager.getAllRecords(dbnm, "c") || [];
+   client = clientReferrerArray.find(c => c.a == clientId);
+  }
+
+  if (client) {
+   const clientName = `${client.h || ''}`.trim();
+   const clientMobile = client.e || '';
+   document.getElementById('c_dtls_lient').value = clientName || clientMobile || 'Unknown Client';
+  } else {
+   document.getElementById('c_dtls_lient').value = 'Client ID: ' + clientId;
+  }
+ } catch (error) {
+  console.error('Error loading client name:', error);
+  document.getElementById('c_dtls_lient').value = 'Client ID: ' + clientId;
+ }
+}
+
+async function delBillByID(b426illID) {
+ const billID = Number.isFinite(Number(b426illID)) ? Number(b426illID) : b426illID;
+ try {
+  let billDeleteResult = await dbDexieManager.deleteRecords(dbnm, 'b', billID);
+  if (!billDeleteResult || billDeleteResult.success === false) {
+   throw new Error((billDeleteResult && billDeleteResult.error) || 'Failed to delete bill');
+  }
+  let itemsToDelete = (await dbDexieManager.getAllRecords(dbnm, 'i')).filter(o => o.e == billID);
+  for (let o of itemsToDelete) {
+   let itemDeleteResult = await dbDexieManager.deleteRecords(dbnm, 'i', o.a);
+   if (!itemDeleteResult || itemDeleteResult.success === false) {
+    throw new Error((itemDeleteResult && itemDeleteResult.error) || 'Failed to delete item');
+   }
+  }
+  let eyeMsrmntsToDelete = (await dbDexieManager.getAllRecords(dbnm, 'be')).filter(o => o.ea == billID);
+  for (let o of eyeMsrmntsToDelete) {
+   let eyeDeleteResult = await dbDexieManager.deleteRecords(dbnm, 'be', o.a);
+   if (!eyeDeleteResult || eyeDeleteResult.success === false) {
+    throw new Error((eyeDeleteResult && eyeDeleteResult.error) || 'Failed to delete eye measurement');
+   }
+  }
+  let cashInfoToDelete = (await dbDexieManager.getAllRecords(dbnm, 'r')).filter(o => o.tb === 7 && o.td == billID);
+  for (let o of cashInfoToDelete) {
+   let cashDeleteResult = await dbDexieManager.deleteRecords(dbnm, 'r', o.a);
+   if (!cashDeleteResult || cashDeleteResult.success === false) {
+    throw new Error((cashDeleteResult && cashDeleteResult.error) || 'Failed to delete cash info');
+   }
+  }
+  if (typeof stored_bill !== 'undefined') {
+   stored_bill = stored_bill.filter(b => b.a != billID);
+  }
+  if (typeof stored_bill_items !== 'undefined') {
+   stored_bill_items = stored_bill_items.filter(o => o.e != billID);
+  }
+  if (typeof stored_bill_cash_info !== 'undefined') {
+   stored_bill_cash_info = stored_bill_cash_info.filter(o => !(o.tb === 7 && o.td == billID));
+  }
+  if (typeof stored_eye_msrmnt !== 'undefined') {
+   stored_eye_msrmnt = stored_eye_msrmnt.filter(o => o.ea != billID);
+  }
+  document.querySelectorAll('.bill-card[data-bill-id="' + billID + '"]').forEach(card => {
+   card.closest('.col-12, .col-md-6, .col-lg-4')?.remove();
+  });
+  let searchInput = document.getElementById('bill_op_search');
+  if (searchInput) {
+   searchInput.dispatchEvent(new Event('input'));
+  }
+  await setMaxBillNo();
+  await showToast("Deleted Successfully.");
+ } catch (error) {
+  console.error('delBillByID failed:', error);
+  window.showelsemodal("Initialization error - please refresh");
+ }
+}
+// Canonicalize any stored date variant to "YYYY-MM-DD HH:mm" (the format the
+// pickers and validation expect). Handles date-only values, ISO 'T', seconds
+// and extra trailing tokens such as "2026-11-20 00:00:00 00:00".
+function normalizeFullDateTime(val) {
+ if (val === null || val === undefined) return '';
+ const trimmed = String(val).trim();
+ if (!trimmed) return '';
+ const parts = trimmed.split(/[\sT]+/).filter(Boolean);
+ const dateMatch = parts[0].match(/^(\d{4}-\d{2}-\d{2})/);
+ if (!dateMatch) return trimmed;
+ const timeMatch = (parts[1] || '').match(/^(\d{1,2}):(\d{1,2})/);
+ const hours = timeMatch ? timeMatch[1].padStart(2, '0') : '00';
+ const minutes = timeMatch ? timeMatch[2].padStart(2, '0') : '00';
+ return `${dateMatch[1]} ${hours}:${minutes}`;
+}
+
+// Initialize pickers for all datetime fields
+async function initializeDatePickers() {
+ try {
+  receiptDatePicker = await window.initDateTimePicker('receiptDate');
+  deliveryDatePicker = await window.initDateTimePicker('deliveryDate');
+  receivedDateTimePicker = await window.initDateTimePicker('receivedDateTime', { scrollable: true });
+
+ } catch (error) {
+  console.error('Failed to initialize date pickers:', error);
+  showToast('Date picker initialization failed - using basic input');
+  // Fallback: set current datetime manually
+  initializeBasicDates();
+ }
+}
+
+// Fallback function if the picker library fails to load
+function initializeBasicDates() {
+ const nowStr = formatForPicker(new Date());
+ document.getElementById('receiptDate').value = nowStr;
+ document.getElementById('deliveryDate').value = nowStr;
+ document.getElementById('receivedDateTime').value = nowStr;
+}
+
+// Validation function that scrolls to invalid field
+function validateAndScrollToField(fieldId, message) {
+ const field = document.getElementById(fieldId);
+ if (field) {
+  // Scroll to the field
+  const fieldRect = field.getBoundingClientRect();
+  const scrollTopPosition = window.pageYOffset + fieldRect.top - 100;
+  window.scrollTo({ top: scrollTopPosition, behavior: 'smooth' });
+
+  // Focus on the field
+  field.focus();
+
+  // Highlight the field with a red glowing border (auto-clears on edit)
+  markInvalid(field);
+ }
+
+ if (message) {
+  showToast(message);
+ }
+
+ return false;
+}
+
+function handleUploadedFile(fileUrl, fileName, fileType, fileId) {
+ document.getElementById('itemDescription').value = fileUrl;
+}
+async function temporary() {
+ await loadExe2Fn(20, ['fileUploadTesting', 'loader', null, '*', 'handleUploadedFile'], [1]);
+}
+function enableSaveBtn() {
+ const updateBtn = document.getElementById('saveBtn');
+ updateBtn.disabled = false;
+ updateBtn.classList.remove('btn-secondary');
+ updateBtn.classList.add('btn-success');
+}
+
+function disableSaveBtn() {
+ const updateBtn = document.getElementById('saveBtn');
+ updateBtn.disabled = true;
+ updateBtn.classList.remove('btn-success');
+ updateBtn.classList.add('btn-secondary');
+}
+function enableUpdateButton() {
+ const updateBtn = document.getElementById('updateBtn');
+ updateBtn.disabled = false;
+ updateBtn.classList.remove('btn-secondary');
+ updateBtn.classList.add('btn-warning');
+}
+
+function disableUpdateButton() {
+ const updateBtn = document.getElementById('updateBtn');
+ updateBtn.disabled = true;
+ updateBtn.classList.remove('btn-warning');
+ updateBtn.classList.add('btn-secondary');
+}
+
+function enablePrintButton() {
+ const printBtn = document.getElementById('printBtn');
+ printBtn.disabled = false;
+ printBtn.classList.remove('btn-secondary');
+ printBtn.classList.add('btn-info');
+}
+
+function disablePrintButton() {
+ const printBtn = document.getElementById('printBtn');
+ printBtn.disabled = true;
+ printBtn.classList.remove('btn-info');
+ printBtn.classList.add('btn-secondary');
+}
+
+function syncPaymentActionButtons() {
+ if (!billSelectedToUpdate) return;
+ const hasPendingPayments = (window.newUpdatePayments || []).length > 0;
+ if (hasPendingPayments) {
+  disableUpdateButton();
+  disablePrintButton();
+ } else {
+  enableUpdateButton();
+  enablePrintButton();
+ }
+}
+
+async function crUpBill(fnNumber) {
+ try {
+  // Validate required fields
+  ['invoiceNumber', 'receiptDate', 'c_dtls_lient'].forEach(function (id) { clearInvalid(document.getElementById(id)); });
+  const invoiceNumber = document.getElementById('invoiceNumber').value.trim();
+  const receiptDateValue = document.getElementById('receiptDate').value;
+  const deliveryDateValue = document.getElementById('deliveryDate').value;
+  const clientId = document.getElementById('clientId').value;
+  const r_eferrerId = parseInt(document.getElementById('referrerId').value);
+
+  if (!invoiceNumber) {
+   return validateAndScrollToField('invoiceNumber', 'Please enter invoice number');
+  }
+
+  if (!receiptDateValue) {
+   return validateAndScrollToField('receiptDate', 'Please select receipt date and time');
+  }
+
+  // Validate clientId - cannot be blank or 0
+  if (!clientId || clientId === '0') {
+   return validateAndScrollToField('c_dtls_lient', 'Please select a customer');
+  }
+
+  // Validate date formats and ensure time is included
+  if (!receiptDateValue.includes(' ') || receiptDateValue.split(' ')[1].length !== 5) {
+   return validateAndScrollToField('receiptDate', 'Please select both date and time for receipt');
+  }
+
+  // Parse the date strings (format: "YYYY-MM-DD HH:mm")
+  const receiptDate = receiptDateValue;
+  const deliveryDate = deliveryDateValue;
+
+  // Get added items
+  const addedItems = document.querySelectorAll('#addedItemsContainer .added-item-card');
+  if (addedItems.length === 0) {
+   return validateAndScrollToField('itemName', 'Please add at least one item to the bill');
+  }
+
+  // Eye measurement is captured now (it reads the live form), but attached to payload0
+  // only AFTER clearPayload0() below - that helper deletes every key it does not keep.
+  let eyeMeasurementPayload = null;
+  if (typeof getEyeMeasurement === 'function' && shoEyeMsrmntTbl) {
+   const eyeMeasurement = getEyeMeasurement();
+   if (eyeMeasurement !== null) {
+    eyeMeasurement.ef = r_eferrerId;
+    eyeMeasurementPayload = eyeMeasurement;
+   } else {
+    const confirmed = await window.showConfirmModal("Save without eye measurement?");
+    if (!confirmed) {
+     return;
+    }
+   }
+  }
+
+  // Prepare bill items array
+  for (const item of Array.from(addedItems)) {
+   let itemId = String(item.getAttribute('data-item-id') || '').trim();
+   const name = (item.querySelector('strong')?.textContent || 'Unknown item').trim();
+   if (!isValidItemId(itemId)) {
+    const match = items.find(function (i) { return i && i.gn && String(i.gn).trim().toLowerCase() === name.toLowerCase(); });
+    if (match && isValidItemId(match.a)) {
+     itemId = String(match.a).trim();
+     item.setAttribute('data-item-id', itemId);
+    }
+   }
+   if (!isValidItemId(itemId)) {
+    window.showelsemodal('Item ID required for: ' + name);
+    return;
+   }
+  }
+
+  const billItems = Array.from(addedItems).map(item => {
+   const itemId = item.getAttribute('data-item-id') || '';
+   const name = item.querySelector('strong').textContent;
+   const qtyInput = item.querySelector('input[type="number"]');
+   const rateInput = item.querySelectorAll('input[type="number"]')[1];
+   const priceElement = item.querySelector('span[id^="itemPrice-"]');
+   const descriptionElement = item.querySelector('.text-muted');
+
+   const qty = parseInt(qtyInput.value) || 0;
+   const price = parseFloat(priceElement.textContent) || 0;
+   const description = descriptionElement.textContent === '' ? '' : descriptionElement.textContent;
+   const combinedTaxAmount = Math.round((parseFloat(item.getAttribute('data-item-tax-amount')) || 0) * 100) / 100;
+   const hasSplitAmounts = item.hasAttribute('data-item-tax1-amount') || item.hasAttribute('data-item-tax2-amount');
+   const tax1Amount = hasSplitAmounts
+    ? Math.round((parseFloat(item.getAttribute('data-item-tax1-amount')) || 0) * 100) / 100
+    : combinedTaxAmount;
+   const tax2Amount = hasSplitAmounts
+    ? Math.round((parseFloat(item.getAttribute('data-item-tax2-amount')) || 0) * 100) / 100
+    : 0;
+   const subName = item.getAttribute('data-item-subname') || '';
+
+   // Split layout: j/tax1 amount, k/tax2 amount, t/sub-name.
+   // Legacy layout: j/sub-name, t/combined tax amount.
+   if (itemTaxSplitEnabled()) {
+    const obj = {
+     "h": qty.toString(), // Quantity
+     "f": itemId, // Item ID
+     "g": price, // Price
+     "i": description, // Description
+     "j": tax1Amount, // Tax 1 amount
+     "k": tax2Amount, // Tax 2 amount
+     "t": subName // Sub Name (laundry operation)
+    };
+    return obj;
+   }
+
+   const obj = {
+    "h": qty.toString(), // Quantity
+    "f": itemId, // Item ID
+    "g": price, // Price
+    "i": description, // Description
+    "j": subName, // Sub Name (laundry operation)
+    "t": combinedTaxAmount // Tax amount
+   };
+   return obj;
+  });
+
+  const receivedPayments = receivedAmounts.map(payment => {
+   const paymentDateTime = payment.dateTime;
+   return {
+    "i": payment.paymentType, // Payment type
+    "j": payment.amount.toFixed(2), // Amount
+    "k": paymentDateTime.split(' ')[0], // Date only (YYYY-MM-DD)
+    "n": payment.constraintCounter || 0, // Constraint counter (default to 1 if not set)
+    "g": payment.g || '' // Cashier c.a
+   };
+  });
+
+  if (receivedPayments.length == 0) {
+   const confirmed = await window.showConfirmModal("Continue without money?");
+   if (!confirmed) {
+    return;
+   }
+  }
+  await clearPayload0();
+  if (eyeMeasurementPayload) {
+   if (fnNumber == 7) eyeMeasurementPayload.ea = billSelectedToUpdate.a;
+   payload0.be = eyeMeasurementPayload;
+  }
+  payload0.i = billItems;
+  payload0.b = {
+   "e": clientId, // Client ID (validated above)
+   "f": receiptDate.split(' ')[0], // Receipt date only (YYYY-MM-DD)
+   "g": invoiceNumber, // Invoice number
+   "i": document.getElementById('billNotes').value.trim(),
+   "k": document.getElementById('discountAmount').value || 0,
+   "l": r_eferrerId
+  };
+  if (fnNumber == 7) {
+   const hasChanges = checkChangeInSoldItems();
+   if (!hasChanges) {
+    window.showelsemodal("Nothing updated, as no changes are made;");
+    return;
+   }
+   payload0.b.a = billSelectedToUpdate.a;
+  }
+  payload0.r = receivedPayments;
+
+  payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, getMaxDateTables());
+  payload0.vw = 1;
+  payload0.fn = fnNumber;//3=save new bill,7=update bill
+  const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
+  if (response.su == 1) {
+   if (fnNumber == 7) {
+    let t1999mp = await dbDexieManager.deleteRecords(dbnm, 'b', billSelectedToUpdate.a);
+    let t2000mp = (await dbDexieManager.getAllRecords(dbnm, 'i')).filter(o => o.e === billSelectedToUpdate.a).forEach(o => dbDexieManager.deleteRecords(dbnm, 'i', o.a));
+    let t2001mp = await dbDexieManager.deleteRecords(dbnm, 'be', { ea: billSelectedToUpdate.a }, ['ea']);
+    let t2002mp = (await dbDexieManager.getAllRecords(dbnm, 'r')).filter(o => o.tb === 7 && o.td === billSelectedToUpdate.a).forEach(o => dbDexieManager.deleteRecords(dbnm, 'r', o.a));
+   }
+   handl_op_rspons(response, 0);
+   disableSaveBtn();
+   disableUpdateButton();
+   enablePrintButton();
+
+   if (fnNumber == 3) {
+    window.billSaved = true;
+    const addBtn = document.getElementById('addReceivedAmountBtn');
+    if (addBtn) {
+     addBtn.disabled = true;
+     addBtn.classList.remove('btn-primary');
+     addBtn.classList.add('btn-secondary');
+    }
+    updateReceivedAmountsUI();
+    refreshGrandTotals();
+   } else if (fnNumber == 7) {
+    updateNewPaymentsUI();
+    refreshGrandTotals();
+   }
+
+   if (response?.b?.l && Array.isArray(response.b.l)) {
+    for (let item of response.b.l) {
+     if (item?.g.toString() === invoiceNumber) {
+      billTableRowId = item.a;
+      break;
+     }
+    }
+   }
+   showToast('Bill saved successfully!');
+
+   // Play success sound
+   playSound('https://cdn.uppbeat.io/audio-files/550fafd5d5403a2f6e11b6feefd0899e/ca847a02644164ab90c3d80471e5ac23/57f3eeed9ce661826b31f4cf857e3afe/STREAMING-ui-double-digital-beep-gfx-sounds-1-1-00-00.mp3');
+  } else {
+   let t1848mp = extractMessages(response);
+   if (t1848mp.length == 0) t1848mp = response.ms;
+   window.showelsemodal(t1848mp);
+  }
+ } catch (error) {
+  console.error('Error saving bill:', error);
+  showToast('Error saving bill: ' + error.message);
+ }
+}
+
+function extractMessages(data) {
+ if (!data) return "";
+ if (typeof data.ms === 'string') return data.ms;
+ if (Array.isArray(data)) {
+  return data
+   .map(obj => (obj && obj.ms) || "")
+   .filter(ms => ms !== "")
+   .join('\n');
+ }
+ if (Array.isArray(data.r)) {
+  return data.r
+   .map(obj => (obj && obj.ms) || "")
+   .filter(ms => ms !== "")
+   .join('\n');
+ }
+ if (data.r && typeof data.r.ms === 'string') return data.r.ms;
+ return "";
+}
+
+function calculateDiscountFromPercentage() {
+ const totalPrice = parseFloat(document.getElementById('totalPrice').textContent) || 0;
+ const discountPercentage = parseFloat(document.getElementById('discountPercentage').value) || 0;
+
+ if (totalPrice <= 0) return;
+
+ // Calculate discount amount
+ const discountAmount = (totalPrice * discountPercentage) / 100;
+ document.getElementById('discountAmount').value = discountAmount.toFixed(2);
+
+ // No need to set finalAmount element as it doesn't exist
+ // Just update grand totals directly
+ refreshGrandTotals();
+}
+
+function calculateDiscountFromAmount() {
+ const totalPrice = parseFloat(document.getElementById('totalPrice').textContent) || 0;
+ const discountAmount = parseFloat(document.getElementById('discountAmount').value) || 0;
+
+ if (totalPrice <= 0) return;
+
+ // Calculate discount percentage (clamped to the input's 99.99 max)
+ let discountPercentage = totalPrice > 0 ? (discountAmount / totalPrice) * 100 : 0;
+ if (discountPercentage > 99.99) discountPercentage = 99.99;
+ document.getElementById('discountPercentage').value = discountPercentage.toFixed(2);
+
+ // No need to set finalAmount element as it doesn't exist
+ // Just update grand totals directly
+ refreshGrandTotals();
+}
+
+async function loadQRScanner() {
+ return new Promise((resolve, reject) => {
+  if (window.Html5QrcodeScanner) {
+   resolve('QR Scanner already loaded');
+   return;
+  }
+
+  const script = document.createElement('script');
+  script.src = QR_SCANNER_CDN;
+  script.async = true;
+
+  let loaded = false;
+
+  script.onload = () => {
+   if (!loaded) {
+    loaded = true;
+    // Additional check to ensure the library is properly loaded
+    if (typeof Html5QrcodeScanner !== 'undefined') {
+     resolve('QR Scanner loaded successfully');
+    } else {
+     reject(new Error('QR Scanner library not properly initialized'));
+    }
+   }
+  };
+
+  script.onerror = () => {
+   if (!loaded) {
+    loaded = true;
+    reject(new Error('Failed to load QR Scanner from CDN'));
+   }
+  };
+
+  // Add timeout to handle hanging requests
+  setTimeout(() => {
+   if (!loaded) {
+    loaded = true;
+    reject(new Error('QR Scanner loading timeout'));
+   }
+  }, 10000); // 10 second timeout
+
+  document.head.appendChild(script);
+ });
+}
+
+// Helper function to stop QR scanner
+function stopQRScanner(scanner, container, overlay) {
+ // Reset flags
+ qrScannerState.isPaused = false;
+ qrScannerState.shouldResume = false;
+
+ if (scanner) {
+  scanner.clear().then(() => {
+   // Wait a bit to ensure scanner is fully stopped
+   setTimeout(() => {
+    if (container && container.parentNode) {
+     document.body.removeChild(container);
+    }
+    if (overlay && overlay.parentNode) {
+     document.body.removeChild(overlay);
+    }
+    currentQRScanner = null;
+    qrScannerActive = false;
+    html5QrcodeScanner = null;
+
+    // Remove event listeners
+    window.removeEventListener('beforeunload', handleBackButton);
+    window.removeEventListener('popstate', handleBackButton);
+   }, 500);
+  }).catch(error => {
+   // Force cleanup even if scanner fails to clear
+   if (container && container.parentNode) {
+    document.body.removeChild(container);
+   }
+   if (overlay && overlay.parentNode) {
+    document.body.removeChild(overlay);
+   }
+   currentQRScanner = null;
+   qrScannerActive = false;
+   html5QrcodeScanner = null;
+
+   window.removeEventListener('beforeunload', handleBackButton);
+   window.removeEventListener('popstate', handleBackButton);
+  });
+ }
+}
+
+// Handle back button press
+function handleBackButton() {
+ if (qrScannerActive && currentQRScanner) {
+  // Find and close the scanner
+  const container = document.getElementById('qr-reader');
+  const overlay = document.querySelector('div[style*="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7)"]');
+
+  if (container && overlay) {
+   stopQRScanner(currentQRScanner, container, overlay);
+
+   // Prevent default back navigation if scanner is active
+   if (continuousQRMode) {
+    // Create a new history entry to prevent going back
+    history.pushState(null, null, location.href);
+    return false;
+   }
+  }
+ }
+}
+
+// QR Scanner Modal Functions
+async function openQRScannerModal() {
+ try {
+  // Load QR scanner library first
+  await loadQRScanner();
+
+  // Create modal for QR scanner
+  const modal = create_modal_dynamically('qr_scanner_modal');
+  const modalContent = modal.contentElement;
+  const modalInstance = modal.modalInstance;
+
+  // Set modal content
+  modalContent.innerHTML = `
+<div class="modal-header">
+<h5 class="modal-title">QR Code Scanner</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+<div id="qr-reader-container" class="text-center">
+<div id="qr-reader" style="width: 100%"></div>
+<div id="qr-scanner-status" class="mt-3">
+<div class="spinner-border text-primary" role="status" id="qr-scanner-loading">
+<span class="visually-hidden">Loading...</span>
+</div>
+<p class="text-muted mt-2" id="qr-scanner-message">Initializing camera...</p>
+</div>
+</div>
+<div class="text-center mt-3">
+<button class="btn btn-danger btn-sm" id="stopScannerBtn">
+<i class="fas fa-stop me-1"></i> Stop Scanner
+</button>
+</div>
+</div>
+`;
+
+  modalInstance.show();
+
+  // Add scanner container style
+  const scannerContainer = document.getElementById('qr-reader-container');
+  scannerContainer.style.minHeight = '300px';
+
+  // Initialize scanner after modal is shown
+  modal.modalElement.addEventListener('shown.bs.modal', async function () {
+   await initializeQRScannerInModal(modalInstance, modalContent);
+  });
+
+  // Handle stop button
+  document.getElementById('stopScannerBtn').addEventListener('click', function () {
+   stopQRScanner(html5QrcodeScanner, document.getElementById('qr-reader'), modal.modalElement);
+   modalInstance.hide();
+  });
+
+ } catch (error) {
+  console.error('QR Scanner modal failed:', error);
+  showToast('QR Scanner failed to load. Please try again.');
+ }
+}
+
+async function initializeQRScannerInModal(modalInstance, modalContent) {
+ try {
+  // Check camera permissions
+  const stream = await navigator.mediaDevices.getUserMedia({
+   video: { facingMode: "environment" }
+  });
+  stream.getTracks().forEach(track => track.stop());
+
+  // Reset scanner state
+  qrScannerState.isPaused = false;
+  qrScannerState.shouldResume = false;
+
+  // Initialize scanner
+  html5QrcodeScanner = new Html5QrcodeScanner(
+   "qr-reader",
+   {
+    fps: 10,
+    qrbox: { width: 250, height: 250 }
+   },
+   false
+  );
+
+  currentQRScanner = html5QrcodeScanner;
+  qrScannerActive = true;
+
+  // Hide loading indicator
+  document.getElementById('qr-scanner-loading').style.display = 'none';
+  document.getElementById('qr-scanner-message').textContent = 'Ready to scan...';
+
+  html5QrcodeScanner.render(
+   async (decodedText) => {
+    // Check if we should resume scanning
+    if (qrScannerState.shouldResume) {
+     qrScannerState.isPaused = false;
+     qrScannerState.shouldResume = false;
+    }
+
+    // If scanning is paused, ignore this scan
+    if (qrScannerState.isPaused) {
+     return;
+    }
+
+    // Pause scanning temporarily
+    qrScannerState.isPaused = true;
+
+    // Show scanning status
+    document.getElementById('qr-scanner-message').textContent = 'Processing QR code...';
+    document.getElementById('qr-scanner-message').className = 'text-info mt-2';
+
+    // Play scan sound immediately when QR is detected
+    playSound('https://assets.mixkit.co/active_storage/sfx/1082/1082.wav');
+
+    // Check if item exists
+    const matchedItems = items.find((c) => c.a.toString() == decodedText);
+
+    if (!matchedItems) {
+     // Item not found - show confirmation modal
+     // Keep scanning paused until user decides
+
+     // Update status message
+     document.getElementById('qr-scanner-message').textContent = 'Item not found in database';
+     document.getElementById('qr-scanner-message').className = 'text-danger mt-2';
+
+     // Show confirmation modal
+     const confirmModal = create_modal_dynamically('item_not_found_modal');
+     const confirmContent = confirmModal.contentElement;
+     const confirmInstance = confirmModal.modalInstance;
+
+     confirmContent.innerHTML = `
+<div class="modal-header">
+<h5 class="modal-title">Item Not Found</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+<p>Scanned QR code: <strong>${decodedText}</strong></p>
+<p>This item ID was not found in the database.</p>
+<p>Do you want to continue scanning?</p>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="handleItemNotFoundNo()">No, Stop</button>
+<button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="handleItemNotFoundYes()">Yes, Continue</button>
+</div>
+`;
+
+     confirmInstance.show();
+
+     return;
+    }
+
+    // Item found - process it
+    document.getElementById('modalItemIdInput').value = decodedText;
+
+    // Process the scanned item
+    handleModalItemIdInput({ target: { value: decodedText } });
+
+    // Clear the input
+    document.getElementById('modalItemIdInput').value = '';
+
+    // Show success message
+    document.getElementById('qr-scanner-message').textContent = 'Item found! Checking if added to sale list...';
+    document.getElementById('qr-scanner-message').className = 'text-success mt-2';
+
+    // Wait for a moment to allow the item to be processed and added
+    setTimeout(() => {
+     // Check if item was successfully added to sale list
+     const itemWasAdded = verifyItemAddedToSaleList(matchedItems.a);
+
+     if (itemWasAdded) {
+      document.getElementById('qr-scanner-message').textContent = 'Item added successfully!';
+
+      // If not in continuous mode, close the scanner modal after successful addition
+      if (!continuousQRMode) {
+       setTimeout(() => {
+        // Clear the scanner
+        if (html5QrcodeScanner) {
+         html5QrcodeScanner.clear().then(() => {
+          qrScannerActive = false;
+          currentQRScanner = null;
+          html5QrcodeScanner = null;
+         });
+        }
+
+        // Close the modal
+        const modal = bootstrap.Modal.getInstance(modalInstance.modalElement);
+        if (modal) {
+         modal.hide();
+        }
+
+        showToast('Item added to sale list successfully!');
+       }, 1000);
+      } else {
+       // In continuous mode, just show success and continue
+       showToast('Item added to sale list successfully!');
+
+       const scanDelay = window[my1uzr.worknOnPg]?.confg?.scanDelayQR || 3000;
+
+       setTimeout(() => {
+        qrScannerState.isPaused = false;
+        qrScannerState.shouldResume = false;
+
+        // Reset status message after delay
+        setTimeout(() => {
+         if (document.getElementById('qr-scanner-message')) {
+          document.getElementById('qr-scanner-message').textContent = 'Ready to scan...';
+          document.getElementById('qr-scanner-message').className = 'text-muted mt-2';
+         }
+        }, 500);
+
+       }, scanDelay);
+      }
+     } else {
+      // Item was not added for some reason
+      document.getElementById('qr-scanner-message').textContent = 'Item found but could not be added. Please try again.';
+      document.getElementById('qr-scanner-message').className = 'text-warning mt-2';
+
+      // Resume scanning after delay
+      setTimeout(() => {
+       qrScannerState.isPaused = false;
+       qrScannerState.shouldResume = false;
+       document.getElementById('qr-scanner-message').textContent = 'Ready to scan...';
+       document.getElementById('qr-scanner-message').className = 'text-muted mt-2';
+      }, 2000);
+     }
+    }, 500);
+   },
+   (errorMessage) => {
+    // Don't show error messages for normal camera operation
+    // Only log for debugging, but don't display to user
+    if (!errorMessage.includes('NotFoundException') && !errorMessage.includes('No QR code')) {
+    }
+
+    // Don't update the UI with error messages
+    // The message stays as "Ready to scan..."
+   }
+  );
+
+  // Handle modal close
+  modalInstance.modalElement.addEventListener('hidden.bs.modal', function () {
+   // Reset scanner state
+   qrScannerState.isPaused = false;
+   qrScannerState.shouldResume = false;
+
+   if (html5QrcodeScanner) {
+    // Stop the scanner first
+    html5QrcodeScanner.clear().then(() => {
+     qrScannerActive = false;
+     currentQRScanner = null;
+     html5QrcodeScanner = null;
+
+     // Remove the scanner DOM element
+     const scannerElement = document.getElementById('qr-reader');
+     if (scannerElement) {
+      scannerElement.innerHTML = '';
+     }
+    }).catch(error => {
+     qrScannerActive = false;
+     currentQRScanner = null;
+     html5QrcodeScanner = null;
+    });
+   }
+  });
+
+ } catch (error) {
+  console.error('QR Scanner initialization failed:', error);
+
+  // Update status message
+  if (document.getElementById('qr-scanner-message')) {
+   document.getElementById('qr-scanner-message').textContent =
+    'Camera access denied or not available. Please check permissions.';
+   document.getElementById('qr-scanner-message').className = 'text-danger mt-2';
+  }
+
+  // Hide loading indicator
+  if (document.getElementById('qr-scanner-loading')) {
+   document.getElementById('qr-scanner-loading').style.display = 'none';
+  }
+
+  showToast('QR scanner is currently unavailable. Please enter the item ID manually.');
+ }
+}
+
+function handleItemNotFoundYes() {
+ // Set flag to resume scanning
+ qrScannerState.shouldResume = true;
+
+ // Reset status message
+ setTimeout(() => {
+  if (document.getElementById('qr-scanner-message')) {
+   document.getElementById('qr-scanner-message').textContent = 'Ready to scan...';
+   document.getElementById('qr-scanner-message').className = 'text-muted mt-2';
+  }
+ }, 100);
+
+ // Close the item not found modal
+ const itemNotFoundModal = bootstrap.Modal.getInstance(document.getElementById('item_not_found_modal'));
+ if (itemNotFoundModal) {
+  itemNotFoundModal.hide();
+ }
+}
+
+function handleItemNotFoundNo() {
+ // Reset scanner state
+ qrScannerState.isPaused = false;
+ qrScannerState.shouldResume = false;
+
+ if (html5QrcodeScanner) {
+  html5QrcodeScanner.clear().then(() => {
+   qrScannerActive = false;
+   currentQRScanner = null;
+   html5QrcodeScanner = null;
+
+   // Close the scanner modal
+   const scannerModal = bootstrap.Modal.getInstance(document.getElementById('qr_scanner_modal'));
+   if (scannerModal) {
+    scannerModal.hide();
+   }
+
+   // Close the item not found modal
+   const itemNotFoundModal = bootstrap.Modal.getInstance(document.getElementById('item_not_found_modal'));
+   if (itemNotFoundModal) {
+    itemNotFoundModal.hide();
+   }
+
+   showToast('QR scanning stopped');
+  });
+ }
+}
+
+async function openQRScanner() {
+ try {
+  // Check if continuous mode is enabled
+  continuousQRMode = document.getElementById('modalContinuousQRMode').checked;
+
+  if (continuousQRMode) {
+   // Use the existing continuous scanning implementation
+   await openContinuousQRScanner();
+  } else {
+   // Use the new modal-based scanner
+   await openQRScannerModal();
+  }
+
+ } catch (error) {
+  console.error('QR Scanner failed:', error);
+
+  // Provide specific user feedback based on the error
+  if (error.name === 'NotAllowedError') {
+   showToast('Camera access was denied. Please allow camera permissions in your browser settings.');
+  } else if (error.name === 'NotFoundError') {
+   showToast('No camera found on this device.');
+  } else {
+   showToast('QR scanner is currently unavailable. Please enter the item ID manually.');
+  }
+
+  document.getElementById('modalItemIdInput').focus();
+ }
+}
+
+async function openContinuousQRScanner() {
+ // This is the existing implementation for continuous scanning
+ // Keep your existing code for continuous mode here
+
+ try {
+  // Check camera permissions and availability first
+  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+  stream.getTracks().forEach(track => track.stop());
+
+  // Create UI elements for the scanner
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999;`;
+
+  const scannerContainer = document.createElement('div');
+  scannerContainer.id = 'qr-reader';
+  scannerContainer.style.cssText = `position: fixed !important; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 10000; width: 90%; max-width: 500px;`;
+
+  scannerContainer.classList.add('scanner-container');
+
+  // Add a close button for continuous mode
+  scannerContainer.innerHTML += `
+<div class="text-center mt-3">
+<button class="btn btn-danger btn-sm" id="stopContinuousScan">
+<i class="fas fa-stop me-1"></i> Stop Scanning
+</button>
+<div class="small text-muted mt-2">
+Continuous mode: Items will be added automatically. Click stop or press back button to exit.
+</div>
+</div>
+`;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(scannerContainer);
+
+  // Initialize the scanner
+  const html5QrcodeScanner = new Html5QrcodeScanner(
+   "qr-reader",
+   {
+    fps: 10,
+    qrbox: { width: 250, height: 250 }
+   },
+   false
+  );
+
+  currentQRScanner = html5QrcodeScanner;
+  qrScannerActive = true;
+
+  // Flag to prevent multiple scans during delay
+  let isScanningPaused = false;
+
+  html5QrcodeScanner.render(
+   (decodedText) => {
+    // If scanning is paused, ignore this scan
+    if (isScanningPaused) {
+     return;
+    }
+
+    // Pause scanning temporarily
+    isScanningPaused = true;
+
+    // Populate the input and process the item
+    document.getElementById('modalItemIdInput').value = decodedText;
+
+    // Play QR scan sound
+    playSound('https://assets.mixkit.co/active_storage/sfx/1082/1082.wav');
+
+    // Process the scanned item
+    handleModalItemIdInput({ target: { value: decodedText } });
+
+    // Clear the input
+    document.getElementById('modalItemIdInput').value = '';
+
+    // Wait for the configured delay before resuming scanning
+    const scanDelay = window[my1uzr.worknOnPg]?.confg?.scanDelayQR || 3000;
+
+    setTimeout(() => {
+     isScanningPaused = false;
+    }, scanDelay);
+
+   },
+   (errorMessage) => {
+    // Don't log normal camera operation errors
+    if (!errorMessage.includes('NotFoundException') && !errorMessage.includes('No QR code')) {
+    }
+   }
+  );
+
+  // Add stop button handler for continuous mode
+  document.getElementById('stopContinuousScan').addEventListener('click', () => {
+   stopQRScanner(html5QrcodeScanner, scannerContainer, overlay);
+  });
+
+  // Close scanner when clicking the overlay
+  overlay.addEventListener('click', () => {
+   stopQRScanner(html5QrcodeScanner, scannerContainer, overlay);
+  });
+
+  // Listen for back button press
+  if ('onbeforeunload' in window) {
+   window.addEventListener('beforeunload', handleBackButton);
+  }
+
+  // Also listen for popstate (browser back button)
+  window.addEventListener('popstate', handleBackButton);
+
+ } catch (error) {
+  console.error('Continuous QR Scanner failed:', error);
+  throw error;
+ }
+}
+
+// Function to directly add item from QR scan
+function addItemDirectlyFromQR(item) {
+ const itemId = item.a;
+ const currentRate = (typeof window.getSellingPriceFromStock === 'function' ? window.getSellingPriceFromStock(item) : parseFloat(item.k || 0));
+ const quantity = 1; // Default quantity for QR scan
+
+ // Check if item already exists in sale list with same rate
+ const existingItem = findExistingItemInSaleList(itemId, currentRate);
+
+ if (existingItem) {
+  // Item exists with same rate - increment quantity
+  incrementItemQuantity(existingItem);
+  showToast(`Quantity increased for ${item.gn || 'Item'}`);
+
+  // Play sound for item addition
+  playSound('https://cdn.pixabay.com/download/audio/2025/10/21/audio_3880ed67e2.mp3');
+ } else {
+  // Item doesn't exist - add new item to sale list
+  addItemToSaleList(item, quantity, currentRate);
+  showToast(`${item.gn || 'Item'} added to sale list`);
+
+  // Play sound for item addition
+  playSound('https://cdn.pixabay.com/download/audio/2025/10/21/audio_3880ed67e2.mp3');
+ }
+}
+
+// Find existing item in sale list with same ID and rate
+function findExistingItemInSaleList(itemId, rate) {
+ const addedItems = document.querySelectorAll('#addedItemsContainer .added-item-card');
+ for (const itemCard of addedItems) {
+  const cardItemId = itemCard.getAttribute('data-item-id');
+  let cardRate = parseFloat(itemCard.getAttribute('data-item-rate') || '');
+  if (!(cardRate >= 0)) {
+   const rateInput = itemCard.querySelectorAll('input[type="number"]')[1];
+   cardRate = rateInput ? (parseFloat(rateInput.value) || 0) : 0;
+  }
+
+  if (cardItemId == itemId && Math.abs(cardRate - rate) < 0.01) { // Compare with tolerance for floating point
+   return itemCard;
+  }
+ }
+ return null;
+}
+
+// Increment quantity of existing item - SIMPLIFIED AND FIXED
+function incrementItemQuantity(itemCard, qtyToAdd = 1) {
+ // Get all required elements
+ const qtyInput = itemCard.querySelector('input[type="number"]');
+ const rateInput = itemCard.querySelectorAll('input[type="number"]')[1];
+ const priceElement = itemCard.querySelector('span[id^="itemPrice-"]');
+
+ if (!qtyInput || !rateInput || !priceElement) {
+  console.error('Could not find required elements in item card');
+  return;
+ }
+
+ // Get current values
+ const currentQty = parseInt(qtyInput.value) || 1;
+ const currentRate = parseFloat(rateInput.value) || 0;
+
+ // Calculate new values
+ const newQty = currentQty + qtyToAdd;
+ const newPrice = newQty * currentRate;
+
+ // Update the UI
+ qtyInput.value = newQty;
+ priceElement.textContent = newPrice.toFixed(2);
+ updateItemCardTax(itemCard, newPrice);
+
+ // Update bill summary
+ updateBillSummary();
+ updateBillSectionsVisibility();
+
+}
+
+// Get the unique ID of an item card
+function getItemCardId(itemCard) {
+ const idMatch = itemCard.id.match(/invoiceItem-(\d+)/);
+ return idMatch ? parseInt(idMatch[1]) : null;
+}
+
+// Add item directly to sale list (without using the form)
+function addItemToSaleList(item, quantity, rate) {
+ const itemId = item.a;
+ const name = item.gn || 'Unknown Item';
+ const imageUrl = getGoogleDriveImageUrl(item.gu) || '';
+ const description = item.ba_f || '';
+ const price = quantity * rate;
+ const uniqueItemId = Date.now();
+
+ // Apply the product's Tax 1 / Tax 2 rates to the new card
+ const rates = productTaxRates(item);
+ const taxAmounts = itemTaxAmounts(rates.tax1, rates.tax2, price);
+ const taxPercent = price > 0
+  ? itemTaxRound((taxAmounts.taxAmount / price) * 100)
+  : itemTaxRound(rates.tax1 + rates.tax2);
+
+ const addedItemsContainer = document.getElementById('addedItemsContainer');
+ updateBillSectionsVisibility();
+
+ const itemHTML = `
+<div class="card mb-3 added-item-card" id="invoiceItem-${uniqueItemId}" data-item-id="${itemId}" data-item-rate="${rate}" data-item-tax1="${rates.tax1.toFixed(2)}" data-item-tax2="${rates.tax2.toFixed(2)}" data-item-tax1-amount="${taxAmounts.tax1Amount.toFixed(2)}" data-item-tax2-amount="${taxAmounts.tax2Amount.toFixed(2)}" data-item-tax-percent="${taxPercent.toFixed(2)}" data-item-tax-amount="${taxAmounts.taxAmount.toFixed(2)}">
+<div class="card-body">
+<div class="row">
+<!-- Left side - Image (fixed 3 columns) -->
+<div class="col-3">
+<div class="text-center">
+${`<img src="${imageUrl || 'https://cdn-icons-png.freepik.com/512/13543/13543330.png'}" class="added-item-image" alt="Item Image" 
+onerror="this.src='https://cdn-icons-png.freepik.com/512/13543/13543330.png'">`}
+</div>
+</div>
+
+<!-- Right side - Details (fixed 9 columns) -->
+<div class="col-9">
+<!-- Row 1 - Item Name -->
+<div class="row mb-2 g-0">
+<div class="col-10">
+<strong>${name}</strong>
+</div>
+<div class="col-2 d-flex align-items-center justify-content-end">
+<button class="btn btn-outline-danger btn-sm" onclick="removeItemFromInvoice(${uniqueItemId})">
+<i class="fas fa-trash"></i>
+</button>
+</div>
+</div>
+
+<!-- Row 2 - Quantity, Rate, Price (fixed 4-4-4 columns) -->
+<div class="row mb-2 g-0">
+<div class="col-4">
+<strong>Qty:</strong> 
+<input type="number" 
+class="form-control form-control-sm d-inline-block w-auto" 
+value="${quantity}" 
+min="1" 
+step="1"
+style="width: 70px; display: inline-block;"
+onchange="updateItemQuantity(${uniqueItemId}, parseFloat(this.value))"
+onblur="updateItemQuantity(${uniqueItemId}, parseFloat(this.value))">
+</div>
+<div class="col-4">
+<strong>Rate:</strong> 
+<input type="number" 
+class="form-control form-control-sm d-inline-block w-auto" 
+value="${rate.toFixed(2)}" 
+min="0" 
+step="0.01"
+style="width: 80px; display: inline-block;"
+onchange="updateItemRate(${uniqueItemId}, this.value)"
+onblur="updateItemRate(${uniqueItemId}, this.value)">
+</div>
+<div class="col-4">
+<strong>Price:</strong> ₹<span id="itemPrice-${uniqueItemId}">${price.toFixed(2)}</span>
+</div>
+</div>
+
+<!-- Row 3 - Description & Tax -->
+<div class="row g-0">
+<div class="col-12 d-flex align-items-baseline flex-wrap">
+<small class="text-muted text-start" style="flex: 1 1 0; min-width: 0; margin-right: 6px; font-size: 1rem; overflow-wrap: anywhere;">${description || ''}</small>
+${itemTaxLineHTML(uniqueItemId, rates.tax1, rates.tax2, taxAmounts.taxAmount)}
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+`;
+
+ addedItemsContainer.insertAdjacentHTML('beforeend', itemHTML);
+
+ // Update bill summary
+ updateBillSummary();
+ updateBillSectionsVisibility();
+
+ // Play sound for item addition
+ playSound('https://cdn.pixabay.com/download/audio/2025/10/21/audio_3880ed67e2.mp3');
+}
+
+function showItemDropdown(inputElement) {
+ hideNavMenu();
+
+ const existingDropdown = document.querySelector('.item-dropdown');
+ if (existingDropdown) existingDropdown.remove();
+
+ const dropdown = document.createElement('div');
+ dropdown.className = 'item-dropdown dropdown-menu show';
+
+ const rect = inputElement.getBoundingClientRect();
+ const isMobile = window.innerWidth <= 768;
+
+ dropdown.style.position = 'fixed';
+ dropdown.style.top = rect.bottom + 'px';
+ dropdown.style.left = isMobile ? '10px' : rect.left + 'px';
+ dropdown.style.width = isMobile ? 'calc(100vw - 20px)' : rect.width + 'px';
+ dropdown.style.maxHeight = isMobile ? '50vh' : '40vh';
+ dropdown.style.zIndex = '99999';
+ dropdown.style.overflowY = 'auto';
+ document.body.appendChild(dropdown);
+
+ const renderDropdownList = () => {
+  dropdown.querySelectorAll('.dropdown-item, .item-dropdown-no-results').forEach(el => el.remove());
+  const searchValue = inputElement.value.toLowerCase().trim();
+  let filteredItems = items;
+
+  if (searchValue) {
+   filteredItems = items.filter(item => {
+    if (!item || !item.gn) return false;
+    if (window[my1uzr.worknOnPg].confg.canSaleIfStock == 1 && item.d != 111) {
+     if (!item.qAvlb || item.qAvlb <= 0) return false;
+    }
+    const itemName = item.gn.toLowerCase();
+    const itemId = item.a ? item.a.toString().toLowerCase() : '';
+    const itemDescription = item.ba_f ? item.ba_f.toLowerCase() : '';
+    return itemName.includes(searchValue) || itemId.includes(searchValue) || itemDescription.includes(searchValue);
+   }).sort((a, b) => {
+    const aName = a.gn.toLowerCase();
+    const bName = b.gn.toLowerCase();
+    const aExactMatch = aName === searchValue;
+    const bExactMatch = bName === searchValue;
+    if (aExactMatch && !bExactMatch) return -1;
+    if (!aExactMatch && bExactMatch) return 1;
+    const aIndex = aName.indexOf(searchValue);
+    const bIndex = bName.indexOf(searchValue);
+    if (aIndex !== bIndex) return aIndex - bIndex;
+    return (mostUsedItems[b.a] || 0) - (mostUsedItems[a.a] || 0);
+   });
+  } else {
+   filteredItems = items.filter(item => {
+    if (!item || !item.gn) return false;
+    if (window[my1uzr.worknOnPg].confg.canSaleIfStock == 1 && item.d != 111) {
+     return item.qAvlb && item.qAvlb > 0;
+    }
+    return true;
+   }).sort((a, b) => (mostUsedItems[b.a] || 0) - (mostUsedItems[a.a] || 0));
+  }
+
+  filteredItems = filteredItems.slice(0, 20);
+
+  if (filteredItems.length === 0) {
+   const noResults = document.createElement('div');
+   noResults.className = 'dropdown-item item-dropdown-no-results text-center text-muted py-3';
+   noResults.innerHTML = '<i class="fas fa-search me-2"></i>No items found';
+   dropdown.appendChild(noResults);
+  } else {
+   filteredItems.forEach(item => {
+    const itemElement = document.createElement('div');
+    itemElement.className = 'dropdown-item d-flex align-items-center py-2';
+
+    let prefixText = '';
+    let stockIndicator = '';
+
+    if (item.hasOwnProperty('qAvlb')) {
+     prefixText = `[${item.qAvlb}] `;
+     if (item.qAvlb <= 5 && item.qAvlb > 0) {
+      stockIndicator = '<span class="badge bg-warning ms-1">Low Stock</span>';
+     } else if (item.qAvlb === 0) {
+      stockIndicator = '<span class="badge bg-danger ms-1">Out of Stock</span>';
+     }
+    } else if (item.i) {
+     prefixText = `[${item.i}] `;
+    }
+
+    itemElement.innerHTML = `
+<img src="${getGoogleDriveImageUrl(item.gu) || 'https://cdn-icons-png.freepik.com/512/13543/13543330.png'}" 
+onerror="this.src='https://cdn-icons-png.freepik.com/512/13543/13543330.png'">
+<div class="item-name">
+<strong>${prefixText}${item.gn || 'Unnamed Item'}</strong>
+${stockIndicator}
+<br>
+<small class="text-muted">${item.ba_f || ''}</small>
+</div>
+<div class="item-price">
+<small class="text-muted">₹${(typeof window.getSellingPriceFromStock === 'function' ? window.getSellingPriceFromStock(item) : (item.k || 0))}</small>
+</div>
+`;
+
+    if (window[my1uzr.worknOnPg].confg.canSaleIfStock == 1 &&
+     item.d != 111 &&
+     (!item.qAvlb || item.qAvlb <= 0)) {
+     itemElement.classList.add('disabled');
+     itemElement.style.opacity = '0.6';
+     itemElement.style.cursor = 'not-allowed';
+     itemElement.title = 'Out of stock - cannot be sold';
+    } else {
+     itemElement.addEventListener('click', () => {
+      dropdownClicked = true;
+      if (blurTimeout) { clearTimeout(blurTimeout); blurTimeout = null; }
+      if (inputElement.id === 'modalItemName') {
+       // Prefer the loaded add-item module (shoRegItm) so its selection logic —
+       // including Tax 1 / Tax 2 population — runs for the shared modal.
+       const picker = typeof window.selectModalItem === 'function' ? window.selectModalItem : selectModalItem;
+       picker(item);
+      }
+      dropdown.remove();
+      setTimeout(() => {
+       if (inputElement.id === 'modalItemName') {
+        const q = document.getElementById('modalItemQty');
+        if (q) q.focus();
+       }
+      }, 10);
+     });
+    }
+
+    dropdown.appendChild(itemElement);
+   });
+  }
+ };
+
+ const clickHandler = (e) => {
+  if (!dropdown.contains(e.target) && e.target !== inputElement) {
+   dropdown.remove();
+   document.removeEventListener('click', clickHandler);
+  }
+ };
+
+ setTimeout(() => document.addEventListener('click', clickHandler), 100);
+ renderDropdownList();
+}
+
+// Inline Edit Functions for Quantity and Rate
+// ===== Item tax helpers (Tax 1 % + Tax 2 %, additive on the line price) =====
+function itemTaxSplitEnabled() {
+ try {
+  const cc = (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].clientConfig) || {};
+  return Number(cc.billItemTaxSplit) === 1;
+ } catch (e) {
+  return false;
+ }
+}
+
+// hideTax = 1 -> keep all amounts/tax math, only stop showing Tax 1 / Tax 2.
+function taxDisplayHidden() {
+ try {
+  const cc = (window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].clientConfig) || {};
+  return Number(cc.hideTax) === 1;
+ } catch (e) {
+  return false;
+ }
+}
+
+function itemTaxRound(value) {
+ return Math.round((Number(value) || 0) * 100) / 100;
+}
+
+function itemTaxClampPercent(value) {
+ const number = parseFloat(value);
+ if (!Number.isFinite(number) || number < 0) return 0;
+ return Math.min(99.99, itemTaxRound(number));
+}
+
+function productRecordFor(stockRow) {
+ const pid = stockRow && stockRow.g;
+ if (pid == null || !Array.isArray(prods)) return null;
+ return prods.find(p => p.a == pid) || null;
+}
+
+// True when the passed row is a product (`p`) record rather than a stock row.
+// Product rows have no numeric stock `g` id and keep Tax 1 / Tax 2 on `j` / `k`;
+// the `prods` identity check keeps a stock row's `k` (sale rate) from being
+// mistaken for Tax 2.
+function rowIsProductRecord(row) {
+ if (!row) return false;
+ if (Array.isArray(prods) && prods.some(p => p && p.a == row.a && p.e === row.e)) return true;
+ const g = row.g;
+ const hasStockProductId = g != null && String(g).trim() !== '' && Number.isFinite(Number(g));
+ return !hasStockProductId && Number.isFinite(parseFloat(row.j));
+}
+
+// Returns the two tax percentages for a stock/product row.
+// Accepts either a stock row (`g` = product id, rates looked up on `p`) or a
+// product row (rates stored directly on `j` / `k`).
+function productTaxRates(stockRow) {
+ const prod = productRecordFor(stockRow);
+ const prod1 = parseFloat(prod && prod.j);
+ const prod2 = parseFloat(prod && prod.k);
+ if (Number.isFinite(prod1) || Number.isFinite(prod2)) {
+  return { tax1: itemTaxClampPercent(prod1), tax2: itemTaxClampPercent(prod2) };
+ }
+ const alias1 = parseFloat(stockRow && stockRow.tax1);
+ const alias2 = parseFloat(stockRow && stockRow.tax2);
+ if (Number.isFinite(alias1) || Number.isFinite(alias2)) {
+  return { tax1: itemTaxClampPercent(alias1), tax2: itemTaxClampPercent(alias2) };
+ }
+ // Product-shaped row passed straight in: Tax 1 / Tax 2 live on `j` / `k`.
+ if (rowIsProductRecord(stockRow)) {
+  return { tax1: itemTaxClampPercent(stockRow.j), tax2: itemTaxClampPercent(stockRow.k) };
+ }
+ // Legacy product: the tax was stored as an amount on the stock row (`t`).
+ const legacyAmount = Math.max(0, parseFloat(stockRow && stockRow.t) || 0);
+ const price = Math.max(0, parseFloat(stockRow && stockRow.k) || 0);
+ return { tax1: price > 0 ? itemTaxClampPercent((legacyAmount / price) * 100) : 0, tax2: 0 };
+}
+
+// Returns the stored tax for a bill row (`i` table).
+// Split layout (billItemTaxSplit=1): j/tax1 amount, k/tax2 amount, t/sub-name.
+// Legacy layout: j/sub-name, t/tax amount.
+function billItemTaxBreakdown(billItem) {
+ if (!billItem) return { tax1: 0, tax2: 0, total: 0, subName: '' };
+ const kPresent = billItem.k !== undefined && billItem.k !== null && String(billItem.k).trim() !== '';
+ const jNumeric = Number.isFinite(parseFloat(billItem.j));
+ const tNumeric = Number.isFinite(parseFloat(billItem.t));
+ // Split rows always carry `k`; when the server drops a zero `k`, `j` is still a
+ // numeric amount and `t` holds the (usually non-numeric) sub-name.
+ if (itemTaxSplitEnabled() && (kPresent || (jNumeric && !tNumeric))) {
+  const tax1 = Math.max(0, parseFloat(billItem.j) || 0);
+  const tax2 = Math.max(0, parseFloat(billItem.k) || 0);
+  return { tax1: tax1, tax2: tax2, total: itemTaxRound(tax1 + tax2), subName: billItem.t == null ? '' : String(billItem.t) };
+ }
+ const legacyTotal = Math.max(0, parseFloat(billItem.t) || 0);
+ return { tax1: legacyTotal, tax2: 0, total: legacyTotal, subName: billItem.j == null ? '' : String(billItem.j) };
+}
+
+// Selling price for a stock row is stored inside the sold_in string (s.l),
+// e.g. "18~2-50-55--2-2-22" where 50 is the selling price. Fall back to
+// the legacy s.k field when sold_in is empty.
+window.getSellingPriceFromStock = function (row) {
+ const soldIn = row && (row.l || row.sold_in || row.soldIn);
+ const first = Array.isArray(soldIn) ? soldIn[0] : soldIn;
+ const str = String(first || '').trim();
+ if (str) {
+  const parts = str.split('~');
+  if (parts.length >= 2) {
+   const m = parts[1].match(/^([\d.]*)-([\d.]*)/);
+   const sp = m ? parseFloat(m[2]) : NaN;
+   if (Number.isFinite(sp)) return sp;
+  }
+ }
+ return parseFloat(row && row.k) || 0;
+};
+
+function itemTaxAmounts(tax1, tax2, linePrice) {
+ const amount1 = itemTaxRound((linePrice * itemTaxClampPercent(tax1)) / 100);
+ const amount2 = itemTaxRound((linePrice * itemTaxClampPercent(tax2)) / 100);
+ return { tax1Amount: amount1, tax2Amount: amount2, taxAmount: itemTaxRound(amount1 + amount2) };
+}
+
+function itemTaxRatesLabel(tax1, tax2) {
+ const a = itemTaxClampPercent(tax1);
+ const b = itemTaxClampPercent(tax2);
+ if (a > 0 && b > 0) return a.toFixed(2) + '% + ' + b.toFixed(2) + '%';
+ return (a + b).toFixed(2) + '%';
+}
+
+function itemTaxLineHTML(uniqueItemId, tax1, tax2, amount) {
+ if (taxDisplayHidden()) return '';
+ return '<span class="item-tax-line text-nowrap" style="display:inline-block; flex:0 0 auto; color:#6c757d; font-size:.875rem; margin-left:auto;">' +
+  'Tax: ₹<span id="itemTax-' + uniqueItemId + '">' + itemTaxRound(amount).toFixed(2) + '</span> ' +
+  '(<span id="itemTaxRates-' + uniqueItemId + '">' + itemTaxRatesLabel(tax1, tax2) + '</span>)' +
+  '</span>';
+}
+
+// Recomputes tax for a card from its two stored rates (or the combined rate).
+function updateItemCardTax(itemElement, price) {
+ const tax1 = itemTaxClampPercent(itemElement.getAttribute('data-item-tax1'));
+ const tax2 = itemTaxClampPercent(itemElement.getAttribute('data-item-tax2'));
+ const linePrice = Number(price) || 0;
+ const amounts = itemTaxAmounts(tax1, tax2, linePrice);
+ const combinedPercent = linePrice > 0
+  ? itemTaxRound((amounts.taxAmount / linePrice) * 100)
+  : itemTaxRound(tax1 + tax2);
+
+ itemElement.setAttribute('data-item-tax1', tax1.toFixed(2));
+ itemElement.setAttribute('data-item-tax2', tax2.toFixed(2));
+ itemElement.setAttribute('data-item-tax1-amount', amounts.tax1Amount.toFixed(2));
+ itemElement.setAttribute('data-item-tax2-amount', amounts.tax2Amount.toFixed(2));
+ itemElement.setAttribute('data-item-tax-amount', amounts.taxAmount.toFixed(2));
+ itemElement.setAttribute('data-item-tax-percent', combinedPercent.toFixed(2));
+
+ const taxAmountEl = itemElement.querySelector('span[id^="itemTax-"]');
+ const taxRatesEl = itemElement.querySelector('span[id^="itemTaxRates-"]');
+ if (taxAmountEl) taxAmountEl.textContent = amounts.taxAmount.toFixed(2);
+ if (taxRatesEl) taxRatesEl.textContent = itemTaxRatesLabel(tax1, tax2);
+ const legacyPctEl = itemElement.querySelector('span[id^="itemTaxPct-"]');
+ if (legacyPctEl) legacyPctEl.textContent = combinedPercent.toFixed(2);
+
+ return amounts.taxAmount;
+}
+
+// Re-reads Tax 1 / Tax 2 from the product table onto the in-memory stock rows.
+async function refreshItemsWithTax() {
+ if (typeof dbDexieManager === 'undefined' || !dbDexieManager) return items;
+ try {
+  prods = await dbDexieManager.getAllRecords(dbnm, "p") || [];
+  const rows = await dbDexieManager.getAllRecords(dbnm, "s") || [];
+  rows.forEach(row => {
+   const prod = prods.find(p => p.a == row.g);
+   if (!prod) return;
+   const tax1 = parseFloat(prod.j);
+   const tax2 = parseFloat(prod.k);
+   row.tax1 = Number.isFinite(tax1) ? tax1 : null;
+   row.tax2 = Number.isFinite(tax2) ? tax2 : null;
+  });
+  items = rows;
+ } catch (e) {
+  console.warn('refreshItemsWithTax failed', e);
+ }
+ return items;
+}
+
+function updateItemQuantity(itemId, newQuantity) {
+ const itemElement = document.getElementById(`invoiceItem-${itemId}`);
+ if (!itemElement) return;
+
+ // Validate quantity
+ newQuantity = parseInt(newQuantity) || 1;
+ if (newQuantity < 1) {
+  newQuantity = 1;
+  const qtyInput = itemElement.querySelector('input[type="number"]');
+  if (qtyInput) qtyInput.value = 1;
+ }
+
+ // Get current rate
+ const rateInput = itemElement.querySelectorAll('input[type="number"]')[1];
+ const currentRate = parseFloat(rateInput.value) || 0;
+
+ // Calculate new price
+ const newPrice = newQuantity * currentRate;
+
+ // Update price display
+ const priceElement = document.getElementById(`itemPrice-${itemId}`);
+ if (priceElement) {
+  priceElement.textContent = newPrice.toFixed(2);
+ }
+ updateItemCardTax(itemElement, newPrice);
+
+ // Update bill summary
+ updateBillSummary();
+}
+
+function updateItemRate(itemId, newRate) {
+ const itemElement = document.getElementById(`invoiceItem-${itemId}`);
+ if (!itemElement) return;
+
+ // Validate rate
+ newRate = parseFloat(newRate) || 0;
+ if (newRate < 0) {
+  newRate = 0;
+  const rateInput = itemElement.querySelectorAll('input[type="number"]')[1];
+  if (rateInput) rateInput.value = 0;
+ }
+
+ itemElement.setAttribute('data-item-rate', newRate);
+
+ // Get current quantity
+ const qtyInput = itemElement.querySelector('input[type="number"]');
+ const currentQuantity = parseInt(qtyInput.value) || 1;
+
+ // Calculate new price
+ const newPrice = currentQuantity * newRate;
+
+ // Update price display
+ const priceElement = document.getElementById(`itemPrice-${itemId}`);
+ if (priceElement) {
+  priceElement.textContent = newPrice.toFixed(2);
+ }
+ updateItemCardTax(itemElement, newPrice);
+
+ // Update bill summary
+ updateBillSummary();
+}
+
+// Remove Item Function
+async function removeItemFromInvoice(itemId) {
+ const itemElement = document.getElementById(`invoiceItem-${itemId}`);
+ if (itemElement && await window.showConfirmModal('Are you sure you want to remove this item?')) {
+  itemElement.remove();
+  updateBillSummary();
+
+  updateBillSectionsVisibility();
+ }
+}
+
+// Bill Summary Calculations
+function calculateBillSummary() {
+ const addedItems = document.querySelectorAll('#addedItemsContainer .added-item-card');
+ let totalItems = 0;
+ let totalQuantity = 0;
+ let totalPrice = 0;
+
+ addedItems.forEach(item => {
+  totalItems++;
+
+  const qtyInput = item.querySelector('input[type="number"]');
+  const rateInput = item.querySelectorAll('input[type="number"]')[1];
+  const priceElement = item.querySelector('span[id^="itemPrice-"]');
+
+  if (qtyInput && rateInput && priceElement) {
+   const qty = parseInt(qtyInput.value) || 0;
+   const rate = parseFloat(rateInput.value) || 0;
+   const price = parseFloat(priceElement.textContent) || 0;
+   const taxAmount = parseFloat(item.getAttribute('data-item-tax-amount')) || 0;
+
+   totalQuantity += qty;
+   totalPrice += price + taxAmount;
+  }
+ });
+
+ // Update summary
+ document.getElementById('totalItems').textContent = totalItems;
+ document.getElementById('totalQuantity').textContent = totalQuantity;
+ document.getElementById('totalPrice').textContent = totalPrice.toFixed(2);
+
+ // Recalculate discount and grand totals. Guard each step so a failure in
+ // discount recalculation can never freeze the grand totals refresh.
+ try {
+  calculateDiscountFromPercentage();
+ } catch (e) {
+  console.warn('calculateBillSummary: discount recalc failed', e);
+ }
+ refreshGrandTotals();
+}
+
+function calculateLoadedBillTotals() {
+ const addedItems = document.querySelectorAll('#addedItemsContainer .added-item-card');
+ let totalItems = 0;
+ let totalQuantity = 0;
+ let totalPrice = 0;
+
+ addedItems.forEach(item => {
+  totalItems++;
+
+  const qtyInput = item.querySelector('input[type="number"]');
+  const rateInput = item.querySelectorAll('input[type="number"]')[1];
+  const priceElement = item.querySelector('span[id^="itemPrice-"]');
+
+  if (qtyInput && rateInput && priceElement) {
+   const qty = parseInt(qtyInput.value) || 0;
+   const rate = parseFloat(rateInput.value) || 0;
+   const price = parseFloat(priceElement.textContent) || 0;
+   const taxAmount = parseFloat(item.getAttribute('data-item-tax-amount')) || 0;
+
+   totalQuantity += qty;
+   totalPrice += price + taxAmount;
+  }
+ });
+
+ // Update summary
+ document.getElementById('totalItems').textContent = totalItems;
+ document.getElementById('totalQuantity').textContent = totalQuantity;
+ document.getElementById('totalPrice').textContent = totalPrice.toFixed(2);
+
+ // No need to set finalAmount as it doesn't exist
+ // Just update grand totals
+ refreshGrandTotals();
+}
+
+function updateBillSummary() {
+ // Check if we're viewing an existing bill or creating a new one
+ if (billTableRowId && billTableRowId > 0) {
+  calculateLoadedBillTotals();
+ } else {
+  calculateBillSummary();
+ }
+}
+
+// Received Amount Functions with validation
+function getPaymentTypeIcon(type) {
+ const paymentTypeIcons = {
+  '0': '*', // Unknown
+  '1': 'C', // Cash
+  '2': 'Q', // Cheque
+  '3': 'A', // Card
+  '4': 'U', // UPI
+  '5': 'B'  // Bank Transfer
+ };
+ return paymentTypeIcons[type] || '0';
+}
+function getPaymentTypeText(type) {
+ const paymentTypes = {
+  '0': 'Unknown',
+  '1': 'Cash',
+  '2': 'Cheque',
+  '3': 'Card',
+  '4': 'UPI',
+  '5': 'Bank Transfer'
+ };
+ return paymentTypes[type] || 'Unknown';
+}
+function updatePaymentTypeIcon(selId, btnId) {
+ const sel = document.getElementById(selId || 'paymentType');
+ const btn = document.getElementById(btnId || 'paymentTypeBtn');
+ if (!sel || !btn) return;
+ const map = { '0': '', '1': 'C', '2': 'Q', '3': 'A', '4': 'U', '5': 'B' };
+ const txt = map[sel.value];
+ btn.innerHTML = txt ? txt : '<i class=\"fas fa-credit-card\"></i>';
+}
+function initializeReceivedAmountForm() {
+ // Date picker already handles the initial value
+}
+function receivedCashierMatches() {
+ const ids = (window[my1uzr.worknOnPg].clientConfig && window[my1uzr.worknOnPg].clientConfig.cashiers) || [];
+ if (!ids || !ids.length) return [];
+ const cArr = clientReferrerArray && clientReferrerArray.length ? clientReferrerArray : [];
+ const idSet = ids.map(Number);
+ return cArr.filter(function (r) { return idSet.indexOf(Number(r.a)) !== -1; });
+}
+function toggleReceivedCashierDropdown(e) {
+ if (e) e.stopPropagation();
+ const dd = document.getElementById('receivedCashierDropdown');
+ if (!dd) return;
+ const cb = document.getElementById('receivedCashierBtn');
+ const ptb = document.getElementById('paymentTypeBtn');
+ if (cb && ptb && !cb.dataset.synced) {
+  cb.style.height = ptb.offsetHeight + 'px';
+  cb.style.minWidth = ptb.offsetWidth + 'px';
+  cb.style.padding = '0 .5rem';
+  cb.dataset.synced = '1';
+ }
+ if (dd.style.display !== 'none') { dd.style.display = 'none'; return; }
+ if (clientReferrerArray && !clientReferrerArray.length) {
+  dbDexieManager.getAllRecords(dbnm, "c").then(function (arr) {
+   clientReferrerArray = arr || [];
+   renderReceivedCashierDropdown(dd);
+  }).catch(function (err) { console.warn('load c for cashiers failed', err); renderReceivedCashierDropdown(dd); });
+ } else {
+  renderReceivedCashierDropdown(dd);
+ }
+}
+function renderReceivedCashierDropdown(dd) {
+ const matches = receivedCashierMatches();
+ if (!matches.length) {
+  dd.innerHTML = '<div class="p-2 text-muted small">No cashiers available</div>';
+ } else {
+  const cur = document.getElementById('receivedCashier') ? document.getElementById('receivedCashier').value : '';
+  dd.innerHTML = matches.map(function (r) {
+   const name = String(r.i || '') + (r.h ? ' ' + r.h : '');
+   const num = r.e || '';
+   const a = r.a;
+   const sel = String(a) === String(cur);
+   return '<div data-a="' + a + '" onclick="pickReceivedCashier(' + a + ')" style="padding:6px 10px;cursor:pointer;border-bottom:1px solid #eee;' + (sel ? 'background:#0d6efd;color:#fff;' : '') + '"><div style="font-weight:600;font-size:.85rem;">' + (sel ? '<i class="fas fa-check me-1"></i>' : '') + (name || ('Cashier ' + a)) + '</div><div style="font-size:.75rem;opacity:.85;">' + (num || '') + '</div></div>';
+  }).join('') + '<div onclick="clearReceivedCashier()" style="padding:6px 10px;cursor:pointer;text-align:center;color:#dc3545;font-size:.8rem;border-top:1px solid #eee;"><i class="fas fa-times me-1"></i>Clear cashier</div>';
+ }
+ dd.style.display = 'block';
+ clampReceivedCashierDropdown();
+}
+function clampReceivedCashierDropdown() {
+ const dd = document.getElementById('receivedCashierDropdown');
+ const btn = document.getElementById('receivedCashierBtn');
+ if (!dd || !btn || dd.style.display === 'none') return;
+ const r = btn.getBoundingClientRect();
+ const m = 8;
+ if (r.left + dd.offsetWidth > window.innerWidth - m) {
+  dd.style.left = 'auto';
+  dd.style.right = '0';
+ } else {
+  dd.style.left = '0';
+  dd.style.right = 'auto';
+ }
+ if (r.bottom + dd.offsetHeight > window.innerHeight - m) {
+  dd.style.top = 'auto';
+  dd.style.bottom = '100%';
+ } else {
+  dd.style.top = '100%';
+  dd.style.bottom = 'auto';
+ }
+}
+function pickReceivedCashier(a) {
+ const hf = document.getElementById('receivedCashier');
+ if (hf) hf.value = String(a);
+ const btn = document.getElementById('receivedCashierBtn');
+ if (btn) {
+  const r = (clientReferrerArray || []).find(function (x) { return Number(x.a) === Number(a); });
+  const rawName = r && String(r.i || '').trim() ? String(r.i).trim() : ('#' + a);
+  const firstName = rawName.split(/\s+/)[0];
+  btn.innerHTML = firstName ? firstName.charAt(0).toUpperCase() + firstName.slice(1) : ('#' + a);
+  btn.style.background = '#0d6efd';
+  btn.style.color = '#fff';
+  btn.style.borderColor = '#0d6efd';
+ }
+ const dd = document.getElementById('receivedCashierDropdown');
+ if (dd) dd.style.display = 'none';
+}
+function clearReceivedCashier() {
+ const hf = document.getElementById('receivedCashier');
+ if (hf) hf.value = '';
+ const btn = document.getElementById('receivedCashierBtn');
+ if (btn) {
+  btn.innerHTML = '<i class="fas fa-user"></i>';
+  btn.style.background = '';
+  btn.style.color = '';
+  btn.style.borderColor = '#212529';
+ }
+ const dd = document.getElementById('receivedCashierDropdown');
+ if (dd) dd.style.display = 'none';
+}
+if (typeof toggleReceivedCashierDropdown !== "undefined") window.toggleReceivedCashierDropdown = toggleReceivedCashierDropdown;
+if (typeof pickReceivedCashier !== "undefined") window.pickReceivedCashier = pickReceivedCashier;
+if (typeof clearReceivedCashier !== "undefined") window.clearReceivedCashier = clearReceivedCashier;
+if (typeof document !== 'undefined') {
+ document.addEventListener('click', function (e) {
+  const dd = document.getElementById('receivedCashierDropdown');
+  if (!dd) return;
+  const btn = document.getElementById('receivedCashierBtn');
+  if (e.target.closest && ((btn && e.target.closest('#receivedCashierBtn')) || (dd && dd.contains(e.target)))) return;
+  dd.style.display = 'none';
+ });
+}
+function addReceivedAmount() {
+ const hasChanges = checkChangeInSoldItems();
+ if (billSelectedToUpdate && !hasChanges) {
+  let sCurrItems = stored_bill_items.filter(item => item.e == billSelectedToUpdate.a);
+  let cCashInfo = stored_bill_cash_info.filter(cash => cash.tb == 7 && cash.td == billSelectedToUpdate.a);
+  showAlreadyReceivedAmts(billSelectedToUpdate.a, sCurrItems, cCashInfo);
+  return;
+ }
+
+ const dateTime = document.getElementById('receivedDateTime').value;
+ const amount = parseFloat(document.getElementById('receivedAmount').value) || 0;
+ const paymentType = document.getElementById('paymentType').value;
+ const clientId = parseInt(document.getElementById('clientId').value) || 0;
+
+ // Validation
+ if (!dateTime) {
+  return validateAndScrollToField('receivedDateTime', 'Please select date and time');
+ }
+
+ if (amount <= 0) {
+  return validateAndScrollToField('receivedAmount', 'Please enter a valid amount');
+ }
+
+ if (!clientId || clientId === 0) {
+  return validateAndScrollToField('c_dtls_lient', 'Please select a customer first');
+ }
+
+ // Extract date part (YYYY-MM-DD)
+ const paymentDate = dateTime.split(' ')[0];
+
+ // Validate payment uniqueness
+ (async () => {
+  const validationResult = await validatePaymentUniqueness(clientId, amount, dateTime, paymentType);
+
+  let constraintCounter = 0; // Default to 1 for first payment on this date
+  let didCrossBillIncrement = false;
+
+
+  if (validationResult.matchingCount > 0) {
+   // Same amount/date payments exist for THIS SPECIFIC DATE
+   let message = `Same amount (₹${amount.toFixed(2)}) on same date (${paymentDate}) already exists.\n\n`;
+
+   if (validationResult.matchingCount === 1) {
+    message += `Existing constraint counter: ${validationResult.existingConstraint}`;
+   } else {
+    message += `Existing constraint counters: 0 to ${validationResult.existingConstraint}`;
+   }
+
+   const nextCounter = validationResult.nextConstraint;
+   message += `\n\nDo you want to add another payment with constraint counter ${nextCounter}?`;
+
+
+   const userResponse = await showConfirmModal(message);
+
+   if (!userResponse) {
+    return;
+   }
+
+   // Set constraint counter to the next available one (existing payments untouched)
+   constraintCounter = validationResult.nextConstraint;
+   didCrossBillIncrement = true;
+  } else {
+   // No matching payments for this date
+   constraintCounter = 0;
+  }
+
+  // Create received amount object with constraint counter
+  const receivedAmount = {
+   id: -Date.now(),
+   dateTime: dateTime,
+   amount: amount,
+   paymentType: paymentType,
+   constraintCounter: constraintCounter || 0,
+   clientId: clientId,
+   timestamp: new Date().toISOString(),
+   g: (document.getElementById('receivedCashier') ? document.getElementById('receivedCashier').value : '') || ''
+  };
+
+
+  // Add to array
+  receivedAmounts.push(receivedAmount);
+
+  // Update UI
+  updateReceivedAmountsUI();
+
+  // Clear form
+  clearReceivedAmountForm();
+
+  // Update grand totals
+  refreshGrandTotals();
+
+  // Show success message with constraint counter info
+  if (constraintCounter > 0) {
+   showToast(`Payment added successfully! Constraint counter: ${constraintCounter}`);
+  } else {
+   showToast('Payment added successfully!');
+  }
+ })();
+}
+function updateReceivedAmountsUI() {
+ const container = document.getElementById('addedReceivedAmountsContainer');
+
+ if (receivedAmounts.length === 0) {
+  container.innerHTML = `
+<div class="text-center text-muted py-3">
+<i class="fas fa-receipt fa-2x mb-2"></i>
+<p>No received amounts added yet</p>
+</div>
+`;
+  return;
+ }
+
+ let html = '<h6>Payment History</h6>';
+
+ receivedAmounts.forEach((payment, index) => {
+  const paymentTypeIcon = getPaymentTypeIcon(payment.paymentType);
+  const formattedDate = formatDateTime(payment.dateTime);
+
+  // Only show constraint counter badge if > 1
+  const constraintCounterBadge = payment.constraintCounter > 0 ?
+   `<span class="badge bg-${getConstraintCounterColor(payment.constraintCounter)} ms-1" title="Constraint counter: ${payment.constraintCounter}">${payment.constraintCounter}</span>` : '';
+
+  // After saving a new bill, hide the per-payment actions dropdown
+  const actionsHtml = window.billSaved ? '' : `
+<div class="col-2 text-end">
+<div class="dropdown">
+<button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+<i class="fas fa-ellipsis-v"></i>
+</button>
+<ul class="dropdown-menu dropdown-menu-end">
+<!--li><button class="dropdown-item" onclick="updatePayment(${payment.id})"><i class="fas fa-edit me-2"></i>Update</button></li-->
+<li><hr class="dropdown-divider"><hr class="dropdown-divider"></li>
+<li><button class="dropdown-item text-danger" onclick="removeReceivedAmount(${payment.id})"><i class="fas fa-trash me-2"></i>Delete</button></li>
+</ul>
+</div>
+</div>
+`;
+
+  html += `
+<div class="card mb-2 received-amount-card" id="receivedAmount-${payment.id}">
+<div class="card-body py-1">
+<div class="row align-items-center">
+<div class="col-4">
+<small class="text-muted"><i class="far fa-calendar me-1"></i>${formattedDate}</small>
+</div>
+<div class="col-6">
+<strong>${paymentTypeIcon} ₹${payment.amount.toFixed(2)}${constraintCounterBadge}</strong>
+</div>
+${actionsHtml}
+</div>
+</div>
+</div>
+`;
+ });
+
+ container.innerHTML = html;
+}
+
+// ===== NEW: update-mode only payments flow (old functions are left untouched) =====
+
+async function addNewReceivedAmount() {
+ if (!billSelectedToUpdate) {
+  showToast('No bill selected for update');
+  return;
+ }
+
+ const dateTime = document.getElementById('receivedDateTime').value;
+ const amount = parseFloat(document.getElementById('receivedAmount').value) || 0;
+ const paymentType = document.getElementById('paymentType').value;
+
+ if (!dateTime) {
+  return validateAndScrollToField('receivedDateTime', 'Please select date and time');
+ }
+
+ if (amount <= 0) {
+  return validateAndScrollToField('receivedAmount', 'Please enter a valid amount');
+ }
+
+ const paymentDate = dateTime.split(' ')[0];
+ const billId = billSelectedToUpdate.a;
+ const clientId = parseInt(billSelectedToUpdate.e) || 0;
+ const paymentTypeInt = parseInt(paymentType) || 0;
+
+ // Collect all matching payments - ONLY same date
+ const matchingPayments = [];
+
+ window.newUpdatePayments = window.newUpdatePayments || [];
+ window.newUpdatePayments.forEach(payment => {
+  const existingDate = payment.dateTime.split(' ')[0];
+  const existingAmount = parseFloat(payment.amount) || 0;
+
+  if (payment.billId === billId &&
+   payment.clientId === clientId &&
+   Math.abs(existingAmount - amount) < 0.001 &&
+   existingDate === paymentDate &&
+   payment.paymentType === paymentType) {
+   matchingPayments.push(payment.constraintCounter || 0);
+  }
+ });
+
+ receivedAmounts.forEach(payment => {
+  const existingDate = payment.dateTime.split(' ')[0];
+  const existingAmount = parseFloat(payment.amount) || 0;
+
+  if (parseInt(payment.clientId) === clientId &&
+   Math.abs(existingAmount - amount) < 0.001 &&
+   existingDate === paymentDate &&
+   String(payment.paymentType) === paymentType) {
+   matchingPayments.push(payment.constraintCounter || 0);
+  }
+ });
+
+ const existingReceivedIds = new Set(receivedAmounts.map(p => p.id));
+ stored_bill_cash_info.forEach(payment => {
+  if (existingReceivedIds.has(payment.a)) return;
+  const existingDate = payment.k || '';
+  const existingAmount = parseFloat(payment.j) || 0;
+  const existingPaymentType = payment.i || '0';
+
+  if (payment.f === 0 &&
+   parseInt(payment.h) === clientId &&
+   Math.abs(existingAmount - amount) < 0.001 &&
+   existingDate === paymentDate &&
+   parseInt(existingPaymentType) === paymentTypeInt) {
+   matchingPayments.push(payment.n || 0);
+  }
+ });
+
+ // Calculate constraint counter
+ let constraintCounter = 0;
+ let didCrossBillIncrement = false;
+
+ if (matchingPayments.length > 0) {
+  const maxCounter = Math.max(...matchingPayments);
+  const nextCounter = maxCounter + 1;
+
+  let message = `Same amount (₹${amount.toFixed(2)}) on same date (${paymentDate}) already exists.\n\n`;
+
+  if (matchingPayments.length === 1) {
+   message += `Current constraint counter: ${maxCounter}\n\n`;
+  } else {
+   message += `Current constraint counters: 0 to ${maxCounter}\n\n`;
+  }
+
+  message += `Do you want to add another payment with constraint counter ${nextCounter}?`;
+
+  if (!(await showConfirmModal(message))) {
+   return;
+  }
+
+  constraintCounter = maxCounter + 1;
+  didCrossBillIncrement = true;
+ } else {
+  constraintCounter = 0;
+ }
+
+ // Add to new payments array
+ const tempPayment = {
+  id: Date.now(),
+  billId: billId,
+  dateTime: dateTime,
+  amount: amount,
+  paymentType: paymentType,
+  constraintCounter: constraintCounter || 0,
+  clientId: clientId,
+  timestamp: new Date().toISOString(),
+  g: (document.getElementById('receivedCashier') ? document.getElementById('receivedCashier').value : '') || ''
+ };
+
+ window.newUpdatePayments.push(tempPayment);
+
+ // Update UI to show new payments + "Update Payments" button
+ updateNewPaymentsUI();
+ clearReceivedAmountForm();
+ updateGrandTotalsForUpdate();
+
+ if (constraintCounter > 0) {
+  showToast(`Payment added with constraint counter: ${constraintCounter}. Click "Update Payments" to save.`);
+ } else {
+  showToast('Payment added. Click "Update Payments" to save.');
+ }
+}
+
+function updateNewPaymentsUI() {
+ const container = document.getElementById('addedReceivedAmountsContainer');
+ if (!container) return;
+
+ // Old renderer draws the Payment History part (unchanged behaviour)
+ updateReceivedAmountsUI();
+
+ window.newUpdatePayments = window.newUpdatePayments || [];
+ const billId = billSelectedToUpdate ? billSelectedToUpdate.a : null;
+ const newPayments = billId ? window.newUpdatePayments.filter(p => p.billId === billId) : [];
+
+ if (newPayments.length === 0) {
+  syncPaymentActionButtons();
+  return;
+ }
+
+ let newSection = '<h6>New Payments to be Added</h6>';
+
+ newPayments.forEach(payment => {
+  const paymentTypeIcon = getPaymentTypeIcon(payment.paymentType);
+  const formattedDate = formatDateTime(payment.dateTime);
+
+  const constraintCounterBadge = payment.constraintCounter > 0 ?
+   `<span class="badge bg-${getConstraintCounterColor(payment.constraintCounter)} ms-1" title="Constraint counter: ${payment.constraintCounter}">${payment.constraintCounter}</span>` : '';
+
+  newSection += `
+<div class="card mb-2 received-amount-card" style="border-left: 4px solid #ffc107 !important;">
+<div class="card-body py-2">
+<div class="row align-items-center">
+<div class="col-4">
+<small class="text-muted"><i class="far fa-calendar me-1"></i>${formattedDate}</small>
+</div>
+<div class="col-6">
+<strong>${paymentTypeIcon} ₹${payment.amount.toFixed(2)}${constraintCounterBadge}</strong>
+</div>
+<div class="col-2 text-end">
+<button class="btn btn-outline-danger btn-sm" onclick="removeNewUpdatePayment(${payment.id})">
+<i class="fas fa-times"></i>
+</button>
+</div>
+</div>
+</div>
+</div>
+`;
+ });
+
+ newSection += `
+<div class="text-center my-3">
+<button class="btn btn-success" onclick="updateBillPayments()">
+<i class="fas fa-money-check-alt me-2"></i>Update Payments
+</button>
+</div>
+`;
+
+ container.innerHTML = newSection + container.innerHTML;
+ syncPaymentActionButtons();
+}
+
+async function removeNewUpdatePayment(paymentId) {
+ window.newUpdatePayments = window.newUpdatePayments || [];
+ const payment = window.newUpdatePayments.find(p => p.id === paymentId);
+
+ if (payment && !(await showConfirmModal(`Remove payment of ₹${payment.amount.toFixed(2)}?`))) {
+  return;
+ }
+
+ window.newUpdatePayments = window.newUpdatePayments.filter(p => p.id !== paymentId);
+ updateNewPaymentsUI();
+ updateGrandTotalsForUpdate();
+ showToast('Payment removed from new payments list');
+}
+
+function updateGrandTotalsForUpdate() {
+ const totalPrice = parseFloat(document.getElementById('totalPrice').textContent) || 0;
+ const discountAmount = parseFloat(document.getElementById('discountAmount').value) || 0;
+ const finalAmount = totalPrice - discountAmount;
+
+ const billId = billSelectedToUpdate ? billSelectedToUpdate.a : null;
+ const newPaymentsTotal = (billId && (window.newUpdatePayments || []))
+  .filter(p => p.billId === billId)
+  .reduce((sum, payment) => sum + payment.amount, 0);
+
+ const totalReceived = receivedAmounts.reduce((sum, payment) => sum + payment.amount, 0) + newPaymentsTotal;
+ const balance = finalAmount - totalReceived;
+
+ document.getElementById('grandBillTotal').textContent = finalAmount.toFixed(2);
+ document.getElementById('grandTotalReceived').textContent = totalReceived.toFixed(2);
+ document.getElementById('grandBalance').textContent = balance.toFixed(2);
+
+ const balanceElement = document.getElementById('grandBalance');
+ if (balance === 0) {
+  balanceElement.className = 'text-success';
+ } else if (balance > 0) {
+  balanceElement.className = 'text-warning';
+ } else {
+  balanceElement.className = 'text-danger';
+ }
+}
+
+async function updateBillPayments() {
+ if (!billSelectedToUpdate) {
+  showToast('No bill selected');
+  return;
+ }
+ window.newUpdatePayments = window.newUpdatePayments || [];
+ const newPayments = window.newUpdatePayments.filter(p => p.billId === billSelectedToUpdate.a);
+ if (newPayments.length === 0) {
+  showToast('No new payments to update');
+  return;
+ }
+
+ const billData = billSelectedToUpdate;
+
+ const paymentDetails = newPayments.map(payment => {
+  return `₹${payment.amount} (${getPaymentTypeText(payment.paymentType)}) on ${formatDateTime(payment.dateTime)}`;
+ }).join('\n');
+
+ // if (!(await showConfirmModal(`Update the following payments for bill ${billData.a}:\n\n${paymentDetails}`))) {
+ //   return;
+ //  }
+
+ try {
+  const paymentArray = newPayments.map(payment => {
+   return {
+    h: billData.e,
+    i: payment.paymentType,
+    j: payment.amount.toString(),
+    k: payment.dateTime.split(' ')[0],
+    td: billData.a,
+    n: payment.constraintCounter || 0,
+    g: payment.g || '' // Cashier c.a
+   };
+  });
+  await clearPayload0();
+  payload0.fn = 103;
+  payload0.r = paymentArray;
+  payload0.ul = '2/0p.php';
+  payload0.gt = 2;
+  payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, getMaxDateTables());
+  const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
+  //const response = await fnj3("https://my1.in/2/p.php", payload0, 1, true, null, 20000, 0, 2, 1);
+  if (response.su == 1) {
+   await handl_op_rspons(response, 0);
+   stored_bill_cash_info = await dbDexieManager.getAllRecords(dbnm, "r") || [];
+   const freshCashInfo = stored_bill_cash_info.filter(cash => cash.tb == 7 && cash.td == billData.a);
+   receivedAmounts = freshCashInfo.map(payment => {
+    return {
+     id: payment.a,
+     clientId: billData.e,
+     dateTime: payment.k || new Date().toISOString().split('T')[0] + ' 00:00',
+     amount: parseFloat(payment.j) || 0,
+     paymentType: payment.i || '0',
+     constraintCounter: payment.n || 0,
+     timestamp: payment.b || new Date().toISOString()
+    };
+   });
+
+   const echoPayments = (response.r && Array.isArray(response.r.l)) ? response.r.l.filter(c => String(c.td) === String(billData.a)) : [];
+   const alreadyInHistory = (np) => receivedAmounts.some(ra =>
+    ra.dateTime.split(' ')[0] === np.dateTime.split(' ')[0] &&
+    ra.amount === np.amount &&
+    String(ra.paymentType) === String(np.paymentType)
+   );
+   newPayments.forEach(np => {
+    if (alreadyInHistory(np)) return;
+    const echo = echoPayments.find(c =>
+     String(c.td) === String(billData.a) &&
+     String(c.i) === String(np.paymentType) &&
+     parseFloat(c.j) === np.amount &&
+     (c.k || '').split(' ')[0] === np.dateTime.split(' ')[0]
+    );
+    if (echo) {
+     receivedAmounts.push({
+      id: echo.a,
+      clientId: billData.e,
+      dateTime: echo.k || np.dateTime,
+      amount: parseFloat(echo.j) || 0,
+      paymentType: echo.i || np.paymentType,
+      constraintCounter: np.constraintCounter || 0,
+      timestamp: echo.b || new Date().toISOString()
+     });
+    }
+   });
+
+   window.newUpdatePayments = window.newUpdatePayments.filter(p => p.billId !== billData.a);
+   updateNewPaymentsUI();
+   updateGrandTotalsForUpdate();
+   syncPaymentActionButtons();
+   const stillMissing = newPayments.filter(np => !alreadyInHistory(np));
+   if (stillMissing.length > 0) {
+    showToast(stillMissing.length + ' payment(s) not visible in history — check console');
+   } else {
+    showToast('Payments updated successfully!');
+   }
+  } else {
+   const errMsg = extractMessages(response) || response.ms || 'Failed to update payments';
+   window.showelsemodal(errMsg);
+  }
+ } catch (error) {
+  console.error('Error updating payments:', error);
+  showToast('Error updating payments: ' + error.message);
+ }
+}
+
+// Intercept the "+" add-payments button: in update mode it adds inline (new flow),
+// otherwise the original addReceivedAmount() keeps working exactly as before.
+document.addEventListener('click', function (e) {
+ const btn = e.target.closest('button[onclick="addReceivedAmount()"]');
+ if (btn && getBillSelectedToUpdate()) {
+  e.preventDefault();
+  e.stopPropagation();
+  addNewReceivedAmount();
+ }
+}, true);
+function updatePayment(paymentId) {
+ // Find the payment to update
+ const paymentIndex = receivedAmounts.findIndex(payment => payment.id === paymentId);
+ if (paymentIndex === -1) return;
+
+ const payment = receivedAmounts[paymentIndex];
+
+ // Store original values
+ const originalPayment = { ...payment };
+
+ // Populate the form with existing payment data
+ document.getElementById('receivedDateTime').value = payment.dateTime;
+ if (receivedDateTimePicker) receivedDateTimePicker.setCommitted(payment.dateTime);
+ document.getElementById('receivedAmount').value = payment.amount;
+ document.getElementById('paymentType').value = payment.paymentType;
+ updatePaymentTypeIcon();
+
+ // Store original payment data in a global variable for validation
+ window.paymentBeingEdited = originalPayment;
+
+ // Remove the payment from the array temporarily
+ receivedAmounts.splice(paymentIndex, 1);
+
+ // Update UI
+ updateNewPaymentsUI();
+ updateGrandTotalsForUpdate();
+
+ // Scroll to the payment form
+ const fieldRect = document.getElementById('receivedDateTime').getBoundingClientRect();
+ const scrollTopPosition = window.pageYOffset + fieldRect.top - 100;
+ window.scrollTo({ top: scrollTopPosition, behavior: 'smooth' });
+ document.getElementById('receivedAmount').focus();
+
+ // Show a temporary "Update Payment" button at the bottom of the form
+ const updateBtnWrap = document.getElementById('receivedPaymentUpdateBtnWrap');
+ if (updateBtnWrap) {
+  updateBtnWrap.style.display = 'block';
+  updateBtnWrap.innerHTML = '<button class="btn btn-warning btn-sm w-100" onclick="validateAndUpdatePayment(' + paymentId + ')"><i class="fas fa-save me-2"></i>Update Payment</button>';
+ }
+
+ showToast('Payment loaded for editing. Update the details and click "Update Payment" to save.');
+}
+async function validateAndUpdatePayment(paymentId) {
+ const dateTime = document.getElementById('receivedDateTime').value;
+ const amount = parseFloat(document.getElementById('receivedAmount').value) || 0;
+ const paymentType = document.getElementById('paymentType').value;
+ const clientId = parseInt(document.getElementById('clientId').value) || 0;
+
+ // Validation
+ if (!dateTime) {
+  return validateAndScrollToField('receivedDateTime', 'Please select date and time');
+ }
+
+ if (amount <= 0) {
+  return validateAndScrollToField('receivedAmount', 'Please enter a valid amount');
+ }
+
+ if (!clientId || clientId === 0) {
+  return validateAndScrollToField('c_dtls_lient', 'Please select a customer');
+ }
+
+ // Get original payment data
+ const originalPayment = window.paymentBeingEdited;
+ if (!originalPayment) {
+  showToast('Error: Original payment data not found');
+  return;
+ }
+
+ // Extract date parts
+ const paymentDate = dateTime.split(' ')[0];
+ const originalPaymentDate = originalPayment.dateTime.split(' ')[0];
+
+ // Check if values have changed
+ const hasChanged = Math.abs(amount - originalPayment.amount) > 0.001 ||
+  paymentDate !== originalPaymentDate ||
+  paymentType !== originalPayment.paymentType;
+
+ let constraintCounter = originalPayment.constraintCounter || 0;
+
+ if (hasChanged) {
+  // Values have changed, need to validate uniqueness
+  // First, exclude the original payment from validation
+  const tempValidationArray = receivedAmounts.filter(p => p.id !== paymentId);
+  const originalReceivedAmounts = [...receivedAmounts];
+
+  // Temporarily remove the original payment for validation
+  receivedAmounts = tempValidationArray;
+
+  const validationResult = await validatePaymentUniqueness(clientId, amount, dateTime, paymentType);
+
+  // Restore the original array
+  receivedAmounts = originalReceivedAmounts;
+
+  if (validationResult.matchingCount > 0) {
+   // Same amount/date payments exist
+   let message = `Same amount (₹${amount.toFixed(2)}) on same date (${paymentDate}) already exists.\n\n`;
+
+   if (validationResult.matchingCount === 1) {
+    message += `Existing constraint counter: ${validationResult.existingConstraint}\n\n`;
+   } else {
+    message += `Existing constraint counters: 0 to ${validationResult.existingConstraint}\n\n`;
+   }
+
+   message += `Do you want to update with constraint counter ${validationResult.nextConstraint}?`;
+
+   const userResponse = await showConfirmModal(message);
+
+   if (!userResponse) {
+    // Restore original payment
+    receivedAmounts.push(originalPayment);
+    updateNewPaymentsUI();
+    updateGrandTotalsForUpdate();
+    clearReceivedPaymentUpdateBtn();
+    return;
+   }
+   constraintCounter = validationResult.nextConstraint;
+  } else {
+   constraintCounter = 0;
+  }
+ }
+
+ // Create updated payment object
+ const updatedPayment = {
+  id: paymentId,
+  dateTime: dateTime,
+  amount: amount,
+  paymentType: paymentType,
+  constraintCounter: constraintCounter || 0,
+  clientId: clientId,
+  timestamp: new Date().toISOString(),
+  g: (document.getElementById('receivedCashier') ? document.getElementById('receivedCashier').value : '') || ''
+ };
+
+ // Add to array
+ receivedAmounts.push(updatedPayment);
+
+ // Update UI
+ updateNewPaymentsUI();
+ updateGrandTotalsForUpdate();
+
+ // Clear form
+ clearReceivedAmountForm();
+
+ // Clear the editing state
+ window.paymentBeingEdited = null;
+
+ // Remove the temporary "Update Payment" button
+ clearReceivedPaymentUpdateBtn();
+
+ // Show success message
+ if (constraintCounter > 0) {
+  showToast(`Payment updated successfully! Constraint counter: ${constraintCounter}`);
+ } else {
+  showToast('Payment updated successfully!');
+ }
+}
+async function removeReceivedAmount(id) {
+ // Find the payment to get its details
+ const payment = receivedAmounts.find(p => p.id === id);
+
+ if (payment) {
+  // Show confirmation with constraint counter info
+  const constraintInfo = payment.constraintCounter > 0 ?
+   ` (Constraint counter: ${payment.constraintCounter})` : '';
+
+  if (!(await showConfirmModal(`Remove payment of ₹${payment.amount.toFixed(2)}${constraintInfo}?`))) {
+   return;
+  }
+ }
+ if (!billSelectedToUpdate) {
+  receivedAmounts = receivedAmounts.filter(p => p.id !== id);
+  updateReceivedAmountsUI();
+  refreshGrandTotals();
+  return;
+ }
+ try {
+  await clearPayload0();
+  payload0.fn = 105;
+  payload0.x1 = id;
+  payload0.ul = '2/0p.php';
+  payload0.gt = 2;
+  const response = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
+  //const response = await fnj3("https://my1.in/2/p.php", payload0, 1, true, null, 20000, 0, 1, 1, 1);
+  if (response.su == 1) {
+   await dbDexieManager.deleteRecords(dbnm, 'r', id);
+   receivedAmounts = receivedAmounts.filter(payment => payment.id !== id);
+   updateNewPaymentsUI();
+   updateGrandTotalsForUpdate();
+  } else {
+   window.showelsemodal(response.ms);
+  }
+ } catch (error) {
+  window.showelsemodal("failed:" + error);
+ }
+}
+function refreshGrandTotals() {
+ if (billSelectedToUpdate) {
+  updateGrandTotalsForUpdate();
+ } else {
+  updateGrandTotals();
+ }
+}
+function renumberConstraintCounters(...lists) {
+ let billId = null;
+ if (lists.length > 0 && !Array.isArray(lists[0])) {
+  billId = lists.shift();
+ }
+ const payments = lists.flat().filter(p => p && p.dateTime);
+ const groups = new Map();
+ payments.forEach(p => {
+  const pBill = (p.billId != null ? p.billId : billId);
+  const key = (pBill != null ? String(pBill) : '') + '|' + (p.clientId || '') + '|' + p.dateTime.split(' ')[0] + '|' + (parseFloat(p.amount) || 0);
+  if (!groups.has(key)) groups.set(key, []);
+  groups.get(key).push(p);
+ });
+ groups.forEach(list => {
+  list.sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''));
+  list.forEach((p, i) => p.constraintCounter = i);
+ });
+}
+function formatDateTime(dateTimeString) {
+ if (isDesktopView()) return formatLongDisplay(dateTimeString);
+ const date = new Date(dateTimeString);
+ const day = String(date.getDate()).padStart(2, '0');
+ const month = (window.MONTH_SHORT || [])[date.getMonth()];
+ const hasTime = String(dateTimeString).includes(':');
+ return `${day}/${month} ${date.getFullYear()}` + (hasTime ? `, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : '');
+}
+
+function clearReceivedAmountForm() {
+ document.getElementById('receivedAmount').value = '';
+ document.getElementById('paymentType').value = '0';
+ updatePaymentTypeIcon();
+ // Auto-set the payment date back to current date & time for the next entry
+ if (receivedDateTimePicker) receivedDateTimePicker.setCommitted(new Date());
+ else document.getElementById('receivedDateTime').value = formatForPicker(new Date());
+}
+function clearReceivedPaymentUpdateBtn() {
+ const updateBtnWrap = document.getElementById('receivedPaymentUpdateBtnWrap');
+ if (updateBtnWrap) {
+  updateBtnWrap.style.display = 'none';
+  updateBtnWrap.innerHTML = '';
+ }
+}
+
+function updateGrandTotals() {
+ // Get total price from items
+ const totalPrice = parseFloat(document.getElementById('totalPrice').textContent) || 0;
+
+ // Get discount amount
+ const discountAmount = parseFloat(document.getElementById('discountAmount').value) || 0;
+
+ // Calculate final amount after discount
+ const finalAmount = totalPrice - discountAmount;
+
+ // Get total received
+ const totalReceived = receivedAmounts.reduce((sum, payment) => sum + payment.amount, 0);
+
+ // Calculate balance
+ const balance = finalAmount - totalReceived;
+
+ // Update display elements
+ document.getElementById('grandBillTotal').textContent = finalAmount.toFixed(2);
+ document.getElementById('grandTotalReceived').textContent = totalReceived.toFixed(2);
+ document.getElementById('grandBalance').textContent = balance.toFixed(2);
+
+ // Add visual indicators
+ const balanceElement = document.getElementById('grandBalance');
+ if (balance === 0) {
+  balanceElement.className = 'text-success';
+ } else if (balance > 0) {
+  balanceElement.className = 'text-warning';
+ } else {
+  balanceElement.className = 'text-danger';
+ }
+}
+
+function showToast(message) {
+ // Simple toast implementation
+ const toast = document.createElement('div');
+ toast.style.cssText = `
+position: fixed;
+top: 20px;
+right: 20px;
+background: #333;
+color: white;
+padding: 12px 20px;
+border-radius: 4px;
+z-index: 3000;
+font-size: 14px;
+`;
+ toast.textContent = message;
+ document.body.appendChild(toast);
+
+ setTimeout(() => {
+  document.body.removeChild(toast);
+ }, 3000);
+}
+
+function addDropdownStyles() {
+ const style = document.createElement('style');
+ style.textContent = `
+.button-color:{
+background-color: #6e42c16e;
+}
+#modalItemImageContainer{
+max-width: 100px;
+margin: 0 auto;
+}
+
+#modalItemImageContainer img{
+max-width: 100%;
+height: auto;
+border-radius: 4px;
+}
+
+.item-dropdown.dropdown-menu{
+padding: 0;
+}
+
+.item-dropdown .dropdown-item{
+display: flex;
+align-items: center;
+padding: 10px 14px;
+white-space: normal;
+}
+
+.item-dropdown .dropdown-item img{
+width: 40px;
+height: 40px;
+object-fit: cover;
+border-radius: 4px;
+margin-right: 12px;
+flex-shrink: 0;
+}
+
+.item-dropdown .dropdown-item .item-name{
+flex: 1;
+font-weight: 500;
+line-height: 1.2;
+min-width: 0;
+overflow-wrap: break-word;
+}
+
+.item-dropdown .dropdown-item .item-name small{
+display: block;
+white-space: normal;
+overflow: hidden;
+text-overflow: ellipsis;
+max-height: 2.4em;
+line-height: 1.2em;
+}
+
+.item-dropdown .dropdown-item .item-price{
+text-align: right;
+color: #28a745;
+font-weight: 500;
+flex-shrink: 0;
+margin-left: 8px;
+}
+
+#navbarNav{
+    position:fixed;
+    top:60px;
+    right:10px;
+    left:10px;
+    z-index:1040;
+}
+
+.menu-popup{
+    background:linear-gradient(135deg,var(--primary-purple),var(--dark-purple));
+    border-radius:12px;
+    padding:12px;
+    box-shadow:0 8px 25px rgba(0,0,0,.35);
+    border:1px solid rgba(255,255,255,.15);
+}
+
+.menu-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+}
+
+.menu-item{
+    min-height:65px;
+    background:rgba(255, 255, 255, 0.12);
+    border:1px solid rgba(255,255,255,.2);
+    border-radius:8px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    font-size:.75rem;
+    text-align:center;
+    color:#fff;
+    transition:all .25s ease;
+}
+
+.menu-item i{
+    font-size:1.3rem;
+    margin-bottom:5px;
+    color:var(--secondary-gold);
+}
+
+.menu-item:hover{
+    background:rgba(255,215,0,.15);
+    border-color:var(--secondary-gold);
+    transform:translateY(-2px);
+    box-shadow:0 4px 12px rgba(0,0,0,.3);
+}
+
+.menu-sub-toggle.menu-open{
+    background:rgba(255,215,0,.2);
+    border-color:var(--secondary-gold);
+}
+
+.menu-sub-dropdown{
+    display:none;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    margin-top:10px;
+    padding:10px;
+    background:linear-gradient(135deg,#8a4fe0,#6a2f9e);
+    border:1px solid rgba(255,215,0,.35);
+    border-radius:10px;
+}
+
+.menu-sub-dropdown.menu-open{ display:grid; }
+
+.menu-sub-item{ min-height:56px; }
+
+.menu-sub-item span{ color:var(--secondary-gold); }
+
+.menu-sub-item i.fa-comment{ color:#4dd0e1; }
+.menu-sub-item i.fa-trash{ color:#ff7043; }
+.menu-sub-item i.fa-store{ color:#ffd700; }
+
+@media (min-width:992px){
+    .menu-grid{ grid-template-columns:repeat(7,1fr); }
+}
+
+/* Inline dropdown styles */
+
+
+
+.row.g-0>[class*="col-"]{
+padding-left: 5px;
+padding-right: 5px;
+}
+
+.row.g-0 .input-group{
+margin-bottom: 0;
+}
+
+.added-item-card{
+border-left: 4px solid #28a745 !important;
+}
+
+.added-item-image{
+max-width: 80px;
+max-height: 80px;
+object-fit: cover;
+border-radius: 4px;
+}
+
+.added-item-card .form-control-sm{
+display: inline-block !important;
+height: 24px;
+padding: 0 4px;
+font-size: .875rem;
+margin-left: 4px;
+}
+
+.added-item-card .form-control-sm:focus{
+border-color: #007bff;
+box-shadow: 0 0 0 .2rem rgba(0, 123, 255, .25);
+}
+
+.added-item-card .btn-outline-danger.btn-sm{
+padding: 2px 6px;
+font-size: .75rem;
+border-width: 1px;
+}
+
+.added-item-card .btn-outline-danger.btn-sm:hover{
+background-color: #dc3545;
+color: #fff;
+}
+
+.added-item-card strong{
+font-size: .9rem;
+margin-right: 4px;
+}
+
+[id^="itemPrice-"]{
+font-weight: 700;
+color: #28a745;
+}
+
+.qr-scanner-modal{
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.8);
+z-index: 2000;
+display: flex;
+justify-content: center;
+align-items: center;
+}
+
+.qr-scanner-content{
+background: #fff;
+padding: 20px;
+border-radius: 8px;
+text-align: center;
+max-width: 90%;
+max-height: 90%;
+}
+
+#qr-reader.scanner-container{
+position: fixed !important;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+}
+
+.received-amount-card{
+border-left: 4px solid #007bff !important;
+transition: all 0.3s ease;
+}
+
+.received-amount-card:hover{
+transform: translateY(-2px);
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.badge.bg-secondary{
+font-size: .75rem;
+padding: 4px 8px;
+}
+
+.card.border-success{
+border-width: 2px !important;
+}
+
+.bg-light{
+background-color: #f8f9fa !important;
+}
+
+.btn-success, .btn-warning, .btn-info{
+font-weight: 600;
+padding: 10px 16px;
+}
+
+.btn:disabled{
+opacity: .6;
+cursor: not-allowed;
+transform: none !important;
+}
+
+.btn-secondary:disabled{
+background-color: #6c757d !important;
+border-color: #6c757d !important;
+}
+
+.btn:disabled:hover{
+transform: none !important;
+box-shadow: none !important;
+}
+
+.input-group-sm{
+margin-bottom: .5rem;
+}
+
+.input-group-sm .form-control{
+font-size: .875rem;
+}
+
+.input-group-sm .input-group-text{
+font-size: .875rem;
+padding: .25rem .5rem;
+}
+
+.btn-success.btn-sm{
+padding: .25rem .5rem;
+font-size: .75rem;
+height: 38px;
+}
+
+.form-switch .form-check-input{
+height: 1.2rem;
+width: 2.4rem;
+cursor: pointer;
+}
+
+.form-switch .form-check-input:checked{
+background-color: #28a745;
+border-color: #28a745;
+}
+
+.form-switch .form-check-label{
+font-size: .8rem;
+color: #495057;
+cursor: pointer;
+}
+
+.alert-success{
+padding: .5rem 1rem;
+font-size: .8rem;
+animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn{
+from{ opacity: 0; }
+to{ opacity: 1; }
+}
+
+#stopContinuousScan{
+margin-top: 10px;
+}
+
+#qr-scanner_modal .modal-dialog{
+max-width: 500px;
+}
+
+#qr-reader-container{
+min-height: 300px;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+}
+
+#qr-scanner-status{
+text-align: center;
+}
+
+#qr-scanner-loading{
+width: 3rem;
+height: 3rem;
+}
+
+#qr-scanner-message{
+font-size: .9rem;
+margin-top: 10px;
+}
+
+#item_not_found_modal .modal-dialog{
+max-width: 400px;
+}
+
+@media (max-width: 576px){
+.row.g-2>[class*="col-"]{
+margin-bottom: .5rem;
+}
+
+.input-group-sm{
+margin-bottom: .25rem;
+}
+
+.btn-success, .btn-warning, .btn-info{
+padding: 8px 12px;
+font-size: .9rem;
+}
+
+.btn-success.btn-sm{
+height: 36px;
+}
+
+.added-item-card .form-control-sm{
+width: 60px !important;
+font-size: .8rem;
+}
+
+#qr-scanner_modal .modal-dialog{
+margin: 10px;
+}
+
+@media (min-width: 576px){
+.row.g-2.align-items-end{
+align-items: end !important;
+}
+
+.input-group-sm{
+margin-bottom: 0;
+}
+}
+
+.dropdown-menu{
+z-index: 9999 !important;
+}
+
+.received-amount-card, .card, .modal-body{
+position: static !important;
+}
+
+#received_amount_modal .modal-dialog{
+max-width: 600px;
+}
+
+#addedReceivedAmountsContainerModal{
+max-height: 400px;
+overflow-y: auto;
+}
+
+.received-amount-card{
+border-left: 4px solid #007bff !important;
+}
+
+.badge{
+font-size: .6rem;
+padding: 2px 4px;
+}
+
+.bg-warning{
+background-color: #ffc107 !important;
+color: #000 !important;
+}
+
+.bg-danger{
+background-color: #dc3545 !important;
+color: #fff !important;
+}
+
+
+
+/* Ensure dropdown works in modal */
+.modal {
+overflow: visible !important;
+}
+
+/* Make modal-xl use full width below Bootstrap's 992px breakpoint */
+@media (max-width: 991.98px) {
+.modal-xl {
+max-width: calc(100% - 1rem);
+}
+}
+
+/* For mobile dropdowns */
+@media (max-width: 768px) {
+.item-dropdown .dropdown-item {
+padding: 12px 16px;
+}
+
+.item-dropdown .dropdown-item img {
+width: 50px;
+height: 50px;
+}
+
+#addItemModal .modal-dialog,
+#addItemModal2 .modal-dialog {
+margin-top: 70px;
+}
+}
+`;
+ document.head.appendChild(style);
+}
+
+function handl_op_rspons(response, reload = 0) {
+ return (async () => {
+  try {
+   if (response.su == 1) {
+    let t3032mp = null;
+    if (response.be != null) {
+     if (response.be.l != null) {
+      const t3776mp = await dbDexieManager.insertToDexie(dbnm, "be", response.be.l, true, ["ea"]);
+      reye_msrmnt = response.be.l;
+     }
+    }
+    if (response.ba != null) {
+     if (response.ba.l != null) {
+      const t3776mp = await dbDexieManager.insertToDexie(dbnm, "ba", response.ba.l, true, ["a"]);
+     }
+    }
+    if (response.i != null) {
+     if (response.i.l != null) {
+      const t3782mp = await dbDexieManager.insertToDexie(dbnm, "i", response.i.l, true, ["a"]);
+      t3032mp = JSON.parse(JSON.stringify(response.i.l));
+      ritem_info = JSON.parse(JSON.stringify(response.i.l)); // Deep clone
+     }
+    }
+    if (response.r != null) {
+     if (response.r.l != null) {
+      const t3782mp = await dbDexieManager.insertToDexie(dbnm, "r", response.r.l, true, ["a"]);
+     }
+    }
+    if (response.x != null) {
+     if (response.x.l != null) {
+      await dbDexieManager.insertToDexie(dbnm, "x", response.x.l, true, ["a"]);
+     }
+    }
+    if (response.c != null) {
+     if (response.c.l != null) {
+      const t3793mp = await dbDexieManager.insertToDexie(dbnm, "c", response.c.l, true, ["a"]);
+     }
+    }
+    if (response.p != null) {
+     if (response.p.l != null) {
+      const t3663mp = await dbDexieManager.insertToDexie(dbnm, "p", response.p.l, true, ["a"]);
+     }
+    }
+    if (response.fp != null) {
+     if (response.fp.l != null) {
+      const t3663mp = await dbDexieManager.insertToDexie(dbnm, "fp", response.fp.l, true, ["a"]);
+     }
+    }
+    if (response.f != null) {
+     if (response.f.l != null) {
+      const t3663mp = await dbDexieManager.insertToDexie(dbnm, "f", response.f.l, true, ["a"]);
+     }
+    }
+    if (response.b != null) {
+     if (response.b.l != null) {
+      const t3764mp = await dbDexieManager.insertToDexie(dbnm, "b", response.b.l, true, ["g"]);//chk by index=g because id=a can change but g=bill number creates problem;
+      if (t3764mp && t3764mp.success) {
+       rbill_info = response.b.l;
+      }
+
+      await setMaxBillNo();
+
+     }
+    }
+
+    if (response.s != null) {
+     if (response.s.l != null) {
+
+      let t_p_mp = await dbDexieManager.getAllRecords(dbnm, "p") || [];
+      let t_ba_mp = await dbDexieManager.getAllRecords(dbnm, "ba") || [];
+      let t3667mp = response.s.l.map(item => {
+       const matchingProd = t_p_mp.find(prod => prod.a === item.g);
+       if (matchingProd) {
+        item.gn = matchingProd.e;
+        item.gu = matchingProd.g;
+        item.hu = matchingProd.h;
+        // Tax 1 / Tax 2 rates live on the product row (p.j / p.k)
+        const prodTax1 = parseFloat(matchingProd.j);
+        const prodTax2 = parseFloat(matchingProd.k);
+        item.tax1 = Number.isFinite(prodTax1) ? prodTax1 : null;
+        item.tax2 = Number.isFinite(prodTax2) ? prodTax2 : null;
+       } else {
+        item.gn = "no name";
+        item.gu = "https://cdn-icons-png.freepik.com/512/13543/13543330.png";
+        item.hu = "https://cdn-icons-png.freepik.com/512/13543/13543330.png";
+       }
+       const m_ba_atching = t_ba_mp.find(i3762tm => i3762tm.a === item.f);
+       if (m_ba_atching) {
+        item.ba_f = m_ba_atching.f;
+        item.ba_g = m_ba_atching.g;
+       } else {
+        item.ba_f = "-";
+        item.ba_g = "0";
+       }
+       return item;
+      });
+      const t3793mp = await dbDexieManager.insertToDexie(dbnm, "s", t3667mp, true, ["a"]);
+     }
+    }
+    if (t3032mp != null) {
+     if (window[my1uzr.worknOnPg].confg.calcStock == 1) {
+      await update_qty_sold(response);
+     }
+    }
+    items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
+    prods = await dbDexieManager.getAllRecords(dbnm, "p") || [];
+    stored_bill = await dbDexieManager.getAllRecords(dbnm, "b") || [];
+    if (shoEyeMsrmntTbl) stored_eye_msrmnt = await dbDexieManager.getAllRecords(dbnm, "be") || [];
+    stored_bill_items = await dbDexieManager.getAllRecords(dbnm, "i") || [];
+    stored_bill_cash_info = await dbDexieManager.getAllRecords(dbnm, "r") || [];
+    clientReferrerArray = await dbDexieManager.getAllRecords(dbnm, "c") || [];
+
+
+    // Process bills array to update
+    let bills_array_to_update = [];
+
+    // Process items (response.i.l)
+    if (response.i && response.i.l && response.i.l.length > 0) {
+     // Create unique_by_item_array based on response.i.l.e
+     const uniqueItemsByE = [...new Map(response.i.l.map(item => [item.e, item])).values()];
+
+     for (const uniqueItem of uniqueItemsByE) {
+      // Find all stored_bill_items with matching e
+      const matchingItems = stored_bill_items.filter(item => item.e == uniqueItem.e);
+
+      // Calculate total of stored_bill_items.g + tax (t)
+      const i_tot = matchingItems.reduce((sum, item) => {
+       return sum + (parseFloat(item.g) || 0) + billItemTaxBreakdown(item).total;
+      }, 0);
+
+      // Find stored_bill with matching a
+      const matchingBill = stored_bill.find(bill => bill.a == uniqueItem.e);
+
+      if (matchingBill) {
+       // Check if this bill is already in bills_array_to_update
+       const existingBillIndex = bills_array_to_update.findIndex(bill => bill.g === matchingBill.g);
+
+       if (existingBillIndex === -1) {
+        // Create a copy of the bill with i_tot property
+        const billToUpdate = { ...matchingBill, i_tot: i_tot.toFixed(2) };
+        bills_array_to_update.push(billToUpdate);
+       } else {
+        // Update existing entry
+        bills_array_to_update[existingBillIndex].i_tot = i_tot.toFixed(2);
+       }
+      }
+     }
+    }
+
+    // Process cash info (response.r.l)
+    if (response.r && response.r.l && response.r.l.length > 0) {
+     // Filter for tb == 7 and create unique array by td
+     const rpItems = response.r.l.filter(item => item.tb == 7);
+     const uniqueByRpArray = [...new Map(rpItems.map(item => [item.td, item])).values()];
+
+     for (const uniqueRp of uniqueByRpArray) {
+      // Find all stored_bill_cash_info with matching tb and td
+      const matchingCashInfos = stored_bill_cash_info.filter(info =>
+       info.tb == 7 && info.td == uniqueRp.td
+      );
+
+      // Calculate total of stored_bill_cash_info.j
+      const r_tot = matchingCashInfos.reduce((sum, info) => {
+       return sum + (parseFloat(info.j) || 0);
+      }, 0);
+
+      // First try to find in bills_array_to_update
+      const existingBillIndex = bills_array_to_update.findIndex(bill => bill.a == uniqueRp.td);
+
+      if (existingBillIndex !== -1) {
+       // Update existing entry
+       bills_array_to_update[existingBillIndex].r_tot = r_tot.toFixed(2);
+      } else {
+       // Find in stored_bill
+       const matchingBill = stored_bill.find(bill => bill.a == uniqueRp.td);
+
+       if (matchingBill) {
+        // Check if this bill is already in bills_array_to_update by g
+        const existingByGIndex = bills_array_to_update.findIndex(bill => bill.g === matchingBill.g);
+
+        if (existingByGIndex === -1) {
+         // Create a copy of the bill with r_tot property
+         const billToUpdate = { ...matchingBill, r_tot: r_tot.toFixed(2) };
+         bills_array_to_update.push(billToUpdate);
+        } else {
+         // Update existing entry
+         bills_array_to_update[existingByGIndex].r_tot = r_tot.toFixed(2);
+        }
+       }
+      }
+     }
+    }
+
+    // Ensure uniqueness by g and calculate remaining amount
+    if (bills_array_to_update.length > 0) {
+     // Create unique array by g
+     const uniqueBillsArray = [];
+     const seenGValues = new Set();
+
+     for (const bill of bills_array_to_update) {
+      if (!seenGValues.has(bill.g)) {
+       seenGValues.add(bill.g);
+       uniqueBillsArray.push(bill);
+      } else {
+       // Merge duplicate entries
+       const existingIndex = uniqueBillsArray.findIndex(b => b.g === bill.g);
+       if (existingIndex !== -1) {
+        // Merge i_tot
+        if (bill.i_tot) {
+         uniqueBillsArray[existingIndex].i_tot = bill.i_tot;
+        }
+        // Merge r_tot
+        if (bill.r_tot) {
+         uniqueBillsArray[existingIndex].r_tot = bill.r_tot;
+        }
+       }
+      }
+     }
+
+     // Calculate remaining amount for each bill
+     for (const bill of uniqueBillsArray) {
+      let rTot = parseFloat(bill.r_tot) || 0;
+      let iTot = parseFloat(bill.i_tot) || 0;
+      let kAmount = parseFloat(bill.k) || 0;
+
+      bill.rem = (iTot - kAmount - rTot).toFixed(2);
+
+      // Ensure i_tot and r_tot are strings with 2 decimal places
+      bill.i_tot = (parseFloat(bill.i_tot) || 0).toFixed(2);
+      bill.r_tot = (parseFloat(bill.r_tot) || 0).toFixed(2);
+     }
+
+     if (uniqueBillsArray.length > 0) {
+      const t3574mp = await dbDexieManager.insertToDexie(dbnm, "b", uniqueBillsArray, true, ["g"]);
+      stored_bill = await dbDexieManager.getAllRecords(dbnm, "b") || [];
+     }
+    }
+    if (response.fp == null || response.f == null)
+     showToast("stored successfully");
+
+    if (reload == 1) {
+     //location.reload();
+    }
+   } else {
+    if (response.ms != null) { window.showelsemodal(response.ms); }
+    if (response.fn3 != null) {
+     if (response.fn3.r != null) {
+      for (let i7 = 0; i7 < response.fn3.r.length; i7++) {
+       if (response.fn3.r[i7].ms != null)
+        window.showelsemodal(response.fn3.r[i7].ms);
+      }
+     }
+    }
+    if (
+     response.su == 2 &&
+     response.ba != null &&
+     response.ba.mx != null
+    ) {
+     var t55 = parseInt(invoice.hNum.value);
+     var t15 = parseInt(response.ba.mx);
+     if (t55 > t15) t15 = t55;
+     t15 = t15 + 1;
+     billAlreadyExistsObject = t15;
+     m_odal_msg_tell_bill_exists.innerText =
+      "if you want to save with latest bill no, '" +
+      t15 +
+      "', click button below;";
+     m_odal_tell_bill_exists.style.display = "block";
+    } else {
+     window.showelsemodal(response.ms);
+    }
+   }
+   payload0.go = 0;
+  } catch (error) {
+   console.error("Initialization failed:", error);
+   showToast("Initialization error - please refresh");
+  }
+ })();
+}
+
+async function update_qty_sold(resp3206onse) {
+ setTimeout(async () => {
+  // Calculate total quantity sold for each stock item
+  const stockSales = {};
+
+  let t_i_mp = await dbDexieManager.getAllRecords(dbnm, "i") || [];
+  let t_s_mp = await dbDexieManager.getAllRecords(dbnm, "s") || [];
+
+  t_i_mp.forEach(soldItem => {
+   const stockId = soldItem.f;
+   const quantity = soldItem.h;
+
+   if (stockSales[stockId]) {
+    stockSales[stockId] += quantity;
+   } else {
+    stockSales[stockId] = quantity;
+   }
+  });
+
+  // Add qSold column to stock items, excluding items where d == 111
+  t_s_mp.forEach(stockItem => {
+   stockItem.qSold = stockSales[stockItem.a] || 0;
+   stockItem.qAvlb = stockItem.i - stockItem.qSold;
+  });
+  const t3025mp = await dbDexieManager.insertToDexie(dbnm, "s", t_s_mp, true, ["a"]);
+
+ }, 1000); // 1 second delay
+}
+async function setMaxBillNo() {
+ var t55 = await getMaxBillNo();
+ t55 = parseFloat(t55) + 1;
+ localStorage.setItem("lastInvoiNum", t55);
+ document.getElementById('invoiceNumber').value = t55;
+}
+async function getMaxBillNo() {
+ let arr41 = await dbDexieManager.getAllRecords(dbnm, "b") || [];
+ var t4642 = 0;
+ if (arr41.length > 0) {
+  let maxNum = arr41.reduce(
+   (max, item) =>
+    parseFloat(item["g"]) > max ? parseFloat(item["g"]) : max,
+   arr41[0]["g"]
+  );
+  // Ensure both dates are valid and compare
+  if (maxNum > t4642) t4642 = maxNum;
+ }
+ return t4642;
+}
+
+function temporaryAlertFunction(billId) {
+ // Implement temporary alert functionality
+}
+
+// Function to verify if item was successfully added to sale list
+function verifyItemAddedToSaleList(itemId) {
+ // Get current rate from the matched item
+ const matchedItem = items.find(item => item.a == itemId);
+ if (!matchedItem) return false;
+
+ const currentRate = (typeof window.getSellingPriceFromStock === 'function' ? window.getSellingPriceFromStock(matchedItem) : parseFloat(matchedItem.k || 0));
+
+ // Check if item exists in sale list with same ID and rate
+ const addedItems = document.querySelectorAll('#addedItemsContainer .added-item-card');
+
+ for (const itemCard of addedItems) {
+  const cardItemId = itemCard.getAttribute('data-item-id');
+  const cardRate = parseFloat(itemCard.getAttribute('data-item-rate') || 0);
+
+  if (cardItemId == itemId && Math.abs(cardRate - currentRate) < 0.01) {
+   // Item found in sale list - verify quantity
+   const qtyInput = itemCard.querySelector('input[type="number"]');
+   const quantity = parseInt(qtyInput.value) || 0;
+
+   if (quantity > 0) {
+    return true; // Item successfully added to sale list
+   }
+  }
+ }
+
+ return false; // Item not found in sale list
+}
+function getBillRemarks(billI) {
+ if (!billI && billI !== 0) return '';
+
+ try {
+  // Try to parse JSON
+  const parsed = JSON.parse(billI);
+
+  // Check if it has rmrk property
+  if (parsed && typeof parsed === 'object' && 'rmrk' in parsed) {
+   return parsed.rmrk || '';
+  }
+
+  // If it's an object without rmrk, stringify it
+  if (parsed && typeof parsed === 'object') {
+   return JSON.stringify(parsed);
+  }
+
+  // If it's a string after parsing (unlikely but possible)
+  return String(parsed);
+ } catch (e) {
+  // Not valid JSON, return as string
+  return String(billI);
+ }
+}
+async function show_client_bills(mono) {
+ if (clientReferrerArray.length === 0) {
+  clientReferrerArray = await dbDexieManager.getAllRecords(dbnm, "c") || [];
+ }
+
+ // Filter to get ALL clients with this mobile number
+ const clients = clientReferrerArray.filter(client => client.e.toString() == mono);
+
+ if (clients.length === 0) {
+  window.showelsemodal("No clients found with this mobile number");
+  return;
+ }
+
+ // Create modal
+ const modalResult = create_modal_dynamically('clientBillsModal');
+ const modalContent = modalResult.contentElement;
+ const modalInstance = modalResult.modalInstance;
+
+ let totalOverallDue = 0;
+ let hasDueBillsOverall = false;
+ let allBillsHTML = "";
+ let allClientsBills = [];
+
+ // Process each client
+ for (const client of clients) {
+  // Get all bills for this client
+  const clientBills = stored_bill.filter(bill => bill.e == client.a);
+
+  // Sort bills by date (most recent first)
+  clientBills.sort((a, b) => new Date(b.f) - new Date(a.f));
+
+  let clientTotalDue = 0;
+  let clientHasDueBills = false;
+  let clientBillsHTML = "";
+
+  // Create HTML for each bill of this client
+  for (const bill of clientBills) {
+   // Parse amounts
+   const rem = parseFloat(bill.rem) || 0;
+   const iTot = parseFloat(bill.i_tot) || 0;
+   const rTot = parseFloat(bill.r_tot) || 0;
+   const kAmount = parseFloat(bill.k) || 0;
+
+   clientTotalDue += rem;
+   totalOverallDue += rem;
+
+   // Extract date (first 10 characters)
+   const billDate = bill.f ? bill.f.substring(0, 10) : "";
+
+   // Determine card color based on due status
+   const cardClass = rem === 0 ? "border-success" : "border-danger";
+
+   // Create HTML card for this bill
+   clientBillsHTML += `
+<div class="card mb-1 ${cardClass}">
+<div class="card-body p-2">
+<!-- Header row -->
+<div class="row align-items-center mb-2">
+<!-- Column 1: Bill Number -->
+<button type="button" class="col-3 btn btn-primary" style="font-weight: bold; font-size: 125%;" data-bill-action="view" data-bill-id="${bill.a}">${bill.g || ''}</button>
+
+<!-- Column 2: Date -->
+<div class="col-4 text-end">
+<span class="text-muted">${billDate}</span>
+</div>
+
+<!-- Column 3: Due Amount -->
+<div class="col-5 text-end">
+<span style="font-weight: bold; font-size: 125%; color: ${rem > 0 ? '#dc3545' : '#28a745'}">
+₹${rem.toFixed(2)}
+</span>
+</div>
+</div>
+
+<!-- Amount details row -->
+<div class="row align-items-center">
+<!-- Column 1: Total Amount -->
+<div class="col-4">
+<small class="text-muted">Total</small><br>
+<strong>₹${iTot.toFixed(2)}</strong>
+</div>
+
+<!-- Column 2: Discount -->
+<div class="col-4 text-center">
+<small class="text-muted">Discount</small><br>
+<strong>₹${kAmount.toFixed(2)}</strong>
+</div>
+
+<!-- Column 3: Received Amount -->
+<div class="col-4 text-end">
+<small class="text-muted">Received</small><br>
+<strong>₹${rTot.toFixed(2)}</strong>
+</div>
+</div>
+
+<!-- Remarks row (if available) -->
+${bill.i ? `
+<div class="row mt-2">
+<div class="col-12">
+<small class="text-muted">Remarks:</small>
+<div class="small">${getBillRemarks(bill.i)}</div>
+</div>
+</div>` : ''}
+</div>
+</div>`;
+
+   if (rem !== 0) {
+    clientHasDueBills = true;
+    hasDueBillsOverall = true;
+   }
+  }
+
+  // Track client's bills for summary
+  allClientsBills.push({
+   client: client,
+   bills: clientBills,
+   totalDue: clientTotalDue,
+   hasDueBills: clientHasDueBills,
+   billsCount: clientBills.length
+  });
+
+  // Add client header to the HTML
+  if (clientBills.length > 0) {
+   const clientName = client.h || "";
+   allBillsHTML += `
+<div class="mb-4" style="background-color:brown">
+<!-- Client header -->
+<div class="card bg-light mb-2">
+<div class="card-body py-2">
+<div class="row align-items-center">
+<div class="col-8">
+<h6 class="mb-1">
+<strong>${clientName}</strong>
+<small class="text-muted d-block">Client ID: ${client.a}</small>
+</h6>
+</div>
+<div class="col-4 text-end">
+<div class="fw-bold ${clientTotalDue > 0 ? 'text-danger' : 'text-success'}">
+₹${clientTotalDue.toFixed(2)}
+</div>
+<small class="text-muted">${clientBills.length} bill(s)</small>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Client's bills -->
+${clientBillsHTML}
+</div>
+<hr class="my-3">`;
+  }
+ }
+
+ // Prepare modal content
+ const modalHTML = `
+<div class="modal-header">
+<h5 class="modal-title">
+Bills for Mobile: ${mono}
+<span class="badge bg-secondary ms-2">${clients.length} client(s)</span>
+</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+<!-- Overall summary -->
+<div class="alert ${hasDueBillsOverall ? 'alert-warning' : 'alert-success'} p-2 mb-3">
+<div class="row align-items-center">
+<div class="col-8">
+<strong>Mobile: ${mono}</strong><br>
+<small class="text-muted">
+${clients.length} client(s) • 
+${allClientsBills.reduce((sum, cb) => sum + cb.billsCount, 0)} total bills
+</small>
+</div>
+<div class="col-4 text-end">
+<div style="font-weight: bold; font-size: 150%; color: ${totalOverallDue > 0 ? '#dc3545' : '#28a745'}">
+₹${totalOverallDue.toFixed(2)}
+</div>
+<small>Total ${totalOverallDue > 0 ? 'Due' : 'Balance'}</small>
+</div>
+</div>
+</div>
+
+<!-- Clients list summary -->
+<div class="mb-3">
+<div class="row row-cols-1 row-cols-md-2 g-2" style="background-color:aquamarine">
+${allClientsBills.map(clientData => {
+  const clientName = clientData.client.h || "";
+  const statusClass = clientData.hasDueBills ? 'bg-danger' : 'bg-success';
+  const statusText = clientData.hasDueBills ? 'Has Due' : 'All Paid';
+
+  return `
+<div class="col">
+<div class="card h-100">
+<div class="card-body p-2">
+<div class="row align-items-center">
+<div class="col-8">
+<small class="fw-bold">${clientName}</small><br>
+<small class="text-muted">ID: ${clientData.client.a}</small>
+</div>
+<div class="col-4 text-end">
+<div class="fw-bold ${clientData.totalDue > 0 ? 'text-danger' : 'text-success'}">
+₹${clientData.totalDue.toFixed(2)}
+</div>
+<small class="badge ${statusClass}">${statusText}</small>
+</div>
+</div>
+</div>
+</div>
+</div>`;
+ }).join('')}
+</div>
+</div>
+
+<!-- All bills -->
+${allClientsBills.reduce((sum, cb) => sum + cb.billsCount, 0) > 0 ? allBillsHTML :
+   '<div class="alert alert-info text-center">No bills found for any client with this mobile number</div>'}
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+${hasDueBillsOverall ?
+   `<button type="button" class="btn btn-primary" onclick="sendPaymentReminder('${mono}', '${clients.map(c => c.i).join(", ")}')">
+<i class="fas fa-bell me-1"></i> Send Reminder to All
+</button>` : ''}
+</div>`;
+
+ // Set modal content
+ modalContent.innerHTML = modalHTML;
+
+ modalContent.addEventListener('click', function (e) {
+  const billActionElement = e.target.closest('[data-bill-action]');
+  if (billActionElement) {
+   const action = billActionElement.getAttribute('data-bill-action');
+   const billId = billActionElement.getAttribute('data-bill-id');
+
+   // Call your handler with modalInstance
+   handleBillAction(modalInstance, action, billId);
+  }
+ });
+
+ // Show the modal
+ modalInstance.show();
+ // Return modal instance for further control
+ return modalInstance;
+}
+
+function sendPaymentReminder(mobile, clientName) {
+ const cleanMobile = mobile.replace(/[^\d+]/g, '');
+ const message = `Payment Reminder: Dear ${clientName}, you have pending bills. Please make the payment at your earliest convenience.`;
+ window.open(`https://wa.me/${cleanMobile}?text=${encodeURIComponent(message)}`, '_blank');
+ // For SMS integration:
+ // window.open(`sms:${mobile}?body=${encodeURIComponent(message)}`, '_blank');
+}
+function setDefaRmrk() {
+ const modal = create_modal_dynamically('defaultRemarkModal');
+ const modalContent = modal.contentElement;
+ const modalInstance = modal.modalInstance;
+
+ // Get existing default remark from localStorage
+ const existingRemark = localStorage.getItem('defaultBillRemark') || '';
+
+ // Set modal content
+ modalContent.innerHTML = `
+<div class="modal-header">
+<h5 class="modal-title">Set Default Bill Remark</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+<div class="mb-3">
+<label for="defaultRemarkInput" class="form-label">Default Remark:</label>
+<textarea class="form-control" id="defaultRemarkInput" rows="4" placeholder="Enter default remark to be auto-filled for all new bills...">${existingRemark}</textarea>
+</div>
+<div class="form-text">
+This remark will be automatically filled in the bill notes section for new bills.
+</div>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+<button type="button" class="btn btn-primary" onclick="saveDefaultRemark()">Save Default Remark</button>
+</div>
+`;
+
+ modalInstance.show();
+}
+
+function saveDefaultRemark() {
+ const remarkInput = document.getElementById('defaultRemarkInput');
+ const remark = remarkInput.value.trim();
+
+ // Save to localStorage
+ localStorage.setItem('defaultBillRemark', remark);
+
+ // Close the modal
+ const modal = bootstrap.Modal.getInstance(document.getElementById('defaultRemarkModal'));
+ if (modal) {
+  modal.hide();
+ }
+
+ // Show success message
+ showToast('Default remark saved successfully!');
+}
+function checkChangeInSoldItems() {
+ try {
+  // Get current bill ID
+  if (!billTableRowId || billTableRowId <= 0) {
+   return false;
+  }
+
+  // Find the original bill
+  const originalBill = stored_bill.find(bill => bill.a == billTableRowId);
+  if (!originalBill) {
+   return true; // If can't find original, assume changes exist
+  }
+
+  // ========== CHECK 1: Bill-level fields ==========
+
+  // Check bill notes/remarks
+  const currentNotes = document.getElementById('billNotes')?.value?.trim() || '';
+  const originalNotes = originalBill.i || '';
+  if (currentNotes !== originalNotes) {
+   return true;
+  }
+
+  // Check discount amount
+  const currentDiscount = document.getElementById('discountAmount')?.value || '0';
+  const originalDiscount = originalBill.k?.toString() || '0';
+  if (parseFloat(currentDiscount) !== parseFloat(originalDiscount)) {
+   return true;
+  }
+
+  // Check invoice number
+  const currentInvoice = document.getElementById('invoiceNumber')?.value?.trim() || '';
+  const originalInvoice = originalBill.g?.toString() || '';
+  if (currentInvoice !== originalInvoice) {
+   return true;
+  }
+
+  // Check client ID
+  const currentClientId = document.getElementById('clientId')?.value || '';
+  const originalClientId = originalBill.e?.toString() || '';
+  if (currentClientId !== originalClientId) {
+   return true;
+  }
+
+  // Check referrer ID
+  const currentReferrerId = document.getElementById('referrerId')?.value || '0';
+  const originalReferrerId = originalBill.l?.toString() || '0';
+  if (currentReferrerId !== originalReferrerId) {
+   return true;
+  }
+
+  // ========== CHECK 2: Bill items ==========
+
+  // Get the current bill items from stored data
+  const storedBillItems = stored_bill_items.filter(item => item.e == billTableRowId);
+
+  // Get current items from the form
+  const currentItems = getCurrentFormItems();
+
+  // If number of items changed
+  if (storedBillItems.length !== currentItems.length) {
+   return true;
+  }
+
+  // Create a map of stored items by item ID, price, and tax for easy comparison
+  const storedItemsMap = new Map();
+  storedBillItems.forEach(item => {
+   const taxAmount = billItemTaxBreakdown(item).total;
+   const key = `${item.f}_${parseFloat(item.g) || 0}_${taxAmount.toFixed(2)}`;
+   storedItemsMap.set(key, {
+    id: item.f,
+    quantity: parseFloat(item.h) || 0,
+    price: parseFloat(item.g) || 0,
+    description: item.i || '',
+    taxAmount: taxAmount,
+    originalItem: item
+   });
+  });
+
+  // Check each current item against stored items
+  for (const currentItem of currentItems) {
+   const key = `${currentItem.itemId}_${parseFloat(currentItem.price) || 0}_${currentItem.taxAmount.toFixed(2)}`;
+
+   if (!storedItemsMap.has(key)) {
+    // Item with this ID, price, and tax doesn't exist in stored items
+    return true;
+   }
+
+   const storedItem = storedItemsMap.get(key);
+
+   // Compare quantity
+   if (Math.abs(storedItem.quantity - currentItem.quantity) > 0.01) {
+    return true;
+   }
+
+   // Compare description
+   if (storedItem.description !== currentItem.description) {
+    return true;
+   }
+
+   // Compare tax
+   if (Math.abs(storedItem.taxAmount - currentItem.taxAmount) > 0.01) {
+    return true;
+   }
+
+   // Remove from map to track unmatched items
+   storedItemsMap.delete(key);
+  }
+
+  // If there are items left in storedItemsMap, they were removed from the form
+  if (storedItemsMap.size > 0) {
+   return true;
+  }
+
+  // ========== CHECK 3: Eye measurements (if applicable) ==========
+  if (typeof billingRequisit_be === 'function' && typeof getEyeMeasurement === 'function' && shoEyeMsrmntTbl) {
+   const currentEyeMeasurement = getEyeMeasurement();
+   const originalEyeMeasurement = stored_eye_msrmnt.find(eye => eye.ea == billTableRowId) || null;
+
+   // If one has measurement and other doesn't
+   if ((currentEyeMeasurement === null) !== (originalEyeMeasurement === null)) {
+    return true;
+   }
+
+   // If both have measurements, compare them
+   if (currentEyeMeasurement !== null && originalEyeMeasurement !== null) {
+    // Compare key fields of eye measurement
+    const fieldsToCheck = ['eb', 'ec', 'ed', 'ee', 'ef', 'eg', 'eh', 'ei', 'ej'];
+    for (const field of fieldsToCheck) {
+     const currentVal = currentEyeMeasurement[field] || '';
+     const originalVal = originalEyeMeasurement[field] || '';
+     if (String(currentVal) !== String(originalVal)) {
+      return true;
+     }
+    }
+   }
+  }
+
+  // ========== CHECK 4: Received payments ==========
+  // Get original payments for this bill
+  const originalPayments = stored_bill_cash_info.filter(cash => cash.tb == 7 && cash.td == billTableRowId);
+
+  // Compare number of payments
+  if (receivedAmounts.length !== originalPayments.length) {
+   return true;
+  }
+
+  // Compare each payment
+  for (let i = 0; i < receivedAmounts.length; i++) {
+   const currentPayment = receivedAmounts[i];
+   const originalPayment = originalPayments[i];
+
+   if (!originalPayment) {
+    return true;
+   }
+
+   // Compare amount
+   if (Math.abs(parseFloat(currentPayment.amount) - parseFloat(originalPayment.j || 0)) > 0.01) {
+    return true;
+   }
+
+   // Compare payment type
+   if (String(currentPayment.paymentType) !== String(originalPayment.i || '0')) {
+    return true;
+   }
+
+   // Compare date
+   const currentDate = currentPayment.dateTime?.split(' ')[0] || '';
+   const originalDate = originalPayment.k || '';
+   if (currentDate !== originalDate) {
+    return true;
+   }
+  }
+
+  return false;
+
+ } catch (error) {
+  console.error('Error checking changes in sold items:', error);
+  // In case of error, assume there are changes to be safe
+  return true;
+ }
+}
+function getCurrentFormItems() {
+ const currentItems = [];
+ const addedItems = document.querySelectorAll('#addedItemsContainer .added-item-card');
+
+ addedItems.forEach(item => {
+  try {
+   const itemId = item.getAttribute('data-item-id') || '';
+   const qtyInput = item.querySelector('input[type="number"]');
+   const rateInput = item.querySelectorAll('input[type="number"]')[1];
+   const priceElement = item.querySelector('span[id^="itemPrice-"]');
+   const descriptionElement = item.querySelector('.text-muted');
+
+   const quantity = parseFloat(qtyInput.value) || 0;
+   const rate = parseFloat(rateInput.value) || 0;
+   const price = parseFloat(priceElement.textContent) || 0;
+   const description = descriptionElement?.textContent || '';
+   const taxAmount = parseFloat(item.getAttribute('data-item-tax-amount')) || 0;
+
+   currentItems.push({
+    itemId: itemId,
+    quantity: quantity,
+    rate: rate,
+    price: price,
+    description: description,
+    taxAmount: taxAmount
+   });
+  } catch (error) {
+   console.error('Error parsing item:', error);
+  }
+ });
+
+ return currentItems;
+}
+
+function formatNameMobile(h, e) {
+ const name = `${h || ''}`.trim();
+ const mobile = e || '';
+ return name ? (mobile ? `${name} ${mobile}` : name) : mobile;
+}
+
+function commonFnToRunAfter_op_ViewCall(obj, swtch) {
+ if (swtch === 1) {
+  // Set values to client
+  document.getElementById('c_dtls_lient').value = formatNameMobile(obj.h, obj.e);
+  document.getElementById('clientId').value = obj.a;
+  document.getElementById('dv_for_add_itm_btn').style.display = "block";
+ } else if (swtch === 2) {
+  // Set values to referrer
+  document.getElementById('r_dtls_eferrer').value = formatNameMobile(obj.h, obj.e);
+  document.getElementById('referrerId').value = obj.a;
+ }
+}
+
+function updateBillSectionsVisibility() {
+ const addedItemsContainer = document.getElementById('addedItemsContainer');
+ const itemsSummaryRow = document.getElementById('itemsSummaryRow');
+ const receivedAmountsSection = document.getElementById('rcvd_amts_dv');
+ const blankDivSection1 = document.querySelector('#blankDivSection1')?.closest('.row');
+
+ const hasItems = addedItemsContainer && addedItemsContainer.children.length > 0;
+
+ // Show/hide Add Item button when a customer is selected
+ const addItemBtn = document.getElementById('dv_for_add_itm_btn');
+ const hasClient = !!(document.getElementById('clientId')?.value);
+ if (addItemBtn) {
+  addItemBtn.style.display = hasClient ? 'block' : 'none';
+ }
+
+ // Show/hide items summary section
+ if (itemsSummaryRow) {
+  itemsSummaryRow.style.display = hasItems ? 'flex' : 'none';
+ }
+
+ // Show/hide received amounts section
+ if (receivedAmountsSection) {
+  receivedAmountsSection.style.display = hasItems ? 'block' : 'none';
+ }
+
+ // Show/hide blank div section
+ if (blankDivSection1) {
+  blankDivSection1.style.display = (!shoEyeMsrmntTbl || hasItems) ? 'block' : 'none';
+ }
+
+ // Safety net: refresh grand totals whenever item visibility changes
+ // (called by the #addedItemsContainer MutationObserver on every item
+ // add/remove/qty/rate change), so Total / Total Due always stay in sync.
+ try {
+  refreshGrandTotals();
+ } catch (e) {
+  console.warn('updateBillSectionsVisibility: refreshGrandTotals failed', e);
+ }
+}
+// Helper function to check if a payment already exists in receivedAmounts array
+function checkDuplicateInReceivedAmounts(clientId, amount, date, paymentType = '0', constraintCounter = 0) {
+ return receivedAmounts.some(payment => {
+  const paymentDate = payment.dateTime.split(' ')[0]; // Extract date part
+  const paymentAmount = parseFloat(payment.amount) || 0;
+  const paymentClientId = parseInt(document.getElementById('clientId').value) || 0;
+  const paymentConstraint = payment.constraintCounter || 0;
+
+  return paymentClientId === clientId &&
+   Math.abs(paymentAmount - amount) < 0.001 &&
+   paymentDate === date &&
+   payment.paymentType === paymentType &&
+   paymentConstraint === constraintCounter;
+ });
+}
+
+// Helper function to check if a payment exists in stored_bill_cash_info
+function checkDuplicateInStoredCashInfo(clientId, amount, date, paymentType = '0', constraintCounter = 0) {
+ return stored_bill_cash_info.some(payment => {
+  // Filter only payments for the current bill if we're in bill context
+  if (billTableRowId && payment.td !== billTableRowId) {
+   return false;
+  }
+
+  const paymentAmount = parseFloat(payment.j) || 0;
+  const paymentDate = payment.k || '';
+  const paymentTypeInt = parseInt(payment.i) || 0;
+
+  return payment.f === 0 &&
+   payment.h === clientId &&
+   Math.abs(paymentAmount - amount) < 0.001 &&
+   paymentDate === date &&
+   paymentTypeInt === parseInt(paymentType) &&
+   (payment.n || 0) === constraintCounter;
+ });
+}
+
+// Helper function to get next constraint counter
+function getNextConstraintCounter(clientId, amount, date, paymentType = '0') {
+ let maxCounter = 0;
+
+ // Check in receivedAmounts array
+ receivedAmounts.forEach(payment => {
+  const paymentDate = payment.dateTime.split(' ')[0];
+  const paymentAmount = parseFloat(payment.amount) || 0;
+  const paymentClientId = parseInt(document.getElementById('clientId').value) || 0;
+
+  if (paymentClientId === clientId &&
+   Math.abs(paymentAmount - amount) < 0.001 &&
+   paymentDate === date &&
+   payment.paymentType === paymentType) {
+   maxCounter = Math.max(maxCounter, payment.constraintCounter || 0);
+  }
+ });
+
+ // Check in stored_bill_cash_info
+ stored_bill_cash_info.forEach(payment => {
+  // Only check payments for current bill if we're in bill context
+  if (billTableRowId && payment.td !== billTableRowId) {
+   return;
+  }
+
+  const paymentAmount = parseFloat(payment.j) || 0;
+  const paymentDate = payment.k || '';
+  const paymentTypeInt = parseInt(payment.i) || 0;
+
+  if (payment.f === 0 &&
+   payment.h === clientId &&
+   Math.abs(paymentAmount - amount) < 0.001 &&
+   paymentDate === date &&
+   paymentTypeInt === parseInt(paymentType)) {
+   maxCounter = Math.max(maxCounter, payment.n || 0);
+  }
+ });
+
+ return maxCounter + 1;
+}
+/*async function validatePaymentUniqueness(clientId, amount, dateTime, paymentType = '0') {
+const paymentDate = dateTime.split(' ')[0]; // Get only YYYY-MM-DD part
+const paymentTypeInt = parseInt(paymentType) || 0;
+ 
+// DEBUG: Log what we're checking
+ 
+// Arrays to collect matching payments (ONLY same date)
+const matchingPayments = [];
+ 
+// Check in receivedAmounts (pending payments) - ONLY for same date
+receivedAmounts.forEach(payment => {
+const paymentDatePart = payment.dateTime.split(' ')[0]; // Get only date part
+const paymentAmount = parseFloat(payment.amount) || 0;
+const paymentClientId = parseInt(payment.clientId) || 0;
+const paymentTypeVal = payment.paymentType || '0';
+ 
+// Check if same date, amount, client, and payment type
+if (paymentClientId === clientId &&
+Math.abs(paymentAmount - amount) < 0.001 &&
+paymentDatePart === paymentDate && // IMPORTANT: Same date
+paymentTypeVal === paymentType) {
+matchingPayments.push({
+constraintCounter: payment.constraintCounter || 0,
+date: paymentDatePart,
+source: 'pending'
+});
+ 
+}
+});
+ 
+// Check in stored_bill_cash_info (saved payments) for this client - ONLY for same date
+stored_bill_cash_info.forEach(payment => {
+// Only check payments for current client
+if (payment.h !== clientId) return;
+ 
+const paymentAmount = parseFloat(payment.j) || 0;
+const paymentDatePart = payment.k || ''; // Already just date
+const paymentTypeVal = payment.i || '0';
+ 
+// Check if same date, amount, client, and payment type
+if (payment.f === 0 &&
+Math.abs(paymentAmount - amount) < 0.001 &&
+paymentDatePart === paymentDate && // IMPORTANT: Same date
+parseInt(paymentTypeVal) === paymentTypeInt) {
+matchingPayments.push({
+constraintCounter: payment.n || 0,
+date: paymentDatePart,
+source: 'saved'
+});
+ 
+}
+});
+ 
+ 
+if (matchingPayments.length === 0) {
+// No matching payments for this date
+return {
+isDuplicate: false,
+existingConstraint: 0,
+nextConstraint: 1, // First payment on this date gets constraint 1
+location: 'none',
+matchingCount: 0
+};
+}
+ 
+// Find all constraint counters for this specific date
+const constraintCounters = matchingPayments.map(p => p.constraintCounter || 0);
+const maxCounter = Math.max(...constraintCounters);
+ 
+ 
+return {
+isDuplicate: matchingPayments.length > 0,
+existingConstraint: maxCounter,
+nextConstraint: maxCounter + 1, // Next available constraint counter for this date
+location: 'mixed',
+matchingCount: matchingPayments.length
+};
+}*/
+async function validatePaymentUniqueness(clientId, amount, dateTime) {
+ const paymentDate = dateTime.split(' ')[0]; // Get only YYYY-MM-DD part
+
+ // DEBUG: Log what we're checking
+
+ // Arrays to collect matching payments (ONLY same date)
+ const matchingPayments = [];
+
+ // Check in receivedAmounts (pending payments) - ONLY for same date
+ receivedAmounts.forEach(payment => {
+  const paymentDatePart = payment.dateTime.split(' ')[0]; // Get only date part
+  const paymentAmount = parseFloat(payment.amount) || 0;
+  const paymentClientId = parseInt(payment.clientId) || 0;
+
+  // Check if same date, amount, and client (payment type removed)
+  if (paymentClientId === clientId &&
+   Math.abs(paymentAmount - amount) < 0.001 &&
+   paymentDatePart === paymentDate) { // IMPORTANT: Same date
+   matchingPayments.push({
+    constraintCounter: payment.constraintCounter || 0,
+    date: paymentDatePart,
+    source: 'pending'
+   });
+
+  }
+ });
+
+ // Check in stored_bill_cash_info (saved payments) for this client - ONLY for same date
+ stored_bill_cash_info.forEach(payment => {
+  // Only check payments for current client
+  if (payment.h !== clientId) return;
+
+  const paymentAmount = parseFloat(payment.j) || 0;
+  const paymentDatePart = payment.k || ''; // Already just date
+
+  // Check if same date, amount, client (payment type removed, f=0 always)
+  if (payment.f === 0 && // Always require f = 0
+   Math.abs(paymentAmount - amount) < 0.001 &&
+   paymentDatePart === paymentDate) { // IMPORTANT: Same date
+   matchingPayments.push({
+    constraintCounter: payment.n || 0,
+    date: paymentDatePart,
+    source: 'saved'
+   });
+
+  }
+ });
+
+
+ if (matchingPayments.length === 0) {
+  // No matching payments for this date
+  return {
+   isDuplicate: false,
+   existingConstraint: 0,
+   nextConstraint: 1, // First payment on this date gets constraint 1
+   location: 'none',
+   matchingCount: 0
+  };
+ }
+
+ // Find all constraint counters for this specific date
+ const constraintCounters = matchingPayments.map(p => p.constraintCounter || 0);
+ const maxCounter = Math.max(...constraintCounters);
+
+
+ return {
+  isDuplicate: matchingPayments.length > 0,
+  existingConstraint: maxCounter,
+  nextConstraint: maxCounter + 1, // Next available constraint counter for this date
+  location: 'mixed',
+  matchingCount: matchingPayments.length
+ };
+}
+function shouldShowConstraintCounter(clientId, amount, dateTime, paymentType = '0') {
+ const paymentDate = dateTime.split(' ')[0];
+
+ // Check if there are any other payments with same amount on same date
+ let hasSameDatePayments = false;
+
+ // Check in receivedAmounts
+ receivedAmounts.forEach(payment => {
+  const paymentDatePart = payment.dateTime.split(' ')[0];
+  const paymentAmount = parseFloat(payment.amount) || 0;
+  const paymentClientId = parseInt(payment.clientId) || 0;
+
+  if (paymentClientId === clientId &&
+   Math.abs(paymentAmount - amount) < 0.001 &&
+   paymentDatePart === paymentDate) {
+   hasSameDatePayments = true;
+  }
+ });
+
+ // Check in stored_bill_cash_info
+ stored_bill_cash_info.forEach(payment => {
+  const paymentDatePart = payment.k || '';
+  const paymentAmount = parseFloat(payment.j) || 0;
+
+  if (payment.f === 0 &&
+   payment.h === clientId &&
+   Math.abs(paymentAmount - amount) < 0.001 &&
+   paymentDatePart === paymentDate) {
+   hasSameDatePayments = true;
+  }
+ });
+
+ return hasSameDatePayments;
+}
+// Add this function near the top with other helper functions
+function getConstraintCounterColor(counter) {
+ const colorMap = {
+  0: 'secondary',    // Counter 0
+  1: 'primary',      // Counter 1
+  2: 'success',      // Counter 2
+  3: 'warning',      // Counter 3
+  4: 'danger',       // Counter 4
+ };
+ return colorMap[counter] || 'info'; // Default for counters > 4
+}
+
+window.showelsemodal = window.showelsemodal;
+window.closeModal = window.closeModal;
+if (typeof set_bill_innerHTML !== "undefined") window.set_bill_innerHTML = set_bill_innerHTML;
+if (typeof showAddItemModal !== "undefined") window.showAddItemModal = showAddItemModal;
+if (typeof handleAddNewItemInModal !== "undefined") window.handleAddNewItemInModal = handleAddNewItemInModal;
+if (typeof handleNewItmAddedToInventory !== "undefined") window.handleNewItmAddedToInventory = handleNewItmAddedToInventory;
+if (typeof addItemFromModal !== "undefined") window.addItemFromModal = addItemFromModal;
+if (typeof selectModalItem !== "undefined") window.selectModalItem = selectModalItem;
+if (typeof showBillCards !== "undefined") window.showBillCards = showBillCards;
+if (typeof handleBillAction !== "undefined") window.handleBillAction = handleBillAction;
+if (typeof sho_bl_modal !== "undefined") window.sho_bl_modal = sho_bl_modal;
+if (typeof showAlreadyReceivedAmts !== "undefined") window.showAlreadyReceivedAmts = showAlreadyReceivedAmts;
+if (typeof submitAllPayments !== "undefined") window.submitAllPayments = submitAllPayments;
+if (typeof updateBillPayments !== "undefined") window.updateBillPayments = updateBillPayments;
+if (typeof addNewReceivedAmount !== "undefined") window.addNewReceivedAmount = addNewReceivedAmount;
+if (typeof updateNewPaymentsUI !== "undefined") window.updateNewPaymentsUI = updateNewPaymentsUI;
+if (typeof removeNewUpdatePayment !== "undefined") window.removeNewUpdatePayment = removeNewUpdatePayment;
+if (typeof updateGrandTotalsForUpdate !== "undefined") window.updateGrandTotalsForUpdate = updateGrandTotalsForUpdate;
+if (typeof updatePaymentTypeIcon !== "undefined") window.updatePaymentTypeIcon = updatePaymentTypeIcon;
+if (typeof updatePayment !== "undefined") window.updatePayment = updatePayment;
+if (typeof validateAndUpdatePayment !== "undefined") window.validateAndUpdatePayment = validateAndUpdatePayment;
+if (typeof handleItemNotFoundYes !== "undefined") window.handleItemNotFoundYes = handleItemNotFoundYes;
+if (typeof handleItemNotFoundNo !== "undefined") window.handleItemNotFoundNo = handleItemNotFoundNo;
+if (typeof addReceivedAmount !== "undefined") window.addReceivedAmount = addReceivedAmount;
+if (typeof addTempReceivedAmount !== "undefined") window.addTempReceivedAmount = addTempReceivedAmount;
+if (typeof removeTempPayment !== "undefined") window.removeTempPayment = removeTempPayment;
+if (typeof removeReceivedAmount !== "undefined") window.removeReceivedAmount = removeReceivedAmount;
+if (typeof removeItemFromInvoice !== "undefined") window.removeItemFromInvoice = removeItemFromInvoice;
+if (typeof updateItemQuantity !== "undefined") window.updateItemQuantity = updateItemQuantity;
+if (typeof updateItemRate !== "undefined") window.updateItemRate = updateItemRate;
+
+// Tax 1 / Tax 2 helpers shared with bn.js, shoRegItm.js and bp.js
+if (typeof refreshItemsWithTax !== "undefined") window.refreshItemsWithTax = refreshItemsWithTax;
+if (typeof itemTaxSplitEnabled !== "undefined") window.itemTaxSplitEnabled = itemTaxSplitEnabled;
+if (typeof taxDisplayHidden !== "undefined") window.taxDisplayHidden = taxDisplayHidden;
+if (typeof itemTaxRound !== "undefined") window.itemTaxRound = itemTaxRound;
+if (typeof itemTaxClampPercent !== "undefined") window.itemTaxClampPercent = itemTaxClampPercent;
+if (typeof productTaxRates !== "undefined") window.productTaxRates = productTaxRates;
+if (typeof billItemTaxBreakdown !== "undefined") window.billItemTaxBreakdown = billItemTaxBreakdown;
+if (typeof itemTaxAmounts !== "undefined") window.itemTaxAmounts = itemTaxAmounts;
+if (typeof itemTaxRatesLabel !== "undefined") window.itemTaxRatesLabel = itemTaxRatesLabel;
+if (typeof updateItemCardTax !== "undefined") window.updateItemCardTax = updateItemCardTax;
+if (typeof updateBillSummary !== "undefined") window.updateBillSummary = updateBillSummary;
+if (typeof updateBillSectionsVisibility !== "undefined") window.updateBillSectionsVisibility = updateBillSectionsVisibility;
+if (typeof updateGrandTotals !== "undefined") window.updateGrandTotals = updateGrandTotals;
+if (typeof calculateBillSummary !== "undefined") window.calculateBillSummary = calculateBillSummary;
+if (typeof calculateDiscountFromPercentage !== "undefined") window.calculateDiscountFromPercentage = calculateDiscountFromPercentage;
+if (typeof calculateDiscountFromAmount !== "undefined") window.calculateDiscountFromAmount = calculateDiscountFromAmount;
+if (typeof crUpBill !== "undefined") window.crUpBill = crUpBill;
+if (typeof delBillByID !== "undefined") window.delBillByID = delBillByID;
+if (typeof show_client_bills !== "undefined") window.show_client_bills = show_client_bills;
+if (typeof showAlreadyReceivedAmts !== "undefined") window.showAlreadyReceivedAmts = showAlreadyReceivedAmts;
+if (typeof setDefaRmrk !== "undefined") window.setDefaRmrk = setDefaRmrk;
+if (typeof saveDefaultRemark !== "undefined") window.saveDefaultRemark = saveDefaultRemark;
+if (typeof sendPaymentReminder !== "undefined") window.sendPaymentReminder = sendPaymentReminder;
+if (typeof temporary !== "undefined") window.temporary = temporary;
+if (typeof temporaryAlertFunction !== "undefined") window.temporaryAlertFunction = temporaryAlertFunction;
+if (typeof showToast !== "undefined") window.showToast = showToast;
+if (typeof playSound !== "undefined") window.playSound = playSound;
+if (typeof checkChangeInSoldItems !== "undefined") window.checkChangeInSoldItems = checkChangeInSoldItems;
+if (typeof getCurrentFormItems !== "undefined") window.getCurrentFormItems = getCurrentFormItems;
+if (typeof showItemDropdown !== "undefined") window.showItemDropdown = showItemDropdown;
+if (typeof addItemDirectlyFromQR !== "undefined") window.addItemDirectlyFromQR = addItemDirectlyFromQR;
+if (typeof handl_op_rspons !== "undefined") window.handl_op_rspons = handl_op_rspons;
+if (typeof commonFnToRunAfter_op_ViewCall !== "undefined") window.commonFnToRunAfter_op_ViewCall = commonFnToRunAfter_op_ViewCall;
+if (typeof handleUploadedFile !== "undefined") window.handleUploadedFile = handleUploadedFile;
+
 
 // ==================== Shared QR Scanner (used by item modules) ====================
 // Self-contained camera QR scanner with back/front camera switching. The item
