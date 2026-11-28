@@ -1,4 +1,4 @@
-﻿// get_data.js - Add New Product Modal (add-only, based on ed_prod.js flow + bi.js modal structure)
+// get_data.js - Add New Product Modal (add-only, based on ed_prod.js flow + bi.js modal structure)
 const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
 (function () {
  'use strict';
@@ -78,9 +78,13 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
 
  function gdSyncSellingDetailsVisibility() {
   const cont = document.getElementById('gdPricingItemsContainer');
+  const single = document.getElementById('gdSingleSellingPriceContainer');
   const cb = document.getElementById('gdSellingDetailsToggle');
-  if (!cont || !cb) return;
-  cont.style.display = cb.checked ? '' : 'none';
+  const label = document.getElementById('gdSellingDetailsToggleLabel');
+  if (!cb) return;
+  if (cont) cont.style.display = cb.checked ? '' : 'none';
+  if (single) single.style.display = cb.checked ? 'none' : '';
+  if (label) label.textContent = cb.checked ? 'Selling Details * Multy' : 'Selling Details Single';
   if (!cb.checked) {
    const msgDiv = document.getElementById('gdPricingValidationMsg');
    if (msgDiv) { msgDiv.style.display = 'none'; msgDiv.textContent = ''; }
@@ -190,7 +194,10 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
 
   if (preview) {
    if (url) {
-    preview.src = url;
+    const displayUrl = (typeof window.getGoogleDriveImageUrl === 'function')
+     ? window.getGoogleDriveImageUrl(url)
+     : url;
+    preview.src = displayUrl;
    } else {
     preview.removeAttribute('src');
    }
@@ -228,6 +235,7 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
  let Tax_price = '';
  let gdPickedImg1 = '';
  let gdPickedImg2 = '';
+ let gdRcvdMeasuredInPrefill = '';
 
  function gdUpdateSoldInPreview() {
   const previewDiv = document.getElementById('gdSoldInPreview');
@@ -538,6 +546,13 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
   return arr;
  }
 
+ function gdBuildSingleSoldInString(sellingPrice) {
+  const rcvdMeasuredIn = document.getElementById('gdNewRcvdMeasuredIn')?.value || '';
+  const qty = document.querySelector('[name="quantity_received"]')?.value || '1';
+  const price = String(sellingPrice || '').trim();
+  return `${rcvdMeasuredIn}~${qty || '1'}-${price}-${price}--1-1-1`;
+ }
+
  // For add-only modal: always start with empty pricing items
  function gdInitPricingItemsForEdit() {
   gdCurrentPricingItems = [];
@@ -567,21 +582,40 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
   };
  }
 
+ function gdIsSinglePricingItem(item) {
+  return !!item && !!String(item.sellingPrice || '').trim();
+ }
+
+ function gdSoldInFromRaw(raw) {
+  if (Array.isArray(raw)) return raw;
+  return raw ? [raw] : [];
+ }
+
+ function gdSoldInFromData(data) {
+  if (!data) return [];
+  const st = data.s || data;
+  return gdSoldInFromRaw(st.l != null ? st.l : (st.sold_in != null ? st.sold_in : st.soldIn));
+ }
+
+ function gdApplySellingPrefill(rawSoldIn) {
+  const rows = gdSoldInFromRaw(rawSoldIn)
+   .map(function (str) { return gdParseSoldInString(str); })
+   .filter(function (it) { return !!it; });
+  const toggle = document.getElementById('gdSellingDetailsToggle');
+  const singleInput = document.getElementById('gdSingleSellingPrice');
+  if (rows.length === 1 && gdIsSinglePricingItem(rows[0])) {
+   if (singleInput) singleInput.value = rows[0].sellingPrice || singleInput.value || '';
+   if (toggle) toggle.checked = false;
+  } else if (rows.length > 1 && toggle) {
+   toggle.checked = gdSellingDetailsAllowed();
+  }
+  gdSyncSellingDetailsVisibility();
+  return rows;
+ }
+
  function gdPreparePricingItems(editData) {
-  if (editData && Array.isArray(editData.s && editData.s.l)) {
-   gdCurrentPricingItems = editData.s.l
-    .map(function (str) { return gdParseSoldInString(str); })
-    .filter(function (it) { return !!it; });
-  } else {
-   gdCurrentPricingItems = [];
-  }
+  gdCurrentPricingItems = gdApplySellingPrefill(gdSoldInFromData(editData));
   gdRenderPricingItemsList();
-  // Editing an item that already has pricing: open the section so it stays visible.
-  if (gdSellingDetailsAllowed() && gdCurrentPricingItems.length > 0) {
-   const container = document.getElementById('gdPricingItemsContainer');
-   if (container) container.style.display = '';
-   gdSetSellingDetailsStored(true);
-  }
  }
 
  function gdInitUnitPicker(opts) {
@@ -735,6 +769,27 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
   syncTrigger();
  }
 
+ function gdSetRcvdMeasuredInPrefill(raw) {
+  const val = String(raw == null ? '' : raw).trim();
+  gdRcvdMeasuredInPrefill = val;
+  if (!val) return '';
+  const select = document.getElementById('gdNewRcvdMeasuredIn');
+  if (select && Array.from(select.options || []).some(function (o) { return String(o.value) === val; })) {
+   select.value = val;
+  }
+  const unit = (Array.isArray(window.UNIT_DATA) ? window.UNIT_DATA.find(function (u) { return String(u.a) === val; }) : null)
+   || (window.UNIT_MAP ? window.UNIT_MAP[val] : null);
+  const label = document.getElementById('gdRcvdMeasuredInTriggerLabel');
+  if (label) {
+   label.textContent = unit && (unit.e || unit.f)
+    ? String(unit.e || '') + (unit.f ? ' (' + unit.f + ')' : '')
+    : val;
+  }
+  const clearBtn = document.getElementById('gdRcvdMeasuredInClear');
+  if (clearBtn) clearBtn.style.display = 'inline-flex';
+  return val;
+ }
+
  function gdSetupPricingItemsHandlers() {
   const container = document.getElementById('gdPricingItemsContainer');
   if (!container) return;
@@ -881,6 +936,9 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
    });
   }, 100);
 
+  if (window.gdAddStockMode && gdRcvdMeasuredInPrefill) {
+   gdSetRcvdMeasuredInPrefill(gdRcvdMeasuredInPrefill);
+  }
   setTimeout(checkFormValidity, 200);
  }
 
@@ -953,7 +1011,7 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
                     <label class="form-label fw-bold small mb-1">Product Name <span class="text-danger">*</span></label>
                     <input type="text" name="e" class="form-control inputbox form-control-sm"
                            value="${fd.e}" placeholder="Enter product name"
-                           required ${window.gdAddStockMode ? 'readonly' : ''}>
+                           required ${window.gdAddStockMode ? 'readonly disabled' : ''}>
                 </div>
                 ${!hideCategory ? `
                 <div class="col-12">
@@ -970,7 +1028,7 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
                             </label>
                             <input type="text" name="hsn_price" class="form-control inputbox form-control-sm" oninput="window.allowHsnInput(this)"
                                 value="${hsn}" placeholder="code" maxlength="8"
-                                title="HSN at which the product was purchased" ${window.gdAddStockMode ? 'readonly' : ''}>
+                                title="HSN at which the product was purchased" ${window.gdAddStockMode ? 'readonly disabled' : ''}>
                         </div>
                         <div class="col-3">
                             <label class="form-label fw-bold small mb-0" title="CGST">
@@ -979,7 +1037,7 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
                             <input type="text" name="cgst_received" class="form-control inputbox form-control-sm"
                                 oninput="handlePercentInput(this);gdRecalcPurchaseAndTax()" autocorrect="off"
                                 value="${tax1}" placeholder="%"
-                                title="CGST of this product received" ${window.gdAddStockMode ? 'readonly' : ''}>
+                                title="CGST of this product received" ${window.gdAddStockMode ? 'readonly disabled' : ''}>
                         </div>
                         <div class="col-3">
                             <label class="form-label fw-bold small mb-0" title="SGST">
@@ -988,7 +1046,7 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
                             <input type="text" name="sgst_received" class="form-control inputbox form-control-sm"
                                 oninput="handlePercentInput(this);gdRecalcPurchaseAndTax()" autocorrect="off"
                                 value="${tax2}" placeholder="%"
-                                title="SGST of this product received" ${window.gdAddStockMode ? 'readonly' : ''}>
+                                title="SGST of this product received" ${window.gdAddStockMode ? 'readonly disabled' : ''}>
                         </div>
                 </div>
             </div>
@@ -1055,7 +1113,8 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
                                 Rate<span class="text-danger">*</span>
                             </label>
                             <input type="text" name="rate_per_qty" class="form-control inputbox form-control-sm"
-                                oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,7);gdRecalcPurchaseAndTax()" autocorrect="off"
+                                oninput="window.allowFloat(this,2);gdRecalcPurchaseAndTax();window.gdClearInvalid(this)" autocorrect="off"
+                                onfocus="this.select();" onclick="this.select();"
                                 value="${gdRatePerQtyRcv}" placeholder="₹" required
                                 title="Rate as per 1 quantity received">
                         </div>
@@ -1083,8 +1142,15 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
             </div>
             <div class="row g-2 mb-3 inputbox2">
                 <div class="col-12">
-                    <label class="form-label fw-bold small mb-1">Selling Details <span class="text-danger">*</span></label>
-                    <div id="gdPricingItemsContainer" style="display:block;"></div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input border border-dark" style="border-width:2px !important;" type="checkbox" id="gdSellingDetailsToggle">
+                        <label class="form-check-label fw-bold small mb-0" for="gdSellingDetailsToggle" id="gdSellingDetailsToggleLabel">Selling Details Single</label>
+                    </div>
+                    <div id="gdSingleSellingPriceContainer">
+                        <label class="form-label fw-bold small mb-1" for="gdSingleSellingPrice">Selling Price <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control inputbox form-control-sm" id="gdSingleSellingPrice" oninput="window.allowFloat(this,2);window.gdClearInvalid(this)" placeholder="₹" title="Selling price for this product">
+                    </div>
+                    <div id="gdPricingItemsContainer" style="display:none;"></div>
                 </div>
             </div>
                     <textarea name="notes" class="form-control inputbox form-control-sm" rows="2" disabled
@@ -1123,7 +1189,13 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
   const gdPrefillOnlyP = (params && params[2] && params[2].prefillOnly && params[2].p) ? params[2].p : null;
   const gdAddStockMode = !!(params && params[2] && params[2].mode === 'addStock');
   window.gdAddStockMode = gdAddStockMode;
+  gdRcvdMeasuredInPrefill = '';
   window.gdAddStockStockId = (params && params[2] && params[2].stockId) || null;
+  window.gdAddStockProductId = (params && params[2] && params[2].productId != null)
+   ? params[2].productId
+   : ((params && params[2] && params[2].p && params[2].p.g != null)
+    ? params[2].p.g
+    : ((params && params[2] && params[2].s && params[2].s.g != null) ? params[2].s.g : null));
   return new Promise(async (resolve) => {
    // Check if Bootstrap modal is available
    if (typeof create_modal_dynamically !== 'function') {
@@ -1197,7 +1269,8 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
 
     // Fresh values for a new product (add-only)
     const editP = (gdEditData && gdEditData.p) || gdPrefillOnlyP || {};
-    const editS = (gdEditData && gdEditData.s) || {};
+    const editS = (gdEditData && gdEditData.s) || (params && params[2] && params[2].s) || {};
+    const soldInRaw = editS.l != null ? editS.l : (editS.sold_in != null ? editS.sold_in : editS.soldIn);
 
     const fd = {
      a: gdGetNextProductId(),
@@ -1233,10 +1306,36 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
 
     contentElement.innerHTML = gdBuildItemFormHTML(fd, finalCategoryOptions, !!gdEditData);
 
-    if (editS.j) {
-     const rcvdSel = document.getElementById('gdNewRcvdMeasuredIn');
-     if (rcvdSel) rcvdSel.value = String(editS.j);
+    gdApplySellingPrefill(soldInRaw);
+
+    // Add-stock must prefill from the stock row's own sold_in value, even if a
+    // stale caller supplied a different payload.
+    if (window.gdAddStockMode && window.gdAddStockStockId != null) {
+     (async function () {
+      try {
+       const dex = (typeof dbDexieManager !== 'undefined') ? dbDexieManager : null;
+       const databaseName = (typeof dbnm !== 'undefined') ? dbnm : window.dbnm;
+       if (!dex || !databaseName || typeof dex.getAllRecords !== 'function') return;
+       const stockRows = await dex.getAllRecords(databaseName, 's') || [];
+       const stockRow = stockRows.find(function (r) { return String(r && r.a) === String(window.gdAddStockStockId); });
+       if (!stockRow) return;
+       const raw = stockRow.l != null ? stockRow.l : (stockRow.sold_in != null ? stockRow.sold_in : stockRow.soldIn);
+       if (raw) {
+        gdApplySellingPrefill(raw);
+        const firstSold = gdParseSoldInString(gdSoldInFromRaw(raw)[0]);
+        if (firstSold && firstSold.measuredIn) gdSetRcvdMeasuredInPrefill(firstSold.measuredIn);
+       } else if (stockRow.j) {
+        gdSetRcvdMeasuredInPrefill(stockRow.j);
+       }
+      } catch (e) { console.warn('Add-stock selling prefill lookup failed', e); }
+     })();
     }
+
+    const rcvdPrefillFromSoldIn = (function () {
+     const rows = gdSoldInFromRaw(soldInRaw);
+     return rows.length ? ((gdParseSoldInString(rows[0]) || {}).measuredIn || '') : '';
+    })();
+    gdSetRcvdMeasuredInPrefill(editS.j || rcvdPrefillFromSoldIn || '');
 
     if (gdEditData && Array.isArray(editS.l) && editS.l.length > 0) {
      const parsedFirst = gdParseSoldInString(editS.l[0]);
@@ -1245,12 +1344,17 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
       gdPickedImg2 = parsedFirst.g2 || '';
      }
     }
+    if (!gdPickedImg1 && !gdPickedImg2 && editS.gu) {
+     const fallbackImgs = String(editS.gu).trim().split(/\s+/);
+     gdPickedImg1 = fallbackImgs[0] || '';
+     gdPickedImg2 = fallbackImgs[1] || '';
+    }
     gdSyncImageBoxes();
 
     setTimeout(function () { gdSetupPricingItemsHandlers(); }, 500);
 
     setTimeout(() => {
-     gdPreparePricingItems(gdEditData);
+     gdPreparePricingItems(gdEditData || (params && params[2]));
     }, 300);
 
     setTimeout(function () {
@@ -1281,7 +1385,11 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
       if (sb) { sb.disabled = true; sb.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...'; }
       try {
        const fd2 = new FormData(this);
-       let nm = (fd2.get('e') || '').trim();
+       const addStockDirect = !!window.gdAddStockMode;
+       const editPRef = editP || {};
+       // Add-stock fields are readonly/disabled, so FormData omits them.
+       // Use the prefilled source values directly for validation and payload.
+       let nm = String(addStockDirect ? (fd.e || editPRef.e || '') : (fd2.get('e') || '')).trim();
 
        if (!nm) {
         if (typeof showToast === 'function') showToast('Product name required', { type: 'error', duration: 2000 });
@@ -1293,8 +1401,13 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
        }
 
        // Build and log the payload (endpoint not called yet)
-       const rcvdMeasuredIn = document.getElementById('gdNewRcvdMeasuredIn')?.value || '';
-       const soldIn = gdGenerateSoldInString();
+       const rcvdMeasuredIn = String(
+        (document.getElementById('gdNewRcvdMeasuredIn')?.value || '') ||
+        (window.gdAddStockMode ? gdRcvdMeasuredInPrefill : '') ||
+        ''
+       ).trim();
+       const isMultiSelling = gdSellingDetailsEnabled();
+       let soldIn = isMultiSelling ? gdGenerateSoldInString() : [];
 
        if (!rcvdMeasuredIn) {
         if (typeof showToast === 'function') showToast('Please select Rcvd - Measured In', { type: 'warning', duration: 2000 });
@@ -1326,13 +1439,26 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
         if (typeof window.gdMarkInvalid === 'function') window.gdMarkInvalid(purEl, 'Purchase price is required');
         return;
        }
-       if (!Array.isArray(soldIn) || soldIn.length === 0) {
-        if (typeof showToast === 'function') showToast('Please add at least one pricing item', { type: 'warning', duration: 2000 });
-        isProcessing = false;
-        if (sb) { sb.disabled = false; sb.innerHTML = '<i class="fas fa-save me-1"></i>' + btnLabel; }
-        const sp = document.getElementById('gdNewSellingPrice') || document.getElementById('gdPricingItemsContainer');
-        if (typeof window.gdMarkInvalid === 'function') window.gdMarkInvalid(sp, 'Please add at least one pricing item');
-        return;
+       if (isMultiSelling) {
+        if (!Array.isArray(soldIn) || soldIn.length === 0) {
+         if (typeof showToast === 'function') showToast('Please add at least one pricing item', { type: 'warning', duration: 2000 });
+         isProcessing = false;
+         if (sb) { sb.disabled = false; sb.innerHTML = '<i class="fas fa-save me-1"></i>' + btnLabel; }
+         const sp = document.getElementById('gdNewSellingPrice') || document.getElementById('gdPricingItemsContainer');
+         if (typeof window.gdMarkInvalid === 'function') window.gdMarkInvalid(sp, 'Please add at least one pricing item');
+         return;
+        }
+       } else {
+        const singlePrice = document.getElementById('gdSingleSellingPrice')?.value || '';
+        if (!singlePrice.trim()) {
+         if (typeof showToast === 'function') showToast('Please enter selling price', { type: 'warning', duration: 2000 });
+         isProcessing = false;
+         if (sb) { sb.disabled = false; sb.innerHTML = '<i class="fas fa-save me-1"></i>' + btnLabel; }
+         const sp = document.getElementById('gdSingleSellingPrice');
+         if (typeof window.gdMarkInvalid === 'function') window.gdMarkInvalid(sp, 'Please enter selling price');
+         return;
+        }
+        soldIn = [gdBuildSingleSoldInString(singlePrice)];
        }
 
         const ob = [{
@@ -1342,14 +1468,15 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
          g: '',
          g1: '',
          g2: '',
-         i: fd2.get('hsn_price') || '0',
-         j: fd2.get('cgst_received') || '0',
-         k: fd2.get('sgst_received') || '0',
+         i: addStockDirect ? String(hsn || editPRef.i || '0') : (fd2.get('hsn_price') || '0'),
+         j: addStockDirect ? String(tax1 || editPRef.j || '0') : (fd2.get('cgst_received') || '0'),
+         k: addStockDirect ? String(tax2 || editPRef.k || '0') : (fd2.get('sgst_received') || '0'),
         },
         s: {
          e: parseInt(document.getElementById('gdPartyId')?.value) || 0,
          //f: bill id(not send)
-         //g: product id(not send)
+         //g: product id
+         ...(window.gdAddStockMode && window.gdAddStockProductId != null ? { g: window.gdAddStockProductId } : {}),
          h: fd2.get('purchase_price') || '',
          i: fd2.get('quantity_received') || '',
          j: rcvdMeasuredIn,
@@ -1362,7 +1489,6 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
         }
        }];
 
-       //console.log('get_data.js Payload:', { ob });
 
        if (typeof window.afterItemSet2fn === 'function') window.afterItemSet2fn(ob);
        gdEditData = null;
@@ -1470,5 +1596,4 @@ const imgObjDimensRqd2 = ["1920x1080px~1-511kb", "400x300px~1-31kb"];
  window.getDataRemovePricingItem = window.getDataRemovePricingItem;
  window.handlePercentInput = handlePercentInput;
 
- console.log('get_data.js loaded successfully');
 })();

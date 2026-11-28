@@ -607,13 +607,13 @@ min-width: 18px !important;
 </div>
 
 <div id="modal_dvnv" class="modal fade" tabindex="-1">
-<div class="modal-dialog modal-lg">
-<div class="modal-content">
+<div class="modal-dialog modal-lg" style="height: 90vh; max-height: 90vh;">
+<div class="modal-content" style="height: 100%; display: flex; flex-direction: column;">
 <div class="modal-header">
 <h5 class="modal-title">Enter Measurement</h5>
 <button type="button" class="btn-close" id="close_dvnv"></button>
 </div>
-<div class="modal-body">
+<div class="modal-body" style="display: flex; flex-direction: column; overflow: hidden; flex: 1 1 auto; min-height: 0;">
 <div id="manual_div" class="input-group mb-3">
 <input id="manual_input" class="form-control" type="number" placeholder="Enter Manually" step="0.25" />
 <button id="manual_btn" class="btn btn-primary">Enter</button>
@@ -654,7 +654,7 @@ Plain
 </div>
 </div>
 
-<div id="modal_dvnv_table_div" class="table-responsive" style="max-height: 85vh;overflow-y: auto;">
+<div id="modal_dvnv_table_div" class="table-responsive" style="flex: 1 1 auto; overflow-y: auto; min-height: 0;">
 <table id="dvnv_table_negative" class="modal_dvnv_table table table-bordered table-sm mb-0">
 ${generateNegativeTable()}
 </table>
@@ -934,26 +934,31 @@ function setupEventListeners() {
  });
 
  document.getElementById("lDvAxis").addEventListener("focus", function () {
+  if (eyeMeasurementInfocus === 1) return;
   el_modal_dvnv.hide();
   eyeMeasurementInfocus = 0;
  });
 
  document.getElementById("lDvV/n").addEventListener("focus", function () {
+  if (eyeMeasurementInfocus === 1) return;
   el_modal_dvnv.hide();
   eyeMeasurementInfocus = 0;
  });
 
  document.getElementById("lNvAxis").addEventListener("focus", function () {
+  if (eyeMeasurementInfocus === 1) return;
   el_modal_dvnv.hide();
   eyeMeasurementInfocus = 0;
  });
 
  document.getElementById("lNvV/n").addEventListener("focus", function () {
+  if (eyeMeasurementInfocus === 1) return;
   el_modal_dvnv.hide();
   eyeMeasurementInfocus = 0;
  });
 
  document.getElementById("lPd").addEventListener("focus", function () {
+  if (eyeMeasurementInfocus === 1) return;
   el_modal_dvnv.hide();
   eyeMeasurementInfocus = 0;
  });
@@ -1022,26 +1027,31 @@ function setupEventListeners() {
  });
 
  document.getElementById("rDvAxis").addEventListener("focus", function () {
+  if (eyeMeasurementInfocus === 1) return;
   el_modal_dvnv.hide();
   eyeMeasurementInfocus = 0;
  });
 
  document.getElementById("rDvV/n").addEventListener("focus", function () {
+  if (eyeMeasurementInfocus === 1) return;
   el_modal_dvnv.hide();
   eyeMeasurementInfocus = 0;
  });
 
  document.getElementById("rNvAxis").addEventListener("focus", function () {
+  if (eyeMeasurementInfocus === 1) return;
   el_modal_dvnv.hide();
   eyeMeasurementInfocus = 0;
  });
 
  document.getElementById("rNvV/n").addEventListener("focus", function () {
+  if (eyeMeasurementInfocus === 1) return;
   el_modal_dvnv.hide();
   eyeMeasurementInfocus = 0;
  });
 
  document.getElementById("rPd").addEventListener("focus", function () {
+  if (eyeMeasurementInfocus === 1) return;
   el_modal_dvnv.hide();
   eyeMeasurementInfocus = 0;
  });
@@ -1626,7 +1636,13 @@ function getEyeMeasurement() {
  return hasData ? eye_msrmnt : null;
 }
 function setEyeMeasurement(eyeMsrments) {
- if (!eyeMsrments || Object.keys(eyeMsrments).length === 0) { lockAllEyeInputs(); return; }
+ const editActions = document.getElementById('eyeEditActions');
+ const editBtn = document.getElementById('editEyeBtn');
+ const isEditing = !!(editActions && !editActions.classList.contains('d-none'));
+ if (!eyeMsrments || Object.keys(eyeMsrments).length === 0) {
+  if (!isEditing && editBtn && !editBtn.classList.contains('d-none')) lockAllEyeInputs();
+  return;
+ }
 
  function setElementValue(elementId, value) {
   const element = document.getElementById(elementId);
@@ -1696,7 +1712,7 @@ function setEyeMeasurement(eyeMsrments) {
  if (eyeMsrments.li !== undefined) setElementValue("lAdd", eyeMsrments.li);
  // lj is hardcoded to 0 in get function, so we don't set it
  if (eyeMsrments.lk !== undefined) setElementValue("lPd", eyeMsrments.lk);
- lockAllEyeInputs();
+ if (!isEditing && editBtn && !editBtn.classList.contains('d-none')) lockAllEyeInputs();
 }
 function unlockAllEyeInputs() {
  ['table-div-right','table-div-left'].forEach(id => {
@@ -1729,21 +1745,20 @@ function updateEyeMeasurements() {
    const eyeData = getEyeMeasurement();
    if (!eyeData) { showToast('No eye measurement data to save'); return; }
 
-    if (typeof payload0 === 'undefined') { showToast('Payload not available'); return; }
-
     const billId = window.billTableRowId || null;
     if (!billId) { showToast('No bill selected for update'); return; }
 
    eyeData.ea = billId;
    const r_eferrerId = parseInt(document.getElementById('referrerId')?.value) || 0;
    eyeData.ef = r_eferrerId;
-
+   await clearPayload0();
    payload0.be = eyeData;
-   payload0.vw = 1;
    payload0.fn = 102;
+   payload0.ul = '2/0o.php';
+   payload0.gt = 2;
    payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'be', "col": 'eb', "cl": "eb" }]);
-
-   const response = await fnj3("https://my1.in/2/o.php", payload0, 1, true, null, 20000, 0, 2, 1);
+   const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
+   //const response = await fnj3("https://my1.in/2/o.php", payload0, 1, true, null, 20000, 0, 2, 1);
 
    if (response && response.su == 1) {
     showToast('Eye measurements updated successfully', { type: 'success', duration: 3000 });
@@ -1802,3 +1817,10 @@ function setupKeyboardNavigation() {
   }
  });
 }
+window.getEyeMeasurement = getEyeMeasurement;
+window.setEyeMeasurement = setEyeMeasurement;
+window.lockAllEyeInputs = lockAllEyeInputs;
+window.unlockAllEyeInputs = unlockAllEyeInputs;
+window.toggleEyeEdit = toggleEyeEdit;
+window.cancelEyeEdit = cancelEyeEdit;
+window.updateEyeMeasurements = updateEyeMeasurements;

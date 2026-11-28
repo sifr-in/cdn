@@ -1,4 +1,7 @@
-// clr_cache.js - Clear all browser cache with confirmation modal
+// clrChe.js - Clear all browser cache with confirmation modal
+// Local mirror of https://cdn.jsdelivr.net/gh/sifr-in/cdn@141f125/cmn/clrChe.js
+// Difference: reloads with a plain window.location.reload() so no ?_cb=<timestamp>
+// is appended to the page URL (cache handled manually).
 (function () {
  'use strict';
 
@@ -113,16 +116,9 @@
     if (typeof showToast === 'function') showToast('All cache cleared successfully!', { type: 'success', duration: 2000 });
    }
 
-   // Force a fresh, cache-bypassing reload so the app opens like a new device.
+   // Plain reload - keeps the current URL unchanged, no ?_cb=<timestamp>.
    setTimeout(function () {
-    try {
-     var url = window.location.pathname + window.location.search;
-     url += (window.location.search ? '&' : '?') + '_cb=' + Date.now();
-     url += window.location.hash;
-     window.location.replace(url);
-    } catch (e) {
-     window.location.reload(true);
-    }
+    window.location.reload();
    }, 1000);
   });
 

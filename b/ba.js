@@ -233,7 +233,6 @@ function setupEventListeners() {
   const billNoInput = getBillFormElement('#billNo');
   const selectPartyBtn = getBillFormElement('#selectPartyBtn');
 
-  console.log('Setting up event listeners:', { addItemBtn, saveBtn, updateBtn, closeBtn, billNoInput, selectPartyBtn });
 
 if (selectPartyBtn && !isUpdateMode) {
   selectPartyBtn.disabled = false;
@@ -270,7 +269,7 @@ if (selectPartyBtn && !isUpdateMode) {
   if (selectPartyBtn) {
    selectPartyBtn.addEventListener('click', async function () {
     if (!isUpdateMode) {
-     await loadExe2Fn(14, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_ba_ViewCall', 1], [1]);
+     await loadExe2Fn(13, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_ba_ViewCall', 1], [1]);
     }
    });
   }
@@ -517,14 +516,12 @@ function enableUpdateMode(duplicateBill, partyItems) {
   supplierNm.innerHTML = originalContent + ' <span class="text-success"><i class="fas fa-info-circle"></i> Update Mode Activated</span>';
  }
 
- console.log('Update mode enabled for bill:', duplicateBill);
 }
 
 function toggleRemarkVisibility() {
  const remarkTextarea = getBillFormElement('#billRemark');
  const toggleBtn = getBillFormElement('.toggle-remark');
 
- console.log('Toggle remark elements:', { remarkTextarea, toggleBtn });
 
  if (remarkTextarea && remarkTextarea.style.display === 'none') {
   remarkTextarea.style.display = 'block';
@@ -1002,20 +999,22 @@ async function saveBillData(billIdParam = null) {
    }))
   };
 
+  await clearPayload0();
   payload0.da = billData;
   payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'ba', "col": 'b', "cl": "b" }, { "tb": 'p', "col": 'b', "cl": "b" }, { "tb": 's', "col": 'b', "cl": "b" }]);
-  payload0.vw = 1;
   payload0.fn = 47;//insert
   // If in update mode, add the bill ID
   if (isUpdateMode && currentBillId) {
    payload0.fn = 56;//update
    billData.a = currentBillId;
   }
-
-  var r368esponse = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 15000, 0, 1, 0);
-
+  payload0.ul = '2/0b.php';
+  payload0.gt = 2;
+  payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, getMaxDateTables());
+  var r368esponse = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
+  //var r368esponse = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 15000, 0, 1, 0);
   if (r368esponse && r368esponse.su === 1) {
-   if(payload0.fn == 56){
+   if (payload0.fn == 56) {
     let t1021mp = await dbDexieManager.deleteRecords(dbnm, 'ba', billData.a);
     let t1022mp = (await dbDexieManager.getAllRecords(dbnm, 's')).filter(o => o.f === billData.a).forEach(o => dbDexieManager.deleteRecords(dbnm, 's', o.a));
    }
@@ -1035,7 +1034,6 @@ async function saveBillData(billIdParam = null) {
  } finally {
   // Hide loader when done
   loaderElement.style.display = 'none';
-  console.log("reached in finally");
  }
 }
 
@@ -1193,7 +1191,7 @@ async function showItemNameDropdown(inputElement) {
    itemElement.href = '#';
    itemElement.innerHTML = `
                 <div class="d-flex align-items-center">
-                    <img src="${item.gu || 'https://cdn-icons-png.freepik.com/512/13543/13543330.png'}" 
+                    <img src="${getGoogleDriveImageUrl(item.gu) || 'https://cdn-icons-png.freepik.com/512/13543/13543330.png'}" 
                          class="me-2" style="width: 40px; height: 40px; object-fit: cover; border-radius: 3px;"
                          onerror="this.src='https://cdn-icons-png.freepik.com/512/13543/13543330.png'">
                     <div style="flex: 1; min-width: 0;">
@@ -1252,20 +1250,16 @@ function commonFnToRunAfter_ba_ViewCall(...args) {
  if (args[1] === 1) {
   sltd_ba_obj = args[0];
 
-  console.log('commonFnToRunAfter_ba_ViewCall called with:', args[0]);
-  console.log('currentBillModalElement:', currentBillModalElement);
 
   // Try multiple ways to find the supplier_nm element
   let s_upplier_nm = null;
 
   // Method 1: Use our helper function
   s_upplier_nm = getBillFormElement('#supplier_nm');
-  console.log('Method 1 - getBillFormElement result:', s_upplier_nm);
 
   // Method 2: Direct search in current modal
   if (!s_upplier_nm && currentBillModalElement) {
    s_upplier_nm = currentBillModalElement.querySelector('#supplier_nm');
-   console.log('Method 2 - currentBillModalElement querySelector result:', s_upplier_nm);
   }
 
   // Method 3: Search in any visible modal
@@ -1275,18 +1269,15 @@ function commonFnToRunAfter_ba_ViewCall(...args) {
     s_upplier_nm = modal.querySelector('#supplier_nm');
     if (s_upplier_nm) break;
    }
-   console.log('Method 3 - visible modals search result:', s_upplier_nm);
   }
 
   // Method 4: Global search
   if (!s_upplier_nm) {
    s_upplier_nm = document.querySelector('#supplier_nm');
-   console.log('Method 4 - global search result:', s_upplier_nm);
   }
 
   if (s_upplier_nm) {
    s_upplier_nm.innerHTML = `<strong>Selected:</strong> ${args[0].h} / ${args[0].i}`;
-   console.log('Successfully updated supplier name');
   } else {
    console.error('Supplier name element not found after all search methods');
    // Create the element if it doesn't exist
@@ -1300,7 +1291,6 @@ function commonFnToRunAfter_ba_ViewCall(...args) {
 
 // Fallback function to create supplier name element if not found
 function createSupplierNameElement(supplierData) {
- console.log('Creating supplier name element as fallback');
 
  // Try to find a logical place to insert the supplier info
  const possibleContainers = [
@@ -1324,7 +1314,6 @@ function createSupplierNameElement(supplierData) {
     container.appendChild(supplierDiv);
    }
 
-   console.log('Created supplier name element in container:', container);
    break;
   }
  }

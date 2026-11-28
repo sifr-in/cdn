@@ -19,9 +19,43 @@ let bpPickedImg1 = '';
 let bpPickedImg2 = '';
 let bpImageRemoved = false;
 
+// ==================== HSN helper ====================
+// Mirrors bgtiv.js allowHsnInput: digits only, maximum 8 characters.
+function bpSanitizeHsn(raw) {
+ return String(raw == null ? '' : raw).replace(/[^0-9]/g, '').slice(0, 8);
+}
+window.bpAllowHsnInput = function (input) {
+ if (!input) return;
+ const next = bpSanitizeHsn(input.value);
+ if (input.value !== next) input.value = next;
+};
+
 // ==================== Tax 1 % / Tax 2 % helpers ====================
 // Product rows keep the rates on p.j / p.k; stock rows carry the same values
 // as tax1 / tax2 aliases. Legacy rows only have the tax amount in s.t.
+function bpProductForStock(item) {
+ const pid = item && item.g;
+ const list = Array.isArray(window.prods) ? window.prods : [];
+ return list.find(function (pr) { return pr && String(pr.a) === String(pid); }) || null;
+}
+
+async function bpGetProductForStock(item, forceReload) {
+ let prod = forceReload ? null : bpProductForStock(item);
+ if (prod) return prod;
+ try {
+  if (typeof dbDexieManager !== 'undefined' && dbDexieManager && typeof dbDexieManager.getAllRecords === 'function') {
+   const databaseName = (typeof dbnm !== 'undefined') ? dbnm : window.dbnm;
+   const rows = await dbDexieManager.getAllRecords(databaseName, 'p') || [];
+   prod = rows.find(function (pr) { return String(pr && pr.a) === String(item && item.g); }) || null;
+   if (prod) {
+    window.prods = rows;
+    if (typeof prods !== 'undefined') prods = rows;
+   }
+  }
+ } catch (e) { /* ignore */ }
+ return prod;
+}
+
 function bpTaxRates(item) {
  if (typeof window.productTaxRates === 'function') return window.productTaxRates(item);
  const tax1 = parseFloat(item && item.tax1);
@@ -37,6 +71,100 @@ function bpTaxLabel(rates) {
  const tax2 = Math.max(0, parseFloat(rates && rates.tax2) || 0);
  if (tax1 > 0 && tax2 > 0) return tax1.toFixed(2) + '% + ' + tax2.toFixed(2) + '%';
  return (tax1 + tax2).toFixed(2) + '%';
+}
+
+// Read the selling price only from s.l (sold_in). Unlike the global helper in
+// b.js, this never falls back to s.k (purchase price).
+function bpSellingPriceFromL(item) {
+ const raw = item && (item.l != null ? item.l : (item.sold_in != null ? item.sold_in : item.soldIn));
+ const first = Array.isArray(raw) ? raw[0] : raw;
+ const str = String(first == null ? '' : first).trim();
+ if (!str) return 0;
+ const parts = str.split('~');
+ if (parts.length < 2) return 0;
+ const m = parts[1].match(/^\s*([\d.]+)\s*-\s*([\d.]+)/);
+ if (!m) return 0;
+ const price = parseFloat(m[2]);
+ return Number.isFinite(price) ? price : 0;
+}
+
+function bpEscapeAttr(raw) {
+ return String(raw == null ? '' : raw)
+  .replace(/&/g, '&amp;')
+  .replace(/"/g, '&quot;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;');
+}
+
+function bpStockRows() {
+ if (Array.isArray(window.bpStockRowsCache)) return window.bpStockRowsCache;
+ if (typeof items !== 'undefined' && Array.isArray(items)) return items;
+ if (Array.isArray(window.items)) return window.items;
+ return [];
+}
+
+// Resolve a clicked row by stable IDs. Numeric references are kept only for
+// external callers that still pass an index into the unfiltered items array.
+function bpResolveItem(ref) {
+ const list = bpStockRows();
+ if (ref == null) return null;
+ if (typeof ref === 'object') {
+  if (list.indexOf(ref) !== -1) return ref;
+  const sid = ref.a != null && String(ref.a).trim() !== '' ? String(ref.a) : '';
+  const pid = ref.g != null && String(ref.g).trim() !== '' ? String(ref.g) : '';
+  if (!sid && !pid) return null;
+  let match = null;
+  if (sid && pid) match = list.find(function (row) { return row && String(row.a) === sid && String(row.g) === pid; }) || null;
+  if (!match && sid) match = list.find(function (row) { return row && String(row.a) === sid; }) || null;
+  if (!match && pid) match = list.find(function (row) { return row && String(row.g) === pid; }) || null;
+  return match;
+ }
+ const text = String(ref).trim();
+ if (!text) return null;
+ const idx = Number(text);
+ if (Number.isInteger(idx) && idx >= 0 && idx < list.length) return list[idx];
+ return null;
+}
+
+function bpItemFromButton(btn) {
+ if (!btn) return null;
+ const item = bpResolveItem({
+  a: btn.getAttribute('data-stock-id'),
+  g: btn.getAttribute('data-product-id')
+ });
+ if (item) return item;
+ const card = btn.closest ? btn.closest('[data-prod-name]') : null;
+ const name = card && card.getAttribute('data-prod-name');
+ if (name) {
+  const byName = bpStockRows().find(function (row) {
+   return String((row && row.gn) || '').toLowerCase() === String(name).toLowerCase();
+  });
+  if (byName) return byName;
+ }
+ return null;
+}
+
+function bpWarnItemNotFound() {
+ if (typeof showToast === 'function') showToast('Product not found - please refresh the list', { type: 'error', duration: 2500 });
+ else if (typeof window.showelsemodal === 'function') window.showelsemodal('Product not found - please refresh the list');
+}
+
+function bpCloseProductMenus() {
+ try {
+  if (window.bootstrap && bootstrap.Dropdown && typeof bootstrap.Dropdown.clearMenus === 'function') {
+   bootstrap.Dropdown.clearMenus();
+   return;
+  }
+ } catch (e) { /* ignore */ }
+ // Older Bootstrap builds may not expose clearMenus(); dispose the product
+ // toggles and remove any menu that was appended to <body>.
+ document.querySelectorAll('#bpProductsList .dropdown-toggle').forEach(function (toggle) {
+  try {
+   const instance = (window.bootstrap && bootstrap.Dropdown) ? bootstrap.Dropdown.getInstance(toggle) : null;
+   if (instance) { instance.hide(); instance.dispose(); }
+  } catch (e) { /* ignore */ }
+ });
+ document.querySelectorAll('body > .bp-products-menu').forEach(function (menu) { menu.remove(); });
 }
 
 function bpSanitizeTaxText(raw) {
@@ -108,31 +236,100 @@ window.bpClearImage = function () {
 };
 
 // Opens the my1img picker (csh item 24). Tabs: URL + Upload + Camera (default URL).
-// Server-vs-local flow comes from b.da (`getDirectIdFromServer`); when off/absent the
-// picker uses the local flow.
+// Server-vs-local flow comes from 0.da (`cust_da_const.getDirectIdFromServer`);
+// when off/absent the picker uses the local flow.
 window.bpOpenImagePicker = function (existing) {
  if (typeof loadExe2Fn !== 'function') {
   if (typeof showToast === 'function') showToast('Image picker is unavailable');
   return;
  }
- const cc = (typeof my1uzr !== 'undefined' && window[my1uzr.worknOnPg] && window[my1uzr.worknOnPg].clientConfig) || {};
- return loadExe2Fn(24, [window.bpAfterImageSet, bpImgDims, { s: [1, 2, 3], de: 1 }, existing || '', cc.getDirectIdFromServer], [1]);
+ const state = (typeof my1uzr !== 'undefined' && window[my1uzr.worknOnPg]) || {};
+ const getDirectIdFromServer =
+  state.clientConfigByAdm?.cust_da_const?.getDirectIdFromServer
+  ?? state.clientConfig?.cust_da_const?.getDirectIdFromServer
+  ?? 0;
+ return loadExe2Fn(11, [window.bpAfterImageSet, bpImgDims, { s: [1, 2, 3], de: 1 }, existing || '', getDirectIdFromServer], [1]);
 };
+
+async function bpEnrichStockItems(list, forceReload) {
+ const arr = Array.isArray(list) ? list : [];
+ let products = forceReload ? [] : (Array.isArray(window.prods) ? window.prods : (typeof prods !== 'undefined' && Array.isArray(prods) ? prods : []));
+ if ((forceReload || !products.length) && typeof dbDexieManager !== 'undefined' && dbDexieManager && typeof dbDexieManager.getAllRecords === 'function') {
+  try {
+   const databaseName = (typeof dbnm !== 'undefined') ? dbnm : window.dbnm;
+   products = await dbDexieManager.getAllRecords(databaseName, 'p') || [];
+   if (typeof prods !== 'undefined') prods = products;
+   window.prods = products;
+  } catch (e) { /* ignore */ }
+ }
+ const byId = new Map();
+ products.forEach(function (p) { if (p && p.a != null) byId.set(String(p.a), p); });
+ arr.forEach(function (item) {
+  if (!item) return;
+  const prod = byId.get(String(item.g));
+  // The product row matched by s.g is authoritative for display name/image.
+  if (prod) {
+   if (prod.e != null && String(prod.e).trim() !== '') item.gn = String(prod.e);
+   if (prod.g != null && String(prod.g).trim() !== '') item.gu = String(prod.g);
+   const prodTax1 = parseFloat(prod.j);
+   const prodTax2 = parseFloat(prod.k);
+   if (Number.isFinite(prodTax1)) item.tax1 = prodTax1;
+   if (Number.isFinite(prodTax2)) item.tax2 = prodTax2;
+  }
+  if (item.gn == null || String(item.gn).trim() === '') item.gn = '';
+  if (item.gu == null || String(item.gu).trim() === '') item.gu = '';
+ });
+ return arr;
+}
 
 async function set_deup_prod_innerHTML(...params) {
  // Create modal using existing function
  const { contentElement, modalInstance } = create_modal_dynamically('productsModal');
+
+ // Keep the products modal slightly below the top and tall enough to work with.
+ const productsModalEl = document.getElementById('productsModal');
+ if (productsModalEl) {
+  const dialog = productsModalEl.querySelector('.modal-dialog');
+  if (dialog) {
+   dialog.style.margin = '8vh auto 0';
+   dialog.style.height = 'auto';
+   dialog.style.maxHeight = '84vh';
+   dialog.style.minHeight = '80vh';
+  }
+  const outerBody = productsModalEl.querySelector('.modal-body');
+  if (outerBody) outerBody.style.maxHeight = '84vh';
+  const modalContent = productsModalEl.querySelector('.modal-content');
+  if (modalContent) modalContent.style.minHeight = '80vh';
+ }
 
  // Pagination variables
  let currentPage = 1;
  const itemsPerPage = 10;
  let productSearchTerm = '';
 
+ async function bpReadFreshStockRows() {
+  try {
+   if (typeof dbDexieManager !== 'undefined' && dbDexieManager && typeof dbDexieManager.getAllRecords === 'function') {
+    const databaseName = (typeof dbnm !== 'undefined') ? dbnm : window.dbnm;
+    const rows = await dbDexieManager.getAllRecords(databaseName, 's') || [];
+    window.bpStockRowsCache = rows;
+    return rows;
+   }
+  } catch (e) { console.warn('Fresh stock read failed', e); }
+  return bpStockRows();
+ }
+
+ function bpGetFilteredItems() {
+  const rows = bpStockRows();
+  return productSearchTerm
+   ? rows.filter(function (it) { return String(it && it.gn || '').toLowerCase().includes(productSearchTerm); })
+   : rows;
+ }
+
  // Function to render products for current page
  function renderProducts() {
-  const filteredItems = productSearchTerm
-   ? items.filter(function (it) { return (it.gn || '').toLowerCase().includes(productSearchTerm); })
-   : items;
+  window.renderProducts = renderProducts;
+  const filteredItems = bpGetFilteredItems();
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentItems = filteredItems.slice(startIndex, endIndex);
@@ -142,16 +339,19 @@ async function set_deup_prod_innerHTML(...params) {
             <div class="row g-3" id="productsGrid">
                 ${currentItems.map((item, index) => {
    const taxRates = bpTaxRates(item);
-   const actualIndex = startIndex + index;
+   const stockIdAttr = bpEscapeAttr(item && item.a);
+   const productIdAttr = bpEscapeAttr(item && item.g);
+   const itemName = String(item && item.gn || '').trim() || 'Unnamed Product';
+   const itemImg = getGoogleDriveImageUrl(item && item.gu) || bpNoImage;
    return `
-                    <div class="col-12 product-card" data-prod-name="${item.gn.toLowerCase()}">
-                        <div class="card product-card-item h-100 border border-dark" data-prod-id="${item.a}" tabindex="0">
+                    <div class="col-12 product-card" data-prod-name="${itemName.toLowerCase().replace(/"/g, '&quot;')}">
+                        <div class="card product-card-item h-100 border border-dark" data-prod-id="${item.a}" data-stock-id="${stockIdAttr}" data-product-id="${productIdAttr}" tabindex="0">
                             <div class="row g-0 h-100">
                                 <!-- Image on left - 25% width -->
                                 <div class="col-3">
                                     <div class="h-100 d-flex align-items-center bg-light" style="min-height: 120px;">
-                                        <img src="${getGoogleDriveImageUrl(item.gu) || bpNoImage}" 
-                                             alt="${item.gn}" 
+                                        <img src="${itemImg}" 
+                                             alt="${itemName.replace(/"/g, '&quot;')}" 
                                              class="img-fluid rounded" 
                                              style="max-width: 100%; height: auto; max-height: 120px; object-fit: cover;"
                                              onerror="this.src=bpNoImage">
@@ -163,7 +363,7 @@ async function set_deup_prod_innerHTML(...params) {
                                         <div class="d-flex justify-content-between align-items-start h-100">
                                             <div class="flex-grow-1 me-3 d-flex flex-column justify-content-between h-100 w-100">
                                                 <div>
-                                                    <h6 class="card-title mb-2 text-truncate" title="${item.gn}">id:${item.g} ${item.gn}</h6>
+                                                    <h6 class="card-title mb-2 text-truncate" title="${itemName.replace(/"/g, '&quot;')}">id:${item.g} ${itemName}</h6>
                                                     <div class="text-muted small">
                                                         <!-- First row: ID, Category ID, and Stock in one line -->
                                                         <div class="mb-1 d-flex justify-content-between">
@@ -175,28 +375,31 @@ async function set_deup_prod_innerHTML(...params) {
                                                         </div>
                                                         <!-- Second row: Purchase Price, Sales Price, and Dropdown in one line -->
                                                         <div class="mb-1 d-flex justify-content-between align-items-center">
-                                                            <span><strong>p.pr:</strong> ₹${item.h}</span>
-                                                            <span><strong>s.pr:</strong> ₹${(typeof window.getSellingPriceFromStock === 'function' ? window.getSellingPriceFromStock(item) : (item.k || 0))}</span>
+                                                            <span><strong>p.pr:</strong> ₹${item.k}</span>
+                                                            <span><strong>s.pr:</strong> ₹${bpSellingPriceFromL(item)}</span>
                                                             <!-- Vertical ellipsis dropdown -->
                                                             <div class="dropdown">
                                                                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
                                                                         type="button" 
                                                                         data-bs-toggle="dropdown" 
+                                                                        data-bs-container="body" 
+                                                                        data-bs-boundary="viewport" 
                                                                         aria-expanded="false">
                                                                     <i class="fas fa-ellipsis-v"></i>
                                                                 </button>
-                                                                <ul class="dropdown-menu dropdown-menu-end border border-dark">
+                                                                <ul class="dropdown-menu dropdown-menu-end border border-dark bp-products-menu" style="z-index: 9999 !important;">
                                                                     <li>
-                                                                        <button class="dropdown-item add-stock-btn" data-index="${actualIndex}">
+                                                                        <button class="dropdown-item add-stock-btn" data-stock-id="${stockIdAttr}" data-product-id="${productIdAttr}">
                                                                             <i class="fas fa-boxes-stacked me-2"></i>Add stock
+                                                                        </button>
                                                                     </li>
                                                                     <li>
-                                                                        <button class="dropdown-item update-btn" data-index="${actualIndex}">
+                                                                        <button class="dropdown-item update-btn" data-stock-id="${stockIdAttr}" data-product-id="${productIdAttr}">
                                                                             <i class="fas fa-edit me-2"></i>Update Product
                                                                         </button>
                                                                     </li>
                                                                     <li>
-                                                                        <button class="dropdown-item delete-btn text-danger" data-index="${actualIndex}">
+                                                                        <button class="dropdown-item delete-btn text-danger" data-stock-id="${stockIdAttr}" data-product-id="${productIdAttr}">
                                                                             <i class="fas fa-trash me-2"></i>Delete
                                                                         </button>
                                                                     </li>
@@ -244,23 +447,23 @@ async function set_deup_prod_innerHTML(...params) {
         `;
  }
 
+ const bpInitialRows = await bpReadFreshStockRows();
+ await bpEnrichStockItems(bpInitialRows, true);
+
  // Set modal content with fixed header and footer, scrollable body
  contentElement.innerHTML = `
         <!-- Fixed Header -->
         <div class="modal-header border-bottom bg-light sticky-top" style="z-index: 1055;">
             <h5 class="modal-title fw-bold">Products Management</h5>
             <div class="d-flex gap-2 w-50">
-                <input type="text" class="form-control border border-dark" id="productSearch" placeholder="Search products by name..." aria-label="Search products">
-                <button class="btn btn-outline-secondary" type="button" id="clearSearch">
-                    <i class="fas fa-times"></i>
-                </button>
+                <input type="text" class="form-control me-2 border border-dark" id="productSearch" placeholder="Search products by name..." aria-label="Search products">
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         
         <!-- Scrollable Body -->
-        <div class="modal-body" style="overflow-y: auto; max-height: calc(100vh - 200px);">
-            ${renderProducts()}
+        <div class="modal-body" style="overflow-y: auto; max-height: calc(80vh - 150px);">
+            <div id="bpProductsList" style="height: auto; min-height: 50vh;">${renderProducts()}</div>
         </div>
         
         <!-- Fixed Footer -->
@@ -269,15 +472,27 @@ async function set_deup_prod_innerHTML(...params) {
         </div>
     `;
 
+ function bpRenderProducts() {
+  bpCloseProductMenus();
+  const list = contentElement.querySelector('#bpProductsList');
+  if (list) list.innerHTML = renderProducts();
+ }
+
+ const refreshProductsList = async function () {
+  const rows = await bpReadFreshStockRows();
+  await bpEnrichStockItems(rows, true);
+  bpRenderProducts();
+ };
+ window.bpRefreshProductsList = refreshProductsList;
+
  // Use event delegation for all interactions
  contentElement.addEventListener('input', function (e) {
   if (e.target && e.target.id === 'productSearch') {
    productSearchTerm = e.target.value.toLowerCase().trim();
    currentPage = 1;
-   const modalBody = contentElement.querySelector('.modal-body');
-   if (modalBody) modalBody.innerHTML = renderProducts();
+   bpRenderProducts();
    const inp = contentElement.querySelector('#productSearch');
-   if (inp) { inp.focus(); try { inp.setSelectionRange(inp.value.length, inp.value.length); } catch (err) {} }
+   if (inp) { inp.focus(); try { inp.setSelectionRange(inp.value.length, inp.value.length); } catch (err) { } }
   }
  });
 
@@ -287,8 +502,7 @@ async function set_deup_prod_innerHTML(...params) {
    currentPage = 1;
    const searchInput = contentElement.querySelector('#productSearch');
    if (searchInput) searchInput.value = '';
-   const modalBody = contentElement.querySelector('.modal-body');
-   if (modalBody) modalBody.innerHTML = renderProducts();
+   bpRenderProducts();
    if (searchInput) searchInput.focus();
   }
 
@@ -296,47 +510,45 @@ async function set_deup_prod_innerHTML(...params) {
   if (e.target && e.target.classList.contains('page-link')) {
    e.preventDefault();
    const page = parseInt(e.target.getAttribute('data-page'));
-   const totalPages = Math.ceil(items.length / itemsPerPage);
+   const totalPages = Math.ceil(bpGetFilteredItems().length / itemsPerPage);
 
    if (page >= 1 && page <= totalPages && page !== currentPage) {
     currentPage = page;
-    const modalBody = contentElement.querySelector('.modal-body');
-    modalBody.innerHTML = renderProducts();
+    bpRenderProducts();
 
     // Focus first card of new page
-    const firstCard = modalBody.querySelector('.product-card-item');
+    const firstCard = contentElement.querySelector('.product-card-item');
     if (firstCard) {
      firstCard.focus();
     }
    }
   }
 
-  // Handle add-stock button clicks using event delegation
-  if (e.target && (e.target.classList.contains('add-stock-btn') || e.target.closest('.add-stock-btn'))) {
-   const btn = e.target.classList.contains('add-stock-btn') ? e.target : e.target.closest('.add-stock-btn');
-   const index = btn.getAttribute('data-index');
-   bpAddStock(index);
-  }
-
-  // Handle update button clicks using event delegation
-  if (e.target && (e.target.classList.contains('update-btn') || e.target.closest('.update-btn'))) {
-   const btn = e.target.classList.contains('update-btn') ? e.target : e.target.closest('.update-btn');
-   const index = btn.getAttribute('data-index');
-   updateProduct(index);
-  }
-
-  // Handle delete button clicks using event delegation
-  if (e.target && (e.target.classList.contains('delete-btn') || e.target.closest('.delete-btn'))) {
-   const btn = e.target.classList.contains('delete-btn') ? e.target : e.target.closest('.delete-btn');
-   const index = btn.getAttribute('data-index');
-   deleteProduct(index);
-  }
  });
+
+ function bpProductsActionHandler(e) {
+  const btn = e.target && e.target.closest
+   ? e.target.closest('.add-stock-btn, .update-btn, .delete-btn')
+   : null;
+  if (!btn || !btn.closest('.bp-products-menu')) return;
+  const item = bpItemFromButton(btn);
+  if (!item) { bpWarnItemNotFound(); return; }
+  if (btn.classList.contains('add-stock-btn')) bpAddStock(item);
+  else if (btn.classList.contains('update-btn')) updateProduct(item);
+  else if (btn.classList.contains('delete-btn')) deleteProduct(item);
+ }
+ document.addEventListener('click', bpProductsActionHandler);
 
  // Add keyboard navigation to the modal itself
  const modalElement = document.getElementById('productsModal');
  if (modalElement) {
   modalElement.addEventListener('keydown', handleKeyboardNavigation);
+
+  modalElement.addEventListener('hidden.bs.modal', function () {
+   document.removeEventListener('click', bpProductsActionHandler);
+   if (window.bpRefreshProductsList === refreshProductsList) window.bpRefreshProductsList = null;
+   bpCloseProductMenus();
+  }, { once: true });
 
   // Focus first card when modal is shown
   modalElement.addEventListener('shown.bs.modal', function () {
@@ -387,11 +599,9 @@ async function set_deup_prod_innerHTML(...params) {
     e.preventDefault();
     if (document.activeElement.classList.contains('product-card-item')) {
      const card = document.activeElement;
-     const deleteBtn = card.querySelector('.delete-btn');
-     if (deleteBtn) {
-      const index = deleteBtn.getAttribute('data-index');
-      deleteProduct(index);
-     }
+     const item = bpItemFromButton(card);
+     if (!item) { bpWarnItemNotFound(); return; }
+     deleteProduct(item);
     }
     break;
    case 'Home':
@@ -411,11 +621,18 @@ async function set_deup_prod_innerHTML(...params) {
   }
  }
 
- function updateProduct(index) {
-  const item = items[index];
+ async function updateProduct(itemRef) {
+  const item = bpResolveItem(itemRef);
+  if (!item) { bpWarnItemNotFound(); return; }
+  const product = await bpGetProductForStock(item, true);
+  const displayName = (product && String(product.e || '').trim()) ? String(product.e) : (item.gn || '');
+  const displayImg = (product && String(product.g || '').trim()) ? String(product.g) : (item.gu || '');
   const productTax = bpTaxRates(item);
-  const tax1 = Math.max(0, parseFloat(productTax.tax1) || 0);
-  const tax2 = Math.max(0, parseFloat(productTax.tax2) || 0);
+  const tax1 = Math.max(0, parseFloat(productTax.tax1) || parseFloat(product && product.j) || 0);
+  const tax2 = Math.max(0, parseFloat(productTax.tax2) || parseFloat(product && product.k) || 0);
+  const hsn = (product && product.i != null && String(product.i).trim() !== '')
+   ? String(product.i)
+   : (item.hsn || '');
   const { contentElement: updateModalContent, modalInstance: updateModalInstance } = create_modal_dynamically('updateProductModal');
 
   // Clear any previous pick so the picker starts fresh for this product
@@ -433,7 +650,7 @@ async function set_deup_prod_innerHTML(...params) {
                         <div class="mb-3">
                             <label class="form-label fw-bold">Product Image; Stock id ${item.a}</label>
                             <div class="border border-dark rounded p-3 text-center bg-light mb-2">
-                                <img src="${getGoogleDriveImageUrl(item.gu) || bpNoImage}"
+                                <img src="${getGoogleDriveImageUrl(displayImg) || bpNoImage}"
                                      alt="Product Image"
                                      class="img-fluid rounded"
                                      style="max-width: 100%; height: auto; max-height: 200px; object-fit: cover;"
@@ -447,7 +664,7 @@ async function set_deup_prod_innerHTML(...params) {
                                 </button>
                                 <button type="button" class="btn btn-outline-danger" id="bpRemoveImageBtn"
                                     onclick="bpClearImage()"
-                                    style="${item.gu ? '' : 'display:none'}">Remove</button>
+                                    style="${displayImg ? '' : 'display:none'}">Remove</button>
                             </div>
                         </div>
                     </div>
@@ -456,13 +673,13 @@ async function set_deup_prod_innerHTML(...params) {
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="productName" class="form-label fw-bold">Prod Name ID: ${item.g}</label>
-                                <input type="text" class="form-control border border-dark" id="productName" value="${item.gn}" required>
+                                <input type="text" class="form-control border border-dark" id="productName" value="${displayName}" required>
                             </div>
                             <div class="col-md-6">
                                 <div class="row">
                                     <div class="col-12 mb-3">
                                         <label for="productHsn" class="form-label fw-bold">HSN Code</label>
-                                        <input type="text" class="form-control border border-dark" id="productHsn" value="${item.hsn || ''}" placeholder="HSN code">
+                                        <input type="text" inputmode="numeric" autocomplete="off" maxlength="8" class="form-control border border-dark" id="productHsn" value="${bpSanitizeHsn(hsn)}" placeholder="HSN code" title="HSN code" oninput="window.bpAllowHsnInput(this)">
                                     </div>
                                 </div>
                             </div>
@@ -472,11 +689,11 @@ async function set_deup_prod_innerHTML(...params) {
                     <div class="col-12" id="bpTaxRow">
                         <div class="row">
                             <div class="col-6 mb-3">
-                                <label for="productTax1" class="form-label fw-bold">Tax 1 % (j)</label>
+                                <label for="productTax1" class="form-label fw-bold">Tax 1 %</label>
                                 <input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" id="productTax1" value="${tax1.toFixed(2)}">
                             </div>
                             <div class="col-6 mb-3">
-                                <label for="productTax2" class="form-label fw-bold">Tax 2 % (k)</label>
+                                <label for="productTax2" class="form-label fw-bold">Tax 2 %</label>
                                 <input type="text" inputmode="decimal" autocomplete="off" class="form-control border border-dark" id="productTax2" value="${tax2.toFixed(2)}">
                             </div>
                         </div>
@@ -516,6 +733,9 @@ async function set_deup_prod_innerHTML(...params) {
    if (!input) return;
    input.addEventListener('input', function () { bpSanitizeTaxField(input); });
    input.addEventListener('blur', function () { bpNormalizeTaxField(input); });
+   const selectValue = function () { try { input.select(); } catch (e) {} };
+   input.addEventListener('click', selectValue);
+   input.addEventListener('focus', selectValue);
   });
 
   if (updateModalInstance) {
@@ -540,13 +760,13 @@ async function set_deup_prod_innerHTML(...params) {
     bpNormalizeTaxField(tax1Input);
     bpNormalizeTaxField(tax2Input);
     const itemName = nameInput.value.trim();
-    const itemHsn = hsnInput ? hsnInput.value.trim() : '';
+    const itemHsn = bpSanitizeHsn(hsnInput ? hsnInput.value : '');
     const itemTax1 = bpReadTaxPercent(tax1Input);
     const itemTax2 = bpReadTaxPercent(tax2Input);
     // Image comes from the my1img picker: `gu` = "displayId thumbnailId".
     // If nothing was picked, keep the existing value; if Remove was pressed, clear it.
     const pickedImage = bpImageValue();
-    const itemUrl = pickedImage || (bpImageRemoved ? '' : (item.gu || ''));
+    const itemUrl = pickedImage || (bpImageRemoved ? '' : (displayImg || ''));
     const allowSaleWithoutStock = allowSaleCheckbox ? allowSaleCheckbox.checked : false;
 
     // Validation
@@ -562,27 +782,27 @@ async function set_deup_prod_innerHTML(...params) {
 
     try {
      // Product-only update (no stock/price sent).
-     var p = { e: itemName, g: itemUrl, h: '', i: itemHsn, j: itemTax1, k: itemTax2 };
+     var p = { a: item.g, e: itemName, g: itemUrl, h: '', i: itemHsn, j: itemTax1, k: itemTax2 };
      if (allowSaleWithoutStock) { p.d = 111; }
      await clearPayload0();
      payload0.p = p;
      payload0.x1 = item.a; // stock id
      payload0.x2 = item.g; // product id
      payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'c' }, { "tb": 'b' }, { "tb": 'i' }, { "tb": 'r' }, { "tb": 'be', "col": 'eb', "cl": "eb" }, { "tb": 'ba' }, { "tb": 'p' }, { "tb": 's' }]);
-
-     payload0.vw = 1;
      payload0.fn = 25;
-     const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
+     payload0.ul = '2/0b.php';
+     payload0.gt = 2;
+     const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
+     //const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
      if (response.su == 1) {
-      handl_op_rspons(response, 0);
-      setTimeout(async () => {
-       if (typeof window.refreshItemsWithTax === 'function') {
-        try { await window.refreshItemsWithTax(); } catch (e) { console.warn('refreshItemsWithTax failed', e); items = await dbDexieManager.getAllRecords(dbnm, "s") || []; }
-       } else { items = await dbDexieManager.getAllRecords(dbnm, "s") || []; }
-       const modalBody = contentElement.querySelector('.modal-body');
-       if (modalBody) modalBody.innerHTML = renderProducts();
-      }, 1000);
-      bootstrap.Modal.getInstance(document.getElementById('updateProductModal')).hide();
+      try {
+       if (typeof window.handl_op_rspons === 'function') await window.handl_op_rspons(response, 0);
+      } catch (e) { console.warn('handl_op_rspons failed', e); }
+      if (typeof window.bpRefreshProductsList === 'function') {
+       try { await window.bpRefreshProductsList(); } catch (e) { console.warn('Products refresh failed', e); }
+      }
+      const updateBsModal = bootstrap.Modal.getInstance(document.getElementById('updateProductModal'));
+      if (updateBsModal) updateBsModal.hide();
      } else {
       window.showelsemodal(response.ms);
      }
@@ -608,8 +828,9 @@ async function set_deup_prod_innerHTML(...params) {
   });
  }
 
- function deleteProduct(index) {
-  const item = items[index];
+ function deleteProduct(itemRef) {
+  const item = bpResolveItem(itemRef);
+  if (!item) { bpWarnItemNotFound(); return; }
   const { contentElement: deleteModalContent, modalInstance: deleteModalInstance } = create_modal_dynamically('deleteProductModal');
 
   deleteModalContent.innerHTML = `
@@ -646,16 +867,26 @@ async function set_deup_prod_innerHTML(...params) {
    }
   }
 
-  deleteModalContent.addEventListener('click', function (e) {
+  deleteModalContent.addEventListener('click', async function (e) {
    if (e.target && e.target.id === 'confirmDeleteBtn') {
     // Implement actual delete logic here
     // For now, just remove from local array and refresh
-    items.splice(index, 1);
+    const rows = bpStockRows();
+    const itemIndex = rows.indexOf(item);
+    if (itemIndex !== -1) rows.splice(itemIndex, 1);
+    if (typeof items !== 'undefined' && Array.isArray(items) && items !== rows) {
+     const globalIndex = items.indexOf(item);
+     if (globalIndex !== -1) items.splice(globalIndex, 1);
+    }
+    if (Array.isArray(window.items) && window.items !== rows) {
+     const winIndex = window.items.indexOf(item);
+     if (winIndex !== -1) window.items.splice(winIndex, 1);
+    }
+    await bpEnrichStockItems(rows);
     bootstrap.Modal.getInstance(document.getElementById('deleteProductModal')).hide();
 
     // Refresh the main modal
-    const modalBody = contentElement.querySelector('.modal-body');
-    modalBody.innerHTML = renderProducts();
+    bpRenderProducts();
    }
   });
  }
@@ -671,19 +902,25 @@ async function set_deup_prod_innerHTML(...params) {
   }
  }
 }// ==================== Add Stock via bgtiv ====================
-window.bpAddStock = function (index) {
- const item = items[index];
- if (!item) return;
+window.bpAddStock = async function (itemRef) {
+ const item = bpResolveItem(itemRef);
+ if (!item) { bpWarnItemNotFound(); return; }
+ const product = await bpGetProductForStock(item, true);
+ const displayName = (product && String(product.e || '').trim()) ? String(product.e) : (item.gn || '');
+ const displayImg = (product && String(product.g || '').trim()) ? String(product.g) : (item.gu || '');
  const productTax = bpTaxRates(item);
- const tax1 = Math.max(0, parseFloat(productTax.tax1) || 0);
- const tax2 = Math.max(0, parseFloat(productTax.tax2) || 0);
+ const tax1 = Math.max(0, parseFloat(productTax.tax1) || parseFloat(product && product.j) || 0);
+ const tax2 = Math.max(0, parseFloat(productTax.tax2) || parseFloat(product && product.k) || 0);
+ const hsn = (product && product.i != null && String(product.i).trim() !== '')
+  ? String(product.i)
+  : (item.hsn || '');
 
  window.bpAddStockContext = { stockId: item.a, productId: item.g };
 
  const prefill = {
   p: {
-   e: item.gn || '',
-   i: (item.hsn || ''),
+   e: displayName,
+   i: hsn,
    j: tax1,
    k: tax2,
    g: item.g || ''
@@ -693,7 +930,11 @@ window.bpAddStock = function (index) {
    i: item.i || '',
    j: item.measuredIn || item.measured_in || '',
    k: item.k || '',
-   l: item.gu ? [item.gu] : [],
+   l: (function () {
+    const v = item.l != null ? item.l : (item.sold_in != null ? item.sold_in : item.soldIn);
+    return Array.isArray(v) ? v : (v ? [v] : []);
+   })(),
+   gu: displayImg,
    o: 0
   },
   mode: 'addStock',
@@ -716,32 +957,36 @@ window.bpAddStock = function (index) {
 window.bpAddStockCallback = async function (ob) {
  const payload = Array.isArray(ob) ? ob[0] : ob;
  if (!payload) return;
- const p = payload.p || {};
  const s = payload.s || {};
- const ctx = window.bpAddStockContext || {};
+ const fallbackCtx = window.bpAddStockContext || {};
+ const ctx = {
+  stockId: s.a != null ? s.a : fallbackCtx.stockId,
+  productId: s.g != null ? s.g : fallbackCtx.productId
+ };
  if (ctx.stockId != null) s.a = ctx.stockId;
+ if (ctx.productId != null) s.g = ctx.productId;
 
  try {
   await clearPayload0();
-  payload0.p = p;
   payload0.s = s;
   payload0.x1 = ctx.stockId;
   payload0.x2 = ctx.productId;
   payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ "tb": 'c' }, { "tb": 'b' }, { "tb": 'i' }, { "tb": 'r' }, { "tb": 'be', "col": 'eb', "cl": "eb" }, { "tb": 'ba' }, { "tb": 'p' }, { "tb": 's' }]);
-  payload0.vw = 1;
   payload0.fn = 25;
-  const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
+  payload0.ul = '2/0b.php';
+  payload0.gt = 2;
+  const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
+  //const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
   if (response && response.su == 1) {
+   try {
+    if (typeof window.handl_op_rspons === 'function') await window.handl_op_rspons(response, 0);
+   } catch (e) { console.warn('handl_op_rspons failed', e); }
    if (typeof showToast === 'function') showToast('Stock added successfully', { type: 'success', duration: 2000 });
-   if (typeof window.refreshItemsWithTax === 'function') {
-    try { await window.refreshItemsWithTax(); } catch (e) { console.warn(e); items = await dbDexieManager.getAllRecords(dbnm, "s") || []; }
-   } else {
-    items = await dbDexieManager.getAllRecords(dbnm, "s") || [];
+   if (typeof window.bpRefreshProductsList === 'function') {
+    try { await window.bpRefreshProductsList(); } catch (e) { console.warn('Products refresh failed', e); }
    }
-   const modalBody = document.querySelector('#productsModal .modal-body');
-   if (modalBody) modalBody.innerHTML = renderProducts();
   } else {
-   if (typeof window.showelsemodal === 'function') window.showelsemodal(response?.ms || 'Failed', true);
+   if (typeof window.showelsemodal === 'function') window.showelsemodal(response?.ms || 'Failed');
   }
  } catch (error) {
   console.error('Add stock failed', error);

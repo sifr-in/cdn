@@ -256,6 +256,17 @@
   return t.value.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')
    .replace(/&quot;/g,'"').replace(/&#039;/g,"'").replace(/&#x2F;/g,'/');
  }
+ function cleanPrintValue(v){
+  if(v==null) return '';
+  let s=String(v).trim();
+  if(!s) return '';
+  s=s.replace(/\b(?:null|undefined|nan)\b/gi,' ').replace(/\s+/g,' ').trim();
+  if(!s) return '';
+  return s;
+ }
+ function joinPrintName(){
+  return Array.prototype.slice.call(arguments).map(cleanPrintValue).filter(Boolean).join(' ').trim();
+ }
  function plainText(v){
   const raw=String(v==null?'':v).replace(/<br\s*\/?>/gi,' ').replace(/<[^>]*>/g,' ');
   return ensureUTF(raw).replace(/\s+/g,' ').trim();
@@ -377,16 +388,16 @@
   if(!bill.g) throw new Error('Bill information incomplete');
   const clients=await dbDexieManager.getAllRecords(dbnm,'c')||[];
   const info=clients.find(c=>c.a==bill.e);
-  const name_client=info?ensureUTF(info.h):null;
-  const mob_client=info?info.e:null;
-  const addr_client=info?ensureUTF(info.m):null;
+  const name_client=info?joinPrintName(ensureUTF(info.h),ensureUTF(info.i)):'';
+  const mob_client=info?cleanPrintValue(info.e):'';
+  const addr_client=info?cleanPrintValue(ensureUTF(info.m)):'';
   let state_client='', gstin_client='';
   if (info) {
    let c1 = info.c1;
    if (typeof c1 === 'string') { try { c1 = JSON.parse(c1); } catch (e) { c1 = {}; } }
    c1 = c1 || {};
-   state_client = c1.g || info.g || '';
-   gstin_client = c1.j || info.j || '';
+   state_client = cleanPrintValue(c1.g || info.g || '');
+   gstin_client = cleanPrintValue(c1.j || info.j || '');
   }
   const items=await dbDexieManager.getAllRecords(dbnm,'s')||[];
   const eyeRows=await dbDexieManager.getAllRecords(dbnm,'be')||[];
@@ -396,7 +407,7 @@
   const cashRows=await dbDexieManager.getAllRecords(dbnm,'r')||[];
   const sCurrCashInfo=cashRows.filter(i=>i.td==billId&&i.tb==7);
   let name_referrer='';
-  if(eye){ const ref=clients.find(c=>c.a==eye.ef); name_referrer=ref?ensureUTF(ref.h+' '+ref.i):''; }
+  if(eye){ const ref=clients.find(c=>c.a==eye.ef); name_referrer=ref?joinPrintName(ensureUTF(ref.h),ensureUTF(ref.i)):''; }
   let quanTotal=0,subtotal=0,taxTotal=0;
   const taxLayout=billTaxLayout(sCurrItems);
   sCurrItems.forEach(i=>{
@@ -454,13 +465,13 @@
    const a=pad([d.t_itms_otal.toFixed(2),d.advanceAmt.toFixed(2),d.dueAmt]);
    txt+='`'+a[0]+'` Total\n`'+a[1]+'` Received\n`'+a[2]+'` Balance';
   }
-  txt+='\n\n*'+ensureUTF(c.printCompNm)+'*\nThank you for choosing us.';
+  txt+='\n\n*'+cleanPrintValue(ensureUTF(c.printCompNm))+'*\nThank you for choosing us.';
   return txt;
  }
 
  /* ============================ 5. RENDER ============================ */
  function eyeTableHTML(side,eye,vertical){
-  const p=side, get=k=>(eye[p+k]==null?'':eye[p+k]);
+  const p=side, get=k=>cleanPrintValue(eye[p+k]);
   const dvVN=vertical?'6/'+get('d'):get('d');
   const nvVN=vertical?'N/'+get('h'):get('h');
   const label=side==='r'?'R':'L';
@@ -483,11 +494,11 @@
  function itemNameOf(d,item){
   const f=d.items.find(c=>c.a==item.f);
   let n='';
-  if(f&&f.gn&&f.gn!='.') n=multiline(f.gn);
+  if(f&&cleanPrintValue(f.gn)&&f.gn!='.') n=multiline(f.gn);
   // The invoice prints the item name only. The per-line description (item.i)
   // is kept in the record but not printed, so the name never wraps into a
   // second line under itself.
-  if(!n && item.i) n=multiline(item.i);
+  if(!n && cleanPrintValue(item.i)) n=multiline(item.i);
   return n;
  }
  function renderItems(d){
@@ -500,7 +511,7 @@
    const amt=hideTax?billRound2(net+billItemTaxAmount(item,layout)):net;
    const price=qty?amt/qty:0;
    const prod = d.items.find(c => c.a == item.f);
-   const hsn = plainText(prod && prod.i);
+   const hsn = cleanPrintValue(plainText(prod && prod.i));
    return '<tr>'+
     '<td class="inv-c">'+(index+1)+'</td>'+
     '<td class="inv-item-name">'+itemNameOf(d,item)+'</td>'+
@@ -513,7 +524,7 @@
  }
  function receiptsTable(d){
   const rows=d.sCurrCashInfo.map(r=>{
-   const dt=r.k?convertDateFormatToIndia(new Date(r.k)):'No Date';
+   const dt=r.k?convertDateFormatToIndia(new Date(r.k)):'';
    const amt=parseFloat(r.j||0);
    return '<tr><td class="inv-l">'+dt+'</td><td class="inv-r">'+amt.toFixed(2)+'</td></tr>';
   }).join('');
@@ -533,12 +544,12 @@
   const verticalEyes=c.tbl_disp==2;
   const amountInWords=price_in_words(billRound2(d.t_itms_otal-d.discountAmt).toFixed(0));
 
-  const company=plainText(c.printCompNm)||'Company';
+  const company=cleanPrintValue(plainText(c.printCompNm))||'Company';
   const brand=brandParts(company);
-  const tagline=plainText(c.printInvoice)||'IT SERVICES & SOLUTIONS';
-  const slogan=plainText(c.printSubjectTo)||'IT SOLUTIONS TODAY FOR A SMARTER TOMORROW';
-  const address=plainText(c.printAdrs);
-  const contact=plainText(c.printMo);
+  const tagline=cleanPrintValue(plainText(c.printInvoice))||'IT SERVICES & SOLUTIONS';
+  const slogan=cleanPrintValue(plainText(c.printSubjectTo))||'IT SOLUTIONS TODAY FOR A SMARTER TOMORROW';
+  const address=cleanPrintValue(plainText(c.printAdrs));
+  const contact=cleanPrintValue(plainText(c.printMo));
   const pan=c.printPAN||c.panNo||'';
   const gstin=c.printGSTIN||c.gstin||'';
   const state=c.printState||'Maharashtra';
@@ -612,7 +623,7 @@
      '<div class="inv-section-title">Details of Receiver (Billed to &amp; Shipped to)</div>'+
      '<div class="inv-field"><label>Name :</label><span class="inv-value">'+nameHTML+'</span></div>'+
      (d.mob_client?'<div class="inv-field"><label>Mobile :</label><span class="inv-value">'+mobileHTML+'</span></div>':'')+
-     '<div class="inv-field inv-address-fields"><label>Address :</label><span class="inv-value">'+(d.addr_client||'')+'</span></div>'+
+     (d.addr_client?'<div class="inv-field inv-address-fields"><label>Address :</label><span class="inv-value">'+d.addr_client+'</span></div>':'')+
      (d.name_referrer?'<div class="inv-field"><label>Referred by :</label><span class="inv-value">'+d.name_referrer+'</span></div>':'')+
      '<div class="inv-field inv-field-inline"><label>State :</label><span class="inv-value inv-state-value">'+(d.state_client||state)+'</span>'+
       '<span class="inv-code-block"><label>code no.:</label><span class="inv-value inv-code-value">'+codeNo+'</span></span></div>'+
@@ -740,9 +751,9 @@
    ? '<div class="inv-remarks"><b>Note: </b>' + d.remark + '</div>'
    : '';
 
-  const footerLeft = plainText(c.printFooterLeft) || 'Received Signature';
-  const footerCertification = plainText(c.printFooterCertification) || 'Certified that the particulars given above are true and correct.';
-  const footerFor = plainText(c.printForTtl) || ('FOR ' + company.toUpperCase());
+  const footerLeft = cleanPrintValue(plainText(c.printFooterLeft)) || 'Received Signature';
+  const footerCertification = cleanPrintValue(plainText(c.printFooterCertification)) || 'Certified that the particulars given above are true and correct.';
+  const footerFor = cleanPrintValue(plainText(c.printForTtl)) || ('FOR ' + company.toUpperCase());
 
   const footerHTML = 
    '<footer class="inv-footer">' +
@@ -1638,7 +1649,7 @@
       return;
      }
     } catch (shareError) {
-     console.log('bePr3: share failed, falling back to download', shareError);
+     console.warn('bePr3: share failed, falling back to download', shareError);
     }
    }
 

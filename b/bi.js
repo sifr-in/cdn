@@ -54,7 +54,7 @@ async function set_bill_Inverd_innerHTML(...params) {
 
 <div class="row g-0 mb-3 mt-2">
 <div class="col-12">
-<input id="p_dtls_lient1" type="text" class="form-control border border-dark" readonly onclick="(async () => { await loadExe2Fn(14, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall2', 1], [1]); })()" placeholder="Party Details">
+<input id="p_dtls_lient1" type="text" class="form-control border border-dark" readonly onclick="(async () => { await loadExe2Fn(13, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_op_ViewCall2', 1], [1]); })()" placeholder="Party Details">
 <input type="hidden" id="partyId1">
 </div>
 </div>
@@ -452,7 +452,6 @@ window.biSaveBillInward = async function () {
    return { p: (it && it.p) || {}, s: (it && it.s) || {} };
   });
 
-  console.log('bi.js Payload:', payload0);
 
   const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
   if (response.su == 1) {

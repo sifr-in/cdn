@@ -604,26 +604,32 @@ function handleModalItemNameBlur(inputElement) {
     return;
   }
 
-  const matchedItems = items.filter(item => {
+  const exactMatches = items.filter(item => {
     if (!item || !item.gn) return false;
     return item.gn.toLowerCase() === itemName.toLowerCase();
   });
+  const searchMatches = items.filter(item => {
+    if (!item || !item.gn) return false;
+    return item.gn.toLowerCase().includes(itemName.toLowerCase());
+  });
 
-  if (matchedItems.length !== 1) {
+  if (modalAddNewItemBtn) {
+    modalAddNewItemBtn.style.display = searchMatches.length === 0 ? 'block' : 'none';
+  }
+
+  if (exactMatches.length !== 1) {
     // Clear the data-item-id attribute since item doesn't exist
     inputElement.removeAttribute('data-item-id');
-    if (modalAddNewItemBtn) modalAddNewItemBtn.style.display = 'block';
   } else {
     // Exactly one match found
-    if (modalAddNewItemBtn) modalAddNewItemBtn.style.display = 'none';
     // Set the item ID attribute
     const previousId = inputElement.getAttribute('data-item-id');
-    inputElement.setAttribute('data-item-id', matchedItems[0].a);
+    inputElement.setAttribute('data-item-id', exactMatches[0].a);
 
     // Typing a full name (no dropdown click) should still surface that item's
     // Tax 1 / Tax 2 instead of leaving the previous item's rates behind.
-    if (String(previousId) !== String(matchedItems[0].a)) {
-      const presetRates = modalRatesFor(matchedItems[0]);
+    if (String(previousId) !== String(exactMatches[0].a)) {
+      const presetRates = modalRatesFor(exactMatches[0]);
       modalTax1Percent = modalTaxClampPercent(presetRates.tax1);
       modalTax2Percent = modalTaxClampPercent(presetRates.tax2);
       const tax1Input = document.getElementById('modalItemTax1');
@@ -721,7 +727,7 @@ function selectModalItem(item) {
   modalTax2Percent = modalTaxClampPercent(presetRates.tax2);
 
   document.getElementById('modalItemName').value = item.gn;
-  document.getElementById('modalItemRate').value = item.k;
+  document.getElementById('modalItemRate').value = (typeof window.getSellingPriceFromStock === 'function' ? window.getSellingPriceFromStock(item) : (item.k || 0));
   document.getElementById('modalItemQty').value = '';
   const tax1Input = document.getElementById('modalItemTax1');
   const tax2Input = document.getElementById('modalItemTax2');
@@ -777,7 +783,7 @@ async function handleAddNewItemInModal(nwProdNm = '') {
   }
 
   // Then open the add item modal
-  await loadExe2Fn(11, [nwProdNm, "handleNewItmAddedToInventory"], [1]);
+  await loadExe2Fn(36, [nwProdNm, "handleNewItmAddedToInventory"], [1]);
 }
 function handleNewItmAddedToInventory(nwItmNm) {
   try {
@@ -1209,5 +1215,3 @@ window.selectModalItem = selectModalItem;
 window.handleAddNewItemInModal = handleAddNewItemInModal;
 window.handleNewItmAddedToInventory = handleNewItmAddedToInventory;
 window.editItemInModal = editItemInModal;
-
-console.log("📂 shLdItm.js loaded");

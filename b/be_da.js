@@ -19,7 +19,6 @@ function resolveLogoUrl(value) {
 (function () {
  'use strict';
 
- console.log('prt_stng.js initializing...');
 
  // Default settings structure
  const defaultSettings = {
@@ -158,7 +157,6 @@ function resolveLogoUrl(value) {
    const response = await fetch('b.da');
    if (response.ok) {
     const data = await response.json();
-    console.log('Loaded settings from b.da:', data);
     loadedSettings = { ...defaultSettings, ...data };
     return loadedSettings;
    }
@@ -182,6 +180,27 @@ function resolveLogoUrl(value) {
   if (error) error.style.display = 'none';
   if (logoInput) logoInput.value = imgUrl;
   if (removeBtn) removeBtn.style.display = imgUrl ? '' : 'none';
+ };
+
+ window.prtStngOpenLogoPicker = function () {
+  if (typeof loadExe2Fn !== 'function') {
+   if (typeof showToast === 'function') showToast('Image picker is unavailable');
+   return;
+  }
+  const pg = (typeof my1uzr !== 'undefined' && window[my1uzr.worknOnPg]) || {};
+  const getDirectIdFromServer =
+   pg.clientConfigByAdm?.cust_da_const?.getDirectIdFromServer
+   ?? pg.clientConfig?.cust_da_const?.getDirectIdFromServer
+   ?? 0;
+  const logoInput = document.getElementById('prtStng_print_logo');
+  const existing = logoInput ? logoInput.value : '';
+  return loadExe2Fn(11, [
+   afterimagesetcallrun,
+   typeof imgObjDimensRqd !== 'undefined' ? imgObjDimensRqd : '',
+   { s: [1, 2, 3], de: 1 },
+   existing || '',
+   getDirectIdFromServer
+  ], [1]);
  };
 
  window.removeLogoPreview = function () {
@@ -333,11 +352,11 @@ function resolveLogoUrl(value) {
                         <div class="card-body text-center pt-0">
                             <img id="prtStngLogoPreview" class="border border-dark" src="${resolveLogoUrl(logoUrl)}" alt="Logo Preview" 
                                 style="max-width:200px;max-height:100px;object-fit:contain;cursor:pointer;display:inline-block;"
-                                onclick="(async () => { await loadExe2Fn(24, [afterimagesetcallrun, typeof imgObjDimensRqd !== 'undefined' ? imgObjDimensRqd : '', typeof showOnOpenThis !== 'undefined' ? showOnOpenThis : 0], [1]); })();"
+                                onclick="prtStngOpenLogoPicker()"
                                 onload="this.style.display='inline-block';var el=document.getElementById('prtStngLogoError');if(el)el.style.display='none';"
                                 onerror="this.style.display='none';var el=document.getElementById('prtStngLogoError');if(el)el.style.display='block';">
                             <div id="prtStngLogoError" class="text-muted small" style="display:none;cursor:pointer;"
-                                onclick="(async () => { await loadExe2Fn(24, [afterimagesetcallrun, typeof imgObjDimensRqd !== 'undefined' ? imgObjDimensRqd : '', typeof showOnOpenThis !== 'undefined' ? showOnOpenThis : 0], [1]); })();">
+                                onclick="prtStngOpenLogoPicker()">
                                 <i class="fas fa-image fa-2x mb-1 d-block" style="opacity:0.4;"></i>
                                 Logo preview will appear here
                             </div>
@@ -454,20 +473,15 @@ function resolveLogoUrl(value) {
     }
    });
   });
-  console.log('Saving settings:', settings);
-  // Prepare payload
-  if (typeof payload0 !== 'undefined') {
+  try {
     await clearPayload0();
-   payload0.vw = 1;
-   payload0.fn = 104; // Function number for print settings
-   payload0.drml = "sambodhisarang.in";
-   payload0.appNm = "b";
-   payload0.prt_stng = settings;
-
-   try {
-
-    const response = await fnj3("https://my1.in/2/t.php", payload0, 1, true, null, 20000, 0, 2, 1);
-
+    payload0.fn = 104; // Function number for print settings
+    payload0.appNm = "b";
+    payload0.prt_stng = settings;
+    payload0.ul = '2/0t.php';
+    payload0.gt = 2;
+    const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
+    //const response = await fnj3("https://my1.in/2/t.php", payload0, 1, true, null, 20000, 0, 2, 1);
     if (response && response.su == 1) {
      if (typeof showToast === 'function') {
       showToast(response.ms || 'Settings saved successfully!', { type: 'success', duration: 2000 });
@@ -483,19 +497,14 @@ function resolveLogoUrl(value) {
      return false;
     }
    } catch (error) {
-    window.showcatchmodal(error || 'Network Error: 500/404');
+    const msg = (error && error.message) ? error.message : (error || 'Network Error: 500/404');
+    if (typeof window.showelsemodal === 'function') window.showelsemodal(msg);
+    else if (typeof showToast === 'function') showToast(msg);
+    else console.error(msg);
     saveBtn.disabled = false;
     saveBtn.innerHTML = originalText;
     return false;
    }
-  } else {
-   // Fallback - just show success
-   console.log('Settings data ready (payload0 not available):', settings);
-   if (typeof showsuccessmodal === 'function') {
-    showsuccessmodal('Settings saved successfully! (local only)');
-   }
-   return true;
-  }
  }
 
  // Re-attach event handlers after rendering/rebuilding the form
@@ -573,7 +582,6 @@ function resolveLogoUrl(value) {
 
  // Main function to show the editor
  async function showPrintSettings() {
-  console.log('Opening print settings editor...');
 
   if (typeof create_modal_dynamically !== 'function') {
    if (typeof showToast === 'function') showToast('Modal system not available');
@@ -616,5 +624,4 @@ function resolveLogoUrl(value) {
  }
  // Expose globally
  window.showPrintSettings = showPrintSettings;
- console.log('prt_stng.js loaded successfully');
 })();

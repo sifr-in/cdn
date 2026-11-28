@@ -150,6 +150,18 @@
   return decoded;
  }
 
+ function cleanPrintValue(v) {
+  if (v == null) return '';
+  let s = String(v).trim();
+  if (!s) return '';
+  s = s.replace(/\b(?:null|undefined|nan)\b/gi, ' ').replace(/\s+/g, ' ').trim();
+  if (!s) return '';
+  return s;
+ }
+ function joinPrintName() {
+  return Array.prototype.slice.call(arguments).map(cleanPrintValue).filter(Boolean).join(' ').trim();
+ }
+
  function convertDateFormatToIndia(date) {
   if (!date) return '';
   const d = new Date(date);
@@ -377,9 +389,9 @@
   const clients = await dbDexieManager.getAllRecords(dbnm, 'c') || [];
   const info = clients.find(c => c.a == bill.e);
 
-  const name_client = info ? ensureUTF(info.h + ' ' + info.i) : null;
-  const mob_client = info ? info.e : null;
-  const addr_client = info ? ensureUTF(info.m) : null;
+  const name_client = info ? joinPrintName(ensureUTF(info.h), ensureUTF(info.i)) : '';
+  const mob_client = info ? cleanPrintValue(info.e) : '';
+  const addr_client = info ? cleanPrintValue(ensureUTF(info.m)) : '';
 
   const items = await dbDexieManager.getAllRecords(dbnm, 's') || [];
   const eyeRows = await dbDexieManager.getAllRecords(dbnm, 'be') || [];
@@ -394,7 +406,7 @@
   let name_referrer = '';
   if (eye_selected_msrmnt) {
    const objReferrer = clients.find(c => c.a == eye_selected_msrmnt.ef);
-   name_referrer = objReferrer ? ensureUTF(objReferrer.h + ' ' + objReferrer.i) : '';
+   name_referrer = objReferrer ? joinPrintName(ensureUTF(objReferrer.h), ensureUTF(objReferrer.i)) : '';
   }
 
   let quanTotal = 0;
@@ -497,7 +509,7 @@
    txt += '`' + formattedArray[1] + '` Received\n';
    txt += '`' + formattedArray[2] + '` Balance';
   }
-  txt += '\n\n*' + ensureUTF(c.printCompNm) + '*\nThank you for choosing us.';
+  txt += '\n\n*' + cleanPrintValue(ensureUTF(c.printCompNm)) + '*\nThank you for choosing us.';
   return txt;
  }
 
@@ -541,8 +553,8 @@
   return d.sCurrItems.map((item, index) => {
    const foundITM = d.items.find(c => c.a == item.f);
    let itemName = '';
-   if (foundITM && foundITM.gn && foundITM.gn != '.') itemName = multiline(foundITM.gn);
-   if (item.i && item.i.length > 0) {
+   if (foundITM && cleanPrintValue(foundITM.gn) && foundITM.gn != '.') itemName = multiline(foundITM.gn);
+   if (cleanPrintValue(item.i) && item.i.length > 0) {
     const additionalText = multiline(item.i);
     itemName = itemName ? itemName + '<br>' + additionalText : additionalText;
    }
@@ -555,7 +567,7 @@
    return '<tr>' +
     '<td class="bepr-c">' + (index + 1) + '</td>' +
     '<td class="bepr-l bepr-item-name">' + itemName + '</td>' +
-    '<td class="bepr-r">' + item.h + '</td>' +
+    '<td class="bepr-r">' + cleanPrintValue(item.h) + '</td>' +
     '<td class="bepr-r">' + price.toFixed(2) + '</td>' +
     '<td class="bepr-r">' + amount.toFixed(2) + '</td>' +
     '</tr>';
@@ -595,27 +607,27 @@
    '<div class="bepr-logo">' + logoHTML + '</div>' +
    (hideBusinessInfo ? '' :
     '<div class="bepr-biz">' +
-    '<p class="bepr-invoice-type">' + ensureUTF(c.printInvoice) + '</p>' +
-    '<h1 class="bepr-company">' + ensureUTF(c.printCompNm) + '</h1>' +
-    '<p>' + ensureUTF(c.printAdrs) + '</p>' +
-    '<p>' + ensureUTF(c.printMo) + '</p>' +
-    '<p class="bepr-subject">' + ensureUTF(c.printSubjectTo) + '</p>' +
+    '<p class="bepr-invoice-type">' + cleanPrintValue(ensureUTF(c.printInvoice)) + '</p>' +
+    '<h1 class="bepr-company">' + cleanPrintValue(ensureUTF(c.printCompNm)) + '</h1>' +
+    '<p>' + cleanPrintValue(ensureUTF(c.printAdrs)) + '</p>' +
+    '<p>' + cleanPrintValue(ensureUTF(c.printMo)) + '</p>' +
+    '<p class="bepr-subject">' + cleanPrintValue(ensureUTF(c.printSubjectTo)) + '</p>' +
     '</div>') +
    '</header>';
 
   const deliveryHTML = d.deliveryDate
-   ? '<p><b>' + ensureUTF(c.printDeliveryDtTtl) + '</b> ' + d.deliveryDate + '</p>'
+   ? '<p><b>' + cleanPrintValue(ensureUTF(c.printDeliveryDtTtl)) + '</b> ' + d.deliveryDate + '</p>'
    : '';
 
   const clientHTML = '<section class="bepr-client">' +
    '<div class="bepr-client-main">' +
-   '<p class="bepr-client-name"><b>' + ensureUTF(c.printPartyTtl) + '</b> <span class="bepr-hl bepr-hl-name">' + (d.name_client || '') + '</span></p>' +
-   '<p class="bepr-client-mobile"><b>' + ensureUTF(c.printMobTtl) + '</b> <span class="bepr-hl bepr-hl-mobile">' + (d.mob_client || '') + '</span></p>' +
-   '<p><b>' + ensureUTF(c.printAdrsTtl) + '</b> ' + (d.addr_client || '') + '</p>' +
+   (d.name_client ? '<p class="bepr-client-name"><b>' + cleanPrintValue(ensureUTF(c.printPartyTtl)) + '</b> <span class="bepr-hl bepr-hl-name">' + d.name_client + '</span></p>' : '') +
+   (d.mob_client ? '<p class="bepr-client-mobile"><b>' + cleanPrintValue(ensureUTF(c.printMobTtl)) + '</b> <span class="bepr-hl bepr-hl-mobile">' + d.mob_client + '</span></p>' : '') +
+   (d.addr_client ? '<p><b>' + cleanPrintValue(ensureUTF(c.printAdrsTtl)) + '</b> ' + d.addr_client + '</p>' : '') +
    '</div>' +
    '<div class="bepr-client-meta">' +
-   '<p class="bepr-invoice-no"><b>' + ensureUTF(c.printPavtiTtl) + '</b> ' + d.curr_bill_info.g + '</p>' +
-   '<p><b>' + ensureUTF(c.printBilDtTtl) + '</b> ' + d.billDate + '</p>' +
+   '<p class="bepr-invoice-no"><b>' + cleanPrintValue(ensureUTF(c.printPavtiTtl)) + '</b> ' + d.curr_bill_info.g + '</p>' +
+   '<p><b>' + cleanPrintValue(ensureUTF(c.printBilDtTtl)) + '</b> ' + d.billDate + '</p>' +
    deliveryHTML +
    '</div>' +
    '</section>';
@@ -623,7 +635,7 @@
   const eyeHTML = renderEyeSection(d.eye_selected_msrmnt, verticalEyes);
 
   const referrerHTML = d.name_referrer
-   ? '<p class="bepr-referrer"><b>' + ensureUTF(c.printRefByTtl) + '</b> ' + d.name_referrer + '</p>'
+   ? '<p class="bepr-referrer"><b>' + cleanPrintValue(ensureUTF(c.printRefByTtl)) + '</b> ' + d.name_referrer + '</p>'
    : '';
 
   const itemsHTML = '<table class="bepr-items">' +
@@ -637,7 +649,7 @@
 
   const receivedRow = hasReceipts
    ? ''
-   : '<tr><td class="bepr-lbl">' + ensureUTF(c.printAdvAmtTtl) + '</td><td class="bepr-val bepr-received-amount">' + d.advanceAmt.toFixed(2) + '</td></tr>';
+   : '<tr><td class="bepr-lbl">' + cleanPrintValue(ensureUTF(c.printAdvAmtTtl)) + '</td><td class="bepr-val bepr-received-amount">' + d.advanceAmt.toFixed(2) + '</td></tr>';
 
   const taxRow = (!hideTax && d.taxTotal > 0)
    ? '<tr><td class="bepr-lbl">Tax</td><td class="bepr-val bepr-tax-amount">' + d.taxTotal.toFixed(2) + '</td></tr>'
@@ -649,7 +661,7 @@
    (hasReceipts ? receiptsTable(d) : '') +
    '<table class="bepr-totals-table">' +
    taxRow +
-   '<tr><td class="bepr-lbl">' + ensureUTF(c.printTxAmtTtl) + '</td><td class="bepr-val bepr-total-amount">' + d.t_itms_otal.toFixed(2) + '</td></tr>' +
+   '<tr><td class="bepr-lbl">' + cleanPrintValue(ensureUTF(c.printTxAmtTtl)) + '</td><td class="bepr-val bepr-total-amount">' + d.t_itms_otal.toFixed(2) + '</td></tr>' +
    discountRow +
    receivedRow +
    '<tr><td class="bepr-lbl">Due Amt:</td><td class="bepr-val bepr-due-amount">' + d.dueAmt + '</td></tr>' +
@@ -662,7 +674,7 @@
 
   const footerHTML = '<footer class="bepr-foot">' +
    remarksHTML +
-   '<div class="bepr-sign">' + ensureUTF(c.printForTtl) + '</div>' +
+   '<div class="bepr-sign">' + cleanPrintValue(ensureUTF(c.printForTtl)) + '</div>' +
    '</footer>';
 
   // Returns the inner content only; the shell already provides the
@@ -898,6 +910,7 @@
   '<div class="bepr-toolbar-group">' +
   '<button type="button" class="bepr-btn" id="beprPaperBtn" title="Paper settings"><i class="fas fa-cog"></i><span class="bepr-btn-label">Paper</span></button>' +
   '<button type="button" class="bepr-btn" id="beprStyleBtn" title="Style settings"><i class="fas fa-palette"></i><span class="bepr-btn-label">Style</span></button>' +
+  '<button type="button" class="bepr-btn bepr-btn-pdf" id="beprPdfBtn" title="Show PDF"><i class="fas fa-file-pdf"></i><span class="bepr-btn-label">PDF</span></button>' +
   '<button type="button" class="bepr-btn bepr-btn-primary" id="beprDownloadBtn" title="Download image"><i class="fas fa-image"></i><span class="bepr-btn-label">Image</span></button>' +
   '<a class="bepr-btn bepr-btn-wa" id="beprWhatsappLink" target="_blank" rel="noopener" title="Share on WhatsApp"><i class="fab fa-whatsapp"></i><span class="bepr-btn-label">WhatsApp</span></a>' +
   '<button type="button" class="bepr-close" data-bs-dismiss="modal" aria-label="Close">&times;</button>' +
@@ -1146,12 +1159,77 @@
   }));
  }
 
- function buildExportNode(refs, s) {
+ function pdfPageIsBlank(pdf, pageNo) {
+  try {
+   const pages = pdf.internal && pdf.internal.pages;
+   if (!pages || !pages[pageNo]) return true;
+   const content = (pages[pageNo] || []).join('');
+   // html2pdf writes each page as one image. A trailing page that only holds a
+   // hairline of that image (sub-pixel rounding) is effectively blank.
+   const re = /([\d.]+)\s+0\s+0\s+([\d.]+)\s+[\d.-]+\s+[\d.-]+\s+cm\s*\/[A-Za-z0-9]+\s+Do/g;
+   let match;
+   let last = null;
+   while ((match = re.exec(content))) last = match;
+   if (!last) return content.trim().length < 50;
+   if (/(?:\bTj\b|\bTJ\b)/.test(content)) return false;
+   return parseFloat(last[2]) < 2;
+  } catch (e) {
+   return false;
+  }
+ }
+
+ function blobToDataURL(blob) {
+  return new Promise((resolve, reject) => {
+   const reader = new FileReader();
+   reader.onload = () => resolve(reader.result);
+   reader.onerror = reject;
+   reader.readAsDataURL(blob);
+  });
+ }
+
+ /* html2canvas cannot capture a cross-origin logo unless the host sends CORS
+    headers. Inline every export image as a data URL first, using a CORS image
+    proxy only when the direct request is blocked. */
+ async function inlineExportImages(root) {
+  const imgs = Array.from(root.querySelectorAll('img'));
+  await Promise.all(imgs.map(async img => {
+   const src = img.getAttribute('src');
+   if (!src || /^(data|blob):/i.test(src)) return;
+
+   let blob = null;
+   try {
+    const res = await fetch(src, { mode: 'cors', credentials: 'omit' });
+    if (res.ok && /^image\//i.test(res.headers.get('content-type') || '')) blob = await res.blob();
+   } catch (e) { /* CORS blocked; try the proxy below */ }
+
+   if (!blob) {
+    try {
+     const res = await fetch('https://wsrv.nl/?url=' + encodeURIComponent(src));
+     if (res.ok && /^image\//i.test(res.headers.get('content-type') || '')) blob = await res.blob();
+    } catch (e) { /* leave the original src if the proxy also fails */ }
+   }
+
+   if (!blob) return;
+   try {
+    img.src = await blobToDataURL(blob);
+    img.removeAttribute('crossorigin');
+   } catch (e) { /* keep the original src */ }
+  }));
+ }
+
+ function buildExportNode(refs, s, opts) {
   const paper = resolvePaper(s);
   const fit = s.fitToPage !== false;
+  const bare = !!(opts && opts.bare);
+  const marginMm = num(styleSettings().pageMargin, 8);
 
   let wmm, hmm;
-  if (fit) {
+  if (bare) {
+   // jsPDF supplies the page margin, so the export node covers only the
+   // printable area. Never fix the height: long invoices must paginate.
+   wmm = Math.max(1, paper.w - 2 * marginMm);
+   hmm = Math.max(1, paper.h - 2 * marginMm);
+  } else if (fit) {
    wmm = paper.w;
    hmm = paper.h;
   } else {
@@ -1168,15 +1246,30 @@
 
   const wrap = document.createElement('div');
   wrap.className = 'bepr-export';
-  wrap.style.cssText = fit
-   ? 'position:fixed;top:0;left:0;width:' + wmm + 'mm;height:' + hmm + 'mm;background:#ffffff;z-index:-1;pointer-events:none;overflow:hidden;'
-   : 'position:fixed;top:0;left:0;width:' + wmm + 'mm;min-height:' + hmm + 'mm;background:#ffffff;z-index:-1;pointer-events:none;';
+  wrap.style.cssText = bare
+   ? 'position:fixed;top:0;left:0;width:' + wmm + 'mm;min-height:' + hmm + 'mm;background:#ffffff;z-index:-1;pointer-events:none;overflow:visible;'
+   : (fit
+    ? 'position:fixed;top:0;left:0;width:' + wmm + 'mm;height:' + hmm + 'mm;background:#ffffff;z-index:-1;pointer-events:none;overflow:hidden;'
+    : 'position:fixed;top:0;left:0;width:' + wmm + 'mm;min-height:' + hmm + 'mm;background:#ffffff;z-index:-1;pointer-events:none;');
 
   const clone = refs.doc.cloneNode(true);
   clone.style.boxSizing = 'border-box';
   clone.style.overflow = 'visible';
 
-  if (fit) {
+  if (bare) {
+   // The live preview is scaled/positioned in fit mode; PDF needs natural
+   // flow at the printable width, with the margin supplied by jsPDF.
+   clone.style.position = '';
+   clone.style.left = '';
+   clone.style.top = '';
+   clone.style.width = '100%';
+   clone.style.maxWidth = '100%';
+   clone.style.height = 'auto';
+   clone.style.minHeight = '0';
+   clone.style.transform = '';
+   clone.style.transformOrigin = '';
+   clone.style.padding = '0';
+  } else if (fit) {
    // Reproduce the preview's uniform page-fit inside a paper-sized box.
    const info = refs.fitInfo || {};
    const paperPxW = mmToPx(paper.w);
@@ -1213,12 +1306,14 @@
    const s = paperSettings();
    node = buildExportNode(refs, s);
    document.body.appendChild(node);
+   await inlineExportImages(node);
    await waitImages(node);
 
    const canvas = await html2canvas(node, {
     scale: 2,
     useCORS: true,
-    allowTaint: true,
+    // Keep the canvas clean: a tainted canvas makes toBlob()/share fail.
+    allowTaint: false,
     backgroundColor: '#ffffff',
     logging: false
    });
@@ -1245,7 +1340,7 @@
       return;
      }
     } catch (shareError) {
-     console.log('bePr2: share failed, falling back to download', shareError);
+     console.warn('bePr2: share failed, falling back to download', shareError);
     }
    }
 
@@ -1262,6 +1357,96 @@
    createToast('Error: ' + err.message, 'danger');
    if (node) node.remove();
   } finally {
+   toast.remove();
+  }
+ }
+
+ async function showPdf(refs, data, button, targetWindow) {
+  const toast = createToast('Generating PDF...', 'info');
+  let node = null;
+  let pdfUrl = null;
+  if (button) button.disabled = true;
+  try {
+   if (typeof html2pdf !== 'function') throw new Error('PDF module is not loaded');
+   if (typeof html2canvas !== 'function') throw new Error('html2canvas is not loaded');
+
+   const s = paperSettings();
+   const paper = resolvePaper(s);
+   const marginMm = num(styleSettings().pageMargin, 8);
+   node = buildExportNode(refs, s, { bare: true });
+   document.body.appendChild(node);
+   await inlineExportImages(node);
+   await waitImages(node);
+
+   const filename = String(data.filename || ('invoice_' + Date.now())).replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim();
+   const exportEl = node.firstElementChild || node;
+
+   const opt = {
+    margin: marginMm,
+    filename: filename + '.pdf',
+    image: { type: 'jpeg', quality: 0.99 },
+    html2canvas: {
+     scale: 4,
+     useCORS: true,
+     // Keep the canvas clean: a tainted canvas makes PDF export fail.
+     allowTaint: false,
+     backgroundColor: '#ffffff',
+     logging: false,
+     // +2px prevents 1px borders on the content edge from being clipped by
+     // html2canvas's pixel-rounded canvas (PDF only).
+     width: Math.ceil((paper.w - 2 * marginMm) / 25.4 * 96) + 2,
+     height: Math.ceil((paper.h - 2 * marginMm) / 25.4 * 96) + 2
+    },
+    jsPDF: { unit: 'mm', format: [paper.w, paper.h], orientation: paper.w > paper.h ? 'landscape' : 'portrait' },
+    pagebreak: {
+     mode: ['css', 'legacy'],
+     avoid: ['.bepr-head', '.bepr-client', '.bepr-eyes', '.bepr-items tr', '.bepr-items thead', '.bepr-summary', '.bepr-foot', '.bepr-remarks']
+    }
+   };
+
+   // Element mode lets html2pdf honour the page-break rules above, so a long
+   // item row is moved to the next page instead of being sliced in half.
+   const pdf = await html2pdf().set(opt).from(exportEl, 'element').toPdf().get('pdf');
+   if (!pdf) throw new Error('Could not create PDF');
+
+   node.remove();
+   node = null;
+
+   // Sub-pixel rounding can leave a hairline-only last page; drop it.
+   try {
+    while (pdf.getNumberOfPages() > 1 && pdfPageIsBlank(pdf, pdf.getNumberOfPages())) {
+     pdf.deletePage(pdf.getNumberOfPages());
+    }
+   } catch (pageErr) {
+    console.warn('bePr2: could not trim trailing PDF page', pageErr);
+   }
+
+   const blob = pdf.output('blob');
+   if (!blob) throw new Error('Could not create PDF');
+   pdfUrl = URL.createObjectURL(blob);
+
+   if (targetWindow && !targetWindow.closed) {
+    // The tab was opened synchronously from the click, so it is not popup-blocked.
+    targetWindow.location.href = pdfUrl;
+    createToast('PDF opened in a new tab', 'success');
+   } else {
+    // No tab available - download the PDF instead so the click still works.
+    const link = document.createElement('a');
+    link.download = filename + '.pdf';
+    link.href = pdfUrl;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    createToast('PDF downloaded successfully!', 'success');
+   }
+   setTimeout(() => { try { URL.revokeObjectURL(pdfUrl); } catch (e) {} }, 60000);
+  } catch (err) {
+   console.error('bePr2: PDF export failed', err);
+   if (targetWindow && !targetWindow.closed) targetWindow.close();
+   createToast('Error: ' + err.message, 'danger');
+  } finally {
+   if (node) node.remove();
+   if (button) button.disabled = false;
    toast.remove();
   }
  }
@@ -1283,6 +1468,9 @@
 .bepr-btn-primary:hover { background:#0b5ed7; color:#fff; }
 .bepr-btn-wa { background:#25d366; border-color:#25d366; color:#fff; }
 .bepr-btn-wa:hover { background:#1ebe5b; color:#fff; }
+.bepr-btn-pdf { background:#dc3545; border-color:#dc3545; color:#fff; }
+.bepr-btn-pdf:hover { background:#bb2d3b; color:#fff; }
+.bepr-btn-pdf:disabled { opacity:.65; cursor:progress; }
 .bepr-close { border:none; background:transparent; font-size:26px; line-height:1; padding:0 4px; color:#6c757d; cursor:pointer; }
 .bepr-close:hover { color:#212529; }
 .bepr-subbar { display:flex; align-items:center; gap:12px; padding:6px 12px; background:#fff; border-bottom:1px solid #e9ecef; flex-shrink:0; flex-wrap:wrap; }
@@ -1411,9 +1599,10 @@
 
   try {
    try {
-    await loadCshScriptsSequentially(7);
+    // 6 = html2pdf bundle (html2canvas + jsPDF), 7 = html2canvas.
+    await loadCshScriptsSequentially(7, 6);
    } catch (loadErr) {
-    console.warn('bePr2: html2canvas could not be loaded; image export may be unavailable.', loadErr);
+    console.warn('bePr2: export libraries could not be loaded; image/PDF export may be unavailable.', loadErr);
    }
 
    ensureStyles();
@@ -1484,6 +1673,17 @@
 
    contentElement.querySelector('#beprPaperBtn').addEventListener('click', () => openPaperModal(refs));
    contentElement.querySelector('#beprStyleBtn').addEventListener('click', () => openStyleModal(refs));
+   contentElement.querySelector('#beprPdfBtn').addEventListener('click', event => {
+    // Open the tab during the click gesture so browsers do not treat it as a popup.
+    const targetWindow = window.open('', '_blank');
+    if (targetWindow) {
+     try {
+      targetWindow.document.write('<title>Generating PDF...</title><p style="font-family:system-ui,sans-serif;padding:24px;color:#495057">Generating PDF...</p>');
+      targetWindow.document.close();
+     } catch (e) { /* ignore cross-origin/style restrictions */ }
+    }
+    showPdf(refs, data, event.currentTarget, targetWindow);
+   });
    contentElement.querySelector('#beprDownloadBtn').addEventListener('click', () => downloadImage(refs, data));
 
    modalInstance.show();

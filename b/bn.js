@@ -71,7 +71,7 @@ async function set_add_itm_nw_innerHTML(...params) {
 <label for="bn_c_dtls_lient" class="form-label">Party Details</label>
 <div class="col-12">
 <div class="input-group">
-<input id="bn_c_dtls_lient" type="text" class="form-control border border-dark" readonly onclick="(async () => { await loadExe2Fn(14, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_bn_PartyCall', 1], [1]); })()" placeholder="Select Party">
+<input id="bn_c_dtls_lient" type="text" class="form-control border border-dark" readonly onclick="(async () => { await loadExe2Fn(13, ['no-loader-element', 1, 'modalContentForEntInd', 'commonFnToRunAfter_bn_PartyCall', 1], [1]); })()" placeholder="Select Party">
 <button class="btn btn-outline-danger border border-dark" type="button" id="bn_clr_party" onclick="document.getElementById('bn_c_dtls_lient').value='';document.getElementById('bn_partyId').value='';" title="Clear Party"><i class="fas fa-times"></i></button>
 <input type="hidden" id="bn_partyId">
 </div>
@@ -334,10 +334,12 @@ async function addItemToAPI() {
  if (typeof showEyeMesuremetsTableInBill !== "undefined" && showEyeMesuremetsTableInBill == 1) {
   laTables.splice(4, 0, { tb: 'be', col: 'eb', cl: 'eb' });
  }
- payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, laTables);
- payload0.vw = 1;
  payload0.fn = 2;
- const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
+ payload0.ul = '2/0b.php';
+ payload0.gt = 2;
+ payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, laTables);
+ const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
+ //const response = await fnj3("https://my1.in/2/b.php", payload0, 1, true, null, 20000, 0, 2, 1);
  if (response.su == 1) {
   handl_op_rspons(response, 0);
   setTimeout(async () => {

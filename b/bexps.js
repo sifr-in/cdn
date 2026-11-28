@@ -11,7 +11,7 @@ let EXP_EDIT_ID = null;
 let EXP_ACTIVE_MODAL_ID = '';
 let EXP_CLIENTS = [];
 let EXP_CASHIERS = [];
-let EXP_PAYMENT_MODE = 1;
+let EXP_PAYMENT_MODE = null;
 
 const EXP_LAST_CASHIER_KEY = 'expLastCashier';
 
@@ -20,7 +20,7 @@ function expSetStored(key, val) { try { localStorage.setItem(key, val); } catch 
 
 function expToast(msg, type) {
   if (typeof showToast === 'function') showToast(msg, { type: type || 'info', duration: 2500 });
-  else console.log(msg);
+  else console.warn(msg);
 }
 
 async function expLoadClients() {
@@ -153,25 +153,77 @@ function expPaymentTotal() {
   return EXP_PAYMENTS.reduce(function (s, p) { return s + (parseFloat(p.amount) || 0); }, 0);
 }
 
+function expSame(a, b) {
+  return a != null && b != null && String(a) === String(b);
+}
+function expDateOnly(v) {
+  return String(v == null ? '' : v).slice(0, 10);
+}
+function expAmount(v) {
+  const n = parseFloat(String(v == null ? '' : v).replace(/,/g, ''));
+  return Number.isFinite(n) ? n : 0;
+}
+
+async function expGetAllRRecords() {
+  try { return await dbDexieManager.getAllRecords(dbnm, 'r') || []; } catch (e) { return []; }
+}
+
+// Expenditure payment rows carry the mode in `f`; bill payment rows normally do not.
+// This keeps bill payments out even when numeric ids overlap between b and x.
+function expPaymentMatchesHeader(p, row) {
+  if (!p || !row || p.f == null) return false;
+  if (row.d != null && p.h != null && !expSame(p.h, row.d)) return false;
+  const xDate = expDateOnly(row.i);
+  const rDate = expDateOnly(p.k);
+  if (xDate && rDate && xDate !== rDate) return false;
+  if (row.f_mode != null && !expSame(p.f, row.f_mode)) return false;
+  return true;
+}
+
+function expPaymentsFrom(allR, expenseRow, claimed) {
+  const list = Array.isArray(allR) ? allR : [];
+  const row = (expenseRow && typeof expenseRow === 'object') ? expenseRow : { a: expenseRow };
+  const id = row.a;
+  const directKeys = ['td', 'x', 'xa', 'xid', 'expid', 'expense', 'xp'];
+  const linked = [];
+
+  list.forEach(function (p) {
+    if (!p || (claimed && claimed.has(p))) return;
+    const hasDirectId = directKeys.some(function (k) { return id != null && p[k] != null && expSame(p[k], id); });
+    if (hasDirectId && expPaymentMatchesHeader(p, row)) linked.push(p);
+  });
+
+  // Older locally stored records may not have `td` on the r row. Link them by
+  // party + date, but only when no direct link exists for this expenditure.
+  if (!linked.length) {
+    const xDate = expDateOnly(row.i);
+    list.forEach(function (p) {
+      if (!p || (claimed && claimed.has(p))) return;
+      if (!expPaymentMatchesHeader(p, row)) return;
+      const pDate = expDateOnly(p.k);
+      if (row.d != null && p.h != null && expSame(p.h, row.d) && xDate && pDate === xDate) {
+        linked.push(p);
+      }
+    });
+  }
+
+  if (claimed) linked.forEach(function (p) { claimed.add(p); });
+  return linked;
+}
+
+function expTotalFrom(payments) {
+  return (Array.isArray(payments) ? payments : []).reduce(function (s, p) { return s + expAmount(p && p.j); }, 0);
+}
+async function expPaymentsFor(expenseRow) {
+  return expPaymentsFrom(await expGetAllRRecords(), expenseRow);
+}
+async function expTotalFor(expenseRow) {
+  return expTotalFrom(await expPaymentsFor(expenseRow));
+}
+
 function expUpdatePaymentBase() {
   const el = document.getElementById('exp_paymentBase');
   if (el) el.textContent = expPaymentTotal().toFixed(2);
-}
-
-function expCalcDiscountFromPercentage() {
-  const pct = parseFloat((document.getElementById('exp_discountPercentage') || {}).value) || 0;
-  const base = expPaymentTotal();
-  const amt = (base * pct) / 100;
-  const el = document.getElementById('exp_discountAmount');
-  if (el) el.value = amt.toFixed(2);
-}
-
-function expCalcDiscountFromAmount() {
-  const amt = parseFloat((document.getElementById('exp_discountAmount') || {}).value) || 0;
-  const base = expPaymentTotal();
-  const pct = base > 0 ? (amt / base * 100) : 0;
-  const el = document.getElementById('exp_discountPercentage');
-  if (el) el.value = pct.toFixed(2);
 }
 
 function expRenderPayments() {
@@ -190,9 +242,6 @@ function expRenderPayments() {
       + '</div>';
   }).join('');
   expUpdatePaymentBase();
-  // refresh discount amount from current %
-  const pctEl = document.getElementById('exp_discountPercentage');
-  if (pctEl && pctEl.value && parseFloat(pctEl.value) > 0) expCalcDiscountFromPercentage();
 }
 
 window.expRemovePayment = function (idx) {
@@ -292,7 +341,7 @@ async function set_expenditures_innerHTML(...params) {
 
           <div class="row g-0 mb-3 mt-2">
             <div class="col-12">
-              <input id="exp_p_dtls_lient" type="text" class="form-control border border-dark" readonly onclick="(async () => { await loadExe2Fn(14, ['no-loader-element', 1, 'modalContentForEntInd', 'expCommonFnToRunAfter_op_ViewCall', 1], [1]); })()" placeholder="Party Details">
+              <input id="exp_p_dtls_lient" type="text" class="form-control border border-dark" readonly onclick="(async () => { await loadExe2Fn(13, ['no-loader-element', 1, 'modalContentForEntInd', 'expCommonFnToRunAfter_op_ViewCall', 1], [1]); })()" placeholder="Party Details">
               <input type="hidden" id="exp_partyId">
             </div>
           </div>
@@ -300,23 +349,12 @@ async function set_expenditures_innerHTML(...params) {
           <div class="bm-subhead" style="margin-top:12px;">Mode</div>
           <div class="d-flex gap-3 mb-2">
             <div class="form-check">
-              <input class="form-check-input" type="radio" name="expMode" id="expModePayment" value="1" checked>
+              <input class="form-check-input border border-dark" type="radio" name="expMode" id="expModePayment" value="1">
               <label class="form-check-label" for="expModePayment">Payment</label>
             </div>
             <div class="form-check">
-              <input class="form-check-input" type="radio" name="expMode" id="expModeReceived" value="0">
+              <input class="form-check-input border border-dark" type="radio" name="expMode" id="expModeReceived" value="0">
               <label class="form-check-label" for="expModeReceived">Received</label>
-            </div>
-          </div>
-
-          <div class="row g-2 mb-3" style="flex-wrap:nowrap;">
-            <div class="col-6" style="min-width:0;">
-              <label class="bm-label">Discount %</label>
-              <input type="text" inputmode="decimal" maxlength="5" autocomplete="off" class="form-control bm-input bm-amt" id="exp_discountPercentage" oninput="window.allowDiscountPct(this)" style="font-size:1.05rem;border:2px solid #000080;" placeholder="0.00" value="0">
-            </div>
-            <div class="col-6" style="min-width:0;">
-              <label class="bm-label">Discount ₹</label>
-              <input type="text" inputmode="decimal" maxlength="8" autocomplete="off" class="form-control bm-input bm-amt" id="exp_discountAmount" oninput="window.allowFloat(this,2,5)" style="font-size:1.05rem;border:2px solid #000080;" placeholder="0.00" value="0">
             </div>
           </div>
 
@@ -381,19 +419,17 @@ async function set_expenditures_innerHTML(...params) {
         </div>
       `;
 
-      // discount linking
-      const pctEl = contentElement.querySelector('#exp_discountPercentage');
-      const amtEl = contentElement.querySelector('#exp_discountAmount');
-      if (pctEl) pctEl.addEventListener('input', function () { expCalcDiscountFromPercentage(); });
-      if (amtEl) amtEl.addEventListener('input', function () { expCalcDiscountFromAmount(); });
-
-      // mode radio
-      EXP_PAYMENT_MODE = 1;
+      // mode radio - no default selection; user must pick one
+      EXP_PAYMENT_MODE = null;
       document.querySelectorAll('input[name="expMode"]').forEach(function (r) {
-        r.addEventListener('change', function () { EXP_PAYMENT_MODE = parseInt(r.value, 10) || 0; });
+        r.addEventListener('change', function () {
+          EXP_PAYMENT_MODE = parseInt(r.value, 10) || 0;
+          ['expModePayment', 'expModeReceived'].forEach(function (id) {
+            const el = document.getElementById(id);
+            if (el && typeof clearInvalid === 'function') clearInvalid(el);
+          });
+        });
       });
-      const modePayment = document.getElementById('expModePayment');
-      if (modePayment) modePayment.checked = true;
 
       // date pickers
       try {
@@ -457,20 +493,24 @@ window.expCommonFnToRunAfter_op_ViewCall = function (obj, swtch) {
 };
 
 window.expSaveExpenditure = async function () {
-  ['exp_voucherNo','exp_dateTime','exp_p_dtls_lient','exp_receivedAmount','exp_receivedDateTime'].forEach(function (id) { clearInvalid(document.getElementById(id)); });
+  ['exp_voucherNo','exp_dateTime','expModePayment','expModeReceived','exp_receivedAmount','exp_receivedDateTime'].forEach(function (id) { clearInvalid(document.getElementById(id)); });
   const voucherNo = (document.getElementById('exp_voucherNo') || {}).value || '';
   const date = (document.getElementById('exp_dateTime') || {}).value || '';
   const partyId = (document.getElementById('exp_partyId') || {}).value || '';
   const notes = (document.getElementById('exp_notes') || {}).value || '';
-  const discPct = (document.getElementById('exp_discountPercentage') || {}).value || '0';
-  const discAmt = (document.getElementById('exp_discountAmount') || {}).value || '0';
 
   if (!voucherNo.trim()) { markInvalid(document.getElementById('exp_voucherNo')); expToast('Please enter Voucher/Bill Number.', 'warning'); return; }
   if (!date.trim()) { markInvalid(document.getElementById('exp_dateTime')); expToast('Please select Date & Time.', 'warning'); return; }
-  if (!partyId) { markInvalid(document.getElementById('exp_p_dtls_lient')); expToast('Please select Party.', 'warning'); return; }
+  const selectedMode = document.querySelector('input[name="expMode"]:checked');
+  if (!selectedMode) {
+    ['expModePayment', 'expModeReceived'].forEach(function (id) { markInvalid(document.getElementById(id)); });
+    expToast('Please select Mode (Payment or Received).', 'warning');
+    return;
+  }
+  EXP_PAYMENT_MODE = parseInt(selectedMode.value, 10) || 0;
 
   if (!EXP_PAYMENTS.length) {
-    markInvalid(document.getElementById('exp_receivedAmount'));
+    markInvalid(document.getElementById('exp_addPaymentBtn'));
     expToast('Please add at least one payment.', 'warning');
     return;
   }
@@ -494,8 +534,6 @@ window.expSaveExpenditure = async function () {
     payload0.x = {
       d: partyId || 0,
       f: voucherNo.trim(),
-      g: EXP_PAYMENT_MODE === 0 ? 0 : (discPct || 0),
-      h: EXP_PAYMENT_MODE === 0 ? 0 : (discAmt || 0),
       i: date,
       x1: notes.trim() ? { n: notes.trim() } : null
     };
@@ -517,6 +555,15 @@ window.expSaveExpenditure = async function () {
     payload0.fn = EXP_FN_SAVE;
     const response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
     if (response && response.su == 1) {
+      // The server saves x + r together. Some responses omit the parent id on r,
+      // so stamp it locally before the generic handler writes both tables.
+      const echoedXRows = response.x && Array.isArray(response.x.l) ? response.x.l : (response.x && response.x.l ? [response.x.l] : []);
+      const echoedRRows = response.r && Array.isArray(response.r.l) ? response.r.l : (response.r && response.r.l ? [response.r.l] : []);
+      const newExpenseId = echoedXRows.length ? echoedXRows[0].a : null;
+      if (newExpenseId != null && echoedRRows.length) {
+        echoedRRows.forEach(function (p) { if (p && (p.td == null || p.td === '')) p.td = newExpenseId; });
+        response.r.l = echoedRRows;
+      }
       if (typeof window.handl_op_rspons === 'function') window.handl_op_rspons(response, 0);
       expToast('Expenditure saved successfully!', 'success');
       const modalEl = document.getElementById(EXP_ACTIVE_MODAL_ID);
@@ -565,12 +612,20 @@ window.expShowExpenditureList = async function () {
     modalElement.style.zIndex = '1051';
   }, 50);
 
-  let rows = [], clients = [];
+  let rows = [], clients = [], allR = [];
   try { rows = await dbDexieManager.getAllRecords(dbnm, 'x') || []; } catch (e) { console.error('exp list x:', e); }
   try { clients = await dbDexieManager.getAllRecords(dbnm, 'c') || []; } catch (e) { console.error('exp list c:', e); }
+  try { allR = await expGetAllRRecords(); } catch (e) { console.error('exp list r:', e); }
   EXP_CLIENTS = clients.length ? clients : EXP_CLIENTS;
 
-  const sorted = [...rows].sort(function (a, b) { return new Date(b.f || 0) - new Date(a.f || 0); });
+  const sorted = [...rows].sort(function (a, b) { return new Date(b.i || 0) - new Date(a.i || 0); });
+  const groupedRows = sorted.map(function (r) { return Object.assign({}, r, { _linkedPayments: [] }); });
+  const directClaimed = new Set();
+  groupedRows.forEach(function (r) { r._linkedPayments = expPaymentsFrom(allR, r, directClaimed); });
+  const fallbackClaimed = new Set(directClaimed);
+  groupedRows.forEach(function (r) {
+    if (!r._linkedPayments.length) r._linkedPayments = expPaymentsFrom(allR, r, fallbackClaimed);
+  });
 
   contentElement.innerHTML = `
     <div class="modal-header" style="padding:0.4rem 0.75rem;">
@@ -632,7 +687,7 @@ window.expShowExpenditureList = async function () {
     const q = (searchEl ? searchEl.value : '').toLowerCase().trim();
     const from = fromEl ? fromEl.value : '';
     const to = toEl ? toEl.value : '';
-    const filtered = sorted.filter(function (r) {
+    const filtered = groupedRows.filter(function (r) {
       const vn = String(r.f || '').toLowerCase();
       const cn = clientName(r.d).toLowerCase();
       const nt = String((r.x1 && r.x1.n) || '').toLowerCase();
@@ -649,27 +704,36 @@ window.expShowExpenditureList = async function () {
     listEl.innerHTML = filtered.map(function (r) {
       const d = String(r.i || '');
       const cn = clientName(r.d);
-      const amt = (r.h != null ? r.h : '');
-      const modeBadge = (String(r.f_mode || '') === '0') ? 'Received' : '';
+      const payments = Array.isArray(r._linkedPayments) ? r._linkedPayments : [];
+      const amt = expTotalFrom(payments).toFixed(2);
+      const modeBadge = payments.length
+        ? '<span class="badge bg-light text-dark border ms-1" style="font-size:0.65rem;">' + (String(payments[0].f) === '0' ? 'Received' : 'Payment') + '</span>'
+        : '';
       return '<div class="d-flex align-items-center justify-content-between border-bottom px-2 py-2 exp-row" style="cursor:pointer;" data-id="' + r.a + '">'
         + '<div style="min-width:0;">'
         + '<div class="fw-bold text-truncate">' + (r.f || '-') + '</div>'
         + '<small class="text-muted">' + cn + ' · ' + d + '</small>'
         + '</div>'
         + '<div class="text-end">'
-        + '<div class="fw-bold text-danger">₹' + amt + '</div>'
+        + '<div class="fw-bold text-danger">₹' + amt + modeBadge + '</div>'
         + '<button class="btn btn-sm btn-outline-secondary py-0 px-1 mt-1" data-view="' + r.a + '"><i class="fas fa-eye"></i></button>'
         + '</div>'
         + '</div>';
     }).join('');
 
+    function openDetail(id) {
+      const row = groupedRows.find(function (x) { return expSame(x.a, id); });
+      if (row) expShowExpenditureDetail(row, clients);
+    }
+
     listEl.querySelectorAll('[data-view]').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
-        const id = btn.getAttribute('data-view');
-        const row = rows.find(function (x) { return String(x.a) === String(id); });
-        if (row) expShowExpenditureDetail(row, clients);
+        openDetail(btn.getAttribute('data-view'));
       });
+    });
+    listEl.querySelectorAll('.exp-row').forEach(function (rowEl) {
+      rowEl.addEventListener('click', function () { openDetail(rowEl.getAttribute('data-id')); });
     });
   }
 
@@ -680,7 +744,7 @@ window.expShowExpenditureList = async function () {
   modalInstance.show();
 };
 
-function expShowExpenditureDetail(row, clients) {
+async function expShowExpenditureDetail(row, clients) {
   const modalId = 'expDetail_' + Date.now();
   if (typeof create_modal_dynamically !== 'function') return;
   const modalResult = create_modal_dynamically(modalId);
@@ -694,53 +758,49 @@ function expShowExpenditureDetail(row, clients) {
 
   const client = (clients || []).find(function (c) { return String(c.a) === String(row.d); });
   const cname = client ? (client.e || client.h) : (row.e || '-');
-  const payments = (typeof dbDexieManager !== 'undefined' ? [] : []);
-  // load r rows linked to this expenditure
-  (async function () {
-    let allR = [];
-    try { allR = await dbDexieManager.getAllRecords(dbnm, 'r') || []; } catch (e) { allR = []; }
-    const linked = allR.filter(function (p) { return String(p.td) === String(row.a); });
-    const payHtml = linked.length
-      ? linked.map(function (p) {
-          const cname2 = (clients || []).find(function (c) { return String(c.a) === String(p.g); });
-          const payCashier = cname2 ? (cname2.e || cname2.h) : (p.g || '-');
-          const modeTxt = (String(p.f) === '0') ? 'Received' : 'Payment';
-          const nBadge = (p.n && Number(p.n) > 0) ? ' <span class="badge bg-warning text-dark" style="font-size:0.65rem;">#' + p.n + '</span>' : '';
-          return '<tr><td>' + (p.k || '') + '</td><td class="text-end">' + Number(p.j || 0).toFixed(2) + nBadge + '</td><td>' + payCashier + '</td><td><span class="badge bg-primary" title="' + expPaymentTypeText(p.i) + '">' + expPaymentTypeIcon(p.i) + '</span></td><td>' + modeTxt + '</td></tr>';
-        }).join('')
-      : '<tr><td colspan="4" class="text-muted text-center">No payments</td></tr>';
+  const linked = Array.isArray(row._linkedPayments)
+    ? row._linkedPayments
+    : expPaymentsFrom(await expGetAllRRecords(), row);
 
-    contentElement.innerHTML = `
-      <div class="modal-header" style="padding:0.4rem 0.75rem;">
-        <h5 class="modal-title"><i class="fas fa-receipt me-2"></i>Expenditure Detail</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  const payHtml = linked.length
+    ? linked.map(function (p) {
+        const cname2 = (clients || []).find(function (c) { return String(c.a) === String(p.g); });
+        const payCashier = cname2 ? (cname2.e || cname2.h) : (p.g || '-');
+        const modeTxt = (String(p.f) === '0') ? 'Received' : 'Payment';
+        const typeTxt = p.i == null ? '-' : expPaymentTypeText(p.i);
+        const nBadge = (p.n && Number(p.n) > 0) ? ' <span class="badge bg-warning text-dark" style="font-size:0.65rem;">#' + p.n + '</span>' : '';
+        return '<tr><td>' + (p.k || '') + '</td><td class="text-end">' + expAmount(p.j).toFixed(2) + nBadge + '</td><td>' + payCashier + '</td><td><span class="badge bg-primary" title="' + typeTxt + '">' + expPaymentTypeIcon(p.i) + '</span></td><td>' + modeTxt + '</td></tr>';
+      }).join('')
+    : '<tr><td colspan="5" class="text-muted text-center">No payments</td></tr>';
+
+  contentElement.innerHTML = `
+    <div class="modal-header" style="padding:0.4rem 0.75rem;">
+      <h5 class="modal-title"><i class="fas fa-receipt me-2"></i>Expenditure Detail</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body" style="padding:0.4rem 0.75rem;">
+      <div class="row mb-2">
+        <div class="col-6"><strong>Voucher:</strong> ${row.f || '-'}</div>
+        <div class="col-6"><strong>Date:</strong> ${row.i || '-'}</div>
       </div>
-      <div class="modal-body" style="padding:0.4rem 0.75rem;">
-        <div class="row mb-2">
-          <div class="col-6"><strong>Voucher:</strong> ${row.f || '-'}</div>
-          <div class="col-6"><strong>Date:</strong> ${row.i || '-'}</div>
-        </div>
-        <div class="row mb-2">
-          <div class="col-12"><strong>Party:</strong> ${cname}</div>
-        </div>
-        <div class="row mb-2">
-          <div class="col-6"><strong>Discount %:</strong> ${row.g || 0}</div>
-          <div class="col-6"><strong>Discount ₹:</strong> ${row.h || 0}</div>
-        </div>
-        ${row.x1 && row.x1.n ? '<div class="mb-2"><strong>Notes:</strong> <span class="text-muted">' + row.x1.n + '</span></div>' : ''}
-        <div class="bm-subhead" style="margin-top:8px;">Payments</div>
-        <table class="table table-sm table-bordered mb-0">
-          <thead><tr><th>Date</th><th class="text-end">Amount</th><th>Cashier</th><th>Type</th><th>Mode</th></tr></thead>
-          <tbody>${payHtml}</tbody>
-        </table>
+      <div class="row mb-2">
+        <div class="col-6"><strong>Party:</strong> ${cname}</div>
+        <div class="col-6 text-end"><strong>Total:</strong> ₹${expTotalFrom(linked).toFixed(2)}</div>
       </div>
-      <div class="modal-footer" style="padding:0.4rem 0.75rem;">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      </div>
-    `;
-  })();
+      ${row.x1 && row.x1.n ? '<div class="mb-2"><strong>Notes:</strong> <span class="text-muted">' + row.x1.n + '</span></div>' : ''}
+      <div class="bm-subhead" style="margin-top:8px;">Payments</div>
+      <table class="table table-sm table-bordered mb-0">
+        <thead><tr><th>Date</th><th class="text-end">Amount</th><th>Cashier</th><th>Type</th><th>Mode</th></tr></thead>
+        <tbody>${payHtml}</tbody>
+      </table>
+    </div>
+    <div class="modal-footer" style="padding:0.4rem 0.75rem;">
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    </div>
+  `;
   modalInstance.show();
 }
 
 window.set_expenditures_innerHTML = set_expenditures_innerHTML;
 window.expShowExpenditureList = expShowExpenditureList;
+window.expShowExpenditureDetail = expShowExpenditureDetail;
