@@ -26,7 +26,7 @@ window.openImagePicker = function (slot) {
   if (slot < 0 || slot > 4) return;
   window.pendingImageSlot = slot;
   (async function () {
-    await loadExe2Fn(35, [window.afterimagesetcallrun, imgObjDimensRqd], [1]);
+    await loadExe2Fn(11, [window.afterimagesetcallrun, imgObjDimensRqd], [1]);
   })();
 };
 
@@ -1539,24 +1539,21 @@ async function doPublishRoom(out, editId) {
       (updating ? "Updating..." : "Adding...");
   }
 
-  console.log(
-    "📤 " + (updating ? "Update" : "Add") + " Room:",
-    JSON.stringify(payload0.p, null, 2),
-  );
-
   try {
-    var resp = await fnj3(
-      "https://my1.in/2/q.php",
-      payload0,
-      1,
-      true,
-      null,
-      20000,
-      0,
-      1,
-      1,
-    );
-    console.log("📥 Server:", resp);
+    //var resp = await fnj3(
+    // "https://my1.in/2/q.php",
+    // payload0,
+    // 1,
+    // true,
+    // null,
+    // 20000,
+    // 0,
+    // 1,
+    // 1,
+    //);
+    payload0.ul = '2/0q.php';
+    payload0.gt = 2;
+    var resp = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
     if (resp && resp.su == 1) {
       var serverMsg = (resp.ms || "").toLowerCase();
       if (
@@ -1608,5 +1605,3 @@ async function doPublishRoom(out, editId) {
       (updating ? "Update Room" : "Add Room");
   }
 }
-
-console.log("➕ addRoom.js loaded");

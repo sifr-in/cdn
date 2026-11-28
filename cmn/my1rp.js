@@ -32,13 +32,7 @@ function my1rpVal(id) {
   return el ? (el.value || "").trim() : "";
 }
 
-function my1rpLog(tag, payload) {
-  try {
-    console.log(tag, JSON.stringify(payload, null, 2));
-  } catch (e) {
-    console.log(tag, payload);
-  }
-}
+function my1rpLog(tag, payload) {}
 
 /* ---- config helpers ---- */
 
@@ -1293,5 +1287,3 @@ function open_my1rp(rpCfg, cashiers, functionNameIStoRun, existingRParray, allex
 }
 
 window.open_my1rp = open_my1rp;
-
-console.log("🧾 my1rp.js loaded");

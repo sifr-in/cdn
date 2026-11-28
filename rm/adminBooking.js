@@ -177,24 +177,27 @@ window.updateBillPayments = async function () {
 
     var response = null;
 
-    response = await fnj3(
-      "https://my1.in/2/p.php",
-      payload0,
-      1,
-      true,
-      null,
-      20000,
-      0,
-      2,
-      1
-    );
+    //response = await fnj3(
+    // "https://my1.in/2/p.php",
+    // payload0,
+    // 1,
+    // true,
+    // null,
+    // 20000,
+    // 0,
+    // 2,
+    // 1
+    //);
+    payload0.ul = '2/0p.php';
+    payload0.gt = 2;
+    response = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
 
     if (response && response.su == 1) {
       // if (typeof handl_rm_rspons !== "function") {
       //   try {
-      //     await loadExe2Fn(52);
+      //     await loadExe2Fn(21);
       //   } catch (e) {
-      //     console.warn("loadExe2Fn(52) failed:", e);
+      //     console.warn("loadExe2Fn(21) failed:", e);
       //   }
       // }
       await handl_rm_rspons(response);
@@ -430,7 +433,6 @@ window.printBillFromDashboard = async function (bookingId, onDone) {
     if (typeof onDone === "function") onDone();
   };
   if (typeof showBill !== "function") {
-    console.log("Print unavailable.");
     finish();
     return;
   }
@@ -486,7 +488,6 @@ window.printBillsFromDashboard = async function (idList, onAllDone) {
   var done = typeof onAllDone === "function" ? onAllDone : function () {};
   var ids = savedBookingIdList(idList);
   if (!ids.length || typeof showBill !== "function") {
-    if (!ids.length) console.log("Print unavailable.");
     done();
     return;
   }
@@ -660,15 +661,6 @@ window.openRcptPmtModal = async function (roomId) {
       ? (bookingState.roomPayments || {})[bePaymentTargetRoomId] || []
       : bookingState.payments || [];
     existing = mergeReceiptLists(base, dbList);
-    console.info(
-      "🧾 Receipt/Payment seed:",
-      (base || []).length,
-      "in booking state,",
-      dbList.length,
-      "matching r rows,",
-      existing.length,
-      "opened",
-    );
   } else {
     // While editing a combination, the room being paid for decides which list
     // the modal opens with.
@@ -1529,7 +1521,7 @@ function renderGuestStep() {
 async function beEnsureGuestPicker() {
   if (typeof open_entind_crud === "function") return true;
   try {
-    await loadExe2Fn(36);
+    await loadExe2Fn(13);
     return typeof open_entind_crud === "function";
   } catch (e) {
     console.error("Guest selector load failed:", e);
@@ -1560,6 +1552,7 @@ window.selectBookingGuest = function (record) {
   if (record && record.a) {
     bookingState.guestCId = record.a;
   }
+  if (record) beApplyGuestC1ToWizard(record);
 };
 
 function renderChildrenStep() {
@@ -3400,27 +3393,27 @@ window.saveBooking = async function () {
   ]);
   payload0.fn = 112;
 
-  console.log("📤 Save Booking:", JSON.stringify(payload0.p, null, 2));
-
   try {
-    if (typeof fnj3 === "function") {
-      var resp = await fnj3(
-        "https://my1.in/2/s.php",
-        payload0,
-        1,
-        true,
-        null,
-        20000,
-        0,
-        1,
-        1,
-      );
+      //var resp = await fnj3(
+      // "https://my1.in/2/s.php",
+      // payload0,
+      // 1,
+      // true,
+      // null,
+      // 20000,
+      // 0,
+      // 1,
+      // 1,
+      //);
+      payload0.ul = '2/0s.php';
+      payload0.gt = 2;
+      var resp = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
       if (resp && resp.su == 1) {
         if (typeof handl_rm_rspons !== "function") {
           try {
-            await loadExe2Fn(52);
+            await loadExe2Fn(21);
           } catch (e) {
-            console.warn("loadExe2Fn(52) failed:", e);
+            console.warn("loadExe2Fn(21) failed:", e);
           }
         }
         await handl_rm_rspons(resp);
@@ -3447,9 +3440,6 @@ window.saveBooking = async function () {
       } else {
         showMessageModal("Error", resp?.ms || "Failed to save booking", true);
       }
-    } else {
-      showMessageModal("Info", "Server communication not available", false);
-    }
   } catch (err) {
     if (bookingEntryMode()) {
       // Booking Entry view: keep the form (and its Stay Dates) so the user can
@@ -3471,10 +3461,6 @@ window.updateBooking = async function () {
     showMessageModal("Info", "No booking selected to update!", false);
     return;
   }
-  if (typeof fnj3 !== "function") {
-    showMessageModal("Info", "Server communication not available", false);
-    return;
-  }
   var built = buildBookingPayload();
 
   payload0.x1 = bookingId;
@@ -3487,30 +3473,27 @@ window.updateBooking = async function () {
     { tb: "c" },
   ]);
 
-  console.log(
-    "📤 Update Booking:",
-    bookingId,
-    JSON.stringify(payload0.p, null, 2),
-  );
-
   try {
-    var resp = await fnj3(
-      "https://my1.in/2/s.php",
-      payload0,
-      1,
-      true,
-      null,
-      20000,
-      0,
-      1,
-      1,
-    );
+    //var resp = await fnj3(
+    // "https://my1.in/2/s.php",
+    // payload0,
+    // 1,
+    // true,
+    // null,
+    // 20000,
+    // 0,
+    // 1,
+    // 1,
+    //);
+    payload0.ul = '2/0s.php';
+    payload0.gt = 2;
+    var resp = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
     if (resp && resp.su == 1) {
       if (typeof handl_rm_rspons !== "function") {
         try {
-          await loadExe2Fn(52);
+          await loadExe2Fn(21);
         } catch (e) {
-          console.warn("loadExe2Fn(52) failed:", e);
+          console.warn("loadExe2Fn(21) failed:", e);
         }
       }
       await handl_rm_rspons(resp);
@@ -3538,10 +3521,6 @@ window.deleteBookingRecord = function (record) {
       "Delete this booking? This cannot be undone.",
     )))
       return;
-    if (typeof fnj3 !== "function") {
-      showMessageModal("Info", "Server communication not available", false);
-      return;
-    }
     var upd = {};
     for (var key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key))
@@ -3556,26 +3535,27 @@ window.deleteBookingRecord = function (record) {
     payload0.vw = 1;
     payload0.fn = 115; // Delete Bookings
 
-    console.log("🗑️ Delete Booking:", record.a, JSON.stringify(payload0.p));
-
     try {
-      var resp = await fnj3(
-        "https://my1.in/2/t.php",
-        payload0,
-        1,
-        true,
-        null,
-        20000,
-        0,
-        1,
-        1,
-      );
+      //var resp = await fnj3(
+      // "https://my1.in/2/t.php",
+      // payload0,
+      // 1,
+      // true,
+      // null,
+      // 20000,
+      // 0,
+      // 1,
+      // 1,
+      //);
+      payload0.ul = '2/0t.php';
+      payload0.gt = 2;
+      var resp = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
       if (resp && resp.su == 1) {
         // if (typeof handl_rm_rspons !== "function") {
         //   try {
-        //     await loadExe2Fn(52);
+        //     await loadExe2Fn(21);
         //   } catch (e) {
-        //     console.warn("loadExe2Fn(52) failed:", e);
+        //     console.warn("loadExe2Fn(21) failed:", e);
         //   }
         // }
         await dbDexieManager.deleteRecords(dbnm, "rb", record.a).catch(err => {
@@ -3957,6 +3937,7 @@ window.editBookingRecord = async function (record) {
               }
             }
             if (gRecW.m) bookingState.address = gRecW.m;
+            beApplyGuestC1ToWizard(gRecW);
             break;
           }
         }
@@ -3965,7 +3946,6 @@ window.editBookingRecord = async function (record) {
     beBookedDatesCache = {};
   }
 };
-console.log("📅 booking.js loaded");
 
 // ════════════════════════════════════════════════════════════════════
 //  BOOKING ENTRY VIEW (full-page, 31 fields) — shown when changeToView = "1"
@@ -4190,12 +4170,136 @@ function formatNameMobile(i, h) {
 }
 
 
+function beDecodeHtml(value) {
+  if (value === null || value === undefined) return "";
+  var s = String(value);
+  if (!/&(?:#\d+|#x[0-9a-f]+|quot|amp|lt|gt|nbsp|apos);/i.test(s)) return s;
+  var ta = document.createElement("textarea");
+  ta.innerHTML = s;
+  return ta.value;
+}
+
+function beParseGuestC1(obj) {
+  if (!obj || typeof obj !== "object") return null;
+  var raw = obj.c1 !== undefined ? obj.c1 : null;
+  if (raw === null && obj.p) {
+    var p = obj.p;
+    if (typeof p === "string") {
+      try { p = JSON.parse(p); } catch (e) { p = null; }
+    }
+    if (p && typeof p === "object") raw = p.c1;
+  }
+  if (raw === null || raw === undefined) return null;
+  if (typeof raw === "object" && !Array.isArray(raw)) return raw;
+  var s = String(raw).trim();
+  if (!s) return null;
+  function asObject(text) {
+    try {
+      var parsed = JSON.parse(text);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+        ? parsed
+        : null;
+    } catch (e) {
+      return null;
+    }
+  }
+  // Parse first: decoding entities before JSON.parse would turn an encoded
+  // value such as &quot; into a raw quote and break the surrounding JSON.
+  return asObject(s) || asObject(beDecodeHtml(s).trim());
+}
+
+function beGuestC1Config() {
+  var cfg = null;
+  try {
+    cfg =
+      window[my1uzr.worknOnPg]?.clientConfig?.xtraEiFlds_ei_admin_srchGuest?.c1 ||
+      null;
+  } catch (e) {
+    cfg = null;
+  }
+  var fallback = [
+    { key: "eml", label: "Email" },
+    { key: "drvlc", label: "Driving License" },
+    { key: "adhar", label: "Aadhaar Card" },
+    { key: "pport", label: "Passport" },
+  ];
+  if (!cfg || typeof cfg !== "object" || Array.isArray(cfg)) return fallback;
+  var out = [];
+  var seen = {};
+  (function walk(node) {
+    for (var k in node) {
+      if (!Object.prototype.hasOwnProperty.call(node, k)) continue;
+      var spec = node[k];
+      if (!spec || typeof spec !== "object" || Array.isArray(spec)) continue;
+      if (spec.lbl && !seen[k]) {
+        seen[k] = 1;
+        out.push({ key: k, label: spec.lbl });
+      }
+      if (spec.x && typeof spec.x === "object" && !Array.isArray(spec.x))
+        walk(spec.x);
+    }
+  })(cfg);
+  return out.length ? out : fallback;
+}
+
+function beCleanGuestC1Value(value) {
+  if (value === null || value === undefined || typeof value === "object")
+    return "";
+  var v = beDecodeHtml(value).trim();
+  // Legacy guest rows can carry whole JSON blobs (e.g. "mlk") inside c1;
+  // those are not guest ID fields and must never be rendered as text.
+  if (!v || /^[\[{]/.test(v)) return "";
+  return v;
+}
+
+function beGuestC1Values(obj) {
+  var c1 = beParseGuestC1(obj);
+  var out = {};
+  if (!c1) return out;
+  var fields = beGuestC1Config();
+  for (var i = 0; i < fields.length; i++) {
+    var v = beCleanGuestC1Value(c1[fields[i].key]);
+    if (v) out[fields[i].key] = v;
+  }
+  return out;
+}
+
+function beApplyGuestC1ToWizard(obj) {
+  var values = beGuestC1Values(obj);
+  var emailIn = document.getElementById("bkEmail");
+  if (emailIn && values.eml) emailIn.value = values.eml;
+  var typeMap = {
+    drvlc: "Driving License",
+    adhar: "Aadhaar Card",
+    pport: "Passport",
+  };
+  var order = ["drvlc", "adhar", "pport"];
+  try {
+    var rq =
+      window[my1uzr.worknOnPg]?.clientConfig?.xtraEiFlds_ei_admin_srchGuest?.c1
+        ?.rqOneOf;
+    if (Array.isArray(rq) && rq.length) order = rq;
+  } catch (e) { }
+  var key = "";
+  for (var i = 0; i < order.length; i++) {
+    if (values[order[i]]) {
+      key = order[i];
+      break;
+    }
+  }
+  if (!key) return;
+  var typeIn = document.getElementById("bkIdType");
+  var numIn = document.getElementById("bkIdNumber");
+  if (typeIn && typeMap[key]) typeIn.value = typeMap[key];
+  if (numIn) numIn.value = values[key];
+}
+
 function commonFnToRunAfter_op_ViewCall(obj, swtch) {
   obj = obj || {};
   if (swtch === 1) {
     // Set values to client
     var nm = document.getElementById("beGuestName");
-    if (nm) nm.value = formatNameMobile(obj.a, obj.h);
+    if (nm) nm.value = obj.h || obj.i || "";
     var mob = document.getElementById("beMobile");
     var mobParts = obj.e ? String(obj.e).split(".") : [];
     if (mob) mob.value = mobParts.length === 2 ? mobParts[1] : (obj.e || "");
@@ -4204,34 +4308,30 @@ function commonFnToRunAfter_op_ViewCall(obj, swtch) {
     // Capture the guest's c-table PK so the booking payload p.o carries it
     // instead of 0.
     bookingState.guestCId = obj.a ? obj.a : 0;
-    //doHere
-    var c1o = obj.c1 || null;
-    if (typeof c1o === "string") {
-      try { c1o = JSON.parse(c1o); } catch (e) { c1o = null; }
-    }
+
+    var values = beGuestC1Values(obj);
+    var fields = beGuestC1Config();
     var lines = "";
     var have = 0;
-    for (var ck in (c1o || {})) {
-      if (!c1o.hasOwnProperty(ck)) continue;
-      if (c1o[ck] === undefined || c1o[ck] === null) continue;
-      var v = c1o[ck];
-      if (typeof v !== "string") v = JSON.stringify(v);
+    for (var i = 0; i < fields.length; i++) {
+      var v = values[fields[i].key];
       if (!v) continue;
-      var lbl = ck === "adhar" ? "Aadhaar Card" :
-        ck === "pport" ? "Passport" :
-          ck === "drvlc" ? "Driving License" : ck;
       lines +=
         '<div class="be-id-line" style="display:flex;justify-content:space-between;gap:8px;padding:2px 0;">' +
-        '<span class="fw-bold" style="color:#8A5A2B;">' + lbl + '</span>' +
-        '<span>' + escAttr(v) + '</span></div>';
+        '<span class="fw-bold" style="color:#8A5A2B;">' +
+        escHtml(fields[i].label) +
+        "</span>" +
+        "<span>" +
+        escHtml(v) +
+        "</span></div>";
       have++;
     }
-    if (have) {
-      var infoBox = document.getElementById("beIdInfo");
-      if (infoBox) {
-        infoBox.style.cssText = "margin-top:6px;border-left:2px solid var(--gold,#C9A45C);padding-left:8px;";
-        infoBox.innerHTML = lines;
-      }
+    var infoBox = document.getElementById("beIdInfo");
+    if (infoBox) {
+      infoBox.innerHTML = have ? lines : "";
+      infoBox.style.cssText = have
+        ? "margin-top:6px;border-left:2px solid var(--gold,#C9A45C);padding-left:8px;"
+        : "display:none;";
     }
     beRevealGuestBody();
     // Same as selectBookingGuestEntry: the summary must describe the party that
@@ -4327,7 +4427,7 @@ function beRoomStaySection() {
   h +=
     '<div class="col-12 col-sm-6 col-lg-4">' +
     '<label class="form-label-premium">Select guest</label>' +
-    '<button type="button" class="btn-premium btn-premium-primary" onclick="(async () => { await loadExe2Fn(36, [\'no-loader-element\', 1, \'modalContentForEntInd\', \'commonFnToRunAfter_op_ViewCall\', 1, typeof window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_ei_admin_srchGuest !== \'undefined\' ? window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_ei_admin_srchGuest : null], [1]); })()">' +
+    '<button type="button" class="btn-premium btn-premium-primary" onclick="(async () => { await loadExe2Fn(13, [\'no-loader-element\', 1, \'modalContentForEntInd\', \'commonFnToRunAfter_op_ViewCall\', 1, typeof window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_ei_admin_srchGuest !== \'undefined\' ? window[my1uzr.worknOnPg].clientConfig.xtraEiFlds_ei_admin_srchGuest : null], [1]); })()">' +
     '<i class="fas fa-search me-1"></i> Select Guest</button></div>' +
     '</div>' +
     "</div></div></div>";
@@ -5821,16 +5921,6 @@ async function beValidate() {
         bookingState.editBookingId || null,
       )
     ) {
-      console.log(
-        "[beValidate] roomId",
-        room.a != null ? room.a : room.e,
-        "checkin",
-        bookingState.checkin,
-        "checkout",
-        bookingState.checkout,
-        "editId",
-        bookingState.editBookingId,
-      );
       showMessageModal(
         "Info",
         "This room is not available for the selected dates! Change the dates or pick another room.",

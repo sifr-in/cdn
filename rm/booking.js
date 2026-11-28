@@ -344,7 +344,7 @@ function publicRoomIsAvailable(r, from, to) {
 
 function showRoomBookedConflictMessage() {
   var cfg =
-    window[my1uzr.worknOnPg]?.clientConfig?.cust_da_const || {};
+    window[my1uzr.worknOnPg]?.clientConfigByAdm?.cust_da_const || {};
   var message =
     cfg.msgOnBookButtonifRoomBooked ||
     "This room is already booked for the selected dates.";
@@ -365,7 +365,7 @@ async function bookRoomNow(id) {
     }
   }
   var cfg =
-    window[my1uzr.worknOnPg]?.clientConfig?.cust_da_const || {};
+    window[my1uzr.worknOnPg]?.clientConfigByAdm?.cust_da_const || {};
   if (cfg.showRoomAvalOnHomePg != 1 && typeof openRoomBooking === "function") {
     await openRoomBooking();
   }
@@ -492,7 +492,7 @@ function combinations(list, size) {
 async function bookComboNow(key) {
   var combo = publicComboByKey(key);
   if (!combo) return;
-  var cfg = window[my1uzr.worknOnPg]?.clientConfig?.cust_da_const || {};
+  var cfg = window[my1uzr.worknOnPg]?.clientConfigByAdm?.cust_da_const || {};
   if (cfg.showRoomAvalOnHomePg != 1 && typeof openRoomBooking === "function") {
     await openRoomBooking();
   }
@@ -1396,7 +1396,7 @@ function addonFacilityId(name) {
    PAYLOAD + SERVER REQUEST (booking only)
    ------------------------------------------------------------
    Mirrors the KS save pattern: a single flat payload0.p built
-   inline, fnj3 with a hardcoded endpoint and a silent
+   inline, fnj4 with a payload-based endpoint and a silent
    best-effort sync - the booking preview modal (payAmount) is
    the only UI feedback.
 
@@ -1493,18 +1493,20 @@ async function sendBookingPayload(paySnap) {
   delete payload0.x1;
 
   try {
-    if (typeof fnj3 === "function") {
-      var resp = await fnj3(
-        "https://my1.in/3/c.php",
-        payload0,
-        1,
-        true,
-        null,
-        20000,
-        0,
-        2,
-        1,
-      );
+      //var resp = await fnj3(
+      // "https://my1.in/3/c.php",
+      // payload0,
+      // 1,
+      // true,
+      // null,
+      // 20000,
+      // 0,
+      // 2,
+      // 1,
+      //);
+      payload0.ul = '3/0c.php';
+      payload0.gt = 3;
+      var resp = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
       if (resp && resp.su == 1) {
         await hndlRspo113(resp, snap, snap.room);
       } else {
@@ -1518,7 +1520,6 @@ async function sendBookingPayload(paySnap) {
         console.warn("Server did not return data - keeping local data");
           return;
       }
-    }
   } catch (err) {
     pendingPay = false;
     paySnapLatch = null;
@@ -2467,8 +2468,6 @@ async function printBookingBill(bk) {
     showBill(ensureSnapGst(bookingSnapFromRecord(bk)), function () {
       if (typeof showHome === "function") showHome();
     });
-  } else {
-    console.log("Print unavailable.");
   }
 }
 
@@ -2540,7 +2539,6 @@ function printBookingBillsSequentially(idList, onAllDone) {
     showBill(ensureSnapGst(bookingSnapFromRecord(bk)), next);
   }
   if (typeof showBill !== "function") {
-    console.log("Print unavailable.");
     return ids;
   }
   next();
@@ -2586,8 +2584,6 @@ window.printMyBooking = async function (opt, item) {
       showBill(ensureSnapGst(bookingSnapFromRecord(normalizeBookingRow(bk))), function () {
         if (typeof showHome === "function") showHome();
       });
-    } else {
-      console.log("Print unavailable.");
     }
     return;
   }
@@ -2748,7 +2744,7 @@ async function startPhonePePayment(snapArg, orderIdArg) {
   // NOTE: for success testing - keep as is, do not use now. Simulates a
   // completed PhonePe payment so the paid leg can run without a gateway.
   // To use again: set paymentGatewayAfterSuccessTesting = 1 in rm.da and uncomment.
-  // var cfgGa = window[my1uzr.worknOnPg]?.clientConfig?.cust_da_const || {};
+  // var cfgGa = window[my1uzr.worknOnPg]?.clientConfigByAdm?.cust_da_const || {};
   // if (cfgGa.paymentGatewayAfterSuccessTesting == 1 && idList.length) {
   //   window.ppPostData = {
   //     orderId: idList.join(PP_BOOKING_ID_SEP) + "-" + Date.now(),
@@ -2761,7 +2757,7 @@ async function startPhonePePayment(snapArg, orderIdArg) {
   snap = snap || lastSnap || calcBooking();
   if (!snap) return;
   my1PageLoader(true);
-  if(window[my1uzr.worknOnPg].clientConfig?.cust_da_const?.paymentGatewayIntegrated == 1){
+  if(window[my1uzr.worknOnPg].clientConfigByAdm?.cust_da_const?.paymentGatewayIntegrated == 1){
   try {
     var amount =
       snap.paymentPhonePayGT != null
@@ -2864,5 +2860,3 @@ document.addEventListener("keydown", function (e) {
     closeModal();
   }
 });
-
-console.log("✅ booking loaded");

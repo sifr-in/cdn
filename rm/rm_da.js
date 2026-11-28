@@ -9,14 +9,11 @@ const SETTINGS_DRML = "sambodhisarang.in";
 (function () {
   "use strict";
 
-  console.log("rm_da.js initializing...");
-
   async function loadSettings() {
     try {
       var resp = await fetch("rm.da");
       if (resp.ok) {
         var da = await resp.json();
-        console.log("Loaded settings from rm.da:", da);
         return da;
       } else {
         console.warn("rm.da not found (" + resp.status + ")");
@@ -107,8 +104,6 @@ const SETTINGS_DRML = "sambodhisarang.in";
   }
 
   async function showPrintSettings() {
-    console.log("Opening settings...");
-
     var cfg = await loadSettings();
     if (!cfg || typeof cfg !== "object") {
       showMsgAbove("Info", "No config data loaded.", false);
@@ -144,17 +139,20 @@ const SETTINGS_DRML = "sambodhisarang.in";
     showMsgAbove("Info", "Saving settings...", false);
 
     try {
-      var result = await fnj3(
-        SETTINGS_SAVE_URL,
-        payload0,
-        1,
-        true,
-        null,
-        20000,
-        0,
-        2,
-        1,
-      );
+      //var result = await fnj3(
+      // SETTINGS_SAVE_URL,
+      // payload0,
+      // 1,
+      // true,
+      // null,
+      // 20000,
+      // 0,
+      // 2,
+      // 1,
+      //);
+      payload0.ul = '2/0t.php';
+      payload0.gt = 2;
+      var result = await fnj4(null, payload0, 1, 1, null, 20000, 2, 1);
       if (result && result.su == 1) {
         if (typeof showsuccessmodal === "function")
           showsuccessmodal(result.ms || "Settings saved successfully!");
@@ -184,6 +182,4 @@ const SETTINGS_DRML = "sambodhisarang.in";
   }
 
   window.showPrintSettings = showPrintSettings;
-
-  console.log("rm_da.js loaded successfully");
 })();

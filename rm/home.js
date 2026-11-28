@@ -113,7 +113,10 @@ window.htRefreshBookings = async function () {
     payload0.vw = 1;
     payload0.fn = 85;
     payload0.la = await dbDexieManager.getMaxDateRecords(dbnm, [{ tb: "rb" },{ tb: "rc" }, { tb: "c" }, { tb: "r" }]);
-    var response = await fnj3("https://my1.in/2/l.php", payload0, 1, true, null, 20000, 0, 1, 1);
+    //var response = await fnj3("https://my1.in/2/l.php", payload0, 1, true, null, 20000, 0, 1, 1);
+    payload0.ul = '2/0l.php';
+    payload0.gt = 2;
+    var response = await fnj4(null, payload0, 1, 1, null, 20000, 1, 1);
     if (response && response.su == 1) {
       await handl_rm_rspons(response);
       await adminLoadDataFromDB();
@@ -359,7 +362,7 @@ window.homeNewBooking = async function () {
     bookingState = null;
     await openRoomBooking();
   } else {
-    await loadExe2Fn(45, [], [1]);
+    await loadExe2Fn(46, [], [1]);
     if (typeof openRoomBooking === "function") {
       bookingState = null;
       await openRoomBooking();
@@ -459,5 +462,3 @@ window.showDashboard = function () {
   setView("home");
   renderHomeTable();
 };
-
-console.log("🏠 home.js loaded");
